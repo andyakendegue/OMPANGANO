@@ -1,0 +1,10 @@
+{
+  "name": "NKALA APP Enenga - Crowdsourcing Linguistique Myènè",
+  "description": "Plateforme participative et ludique de préservation et d'enregistrement vocal de la langue Myènè (Enenga) avec synchronisation temps réel, badges, classements et mode hors-ligne.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

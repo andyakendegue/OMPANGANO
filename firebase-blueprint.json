@@ -1,0 +1,228 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Profil utilisateur complet OMPAGANO avec identité généalogique obligatoire (tribu, clans paternel/maternel, village), niveau, badges et statut de traçabilité",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "fullName": { "type": "string", "maxLength": 120 },
+        "contact": { "type": "string", "maxLength": 80 },
+        "birthDate": { "type": "string", "maxLength": 20 },
+        "birthPlace": { "type": "string", "maxLength": 100 },
+        "tribe": { "type": "string", "enum": ["Mpongwè", "Adyumba", "Enenga", "Nkomi", "Galoa", "Ôrungu"] },
+        "paternalClan": { "type": "string", "maxLength": 100 },
+        "maternalClan": { "type": "string", "maxLength": 100 },
+        "villageOfOrigin": { "type": "string", "maxLength": 120 },
+        "registrationCompleted": { "type": "boolean" },
+        "email": { "type": "string", "maxLength": 150 },
+        "phoneNumber": { "type": "string", "maxLength": 30 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "role": { "type": "string", "enum": ["user", "validator", "admin"] },
+        "status": { "type": "string", "enum": ["active", "flagged", "suspended"] },
+        "suspicionScore": { "type": "number" },
+        "xp": { "type": "number" },
+        "level": { "type": "string", "maxLength": 50 },
+        "levelIndex": { "type": "number" },
+        "contributionsCount": { "type": "number" },
+        "recordingsCount": { "type": "number" },
+        "validationsCount": { "type": "number" },
+        "streakDays": { "type": "number" },
+        "lastContributionDate": { "type": "string" },
+        "lastActiveAt": { "type": "string" },
+        "badges": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "fullName", "contact", "tribe", "registrationCompleted", "role", "xp"]
+    },
+    "ClanRegistry": {
+      "title": "ClanRegistry",
+      "description": "Répertoire dynamique des clans Myènè enrichi collaborativement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "tribe": { "type": "string", "maxLength": 50 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "VillageRegistry": {
+      "title": "VillageRegistry",
+      "description": "Répertoire dynamique des villages d'origine Myènè enrichi collaborativement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 120 },
+        "tribe": { "type": "string", "maxLength": 50 },
+        "region": { "type": "string", "maxLength": 100 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "QuestionnaireItem": {
+      "title": "QuestionnaireItem",
+      "description": "Expression, mot ou phrase en français et en Myènè soumise au crowdsourcing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "frenchText": { "type": "string", "maxLength": 500 },
+        "myeneText": { "type": "string", "maxLength": 500 },
+        "dialect": { "type": "string", "maxLength": 50 },
+        "category": { "type": "string", "maxLength": 50 },
+        "contextNotes": { "type": "string", "maxLength": 1000 },
+        "imageUrl": { "type": "string", "maxLength": 1000 },
+        "difficulty": { "type": "string", "enum": ["debutant", "intermediaire", "avance"] },
+        "status": { "type": "string", "enum": ["active", "archived"] },
+        "contributionsCount": { "type": "number" },
+        "recordingsCount": { "type": "number" },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "frenchText", "myeneText", "category", "dialect"]
+    },
+    "Contribution": {
+      "title": "Contribution",
+      "description": "Contribution d'un utilisateur: évaluation d'orthographe, proposition alternative et enregistrement audio de prononciation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "itemId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userDisplayName": { "type": "string", "maxLength": 100 },
+        "userTribe": { "type": "string", "maxLength": 50 },
+        "frenchText": { "type": "string", "maxLength": 500 },
+        "originalMyeneText": { "type": "string", "maxLength": 500 },
+        "isSpellingCorrect": { "type": "boolean" },
+        "proposedSpelling": { "type": "string", "maxLength": 500 },
+        "dialectVariant": { "type": "string", "maxLength": 50 },
+        "comment": { "type": "string", "maxLength": 1000 },
+        "audioUrl": { "type": "string", "maxLength": 2000 },
+        "audioStoragePath": { "type": "string", "maxLength": 500 },
+        "audioDuration": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "needs_revision"] },
+        "validatorId": { "type": "string", "maxLength": 128 },
+        "validatorNotes": { "type": "string", "maxLength": 1000 },
+        "validatedAt": { "type": "string" },
+        "offlineQueued": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "itemId", "userId", "isSpellingCorrect", "status", "createdAt"]
+    },
+    "SystemMetric": {
+      "title": "SystemMetric",
+      "description": "Agrégats et métriques de synchronisation globale de OMPAGANO NKALA APP",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "totalItems": { "type": "number" },
+        "totalContributions": { "type": "number" },
+        "totalRecordings": { "type": "number" },
+        "totalValidated": { "type": "number" },
+        "totalUsers": { "type": "number" },
+        "lastUpdated": { "type": "string" }
+      },
+      "required": ["id", "totalItems", "totalContributions"]
+    },
+    "WeeklyChallenge": {
+      "title": "WeeklyChallenge",
+      "description": "Défi hebdomadaire thématique (ex: 5 phrases sur la pêche cette semaine) avec compteur de progression et badges spéciaux",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 500 },
+        "theme": { "type": "string", "maxLength": 50 },
+        "targetCount": { "type": "number" },
+        "challengeType": { "type": "string", "enum": ["contributions", "recordings", "validations", "all"] },
+        "xpReward": { "type": "number" },
+        "badgeRewardId": { "type": "string", "maxLength": 100 },
+        "badgeRewardName": { "type": "string", "maxLength": 100 },
+        "badgeRewardIcon": { "type": "string", "maxLength": 20 },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "title", "theme", "targetCount", "xpReward", "badgeRewardId"]
+    },
+    "ThemeDefinition": {
+      "title": "ThemeDefinition",
+      "description": "Module thématique dynamique et personnalisable pour la classification des phrases et des défis",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "shortName": { "type": "string", "maxLength": 60 },
+        "icon": { "type": "string", "maxLength": 20 },
+        "description": { "type": "string", "maxLength": 500 },
+        "keywords": { "type": "array" },
+        "color": { "type": "string", "maxLength": 30 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "shortName", "icon"]
+    },
+    "Badge": {
+      "title": "Badge",
+      "description": "Badge de récompense aux dénominations et conditions dynamiques",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "icon": { "type": "string", "maxLength": 20 },
+        "category": { "type": "string", "maxLength": 50 },
+        "requiredXp": { "type": "number" },
+        "requiredContributions": { "type": "number" },
+        "requiredRecordings": { "type": "number" },
+        "requiredValidations": { "type": "number" },
+        "isCustom": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "description", "icon", "category"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Profils des utilisateurs avec identité généalogique OMPAGANO, scores et badges"
+    },
+    "/clans/{clanId}": {
+      "schema": { "$ref": "#/entities/ClanRegistry" },
+      "description": "Répertoire dynamique des clans Myènè"
+    },
+    "/villages/{villageId}": {
+      "schema": { "$ref": "#/entities/VillageRegistry" },
+      "description": "Répertoire dynamique des villages d'origine Myènè"
+    },
+    "/items/{itemId}": {
+      "schema": { "$ref": "#/entities/QuestionnaireItem" },
+      "description": "Banque de questionnaires, mots, phrases et traductions"
+    },
+    "/contributions/{contributionId}": {
+      "schema": { "$ref": "#/entities/Contribution" },
+      "description": "Soumissions des utilisateurs incluant validation orthographique et prononciation vocale"
+    },
+    "/challenges/{challengeId}": {
+      "schema": { "$ref": "#/entities/WeeklyChallenge" },
+      "description": "Défis hebdomadaires thématiques pour dynamiser le crowdsourcing et récompenser les utilisateurs"
+    },
+    "/themes/{themeId}": {
+      "schema": { "$ref": "#/entities/ThemeDefinition" },
+      "description": "Thèmes dynamiques configurables pour la classification et les défis OMPAGANO"
+    },
+    "/badges/{badgeId}": {
+      "schema": { "$ref": "#/entities/Badge" },
+      "description": "Badges aux dénominations et critères dynamiques"
+    },
+    "/metrics/{metricId}": {
+      "schema": { "$ref": "#/entities/SystemMetric" },
+      "description": "Statistiques et totaux synchronisés en temps réel"
+    }
+  }
+}
