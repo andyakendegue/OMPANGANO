@@ -162,11 +162,11 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-lg border border-[#f59e0b]/40">
-            <div className="w-full h-full bg-[#180d07] rounded-[14px] overflow-hidden flex items-center justify-center">
+            <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
-                src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
                 alt="Logo OMPAGANO" 
-                className="w-full h-full object-cover scale-105"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
@@ -238,11 +238,11 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
             <div className="warm-card-gradient border-2 border-[#d97706]/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
               <div className="text-center space-y-2">
                 <div className="w-20 h-20 mx-auto rounded-3xl overflow-hidden p-1 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-2xl">
-                  <div className="w-full h-full bg-[#180d07] rounded-[20px] overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-full bg-white rounded-[20px] overflow-hidden flex items-center justify-center p-1 shadow-inner">
                     <img 
-                      src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                      src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
                       alt="Logo OMPAGANO" 
-                      className="w-full h-full object-cover scale-105"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                 </div>
