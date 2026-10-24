@@ -183,11 +183,11 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-lg shrink-0 hidden sm:block">
-              <div className="w-full h-full bg-[#180d07] rounded-[14px] overflow-hidden flex items-center justify-center">
+              <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
                 <img 
-                  src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                  src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
                   alt="Logo OMPAGANO" 
-                  className="w-full h-full object-cover scale-105"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>

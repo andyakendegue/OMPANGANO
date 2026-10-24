@@ -49,11 +49,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-2.5 cursor-pointer select-none group"
         >
           <div className="w-10 h-10 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-md transition-transform group-hover:scale-105">
-            <div className="w-full h-full bg-[#180d07] rounded-[14px] overflow-hidden flex items-center justify-center">
+            <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
-                src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
                 alt="Logo OMPAGANO" 
-                className="w-full h-full object-cover scale-105"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
