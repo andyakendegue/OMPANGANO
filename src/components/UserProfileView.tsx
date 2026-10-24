@@ -93,8 +93,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         {/* Filiation & Genealogical Summary Box */}
         <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#f59e0b] flex items-center gap-1.5">
-              <Globe2 className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider text-[#f59e0b] flex items-center gap-2">
+              <img src="/assets/aistudio/LOGO_c7de06c8.jpg" alt="Sceau Ompangano" className="w-5 h-5 rounded-full object-cover border border-[#f59e0b]/40" />
               <span>Filiation OMPAGANO Enregistrée</span>
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#15803d]/30 text-[#86efac] border border-[#22c55e]/30 font-semibold">

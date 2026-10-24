@@ -389,17 +389,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="w-full max-w-5xl mx-auto space-y-6 pb-20">
       {/* Header Banner */}
       <div className="warm-card-gradient rounded-3xl p-5 sm:p-6 border border-[#d97706]/30 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider mb-1">
-            <Sparkles className="w-4 h-4" />
-            <span>Console d'Administration OMPAGANO NKALA APP</span>
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-lg shrink-0">
+            <div className="w-full h-full bg-[#180d07] rounded-[14px] overflow-hidden flex items-center justify-center">
+              <img 
+                src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                alt="Logo OMPAGANO" 
+                className="w-full h-full object-cover scale-105"
+              />
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Espace Super-Admin & Aînés
-          </h1>
-          <p className="text-xs sm:text-sm text-[#d4af94] mt-0.5">
-            Gestion des utilisateurs, attribution des droits admin, modération et export des réponses, configuration des thèmes et badges.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider mb-1">
+              <Sparkles className="w-4 h-4" />
+              <span>Console d'Administration OMPAGANO NKALA APP</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+              Espace Super-Admin & Aînés
+            </h1>
+            <p className="text-xs sm:text-sm text-[#d4af94] mt-0.5">
+              Gestion des utilisateurs, attribution des droits admin, modération et export des réponses, configuration des thèmes et badges.
+            </p>
+          </div>
         </div>
 
         <button
