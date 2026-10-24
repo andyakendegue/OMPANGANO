@@ -36,8 +36,8 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
   });
 
   const customDomain = 'source.essaka.engineering';
-  const firebaseProject = 'gen-lang-client-0722380117';
-  const defaultHostingDomain = `${firebaseProject}.web.app`;
+  const hostingSite = 'ompangano';
+  const defaultHostingDomain = `${hostingSite}.web.app`;
 
   const copyToClipboard = (text: string, recordId: string) => {
     navigator.clipboard.writeText(text);
@@ -70,7 +70,7 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
     } catch {
       setDnsCheckResult({
         status: 'configured',
-        message: `Configuration locale prête. Déploiement Hosting actif sur ${firebaseProject}.`,
+        message: `Configuration locale prête. Déploiement Hosting ciblant le site ${hostingSite}.`,
         details: 'Ajoutez le CNAME ci-dessous sur le registrar de essaka.engineering pour finaliser.'
       });
     } finally {
@@ -86,13 +86,13 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold border border-amber-500/30">
               <Globe className="w-3.5 h-3.5" />
-              Domaine Personnalisé OMPAGANO
+              Projet NKALA APP • Site : ompangano (multi-sites isolé de enenga)
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
               <span>{customDomain}</span>
             </h2>
             <p className="text-sm text-stone-300">
-              Hébergement haute disponibilité sur Google Cloud & Firebase Hosting avec certificat SSL automatique.
+              Hébergement sur le site Firebase <strong>ompangano</strong> (desservant <code>ompangano.web.app</code>). Le site <code>enenga</code> reste 100% intact.
             </p>
           </div>
 
@@ -211,7 +211,7 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
             </li>
             <li className="flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Règles Firestore et index déployés sur le projet <code>{firebaseProject}</code>.</span>
+              <span>Règles Firestore et index déployés sur votre projet Firebase (site <code>{hostingSite}</code>).</span>
             </li>
             <li className="flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -228,14 +228,16 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
         <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-3">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-amber-700" />
-            <h4 className="font-bold text-stone-900 text-sm">Fichiers & Configuration Hosting</h4>
+            <h4 className="font-bold text-stone-900 text-sm">Commandes de Déploiement Local</h4>
           </div>
           <div className="bg-stone-900 text-stone-200 p-3 rounded-xl font-mono text-xs space-y-1">
-            <p className="text-stone-400"># Fichier firebase.json configuré :</p>
-            <p className="text-emerald-400">"public": "dist"</p>
-            <p className="text-amber-400">"rewrites": [{"\"source\": \"**\", \"destination\": \"/index.html\""}]</p>
-            <p className="text-stone-400 mt-2"># Commande de compilation & build :</p>
-            <p className="text-stone-200">npm run build</p>
+            <p className="text-stone-400"># 1. Sélectionner le projet NKALA APP :</p>
+            <p className="text-amber-400">firebase use &lt;ID_PROJET_NKALA_APP&gt;</p>
+            <p className="text-stone-400 mt-2"># 2. Déployer UNIQUEMENT le site ompangano :</p>
+            <p className="text-emerald-400">npm run deploy:hosting</p>
+            <p className="text-stone-400 text-[10px]">Exécute : vite build && firebase deploy --only hosting:ompangano</p>
+            <p className="text-stone-400 mt-2"># Résultat :</p>
+            <p className="text-emerald-300">ompangano.web.app mis à jour • enenga reste inchangé</p>
           </div>
         </div>
       </div>
