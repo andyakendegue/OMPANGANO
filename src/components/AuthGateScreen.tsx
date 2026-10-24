@@ -110,7 +110,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                 NKALA APP
               </span>
             </div>
-            <p className="text-xs text-[#d4af94]">Crowdsourcing Linguistique Myènè (Enenga)</p>
+            <p className="text-xs text-[#d4af94]">Crowdsourcing & Sauvegarde de la Langue Myènè</p>
           </div>
         </div>
 

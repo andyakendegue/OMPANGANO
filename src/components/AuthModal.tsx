@@ -44,7 +44,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       onLoginSuccess({
         id: user.uid,
-        displayName: user.displayName || user.email?.split('@')[0] || 'Contributeur Enenga',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Contributeur Myènè',
         email: user.email || undefined,
         photoURL: user.photoURL || undefined,
         role: isAdmin ? 'admin' : 'user',
@@ -90,7 +90,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         role: 'user',
         xp: 100,
         level: 'Initié Curieux',
-        badges: ['badge-plume-enenga']
+        badges: ['badge-dix-traductions']
       });
       setIsLoading(false);
       onClose();
@@ -116,7 +116,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
           <h3 className="text-xl font-black text-white">Connexion à OMPAGANO</h3>
           <p className="text-xs text-[#d4af94]">
-            Rejoignez la communauté de préservation de la langue Myènè Enenga
+            Rejoignez la communauté de préservation et d'apprentissage de la langue Myènè
           </p>
         </div>
 

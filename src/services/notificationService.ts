@@ -93,7 +93,7 @@ export class NotificationService {
     localStorage.setItem('nkala_daily_reminder_active', enabled ? 'true' : 'false');
     if (enabled) {
       this.sendLocalNotification('Rappel Quotidien Activé !', {
-        body: `Vous recevrez une invitation à préserver l'Enenga chaque jour à ${this.getReminderTime()}.`
+        body: `Vous recevrez une invitation à pratiquer la langue Myènè chaque jour à ${this.getReminderTime()}.`
       });
     }
   }

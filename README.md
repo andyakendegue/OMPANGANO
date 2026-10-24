@@ -1,67 +1,76 @@
 # 🇬🇦 OMPAGANO — NKALA APP
-### Plateforme Participative de Crowdsourcing & Préservation Linguistique Myènè (Enenga)
+### Plateforme Participative de Crowdsourcing & Préservation de la Langue Myènè
 
-> **OMPAGANO** (« Raconter / Transmettre la parole » en langue Myènè) est une plateforme web moderne et inclusive dédiée à la collecte, l'enregistrement vocal haute fidélité, l'annotation phonétique et la sauvegarde numérique des dialectes de la langue **Myènè** du Gabon, avec un focus prioritaire sur le dialecte menacé **Enenga** (région des lacs du Moyen-Ogooué / Lambaréné).
+> **OMPAGANO** (« Transmettre la parole » en langue Myènè) est une plateforme web moderne et inclusive dédiée à la collecte, l'enregistrement vocal haute fidélité, l'annotation et la sauvegarde numérique de la langue **Myènè** du Gabon et de ses six tribus (Enenga, Mpongwè, Galoa, Nkomi, Ôrungu, Adyumba).
 
 ---
 
 ## 📖 Sommaire
-1. [Contexte Culturel & Linguistique](#-contexte-culturel--linguistique)
-2. [Fonctionnalités Principales](#-fonctionnalités-principales)
-3. [Stack Technique](#-stack-technique)
-4. [Architecture & Structure du Répertoire](#-architecture--structure-du-répertoire)
-5. [Modèle de Données (Firestore)](#-modèle-de-données-firestore)
-6. [Modules Thématiques & Dénominations Dynamiques](#-modules-thématiques--dénominations-dynamiques)
-7. [Installation & Développement Local](#-installation--développement-local)
-8. [Déploiement Firebase Hosting Multi-Sites](#-déploiement-firebase-hosting-multi-sites)
-9. [Configuration du Domaine Personnalisé](#-configuration-du-domaine-personnalisé)
+1. [Contexte Culturel & Linguistique Myènè](#-contexte-culturel--linguistique)
+2. [Rôles & Contrôle d'Accès Strict (RBAC)](#-rôles--contrôle-daccès-strict-rbac)
+3. [Studio des Validateurs (Nuance Oral vs Écrit)](#-studio-des-validateurs-nuance-oral-vs-écrit)
+4. [Fonctionnalités Principales](#-fonctionnalités-principales)
+5. [Stack Technique](#-stack-technique)
+6. [Architecture & Structure du Répertoire](#-architecture--structure-du-répertoire)
+7. [Modèle de Données (Firestore)](#-modèle-de-données-firestore)
+8. [Installation & Développement Local](#-installation--développement-local)
+9. [Déploiement Firebase Hosting Multi-Sites](#-déploiement-firebase-hosting-multi-sites)
+10. [Configuration du Domaine Personnalisé](#-configuration-du-domaine-personnalisé)
 
 ---
 
 ## 🌿 Contexte Culturel & Linguistique
 
-La langue **Myènè** (groupe B10 / Bantu) regroupe six communautés dialectales historiques du Gabon :
-- **Enenga** (*Lac Zilé, Moyen-Ogooué*)
+La langue **Myènè** (groupe B10 / Bantu) regroupe six communautés tribales historiques du Gabon :
+- **Enenga** (*Lambaréné, Lac Zilé, Lac Onangué, Moyen-Ogooué*)
 - **Mpongwè** (*Estuaire de Libreville*)
-- **Galwa** (*Lambaréné, Ogooué central*)
+- **Galoa** (*Lambaréné, Ogooué central*)
 - **Nkomi** (*Lagune Fernan Vaz, Ogooué-Maritime*)
-- **Orungu** (*Mandji, Port-Gentil*)
+- **Ôrungu** (*Mandji, Port-Gentil*)
 - **Adyumba** (*Lac Azingo*)
 
-### Objectifs du projet :
-- **Archivage phonétique et vocal** : Enregistrer la prononciation authentique de locuteurs natifs avec l'Alphabet Phonétique International (API).
-- **Ancrage généalogique et clanique** : Contextualiser chaque locuteur par sa tribu, ses clans paternel et maternel et son village d'origine pour préserver la mémoire patrimoniale.
-- **Résilience terrain** : Permettre la collecte dans les villages et zones rurales privées de connexion Internet grâce au stockage local IndexedDB (PWA).
+> **Contexte de la tribu Enenga** : La langue commune est **le Myènè**. Le terme **Enenga** est employé exclusivement pour désigner la tribu Myènè originaire du Moyen-Ogooué (Lambaréné et région des lacs Onangué et Zilé) ainsi que ses clans et lignages historiques.
 
 ---
 
-## ✨ Fonctionnalités Principales
+## 🛡️ Rôles & Contrôle d'Accès Strict (RBAC)
 
-### 🎙️ 1. Studio de Collecte Vocale & Orthographique
-- **Fiches de crowdsourcing interactives** : Affichage bilingue (Français / Myènè), transcription phonétique API, contexte d'usage et guide grammatical.
-- **Enregistreur audio intégré** : Enregistrement micro direct (Web Audio API / MediaRecorder) avec pré-écoute, contrôle de durée et téléversement sur Firebase Storage.
-- **Validation orthographique** : Possibilité de valider la graphie officielle ou de proposer une variante dialectale documentée.
+L'application applique un cloisonnement strict des privilèges sans mode démo ni accès non authentifié :
 
-### 🗂️ 2. Modules Thématiques Dynamiques
-- Thèmes préconfigurés (*Pêche & Navigation, Chasse & Faune, Clans & Rites, Cuisine & Agriculture, Oralité & Proverbes, Numération*).
-- **Importation automatique depuis CSV** : Détection intelligente des colonnes `moduleThematique`, `theme` ou `category` avec enrichissement automatique du catalogue.
-- **Gestionnaire d'administration** : Création, édition, attribution d'icônes, de couleurs et de mots-clés depuis le panneau d'administration.
+1. **Contributeurs (`user`)** :
+   - Écran de collecte vocale (*Contribuer*)
+   - Explorateur lexical (*Vocabulaire Myènè*)
+   - Tableau d'émulation (*Classement*)
+   - Filiation et généalogie clanique (*Mon Profil*)
+   - *Aucun accès aux interfaces de modération ou d'administration.*
 
-### 🏆 3. Gamification & Dénominations Dynamiques des Badges
-- **Niveaux de sagesse** : Système d'XP et paliers culturels (*Apprenti des Racines*, *Piroguier de l'Ogooué*, *Gardien du Feu*, *Grand Patriarche*).
-- **Badges personnalisables** : Titres et descriptions dynamiques éditables en temps réel par les administrateurs (ex: *Sentinelle des Racines*, *Voix d'Or du Fleuve*, *Maître Pêcheur*).
-- **Défis hebdomadaires** : Objectifs hebdomadaires dynamiques récompensant la régularité avec célébration interactive (`canvas-confetti`).
-- **Classement communautaire** : Tableau des contributeurs les plus actifs par points, enregistrements et validation.
+2. **Validateurs (`validator`)** :
+   - Accès aux fonctionnalités contributeurs + onglet dédié **Validation Voix**.
+   - Studio d'écoute des enregistrements audio des locuteurs.
+   - Double évaluation indépendante : **Orthographe** (Écrit) et **Prononciation** (Oral).
+   - Application de la nuance demandée (*l'écrit peut être bon mais pas la prononciation, la prononciation est bonne mais l'écrit est erroné*).
+   - *Aucun accès aux réglages système ou à l'administration des utilisateurs.*
 
-### 📶 4. Mode Hors-Ligne & PWA (Terrain en zone blanche)
-- **Pack hors-ligne téléchargeable** : Mise en cache du vocabulaire et des guides phonétiques dans **IndexedDB**.
-- **File d'attente locale** : Les enregistrements audio réalisés hors-ligne sont conservés localement sous format Blob.
-- **Synchronisation automatique** : Dès le rétablissement du réseau, les soumissions locales sont envoyées et validées sur Firebase Firestore et Storage.
+3. **Administrateurs (`admin`)** :
+   - Accès total, incluant le tableau de bord d'**Administration**.
+   - Gestion des utilisateurs (nomination des administrateurs et validateurs, suspension de comptes).
+   - Gestion des réponses et export CSV complet des corpus validés.
+   - Configuration dynamique des thèmes et des dénominations de badges.
+   - Déclenchement de synchronisation Cloud et diagnostic DNS pour le domaine personnalisé.
 
-### 🛡️ 5. Modération & Panneau Administrateur
-- **Rôles utilisateurs** : Contributeur (`user`), Validateur certifié (`validator`), Administrateur (`admin`).
-- **Score de suspicion anti-fraude** : Détection des abus de clics ou des validations incohérentes.
-- **Gestionnaire DNS & Hébergement** : Outil intégré de vérification de la propagation DNS pour le domaine personnalisé.
+---
+
+## 🎙️ Studio des Validateurs (Nuance Oral vs Écrit)
+
+Le module de validation permet d'examiner chaque contribution selon deux axes indépendants :
+- **Axe 1 - L'Écrit (Orthographe & Graphie)** : Conforme vs À rectifier.
+- **Axe 2 - L'Oral (Prononciation & Intonation)** : Authentique vs À réenregistrer.
+
+### Synthèse des décisions :
+- **100% Validé (`approved`)** : Écrit et prononciation tous deux conformes.
+- **Audio Validé • Écrit à corriger (`audio_approved_text_revision`)** : *La prononciation est bonne mais le contributeur a mal orthographié l'expression.* L'audio est archivé, le texte est renvoyé en révision.
+- **Écrit Validé • Audio à refaire (`text_approved_audio_revision`)** : *L'écrit est parfaitement conforme mais l'enregistrement oral est inaudible, hésitant ou mal accentué.* Le texte est archivé, un nouvel enregistrement est demandé.
+- **Rejeté (`rejected`)** : Écrit et audio non recevables.
 
 ---
 

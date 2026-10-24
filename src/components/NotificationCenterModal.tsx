@@ -43,7 +43,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
     const granted = await NotificationService.requestPermission();
     setIsPushGranted(granted);
     if (granted) {
-      NotificationService.sendLocalNotification('Notifications Enenga Activées !', {
+      NotificationService.sendLocalNotification('Notifications OMPAGANO Activées !', {
         body: 'Vous recevrez vos rappels d’apprentissage et alertes de validation.'
       });
       setNotifications(NotificationService.getInAppNotifications());
@@ -60,8 +60,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   };
 
   const handleSendTestNotification = () => {
-    NotificationService.sendLocalNotification('Nkala App : Moment Enenga 🌅', {
-      body: '5 minutes de parole aujourd’hui pour préserver les voix de nos lagunes !'
+    NotificationService.sendLocalNotification('Nkala App : Moment d’apprentissage Myènè 🌅', {
+      body: '5 minutes de parole aujourd’hui pour enrichir les voix de nos lagunes !'
     });
     setNotifications(NotificationService.getInAppNotifications());
   };
@@ -82,7 +82,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             </div>
             <div>
               <h3 className="text-lg font-black text-white">Notifications & Rappels Quotidiens</h3>
-              <p className="text-xs text-[#d4af94]">Gardez le lien régulier avec la langue Enenga</p>
+              <p className="text-xs text-[#d4af94]">Gardez le lien régulier avec l'apprentissage de la langue Myènè</p>
             </div>
           </div>
           <button
