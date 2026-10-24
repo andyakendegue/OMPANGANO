@@ -97,31 +97,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }, 600);
   };
 
-  const handleGuestLogin = () => {
-    onLoginSuccess({
-      id: 'guest-' + Date.now(),
-      displayName: 'Visiteur Enenga',
-      role: 'user',
-      xp: 50,
-      level: 'Initié Curieux',
-      badges: []
-    });
-    onClose();
-  };
-
-  const handleQuickAdminDemo = () => {
-    onLoginSuccess({
-      id: 'admin-andy-migoumbi',
-      displayName: 'Andy Migoumbi (Admin & Aîné)',
-      email: 'andymigoumbi@gmail.com',
-      role: 'admin',
-      xp: 2850,
-      level: 'Sage Ancien',
-      badges: ['badge-premiere-voix', 'badge-plume-enenga', 'badge-passeur-memoire', 'badge-maitre-verbe']
-    });
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md warm-card-gradient border-2 border-[#d97706]/40 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 text-white">
@@ -139,7 +114,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="w-12 h-12 mx-auto rounded-2xl terracotta-gradient flex items-center justify-center shadow-lg mb-2">
             <Sparkles className="w-6 h-6 text-[#fde047]" />
           </div>
-          <h3 className="text-xl font-black text-white">Connexion à NKALA APP</h3>
+          <h3 className="text-xl font-black text-white">Connexion à OMPAGANO</h3>
           <p className="text-xs text-[#d4af94]">
             Rejoignez la communauté de préservation de la langue Myènè Enenga
           </p>
@@ -166,7 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              <span>Continuer avec Gmail (Google)</span>
+              <span>Continuer avec Google</span>
             </button>
 
             {/* Phone Login Button */}
@@ -177,25 +152,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Phone className="w-5 h-5 text-[#f59e0b]" />
               <span>Connexion avec Numéro de Téléphone</span>
             </button>
-
-            {/* Admin quick toggle */}
-            <button
-              onClick={handleQuickAdminDemo}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#451a03]/60 hover:bg-[#78350f]/60 border border-[#b45309]/50 text-[#fdba74] text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#f59e0b]" />
-              <span>Connexion Administrateur (andymigoumbi@gmail.com)</span>
-            </button>
-
-            {/* Guest fallback */}
-            <div className="text-center pt-2">
-              <button
-                onClick={handleGuestLogin}
-                className="text-xs text-[#a8826d] hover:text-[#fed7aa] underline transition-colors"
-              >
-                Continuer sans compte (Mode Découverte)
-              </button>
-            </div>
           </div>
         ) : (
           /* Phone OTP Flow */

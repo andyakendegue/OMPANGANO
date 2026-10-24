@@ -31,7 +31,8 @@ import {
   VillageRegistry,
   WeeklyChallenge,
   ThemeDefinition,
-  Badge
+  Badge,
+  UserRole
 } from './types';
 import { 
   INITIAL_ENENGA_ITEMS, 
@@ -64,6 +65,7 @@ import { LeaderboardAndRewards } from './components/LeaderboardAndRewards';
 import { AdminDashboard } from './components/AdminDashboard';
 import { UserProfileView } from './components/UserProfileView';
 import { AuthModal } from './components/AuthModal';
+import { AuthGateScreen } from './components/AuthGateScreen';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { OfflinePackModal } from './components/OfflinePackModal';
@@ -103,45 +105,9 @@ export default function App() {
   // Offline queue state
   const [pendingOfflineSubmissions, setPendingOfflineSubmissions] = useState<OfflineSubmission[]>([]);
 
-  // Auth & user state
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    return {
-      id: 'admin-andy',
-      displayName: 'Andy Migoumbi',
-      fullName: 'Andy Migoumbi',
-      contact: 'andymigoumbi@gmail.com',
-      birthDate: '1992-06-14',
-      birthPlace: 'Lambaréné',
-      tribe: 'Enenga',
-      paternalClan: 'Avandji',
-      maternalClan: 'Imvona',
-      villageOfOrigin: 'Lambaréné (Moyen-Ogooué)',
-      registrationCompleted: true,
-      email: 'andymigoumbi@gmail.com',
-      role: 'admin',
-      status: 'active',
-      suspicionScore: 0,
-      xp: 2850,
-      level: 'Sage Ancien',
-      levelIndex: 5,
-      contributionsCount: 28,
-      recordingsCount: 22,
-      validationsCount: 19,
-      streakDays: 7,
-      weeklyProgress: { 'defi-peche-semaine': 2, 'defi-voix-orungu': 1 },
-      completedChallenges: [],
-      badges: [
-        'badge-genealogie-verifiee',
-        'badge-premiere-voix',
-        'badge-dix-traductions',
-        'badge-cinq-validations',
-        'badge-gardien-lacs',
-        'badge-maitre-verbe'
-      ],
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-01-01T00:00:00Z'
-    };
-  });
+  // Auth & user state: null by default (unauthenticated users must log in on AuthGateScreen)
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
 
   // Registered users for admin management and fraud detection
   const [usersList, setUsersList] = useState<UserProfile[]>([
@@ -349,7 +315,11 @@ export default function App() {
           }
           return profile;
         });
+      } else {
+        // Not logged in -> stay on AuthGateScreen
+        setCurrentUser(null);
       }
+      setIsAuthChecking(false);
     });
 
     return () => unsubscribe();
@@ -533,6 +503,24 @@ export default function App() {
       }
     );
 
+    // 7. Subscribe to Users collection
+    const usersPath = 'users';
+    const unsubscribeUsers = onSnapshot(
+      collection(db, usersPath),
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const loaded: UserProfile[] = [];
+          snapshot.forEach(docSnap => {
+            loaded.push({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+          });
+          setUsersList(loaded);
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, usersPath);
+      }
+    );
+
     return () => {
       unsubscribeItems();
       unsubscribeContrib();
@@ -540,6 +528,7 @@ export default function App() {
       unsubscribeChallenges();
       unsubscribeThemes();
       unsubscribeBadges();
+      unsubscribeUsers();
     };
   }, []);
 
@@ -845,9 +834,111 @@ export default function App() {
     }
   };
 
+  // Authentication Gate handler
+  const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
+    const isAdmin = profileData.email === 'andymigoumbi@gmail.com' || profileData.role === 'admin';
+    const fullProfile: UserProfile = {
+      id: profileData.id || `user-${Date.now()}`,
+      displayName: profileData.displayName || 'Contributeur OMPAGANO',
+      fullName: profileData.fullName || profileData.displayName || '',
+      contact: profileData.contact || profileData.email || '',
+      birthDate: profileData.birthDate || '',
+      birthPlace: profileData.birthPlace || '',
+      tribe: profileData.tribe || 'Enenga',
+      paternalClan: profileData.paternalClan || '',
+      maternalClan: profileData.maternalClan || '',
+      villageOfOrigin: profileData.villageOfOrigin || '',
+      registrationCompleted: profileData.registrationCompleted ?? false,
+      email: profileData.email,
+      phoneNumber: profileData.phoneNumber,
+      photoURL: profileData.photoURL,
+      role: isAdmin ? 'admin' : (profileData.role || 'user'),
+      status: profileData.status || 'active',
+      suspicionScore: profileData.suspicionScore || 0,
+      xp: profileData.xp || 150,
+      level: profileData.level || 'Initié Curieux',
+      levelIndex: profileData.levelIndex || 1,
+      contributionsCount: profileData.contributionsCount || 0,
+      recordingsCount: profileData.recordingsCount || 0,
+      validationsCount: profileData.validationsCount || 0,
+      streakDays: profileData.streakDays || 1,
+      badges: profileData.badges || ['badge-premiere-voix'],
+      createdAt: profileData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setCurrentUser(fullProfile);
+
+    // Sync to usersList state and Firestore
+    setUsersList(prev => {
+      const idx = prev.findIndex(u => u.id === fullProfile.id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = fullProfile;
+        return copy;
+      }
+      return [fullProfile, ...prev];
+    });
+
+    try {
+      await setDoc(doc(db, 'users', fullProfile.id), fullProfile, { merge: true });
+      if (fullProfile.role === 'admin') {
+        await setDoc(doc(db, 'admins', fullProfile.id), { 
+          email: fullProfile.email || 'andymigoumbi@gmail.com', 
+          role: 'admin', 
+          updatedAt: new Date().toISOString() 
+        }, { merge: true });
+      }
+    } catch (err) {
+      console.warn('Notice syncing profile to Firestore:', err);
+    }
+
+    if (!fullProfile.registrationCompleted) {
+      setIsOnboardingModalOpen(true);
+    }
+  };
+
+  // Admin User Role Management (DECIDER QUI EST ADMIN)
+  const handleUpdateUserRole = async (userId: string, newRole: UserRole) => {
+    try {
+      await setDoc(doc(db, 'users', userId), { role: newRole, updatedAt: new Date().toISOString() }, { merge: true });
+      if (newRole === 'admin') {
+        await setDoc(doc(db, 'admins', userId), { role: 'admin', updatedAt: new Date().toISOString() }, { merge: true });
+      } else {
+        await deleteDoc(doc(db, 'admins', userId)).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Notice updating user role in Firestore:', e);
+    }
+
+    setUsersList(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    if (currentUser?.id === userId) {
+      setCurrentUser(prev => prev ? { ...prev, role: newRole } : null);
+    }
+    alert(`Rôle mis à jour : l'utilisateur est désormais ${newRole === 'admin' ? 'ADMINISTRATEUR 👑' : newRole === 'validator' ? 'VALIDATEUR 🔍' : 'CONTRIBUTEUR'}.`);
+  };
+
+  // Delete Contribution / Response
+  const handleDeleteContribution = async (contributionId: string) => {
+    try {
+      await deleteDoc(doc(db, 'contributions', contributionId));
+    } catch (e) {
+      console.warn('Notice deleting contribution from Firestore:', e);
+    }
+    setContributions(prev => prev.filter(c => c.id !== contributionId));
+  };
+
   // Admin Anti-Fraud account status update
   const handleUpdateUserAccountStatus = async (userId: string, status: 'active' | 'flagged' | 'suspended') => {
+    try {
+      await setDoc(doc(db, 'users', userId), { status, updatedAt: new Date().toISOString() }, { merge: true });
+    } catch (e) {
+      console.warn('Notice updating account status in Firestore:', e);
+    }
     setUsersList(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
+    if (currentUser?.id === userId) {
+      setCurrentUser(prev => prev ? { ...prev, status } : null);
+    }
     alert(`Le statut du profil a été mis à jour : ${status.toUpperCase()}`);
   };
 
@@ -1125,6 +1216,16 @@ export default function App() {
 
   const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || INITIAL_ENENGA_ITEMS[0];
 
+  // MANDATORY AUTHENTICATION GATE:
+  // "Tant qu'on n'est pas connecté on ne peut pas accéder à l'app et on reste sur l'écran de connexion."
+  if (!currentUser) {
+    return (
+      <AuthGateScreen
+        onLoginSuccess={handleLoginSuccess}
+      />
+    );
+  }
+
   return (
     <div className="african-pattern-bg min-h-screen text-[#fdfaf7] flex flex-col font-sans">
       {/* Top Navbar with OMPAGANO Branding */}
@@ -1205,6 +1306,7 @@ export default function App() {
             themes={themes}
             badges={badges}
             onValidateContribution={handleValidateContribution}
+            onDeleteContribution={handleDeleteContribution}
             onSaveQuestionnaireItem={handleSaveQuestionnaireItem}
             onDeleteQuestionnaireItem={handleDeleteQuestionnaireItem}
             onBatchImportItems={handleBatchImportItems}
@@ -1218,6 +1320,7 @@ export default function App() {
             onDeleteBadge={handleDeleteBadge}
             onUpdateUserLevelAndBadges={handleUpdateUserLevelAndBadges}
             onUpdateUserAccountStatus={handleUpdateUserAccountStatus}
+            onUpdateUserRole={handleUpdateUserRole}
             onTriggerCloudSync={handleTriggerCloudSync}
             currentUser={currentUser}
           />
@@ -1233,11 +1336,6 @@ export default function App() {
             onSignOut={() => {
               fbSignOut(auth);
               setCurrentUser(null);
-            }}
-            onToggleRole={(newRole) => {
-              if (currentUser) {
-                setCurrentUser({ ...currentUser, role: newRole });
-              }
             }}
             onClearOfflineCache={() => {
               indexedDB.deleteDatabase('nkala_enenga_offline_db');

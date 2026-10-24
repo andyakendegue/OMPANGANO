@@ -27,7 +27,7 @@ interface UserProfileViewProps {
   onOpenOnboarding: () => void;
   onOpenOfflinePack: () => void;
   onSignOut: () => void;
-  onToggleRole: (newRole: 'user' | 'validator' | 'admin') => void;
+  onToggleRole?: (newRole: 'user' | 'validator' | 'admin') => void;
   onClearOfflineCache: () => void;
 }
 
@@ -148,41 +148,22 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         </div>
 
-        {/* Role Selector */}
-        <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#fed7aa]">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#f59e0b]" />
-              <span>Rôle dans la communauté OMPAGANO :</span>
-            </span>
-            <span className="text-[11px] text-[#a8826d] capitalize">{currentUser?.role || 'user'}</span>
+        {/* Role Badge & Status */}
+        <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#f59e0b]" />
+            <div>
+              <span className="text-xs font-semibold text-[#fed7aa] block">Statut & Privilèges :</span>
+              <span className="text-[11px] text-[#a8826d]">Attribué par l'administration OMPAGANO</span>
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 pt-1">
-            <button
-              onClick={() => onToggleRole('user')}
-              className={`py-2 rounded-xl text-xs font-semibold transition-all ${
-                currentUser?.role === 'user' ? 'terracotta-gradient text-white shadow' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'
-              }`}
-            >
-              Contributeur
-            </button>
-            <button
-              onClick={() => onToggleRole('validator')}
-              className={`py-2 rounded-xl text-xs font-semibold transition-all ${
-                currentUser?.role === 'validator' ? 'terracotta-gradient text-white shadow' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'
-              }`}
-            >
-              Relecteur
-            </button>
-            <button
-              onClick={() => onToggleRole('admin')}
-              className={`py-2 rounded-xl text-xs font-semibold transition-all ${
-                currentUser?.role === 'admin' ? 'terracotta-gradient text-white shadow' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'
-              }`}
-            >
-              Administrateur
-            </button>
-          </div>
+          <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase ${
+            currentUser?.role === 'admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+            currentUser?.role === 'validator' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' :
+            'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+          }`}>
+            {currentUser?.role === 'admin' ? '👑 Administrateur' : currentUser?.role === 'validator' ? '🔍 Validateur Certifié' : '✍️ Contributeur'}
+          </span>
         </div>
 
         {/* Offline Cache & Diagnostics */}

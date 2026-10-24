@@ -28,7 +28,11 @@ import {
   Upload,
   Globe,
   Layers,
-  Palette
+  Palette,
+  Download,
+  Crown,
+  UserCog,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   QuestionnaireItem, 
@@ -37,7 +41,8 @@ import {
   UserProfile,
   WeeklyChallenge,
   ThemeDefinition,
-  Badge
+  Badge,
+  UserRole
 } from '../types';
 import { SYSTEM_BADGES, USER_LEVELS, calculateSuspicionScore, THEMATIC_CATEGORIES } from '../services/seedData';
 import { CsvImportSection } from './CsvImportSection';
@@ -55,6 +60,7 @@ interface AdminDashboardProps {
   themes?: ThemeDefinition[];
   badges?: Badge[];
   onValidateContribution: (contributionId: string, status: 'approved' | 'rejected' | 'needs_revision', notes?: string) => Promise<void>;
+  onDeleteContribution?: (contributionId: string) => Promise<void>;
   onSaveQuestionnaireItem: (item: Partial<QuestionnaireItem>) => Promise<void>;
   onDeleteQuestionnaireItem: (itemId: string) => Promise<void>;
   onBatchImportItems: (newItems: QuestionnaireItem[]) => Promise<void>;
@@ -68,6 +74,7 @@ interface AdminDashboardProps {
   onDeleteBadge?: (badgeId: string) => Promise<void>;
   onUpdateUserLevelAndBadges: (userId: string, newLevelIndex: number, badges: string[], bonusXp?: number) => Promise<void>;
   onUpdateUserAccountStatus: (userId: string, status: 'active' | 'flagged' | 'suspended') => Promise<void>;
+  onUpdateUserRole?: (userId: string, newRole: UserRole) => Promise<void>;
   onTriggerCloudSync: () => Promise<void>;
   currentUser: UserProfile | null;
 }
@@ -81,6 +88,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   themes = THEMATIC_CATEGORIES,
   badges = SYSTEM_BADGES,
   onValidateContribution,
+  onDeleteContribution,
   onSaveQuestionnaireItem,
   onDeleteQuestionnaireItem,
   onBatchImportItems,
@@ -94,17 +102,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteBadge,
   onUpdateUserLevelAndBadges,
   onUpdateUserAccountStatus,
+  onUpdateUserRole,
   onTriggerCloudSync,
   currentUser
 }) => {
-  const [activeTab, setActiveTab] = useState<'stats' | 'defis' | 'themes' | 'badges_manager' | 'hosting' | 'csv_import' | 'validation' | 'questionnaires' | 'badges_levels' | 'fraud_detection'>('stats');
+  const [activeTab, setActiveTab] = useState<
+    'stats' | 'users' | 'validation' | 'defis' | 'themes' | 'badges_manager' | 'hosting' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
+  >('stats');
 
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
-  const [validationFilter, setValidationFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
+  // Validation & Responses Management Filters
+  const [validationFilter, setValidationFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('all');
+  const [responseAudioFilter, setResponseAudioFilter] = useState<'all' | 'with_audio' | 'text_only'>('all');
+  const [responseSearchQuery, setResponseSearchQuery] = useState('');
   const [validationNote, setValidationNote] = useState<{ [id: string]: string }>({});
 
+  // Questionnaire form states
   const [isEditingItem, setIsEditingItem] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -117,12 +132,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     dialect: 'enenga'
   });
 
+  // User & Role Management Filters
+  const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'admin' | 'validator' | 'user'>('all');
+  const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'flagged' | 'suspended'>('all');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+
+  // Badges & Levels state
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserProfile | null>(null);
   const [userBonusXp, setUserBonusXp] = useState(100);
 
+  // Fraud state
   const [fraudFilter, setFraudFilter] = useState<'all' | 'critical' | 'moderate'>('all');
   const [fraudSearchQuery, setFraudSearchQuery] = useState('');
 
+  // Audio Playback
   const handlePlayAudio = (id: string, url?: string) => {
     if (!url) return;
     if (playingAudioId === id) {
@@ -141,6 +164,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setPlayingAudioId(id);
   };
 
+  // Questionnaire Submit
   const handleItemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.frenchText.trim() || !formData.myeneText.trim()) {
@@ -166,34 +190,199 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
   };
 
+  // -------------------------------------------------------------
+  // RESPONSES EXPORT HANDLERS (CSV & JSON)
+  // -------------------------------------------------------------
+  const handleExportResponsesCSV = () => {
+    const headers = [
+      'ID_Contribution',
+      'Expression_Francaise',
+      'Texte_Original_Myene',
+      'Orthographe_Confirmee_Correcte',
+      'Variante_Orthographique_Proposee',
+      'Variante_Dialecte',
+      'Statut_Validation',
+      'Nom_Contributeur',
+      'ID_Contributeur',
+      'Tribu_Contributeur',
+      'URL_Enregistrement_Audio',
+      'Duree_Audio_Secondes',
+      'Date_Soumission',
+      'Nom_Validateur',
+      'Notes_Validation',
+      'Commentaire_Culturel'
+    ];
+
+    const escapeCSV = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = filteredContributions.map(c => [
+      escapeCSV(c.id),
+      escapeCSV(c.frenchText),
+      escapeCSV(c.originalMyeneText),
+      escapeCSV(c.isSpellingCorrect ? 'OUI' : 'NON'),
+      escapeCSV(c.proposedSpelling || ''),
+      escapeCSV(c.dialectVariant || 'enenga'),
+      escapeCSV(c.status),
+      escapeCSV(c.userDisplayName),
+      escapeCSV(c.userId),
+      escapeCSV(c.userTribe || ''),
+      escapeCSV(c.audioUrl || ''),
+      escapeCSV(c.audioDuration || 0),
+      escapeCSV(c.createdAt),
+      escapeCSV(c.validatorDisplayName || ''),
+      escapeCSV(c.validatorNotes || ''),
+      escapeCSV(c.comment || '')
+    ].join(','));
+
+    // UTF-8 BOM ensures accent characters display properly in Excel
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ompagano_reponses_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportResponsesJSON = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(filteredContributions, null, 2));
+    const link = document.createElement('a');
+    link.href = dataStr;
+    link.download = `ompagano_reponses_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // -------------------------------------------------------------
+  // USERS EXPORT HANDLER (CSV)
+  // -------------------------------------------------------------
+  const handleExportUsersCSV = () => {
+    const headers = [
+      'ID_Utilisateur',
+      'Nom_Affichage',
+      'Nom_Complet',
+      'Email',
+      'Telephone',
+      'Role',
+      'Statut_Compte',
+      'Tribu',
+      'Clan_Paternel',
+      'Clan_Maternel',
+      'Village_Origine',
+      'XP',
+      'Niveau_Sagesse',
+      'Nombre_Contributions',
+      'Nombre_Enregistrements_Audio',
+      'Nombre_Validations',
+      'Score_Suspicion',
+      'Date_Inscription'
+    ];
+
+    const escapeCSV = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = filteredUsers.map(u => [
+      escapeCSV(u.id),
+      escapeCSV(u.displayName),
+      escapeCSV(u.fullName),
+      escapeCSV(u.email || ''),
+      escapeCSV(u.phoneNumber || u.contact || ''),
+      escapeCSV(u.role),
+      escapeCSV(u.status),
+      escapeCSV(u.tribe),
+      escapeCSV(u.paternalClan),
+      escapeCSV(u.maternalClan),
+      escapeCSV(u.villageOfOrigin),
+      escapeCSV(u.xp),
+      escapeCSV(u.level),
+      escapeCSV(u.contributionsCount || 0),
+      escapeCSV(u.recordingsCount || 0),
+      escapeCSV(u.validationsCount || 0),
+      escapeCSV(u.suspicionScore || 0),
+      escapeCSV(u.createdAt)
+    ].join(','));
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ompagano_utilisateurs_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Filtered contributions / responses
   const filteredContributions = contributions.filter(c => {
-    if (validationFilter === 'all') return true;
-    return c.status === validationFilter;
+    if (validationFilter !== 'all' && c.status !== validationFilter) return false;
+    if (responseAudioFilter === 'with_audio' && !c.audioUrl) return false;
+    if (responseAudioFilter === 'text_only' && c.audioUrl) return false;
+    if (responseSearchQuery.trim()) {
+      const q = responseSearchQuery.toLowerCase();
+      const matchText = (c.frenchText || '').toLowerCase().includes(q) ||
+        (c.originalMyeneText || '').toLowerCase().includes(q) ||
+        (c.proposedSpelling || '').toLowerCase().includes(q) ||
+        (c.userDisplayName || '').toLowerCase().includes(q) ||
+        (c.userTribe || '').toLowerCase().includes(q);
+      if (!matchText) return false;
+    }
+    return true;
   });
 
-  const evaluatedUsers = (usersList || []).map(u => {
+  // Filtered users for role management
+  const filteredUsers = usersList.filter(u => {
+    if (userRoleFilter !== 'all' && u.role !== userRoleFilter) return false;
+    if (userStatusFilter !== 'all' && u.status !== userStatusFilter) return false;
+    if (userSearchQuery.trim()) {
+      const q = userSearchQuery.toLowerCase();
+      const matchQuery = (u.fullName || '').toLowerCase().includes(q) ||
+        (u.displayName || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.contact || '').toLowerCase().includes(q) ||
+        (u.tribe || '').toLowerCase().includes(q) ||
+        (u.paternalClan || '').toLowerCase().includes(q) ||
+        (u.maternalClan || '').toLowerCase().includes(q) ||
+        (u.villageOfOrigin || '').toLowerCase().includes(q);
+      if (!matchQuery) return false;
+    }
+    return true;
+  });
+
+  // Filtered suspicious profiles
+  const usersWithScores = usersList.map(u => {
     const analysis = calculateSuspicionScore(u);
     return {
       ...u,
-      calculatedScore: analysis.score,
+      calculatedScore: Math.max(u.suspicionScore || 0, analysis.score),
       reasons: analysis.reasons,
       riskLevel: analysis.riskLevel
     };
   });
 
-  const filteredSuspiciousUsers = evaluatedUsers.filter(u => {
-    if (fraudFilter === 'critical') return u.riskLevel === 'critique';
-    if (fraudFilter === 'moderate') return u.riskLevel === 'critique' || u.riskLevel === 'modere';
+  const filteredSuspiciousUsers = usersWithScores.filter(u => {
+    if (fraudFilter === 'critical' && u.riskLevel !== 'critique') return false;
+    if (fraudFilter === 'moderate' && u.riskLevel === 'faible') return false;
+    if (fraudSearchQuery.trim()) {
+      const q = fraudSearchQuery.toLowerCase();
+      return (u.fullName || '').toLowerCase().includes(q) ||
+        (u.displayName || '').toLowerCase().includes(q) ||
+        (u.tribe || '').toLowerCase().includes(q) ||
+        (u.villageOfOrigin || '').toLowerCase().includes(q);
+    }
     return true;
-  }).filter(u => {
-    if (!fraudSearchQuery.trim()) return true;
-    return (
-      (u.fullName && u.fullName.toLowerCase().includes(fraudSearchQuery.toLowerCase())) ||
-      (u.displayName && u.displayName.toLowerCase().includes(fraudSearchQuery.toLowerCase())) ||
-      (u.contact && u.contact.toLowerCase().includes(fraudSearchQuery.toLowerCase())) ||
-      (u.tribe && u.tribe.toLowerCase().includes(fraudSearchQuery.toLowerCase())) ||
-      (u.villageOfOrigin && u.villageOfOrigin.toLowerCase().includes(fraudSearchQuery.toLowerCase()))
-    );
   });
 
   return (
@@ -203,22 +392,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
-            <span>Console d'Administration & Supervision OMPAGANO</span>
+            <span>Console d'Administration OMPAGANO NKALA APP</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Espace Administrateur & Aînés
+            Espace Super-Admin & Aînés
           </h1>
           <p className="text-xs sm:text-sm text-[#d4af94] mt-0.5">
-            Pilotage des questionnaires, validation des enregistrements, gestion des badges et traçabilité de la communauté.
+            Gestion des utilisateurs, attribution des droits admin, modération et export des réponses, configuration des thèmes et badges.
           </p>
         </div>
 
         <button
           onClick={onTriggerCloudSync}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl terracotta-gradient hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl terracotta-gradient hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-95 shrink-0"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>Synchroniser Cloud Functions</span>
+          <span>Synchroniser Métriques</span>
         </button>
       </div>
 
@@ -226,37 +415,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-[#3f2113]">
         <button
           onClick={() => setActiveTab('stats')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'stats' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'stats' ? 'bg-[#c85a32] text-white shadow-md font-bold' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
-          <span>Statistiques & Analyses</span>
+          <span>Vue d'ensemble</span>
         </button>
 
+        {/* TAB: USERS & ADMIN ROLES */}
         <button
-          onClick={() => setActiveTab('defis')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'defis' ? 'bg-[#d97706] text-black font-extrabold shadow-md' : 'bg-[#27150c] text-[#f59e0b] hover:bg-[#341b10]'
+          onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'users' ? 'bg-amber-600 text-white shadow-md font-bold' : 'bg-[#27150c] text-[#f59e0b] hover:bg-[#341b10]'
           }`}
         >
-          <Trophy className="w-4 h-4" />
-          <span>Défis Hebdomadaires ({challenges.length})</span>
+          <Crown className="w-4 h-4" />
+          <span>Utilisateurs & Droits Admin ({usersList.length})</span>
+        </button>
+
+        {/* TAB: RESPONSES & VALIDATION */}
+        <button
+          onClick={() => setActiveTab('validation')}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'validation' ? 'bg-emerald-700 text-white shadow-md font-bold' : 'bg-[#27150c] text-emerald-400 hover:bg-[#341b10]'
+          }`}
+        >
+          <CheckCircle className="w-4 h-4" />
+          <span>Réponses & Export ({contributions.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('themes')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'themes' ? 'bg-[#0284c7] text-white shadow-md font-bold' : 'bg-[#27150c] text-sky-400 hover:bg-[#341b10]'
           }`}
         >
           <Layers className="w-4 h-4" />
-          <span>Thèmes Dynamiques ({themes.length})</span>
+          <span>Thèmes ({themes.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('badges_manager')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'badges_manager' ? 'bg-[#9333ea] text-white shadow-md font-bold' : 'bg-[#27150c] text-purple-400 hover:bg-[#341b10]'
           }`}
         >
@@ -265,67 +466,510 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('hosting')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'hosting' ? 'bg-emerald-700 text-white shadow-md font-bold' : 'bg-[#27150c] text-emerald-400 hover:bg-[#341b10]'
+          onClick={() => setActiveTab('defis')}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'defis' ? 'bg-[#d97706] text-black font-extrabold shadow-md' : 'bg-[#27150c] text-[#f59e0b] hover:bg-[#341b10]'
           }`}
         >
-          <Globe className="w-4 h-4" />
-          <span>Domaine & Hosting (source.essaka.engineering)</span>
+          <Trophy className="w-4 h-4" />
+          <span>Défis ({challenges.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('csv_import')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'csv_import' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#fed7aa] hover:bg-[#341b10]'
           }`}
         >
           <Upload className="w-4 h-4" />
-          <span>Import CSV & Découverte</span>
+          <span>Import CSV</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('validation')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'validation' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
+          onClick={() => setActiveTab('hosting')}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'hosting' ? 'bg-teal-700 text-white shadow-md font-bold' : 'bg-[#27150c] text-teal-400 hover:bg-[#341b10]'
           }`}
         >
-          <CheckCircle className="w-4 h-4" />
-          <span>Validation Contributions ({contributions.filter(c => c.status === 'pending').length})</span>
+          <Globe className="w-4 h-4" />
+          <span>Domaine source.essaka.engineering</span>
         </button>
 
         <button
           onClick={() => setActiveTab('questionnaires')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'questionnaires' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Gestion Questionnaires ({items.length})</span>
+          <span>Fiches ({items.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('badges_levels')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'badges_levels' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
           }`}
         >
-          <Award className="w-4 h-4" />
-          <span>Niveaux & Badges ({usersList.length})</span>
+          <Sliders className="w-4 h-4" />
+          <span>Niveaux XP</span>
         </button>
 
         <button
           onClick={() => setActiveTab('fraud_detection')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'fraud_detection' ? 'bg-[#b91c1c] text-white shadow-md' : 'bg-[#27150c] text-[#fca5a5] hover:bg-[#341b10]'
           }`}
         >
           <ShieldAlert className="w-4 h-4 text-[#ef4444]" />
-          <span>Audit Anti-Fraude & Espions</span>
+          <span>Anti-Fraude</span>
         </button>
       </div>
 
-      {/* TAB 1: STATS & ANALYTICS */}
+      {/* ========================================================= */}
+      {/* TAB: USERS & ADMIN PRIVILEGES (DECIDER QUI EST ADMIN)     */}
+      {/* ========================================================= */}
+      {activeTab === 'users' && (
+        <div className="space-y-5">
+          {/* Top Bar with Description & CSV Export */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 warm-card-gradient border border-[#4a2412] rounded-2xl shadow-md">
+            <div>
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-[#f59e0b]" />
+                <h3 className="text-base font-bold text-white">Gestion des Utilisateurs & Attribution des Rôles</h3>
+              </div>
+              <p className="text-xs text-[#d4af94] mt-1 leading-relaxed">
+                Décidez qui est <strong>Administrateur</strong>, qui est <strong>Validateur Linguistique</strong>, et gérez les comptes actifs ou suspendus.
+              </p>
+            </div>
+
+            <button
+              onClick={handleExportUsersCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white rounded-xl text-xs font-bold border border-stone-600 transition shadow shrink-0 self-start sm:self-center"
+            >
+              <Download className="w-4 h-4 text-[#f59e0b]" />
+              <span>Exporter Utilisateurs en CSV</span>
+            </button>
+          </div>
+
+          {/* Quick Stats on Users */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-[#180d07] border border-[#3b1d10] rounded-xl text-center">
+              <span className="text-[11px] text-[#a8826d]">Total Utilisateurs</span>
+              <div className="text-xl font-bold text-white mt-0.5">{usersList.length}</div>
+            </div>
+            <div className="p-3 bg-[#180d07] border border-[#3b1d10] rounded-xl text-center">
+              <span className="text-[11px] text-amber-400">👑 Administrateurs</span>
+              <div className="text-xl font-bold text-amber-400 mt-0.5">
+                {usersList.filter(u => u.role === 'admin').length}
+              </div>
+            </div>
+            <div className="p-3 bg-[#180d07] border border-[#3b1d10] rounded-xl text-center">
+              <span className="text-[11px] text-purple-400">🔍 Validateurs</span>
+              <div className="text-xl font-bold text-purple-400 mt-0.5">
+                {usersList.filter(u => u.role === 'validator').length}
+              </div>
+            </div>
+            <div className="p-3 bg-[#180d07] border border-[#3b1d10] rounded-xl text-center">
+              <span className="text-[11px] text-emerald-400">✍️ Contributeurs</span>
+              <div className="text-xl font-bold text-emerald-400 mt-0.5">
+                {usersList.filter(u => u.role === 'user').length}
+              </div>
+            </div>
+          </div>
+
+          {/* Filters Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={userSearchQuery}
+                onChange={(e) => setUserSearchQuery(e.target.value)}
+                placeholder="Rechercher par nom, email, téléphone, clan, village..."
+                className="w-full pl-9 pr-3 py-2 bg-[#180d07] border border-[#4a2412] rounded-xl text-xs text-white focus:outline-none focus:border-[#f59e0b]"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-[#d4af94]">Rôle :</span>
+              {(['all', 'admin', 'validator', 'user'] as const).map(role => (
+                <button
+                  key={role}
+                  onClick={() => setUserRoleFilter(role)}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all ${
+                    userRoleFilter === role
+                      ? 'bg-[#c85a32] text-white shadow'
+                      : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'
+                  }`}
+                >
+                  {role === 'all' ? 'Tous' : role === 'admin' ? 'Admins' : role === 'validator' ? 'Validateurs' : 'Contributeurs'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Users List */}
+          <div className="space-y-3">
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-10 bg-[#180d07] rounded-2xl border border-[#3b1d10] text-[#a8826d] text-xs">
+                Aucun utilisateur ne correspond aux critères de recherche.
+              </div>
+            ) : (
+              filteredUsers.map((user) => {
+                const isAdmin = user.role === 'admin';
+                const isValidator = user.role === 'validator';
+                return (
+                  <div
+                    key={user.id}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      isAdmin
+                        ? 'bg-[#2a1708] border-[#f59e0b]/50 shadow-md'
+                        : isValidator
+                        ? 'bg-[#221020] border-purple-500/40'
+                        : 'bg-[#27150c] border-[#4a2412]'
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-white text-sm shadow shrink-0 ${
+                          isAdmin ? 'bg-amber-600' : isValidator ? 'bg-purple-700' : 'terracotta-gradient'
+                        }`}>
+                          {isAdmin ? '👑' : isValidator ? '🔍' : (user.fullName?.charAt(0) || user.displayName?.charAt(0) || '👤')}
+                        </div>
+
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-bold text-sm text-white">{user.fullName || user.displayName}</h4>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              isAdmin ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                              isValidator ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' :
+                              'bg-stone-700 text-stone-300'
+                            }`}>
+                              {isAdmin ? '👑 Administrateur' : isValidator ? '🔍 Validateur' : 'Contributeur'}
+                            </span>
+
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                              user.status === 'suspended' ? 'bg-[#7f1d1d] text-[#fca5a5]' :
+                              user.status === 'flagged' ? 'bg-[#b45309] text-[#fde047]' :
+                              'bg-[#166534] text-[#86efac]'
+                            }`}>
+                              {user.status === 'suspended' ? 'Suspendu' : user.status === 'flagged' ? 'Signalé' : 'Actif'}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-[#d4af94] mt-0.5">
+                            {user.email || user.contact || user.phoneNumber || 'Contact non renseigné'} • Tribu : <strong>{user.tribe || 'Non spécifiée'}</strong>
+                          </div>
+
+                          <div className="text-[11px] text-[#a8826d] mt-1">
+                            Clans: <span>{user.paternalClan || 'N/A'} (Pat.) / {user.maternalClan || 'N/A'} (Mat.)</span> • Village : <span>{user.villageOfOrigin || 'Non déclaré'}</span>
+                          </div>
+
+                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#fed7aa]">
+                            <span>⭐ {user.xp || 0} XP ({user.level || 'Initié'})</span>
+                            <span>🎙️ {user.recordingsCount || 0} audios</span>
+                            <span>📝 {user.contributionsCount || 0} contribs</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons to PROMOTE or CHANGE ROLES */}
+                      <div className="flex flex-col sm:items-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#3b1d10]">
+                        <div className="text-[10px] font-bold uppercase text-[#a8826d]">Attribuer le Rôle :</div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => onUpdateUserRole && onUpdateUserRole(user.id, 'admin')}
+                            disabled={isAdmin}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 ${
+                              isAdmin
+                                ? 'bg-amber-600 text-white cursor-default'
+                                : 'bg-[#180d07] hover:bg-amber-900/50 text-amber-300 border border-amber-600/40 active:scale-95'
+                            }`}
+                            title="Nommer Administrateur de la plateforme"
+                          >
+                            <Crown className="w-3.5 h-3.5" />
+                            <span>{isAdmin ? 'Admin Actuel' : 'Rendre Admin'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => onUpdateUserRole && onUpdateUserRole(user.id, 'validator')}
+                            disabled={isValidator}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 ${
+                              isValidator
+                                ? 'bg-purple-700 text-white cursor-default'
+                                : 'bg-[#180d07] hover:bg-purple-900/50 text-purple-300 border border-purple-600/40 active:scale-95'
+                            }`}
+                            title="Nommer Validateur Linguistique"
+                          >
+                            <span>{isValidator ? 'Validateur' : 'Validateur'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => onUpdateUserRole && onUpdateUserRole(user.id, 'user')}
+                            disabled={!isAdmin && !isValidator}
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                              !isAdmin && !isValidator
+                                ? 'bg-stone-700 text-stone-400 cursor-default'
+                                : 'bg-[#180d07] hover:bg-stone-800 text-stone-300 border border-stone-700 active:scale-95'
+                            }`}
+                            title="Rétablir comme Contributeur standard"
+                          >
+                            Contributeur
+                          </button>
+                        </div>
+
+                        {/* Account status toggles */}
+                        <div className="flex items-center gap-1 mt-1">
+                          {user.status !== 'active' && (
+                            <button
+                              onClick={() => onUpdateUserAccountStatus(user.id, 'active')}
+                              className="text-[10px] text-emerald-400 hover:underline"
+                            >
+                              Réactiver
+                            </button>
+                          )}
+                          {user.status === 'active' && (
+                            <button
+                              onClick={() => onUpdateUserAccountStatus(user.id, 'flagged')}
+                              className="text-[10px] text-amber-400 hover:underline"
+                            >
+                              Signaler
+                            </button>
+                          )}
+                          {user.status !== 'suspended' && (
+                            <button
+                              onClick={() => onUpdateUserAccountStatus(user.id, 'suspended')}
+                              className="text-[10px] text-rose-400 hover:underline ml-2"
+                            >
+                              Suspendre
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB: RESPONSES & VALIDATION WITH EXPORT TO CSV / JSON     */}
+      {/* ========================================================= */}
+      {activeTab === 'validation' && (
+        <div className="space-y-4">
+          {/* Header with Export buttons */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 warm-card-gradient border border-[#4a2412] rounded-2xl shadow-md">
+            <div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-base font-bold text-white">Gestion & Modération des Réponses</h3>
+              </div>
+              <p className="text-xs text-[#d4af94] mt-1">
+                Passez en revue les contributions orales et orthographiques, écoutez les audios et exportez le corpus.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                onClick={handleExportResponsesCSV}
+                className="flex items-center gap-2 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow transition active:scale-95"
+                title="Télécharger toutes les réponses au format CSV pour Excel"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Exporter en CSV (Excel)</span>
+              </button>
+
+              <button
+                onClick={handleExportResponsesJSON}
+                className="flex items-center gap-2 px-3.5 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-bold border border-stone-600 transition active:scale-95"
+                title="Télécharger au format JSON pour entraînement IA ou recherche"
+              >
+                <Download className="w-4 h-4" />
+                <span>Exporter en JSON</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Filters Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={responseSearchQuery}
+                onChange={(e) => setResponseSearchQuery(e.target.value)}
+                placeholder="Rechercher par expression française, mot Myènè, contributeur..."
+                className="w-full pl-9 pr-3 py-2 bg-[#180d07] border border-[#4a2412] rounded-xl text-xs text-white focus:outline-none focus:border-[#f59e0b]"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-[#d4af94]">Statut :</span>
+              {(['all', 'pending', 'approved', 'rejected'] as const).map(status => (
+                <button
+                  key={status}
+                  onClick={() => setValidationFilter(status)}
+                  className={`px-3 py-1 rounded-lg capitalize font-medium transition-all ${
+                    validationFilter === status
+                      ? 'bg-[#c85a32] text-white shadow-sm font-bold'
+                      : 'bg-[#27150c] text-[#a8826d] hover:bg-[#381e11]'
+                  }`}
+                >
+                  {status === 'pending' ? 'En attente' : status === 'approved' ? 'Validés' : status === 'rejected' ? 'Rejetés' : 'Tous'}
+                </button>
+              ))}
+
+              <div className="h-4 w-px bg-[#3b1d10] mx-1" />
+
+              <span className="text-[#d4af94]">Audio :</span>
+              <button
+                onClick={() => setResponseAudioFilter('all')}
+                className={`px-2.5 py-1 rounded-lg transition-all ${responseAudioFilter === 'all' ? 'bg-stone-700 text-white' : 'text-[#a8826d]'}`}
+              >
+                Tous
+              </button>
+              <button
+                onClick={() => setResponseAudioFilter('with_audio')}
+                className={`px-2.5 py-1 rounded-lg transition-all ${responseAudioFilter === 'with_audio' ? 'bg-amber-700 text-white font-bold' : 'text-[#a8826d]'}`}
+              >
+                Avec Audio 🎙️
+              </button>
+            </div>
+          </div>
+
+          {/* Contributions List */}
+          {filteredContributions.length === 0 ? (
+            <div className="text-center py-12 warm-card-gradient rounded-3xl border border-[#4a2412] p-8">
+              <CheckCircle className="w-12 h-12 text-[#22c55e] mx-auto mb-3 opacity-80" />
+              <h3 className="text-base font-bold text-white">Aucune réponse ne correspond aux filtres</h3>
+              <p className="text-xs text-[#a8826d] mt-1">
+                Modifiez les filtres de statut ou de recherche ci-dessus pour afficher d'autres contributions.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-xs text-[#a8826d] flex items-center justify-between px-1">
+                <span>Affichage de <strong>{filteredContributions.length}</strong> réponse(s)</span>
+                <span>{filteredContributions.filter(c => !!c.audioUrl).length} avec enregistrement vocal</span>
+              </div>
+
+              {filteredContributions.map(c => (
+                <div key={c.id} className="warm-card-gradient border border-[#4a2412] rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#3b1d10] pb-2.5">
+                    <div>
+                      <div className="text-xs text-[#f59e0b] font-semibold">
+                        Expression : « {c.frenchText} »
+                      </div>
+                      <div className="text-sm font-bold text-white font-serif mt-0.5">
+                        Original : {c.originalMyeneText}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-[#a8826d]">Par {c.userDisplayName} {c.userTribe ? `(${c.userTribe})` : ''}</span>
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${
+                        c.status === 'approved' ? 'bg-[#15803d]/30 text-[#86efac] border border-[#22c55e]/40' :
+                        c.status === 'rejected' ? 'bg-[#991b1b]/30 text-[#fca5a5] border border-[#ef4444]/40' :
+                        'bg-[#b45309]/30 text-[#fde047] border border-[#d97706]/40'
+                      }`}>
+                        {c.status === 'approved' ? 'Validé' : c.status === 'rejected' ? 'Rejeté' : 'À examiner'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-[#180d07] rounded-xl text-xs space-y-1 border border-[#30170c]">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#fed7aa]">Avis orthographique :</span>
+                      {c.isSpellingCorrect ? (
+                        <span className="text-[#4ade80] font-medium flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" /> Confirmé correct
+                        </span>
+                      ) : (
+                        <span className="text-[#f59e0b] font-medium flex items-center gap-1">
+                          <Edit className="w-3.5 h-3.5" /> Variante proposée : « {c.proposedSpelling} » ({c.dialectVariant || 'enenga'})
+                        </span>
+                      )}
+                    </div>
+                    {c.comment && (
+                      <div className="text-[#a8826d] italic mt-1">
+                        Note : "{c.comment}"
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                    <div>
+                      {c.audioUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => handlePlayAudio(c.id, c.audioUrl)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#c85a32] hover:bg-[#b84a28] text-white text-xs font-medium active:scale-95 transition-transform"
+                        >
+                          {playingAudioId === c.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                          <span>{playingAudioId === c.id ? 'Arrêter' : 'Écouter la voix enregistrée'}</span>
+                          {c.audioDuration ? <span className="opacity-70 text-[10px]">({Math.round(c.audioDuration)}s)</span> : null}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-[#a8826d] italic">Aucun enregistrement audio</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {c.status === 'pending' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => onValidateContribution(c.id, 'approved', validationNote[c.id])}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#166534] hover:bg-[#15803d] text-[#bbf7d0] text-xs font-semibold active:scale-95 transition-transform"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            <span>Approuver</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onValidateContribution(c.id, 'rejected', validationNote[c.id] || 'Non conforme')}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#7f1d1d] hover:bg-[#991b1b] text-[#fecaca] text-xs font-semibold active:scale-95 transition-transform"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            <span>Rejeter</span>
+                          </button>
+                        </>
+                      )}
+
+                      {onDeleteContribution && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('Voulez-vous supprimer définitivement cette réponse ?')) {
+                              onDeleteContribution(c.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-[#180d07] hover:bg-[#7f1d1d] text-[#fca5a5] transition"
+                          title="Supprimer la réponse"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* OTHER TABS: STATS, DEFIS, THEMES, BADGES, CSV, ETC.       */}
+      {/* ========================================================= */}
+
+      {/* TAB: STATS & ANALYTICS */}
       {activeTab === 'stats' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -348,7 +992,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="p-4 bg-[#27150c] border border-[#4a2412] rounded-2xl">
-              <div className="flex items-center justify-between text-[#eab308] mb-1">
+              <div className="flex items-center justify-between text-[#22c55e] mb-1">
                 <span className="text-xs font-semibold">Enregistrements</span>
                 <Mic className="w-4 h-4" />
               </div>
@@ -359,74 +1003,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="p-4 bg-[#27150c] border border-[#4a2412] rounded-2xl">
-              <div className="flex items-center justify-between text-[#22c55e] mb-1">
-                <span className="text-xs font-semibold">Taux de Succès</span>
+              <div className="flex items-center justify-between text-[#d97706] mb-1">
+                <span className="text-xs font-semibold">Validations</span>
                 <CheckCircle className="w-4 h-4" />
               </div>
               <div className="text-2xl font-black text-white">
-                {contributions.length > 0 
-                  ? Math.round((contributions.filter(c => c.status === 'approved').length / contributions.length) * 100) 
-                  : 100}%
+                {contributions.filter(c => c.status === 'approved').length}
               </div>
-              <div className="text-[11px] text-[#a8826d]">Validés par les aînés</div>
-            </div>
-          </div>
-
-          {/* Activity by User Breakdown */}
-          <div className="warm-card-gradient p-5 rounded-2xl border border-[#4a2412] space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#f59e0b]" />
-              <span>Activité par Contributeur (Temps Réel)</span>
-            </h3>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#fed7aa]">
-                <thead className="bg-[#180d07] text-[#f59e0b] uppercase font-bold border-b border-[#3b1d10]">
-                  <tr>
-                    <th className="p-3">Contributeur</th>
-                    <th className="p-3">Tribu & Village</th>
-                    <th className="p-3 text-center">Niveau</th>
-                    <th className="p-3 text-center">Contributions</th>
-                    <th className="p-3 text-center">Audios</th>
-                    <th className="p-3 text-right">Points XP</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#3b1d10]">
-                  {usersList.map((user) => (
-                    <tr key={user.id} className="hover:bg-[#25130a] transition-colors">
-                      <td className="p-3 font-semibold text-white">
-                        {user.fullName || user.displayName}
-                        {user.role === 'admin' && (
-                          <span className="ml-2 text-[10px] px-1.5 py-0.2 rounded bg-[#7f1d1d] text-[#fca5a5]">Admin</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-[#d4af94]">
-                        {user.tribe || 'Myènè'} • {user.villageOfOrigin || 'Non renseigné'}
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#c85a32]/25 text-[#fed7aa] border border-[#c85a32]/30">
-                          {user.level || 'Initié'}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center font-mono font-bold text-white">
-                        {user.contributionsCount || 0}
-                      </td>
-                      <td className="p-3 text-center font-mono font-bold text-[#f59e0b]">
-                        {user.recordingsCount || 0}
-                      </td>
-                      <td className="p-3 text-right font-mono font-bold text-[#22c55e]">
-                        {user.xp} XP
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="text-[11px] text-[#a8826d]">Certifiées par aînés</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB: WEEKLY CHALLENGES (DÉFIS HEBDOMADAIRES) */}
+      {/* TAB: WEEKLY CHALLENGES */}
       {activeTab === 'defis' && (
         <WeeklyChallengesAdmin
           challenges={challenges}
@@ -475,124 +1065,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         />
       )}
 
-      {/* TAB 2: VALIDATION */}
-      {activeTab === 'validation' && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-[#d4af94]">Filtrer :</span>
-              {(['pending', 'approved', 'rejected', 'all'] as const).map(status => (
-                <button
-                  key={status}
-                  onClick={() => setValidationFilter(status)}
-                  className={`px-3 py-1 rounded-lg capitalize font-medium transition-all ${
-                    validationFilter === status ? 'bg-[#c85a32] text-white shadow-sm' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#381e11]'
-                  }`}
-                >
-                  {status === 'pending' ? 'En attente' : status === 'approved' ? 'Validés' : status === 'rejected' ? 'Rejetés' : 'Tous'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filteredContributions.length === 0 ? (
-            <div className="text-center py-12 warm-card-gradient rounded-3xl border border-[#4a2412] p-8">
-              <CheckCircle className="w-12 h-12 text-[#22c55e] mx-auto mb-3 opacity-80" />
-              <h3 className="text-base font-bold text-white">Aucune contribution à valider</h3>
-              <p className="text-xs text-[#a8826d] mt-1">
-                Toutes les propositions ont été passées en revue par les aînés.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredContributions.map(c => (
-                <div key={c.id} className="warm-card-gradient border border-[#4a2412] rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#3b1d10] pb-2.5">
-                    <div>
-                      <div className="text-xs text-[#f59e0b] font-semibold">
-                        Expression : « {c.frenchText} »
-                      </div>
-                      <div className="text-sm font-bold text-white font-serif mt-0.5">
-                        Original : {c.originalMyeneText}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-[#a8826d]">Par {c.userDisplayName}</span>
-                      <span className={`px-2 py-0.5 rounded-full font-medium ${
-                        c.status === 'approved' ? 'bg-[#15803d]/30 text-[#86efac] border border-[#22c55e]/40' :
-                        c.status === 'rejected' ? 'bg-[#991b1b]/30 text-[#fca5a5] border border-[#ef4444]/40' :
-                        'bg-[#b45309]/30 text-[#fde047] border border-[#d97706]/40'
-                      }`}>
-                        {c.status === 'approved' ? 'Validé' : c.status === 'rejected' ? 'Rejeté' : 'À examiner'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-[#180d07] rounded-xl text-xs space-y-1 border border-[#30170c]">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[#fed7aa]">Avis orthographique :</span>
-                      {c.isSpellingCorrect ? (
-                        <span className="text-[#4ade80] font-medium flex items-center gap-1">
-                          <Check className="w-3.5 h-3.5" /> Confirmé correct
-                        </span>
-                      ) : (
-                        <span className="text-[#f59e0b] font-medium flex items-center gap-1">
-                          <Edit className="w-3.5 h-3.5" /> Variante proposée : « {c.proposedSpelling} » ({c.dialectVariant || 'enenga'})
-                        </span>
-                      )}
-                    </div>
-                    {c.comment && (
-                      <div className="text-[#a8826d] italic mt-1">
-                        Note : "{c.comment}"
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                    <div>
-                      {c.audioUrl ? (
-                        <button
-                          type="button"
-                          onClick={() => handlePlayAudio(c.id, c.audioUrl)}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#c85a32] hover:bg-[#b84a28] text-white text-xs font-medium active:scale-95 transition-transform"
-                        >
-                          {playingAudioId === c.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                          <span>{playingAudioId === c.id ? 'Arrêter' : 'Écouter la voix enregistrée'}</span>
-                        </button>
-                      ) : (
-                        <span className="text-xs text-[#a8826d] italic">Aucun enregistrement audio</span>
-                      )}
-                    </div>
-
-                    {c.status === 'pending' && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onValidateContribution(c.id, 'approved', validationNote[c.id])}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#166534] hover:bg-[#15803d] text-[#bbf7d0] text-xs font-semibold active:scale-95 transition-transform"
-                        >
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          <span>Approuver (+Bonus XP)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onValidateContribution(c.id, 'rejected', validationNote[c.id] || 'Non conforme')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#7f1d1d] hover:bg-[#991b1b] text-[#fecaca] text-xs font-semibold active:scale-95 transition-transform"
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                          <span>Rejeter</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: QUESTIONNAIRE CONFIGURATION */}
+      {/* TAB: QUESTIONNAIRE CONFIGURATION */}
       {activeTab === 'questionnaires' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -684,7 +1157,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[#fed7aa] font-medium mb-1">URL de l’image d'illustration (téléchargeable hors-ligne) :</label>
+                  <label className="block text-[#fed7aa] font-medium mb-1">URL de l’image d'illustration :</label>
                   <input
                     type="url"
                     value={formData.imageUrl}
@@ -766,7 +1239,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* TAB 4: BADGES & LEVELS MANAGEMENT */}
+      {/* TAB: BADGES & LEVELS */}
       {activeTab === 'badges_levels' && (
         <div className="space-y-5">
           <div className="flex items-center justify-between">
@@ -839,7 +1312,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="sm:col-span-2 space-y-2">
                   <label className="block text-[#fed7aa] font-semibold">Badges OMPAGANO Attribués :</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {SYSTEM_BADGES.map(badge => {
+                    {badges.map(badge => {
                       const hasBadge = (selectedUserForEdit.badges || []).includes(badge.id);
                       return (
                         <button
@@ -914,7 +1387,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </p>
                     <div className="flex items-center gap-1.5 mt-1">
                       {(user.badges || []).slice(0, 4).map(bId => {
-                        const b = SYSTEM_BADGES.find(x => x.id === bId);
+                        const b = badges.find(x => x.id === bId);
                         return b ? <span key={bId} title={b.title} className="text-sm">{b.icon}</span> : null;
                       })}
                       {(user.badges || []).length > 4 && (
@@ -937,17 +1410,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* TAB 5: ANTI-FRAUD & SUSPICIOUS / INACTIVE PROFILES TRACKER */}
+      {/* TAB: ANTI-FRAUD & SUSPICIOUS / INACTIVE PROFILES */}
       {activeTab === 'fraud_detection' && (
         <div className="space-y-5">
           <div className="p-4 bg-[#7f1d1d]/30 border border-[#ef4444]/40 rounded-2xl space-y-2">
             <div className="flex items-center gap-2 text-sm font-bold text-[#fca5a5]">
               <ShieldAlert className="w-5 h-5 text-[#ef4444]" />
-              <span>Traçabilité & Détection des Profils Stagnants, Faux Profils et Espions</span>
+              <span>Traçabilité & Détection des Profils Inactifs ou Faux</span>
             </div>
             <p className="text-xs text-[#fecaca] leading-relaxed">
               Le programme OMPAGANO est réservé aux contributeurs authentiques de la communauté Myènè.
-              Cet outil détecte automatiquement les comptes qui ont démarré mais n'avancent pas, les filiations douteuses ou les tentatives d'espionnage linguistique sans contribution réelle.
+              Cet outil analyse automatiquement les anomalies généalogiques et l'inactivité prolongée.
             </p>
           </div>
 
@@ -987,7 +1460,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   fraudFilter === 'critical' ? 'bg-[#991b1b] text-white' : 'bg-[#27150c] text-[#a8826d]'
                 }`}
               >
-                Critique / Suspects
+                Critique
               </button>
             </div>
           </div>
@@ -1068,7 +1541,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#7f1d1d] hover:bg-[#991b1b] text-[#fecaca] font-semibold active:scale-95"
                     >
                       <UserX className="w-3.5 h-3.5" />
-                      <span>Suspendre l'accès (Espion / Faux)</span>
+                      <span>Suspendre l'accès</span>
                     </button>
                   )}
 
