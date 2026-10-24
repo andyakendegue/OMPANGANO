@@ -245,13 +245,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('themes')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'themes' ? 'bg-[#0284c7] text-white shadow-md font-bold' : 'bg-[#27150c] text-sky-400 hover:bg-[#341b10]'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>Thèmes Dynamiques ({themes.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('badges_manager')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'badges_manager' ? 'bg-[#9333ea] text-white shadow-md font-bold' : 'bg-[#27150c] text-purple-400 hover:bg-[#341b10]'
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          <span>Dénominations Badges ({badges.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('hosting')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'hosting' ? 'bg-emerald-700 text-white shadow-md font-bold' : 'bg-[#27150c] text-emerald-400 hover:bg-[#341b10]'
+          }`}
+        >
+          <Globe className="w-4 h-4" />
+          <span>Domaine & Hosting (source.essaka.engineering)</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('csv_import')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
             activeTab === 'csv_import' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#fed7aa] hover:bg-[#341b10]'
           }`}
         >
           <Upload className="w-4 h-4" />
-          <span>Import CSV & Thèmes</span>
+          <span>Import CSV & Découverte</span>
         </button>
 
         <button
@@ -400,9 +430,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {activeTab === 'defis' && (
         <WeeklyChallengesAdmin
           challenges={challenges}
+          themes={themes}
+          badges={badges}
           onSaveChallenge={onSaveChallenge}
           onDeleteChallenge={onDeleteChallenge}
           onToggleActive={onToggleActiveChallenge}
+        />
+      )}
+
+      {/* TAB: DYNAMIC THEMES MANAGER */}
+      {activeTab === 'themes' && (
+        <ThemeManagerAdmin
+          themes={themes}
+          items={items}
+          onSaveTheme={onSaveTheme || (async () => {})}
+          onDeleteTheme={onDeleteTheme || (async () => {})}
+        />
+      )}
+
+      {/* TAB: DYNAMIC BADGES DENOMINATIONS MANAGER */}
+      {activeTab === 'badges_manager' && (
+        <BadgesManagerAdmin
+          badges={badges}
+          usersList={usersList}
+          onSaveBadge={onSaveBadge || (async () => {})}
+          onDeleteBadge={onDeleteBadge || (async () => {})}
+        />
+      )}
+
+      {/* TAB: HOSTING & CUSTOM DOMAIN */}
+      {activeTab === 'hosting' && (
+        <HostingCustomDomainAdmin
+          onTriggerSync={onTriggerCloudSync}
         />
       )}
 
@@ -411,6 +470,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <CsvImportSection
           onImportItems={onBatchImportItems}
           currentItemsCount={items.length}
+          themes={themes}
+          onRegisterNewThemes={onBatchRegisterThemes}
         />
       )}
 

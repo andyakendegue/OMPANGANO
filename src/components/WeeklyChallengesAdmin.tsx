@@ -39,7 +39,7 @@ export const WeeklyChallengesAdmin: React.FC<WeeklyChallengesAdminProps> = ({
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
-    theme: ThematicCategory | 'all';
+    theme: string;
     targetCount: number;
     challengeType: 'contributions' | 'recordings' | 'validations' | 'all';
     xpReward: number;
