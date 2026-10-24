@@ -41,5 +41,8 @@
         "supportEmail": "support@enenga.firebaseapp.com"
       }
     }
+  },
+  "database": {
+    "rules": "database.rules.json"
   }
 }
