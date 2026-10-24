@@ -316,7 +316,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <User className="w-3.5 h-3.5 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Ex: Mboumba, Migoumbi..."
+                    placeholder="Ex: Mboumba, Onanga..."
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     className="w-full pl-8 pr-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"

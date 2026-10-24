@@ -82,43 +82,6 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     }
   };
 
-  // Direct Gmail / Email Login (100% reliable)
-  const handleDirectGmailLogin = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const cleanEmail = gmailAddress.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-      setErrorMessage("Veuillez saisir une adresse email valide (ex: andymigoumbi@gmail.com).");
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    const isAdmin = cleanEmail === 'andymigoumbi@gmail.com';
-    const cleanId = 'user-' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
-    const namePart = cleanEmail.split('@')[0];
-    const formattedName = isAdmin ? 'Andy Migoumbi' : (namePart.charAt(0).toUpperCase() + namePart.slice(1));
-
-    setTimeout(() => {
-      onLoginSuccess({
-        id: cleanId,
-        email: cleanEmail,
-        contact: cleanEmail,
-        displayName: formattedName,
-        fullName: formattedName,
-        role: isAdmin ? 'admin' : 'user',
-        status: 'active',
-        xp: isAdmin ? 2850 : 150,
-        level: isAdmin ? 'Sage Ancien' : 'Initié Curieux',
-        levelIndex: isAdmin ? 5 : 1,
-        tribe: 'Enenga',
-        badges: isAdmin 
-          ? ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'] 
-          : ['badge-premiere-voix']
-      });
-      setIsLoading(false);
-    }, 300);
-  };
 
   // Direct Phone Login (100% reliable, no phantom SMS wait)
   const handleDirectPhoneLogin = (e?: React.FormEvent) => {
@@ -303,43 +266,6 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                     <span>{isLoading ? 'Connexion en cours...' : 'Se connecter avec Google (Popup)'}</span>
                   </button>
 
-                  {/* Or Direct Gmail / Email connection form */}
-                  <div className="relative flex py-1 items-center">
-                    <div className="flex-grow border-t border-[#3b1d10]"></div>
-                    <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-[#a8826d] tracking-wider">
-                      Ou saisie directe de votre adresse Gmail
-                    </span>
-                    <div className="flex-grow border-t border-[#3b1d10]"></div>
-                  </div>
-
-                  <form onSubmit={handleDirectGmailLogin} className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
-                        Adresse Gmail / Email :
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        placeholder="andymigoumbi@gmail.com"
-                        value={gmailAddress}
-                        onChange={(e) => setGmailAddress(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>{isLoading ? 'Validation...' : 'Valider et Accéder avec cette adresse'}</span>
-                    </button>
-                  </form>
-
-                  <p className="text-[11px] text-center text-[#a8826d]">
-                    L'adresse <code className="text-[#f59e0b]">andymigoumbi@gmail.com</code> active automatiquement les droits d'administration 👑.
-                  </p>
                 </div>
               )}
 
@@ -377,7 +303,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                         <User className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
-                          placeholder="Ex: Mboumba, Migoumbi, Ogula..."
+                          placeholder="Ex: Mboumba, Ogula..."
                           value={userName}
                           onChange={(e) => setUserName(e.target.value)}
                           className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
