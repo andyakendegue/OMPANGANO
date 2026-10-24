@@ -1,5 +1,14 @@
 {
   "projects": {
-    "default": "gen-lang-client-0722380117"
+    "default": "ompangano"
+  },
+  "targets": {
+    "ompangano": {
+      "hosting": {
+        "ompangano": [
+          "ompangano"
+        ]
+      }
+    }
   }
 }

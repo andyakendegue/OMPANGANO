@@ -1,0 +1,15 @@
+{
+  "description": "Copie visible de .firebaserc pour GitHub (les fichiers commençant par un point sont souvent masqués par défaut).",
+  "projects": {
+    "default": "ompangano"
+  },
+  "targets": {
+    "ompangano": {
+      "hosting": {
+        "ompangano": [
+          "ompangano"
+        ]
+      }
+    }
+  }
+}
