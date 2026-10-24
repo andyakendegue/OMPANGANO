@@ -156,7 +156,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md overflow-y-auto">
       <div className="relative w-full max-w-2xl my-auto warm-card-gradient border-2 border-[#d97706]/50 rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 text-white max-h-[92vh] overflow-y-auto">
         {/* Header with App identity */}
-        <div className="text-center space-y-2 border-b border-[#4a2412] pb-5">
+        <div className="text-center space-y-3 border-b border-[#4a2412] pb-5">
+          <div className="w-16 h-16 mx-auto rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-lg">
+            <div className="w-full h-full bg-[#180d07] rounded-[14px] overflow-hidden flex items-center justify-center">
+              <img 
+                src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                alt="Logo OMPAGANO" 
+                className="w-full h-full object-cover scale-105"
+              />
+            </div>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#c85a32]/30 text-[#fde047] border border-[#c85a32]/50">
             <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
             <span>Enregistrement Obligatoire • Protocole OMPAGANO</span>

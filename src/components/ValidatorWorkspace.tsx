@@ -181,17 +181,28 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
       {/* Top Banner */}
       <div className="warm-card-gradient rounded-3xl p-5 sm:p-6 border border-[#d97706]/30 shadow-xl space-y-3">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold mb-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Studio de Relecture & Validation des Aînés</span>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-lg shrink-0 hidden sm:block">
+              <div className="w-full h-full bg-[#180d07] rounded-[14px] overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/assets/aistudio/LOGO_c7de06c8.jpg" 
+                  alt="Logo OMPAGANO" 
+                  className="w-full h-full object-cover scale-105"
+                />
+              </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Validation Linguistique Myènè
-            </h1>
-            <p className="text-xs sm:text-sm text-[#d4af94] mt-0.5">
-              Évaluez avec nuance la justesse de l'écrit et l'authenticité de la prononciation orale.
-            </p>
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Studio de Relecture & Validation des Aînés</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+                Validation Linguistique Myènè
+              </h1>
+              <p className="text-xs sm:text-sm text-[#d4af94] mt-0.5">
+                Évaluez avec nuance la justesse de l'écrit et l'authenticité de la prononciation orale.
+              </p>
+            </div>
           </div>
 
           <div className="p-3 bg-[#180d07] rounded-2xl border border-[#4a2412] text-right shrink-0">

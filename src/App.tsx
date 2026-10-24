@@ -279,6 +279,18 @@ export default function App() {
   useEffect(() => {
     testFirestoreConnection();
 
+    // Check if an existing authenticated session is stored in localStorage
+    try {
+      const stored = localStorage.getItem('nkala_authenticated_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.id) {
+          setCurrentUser(parsed);
+          setIsAuthChecking(false);
+        }
+      }
+    } catch {}
+
     const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       if (fbUser) {
         const isAdmin = fbUser.email === 'andymigoumbi@gmail.com';
@@ -312,13 +324,28 @@ export default function App() {
             createdAt: prev?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
+          try {
+            localStorage.setItem('nkala_authenticated_user', JSON.stringify(profile));
+          } catch {}
           if (!profile.registrationCompleted) {
             setIsOnboardingModalOpen(true);
           }
           return profile;
         });
       } else {
-        // Not logged in -> stay on AuthGateScreen
+        // If Firebase Auth returns null (e.g. user logged in via phone or direct Gmail)
+        // Check if there is an active valid session in localStorage
+        try {
+          const activeLocal = localStorage.getItem('nkala_authenticated_user');
+          if (activeLocal) {
+            const parsed = JSON.parse(activeLocal);
+            if (parsed && parsed.id) {
+              setCurrentUser(parsed);
+              setIsAuthChecking(false);
+              return;
+            }
+          }
+        } catch {}
         setCurrentUser(null);
       }
       setIsAuthChecking(false);
@@ -889,12 +916,12 @@ export default function App() {
 
   // Authentication Gate handler
   const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
-    const isAdmin = profileData.email === 'andymigoumbi@gmail.com' || profileData.role === 'admin';
+    const isAdmin = (profileData.email?.toLowerCase() === 'andymigoumbi@gmail.com') || profileData.role === 'admin';
     const fullProfile: UserProfile = {
       id: profileData.id || `user-${Date.now()}`,
-      displayName: profileData.displayName || 'Contributeur OMPAGANO',
-      fullName: profileData.fullName || profileData.displayName || '',
-      contact: profileData.contact || profileData.email || '',
+      displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Contributeur OMPAGANO'),
+      fullName: profileData.fullName || profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Locuteur Myènè'),
+      contact: profileData.contact || profileData.email || profileData.phoneNumber || '',
       birthDate: profileData.birthDate || '',
       birthPlace: profileData.birthPlace || '',
       tribe: profileData.tribe || 'Enenga',
@@ -908,18 +935,21 @@ export default function App() {
       role: isAdmin ? 'admin' : (profileData.role || 'user'),
       status: profileData.status || 'active',
       suspicionScore: profileData.suspicionScore || 0,
-      xp: profileData.xp || 150,
-      level: profileData.level || 'Initié Curieux',
-      levelIndex: profileData.levelIndex || 1,
-      contributionsCount: profileData.contributionsCount || 0,
-      recordingsCount: profileData.recordingsCount || 0,
-      validationsCount: profileData.validationsCount || 0,
+      xp: profileData.xp || (isAdmin ? 2850 : 150),
+      level: profileData.level || (isAdmin ? 'Sage Ancien' : 'Initié Curieux'),
+      levelIndex: profileData.levelIndex || (isAdmin ? 5 : 1),
+      contributionsCount: profileData.contributionsCount || (isAdmin ? 28 : 0),
+      recordingsCount: profileData.recordingsCount || (isAdmin ? 22 : 0),
+      validationsCount: profileData.validationsCount || (isAdmin ? 19 : 0),
       streakDays: profileData.streakDays || 1,
-      badges: profileData.badges || ['badge-premiere-voix'],
+      badges: profileData.badges || (isAdmin ? ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'] : ['badge-premiere-voix']),
       createdAt: profileData.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
+    try {
+      localStorage.setItem('nkala_authenticated_user', JSON.stringify(fullProfile));
+    } catch {}
     setCurrentUser(fullProfile);
 
     // Sync to usersList state and Firestore
@@ -1318,7 +1348,10 @@ export default function App() {
         onOpenOfflinePack={() => setIsOfflinePackModalOpen(true)}
         onSyncOffline={syncPendingOfflineData}
         onSignOut={() => {
-          fbSignOut(auth);
+          try {
+            localStorage.removeItem('nkala_authenticated_user');
+          } catch {}
+          fbSignOut(auth).catch(() => {});
           setCurrentUser(null);
         }}
         currentTab={currentTab}
@@ -1420,7 +1453,10 @@ export default function App() {
             onOpenOnboarding={() => setIsOnboardingModalOpen(true)}
             onOpenOfflinePack={() => setIsOfflinePackModalOpen(true)}
             onSignOut={() => {
-              fbSignOut(auth);
+              try {
+                localStorage.removeItem('nkala_authenticated_user');
+              } catch {}
+              fbSignOut(auth).catch(() => {});
               setCurrentUser(null);
             }}
             onClearOfflineCache={() => {
@@ -1465,34 +1501,8 @@ export default function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onLoginSuccess={(profile) => {
-          const userObj: UserProfile = {
-            id: profile.id || 'user-' + Date.now(),
-            displayName: profile.displayName || 'Contributeur OMPAGANO',
-            fullName: profile.displayName || 'Contributeur OMPAGANO',
-            contact: profile.phoneNumber || profile.email || '',
-            birthDate: '1995-05-15',
-            birthPlace: 'Lambaréné',
-            tribe: 'Enenga',
-            paternalClan: 'Avandji',
-            maternalClan: 'Imvona',
-            villageOfOrigin: 'Lambaréné',
-            registrationCompleted: false, // Forces genealogical onboarding gate!
-            role: profile.role || 'user',
-            status: 'active',
-            suspicionScore: 0,
-            xp: profile.xp || 150,
-            level: profile.level || 'Initié Curieux',
-            levelIndex: 1,
-            contributionsCount: 3,
-            recordingsCount: 2,
-            validationsCount: 1,
-            streakDays: 1,
-            badges: profile.badges || ['badge-genealogie-verifiee'],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          setCurrentUser(userObj);
-          setIsOnboardingModalOpen(true);
+          handleLoginSuccess(profile);
+          setIsAuthModalOpen(false);
         }}
       />
 
