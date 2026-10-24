@@ -29,7 +29,9 @@ import {
   OfflineSubmission,
   ClanRegistry,
   VillageRegistry,
-  WeeklyChallenge
+  WeeklyChallenge,
+  ThemeDefinition,
+  Badge
 } from './types';
 import { 
   INITIAL_ENENGA_ITEMS, 
@@ -38,6 +40,7 @@ import {
   INITIAL_CLANS, 
   INITIAL_VILLAGES, 
   INITIAL_WEEKLY_CHALLENGES,
+  THEMATIC_CATEGORIES,
   getLevelForXp 
 } from './services/seedData';
 import { 
@@ -82,6 +85,10 @@ export default function App() {
   const [activeChallengeId, setActiveChallengeId] = useState<string>('defi-peche-semaine');
   const [isChallengeFilterActive, setIsChallengeFilterActive] = useState<boolean>(false);
   const [celebrationChallenge, setCelebrationChallenge] = useState<WeeklyChallenge | null>(null);
+
+  // Dynamic Themes & Dynamic Badges states
+  const [themes, setThemes] = useState<ThemeDefinition[]>(THEMATIC_CATEGORIES);
+  const [badges, setBadges] = useState<Badge[]>(SYSTEM_BADGES);
 
   const [systemMetrics, setSystemMetrics] = useState<SystemMetric>({
     id: 'summary',
@@ -474,11 +481,65 @@ export default function App() {
       }
     );
 
+    // 5. Subscribe to Dynamic Themes
+    const themesPath = 'themes';
+    const unsubscribeThemes = onSnapshot(
+      collection(db, themesPath),
+      async (snapshot) => {
+        if (!snapshot.empty) {
+          const loaded: ThemeDefinition[] = [];
+          snapshot.forEach(docSnap => {
+            loaded.push({ id: docSnap.id, ...docSnap.data() } as ThemeDefinition);
+          });
+          setThemes(loaded);
+        } else {
+          try {
+            for (const th of THEMATIC_CATEGORIES) {
+              await setDoc(doc(db, 'themes', th.id), th);
+            }
+          } catch (e) {
+            console.warn('Themes initial seeding notice:', e);
+          }
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, themesPath);
+      }
+    );
+
+    // 6. Subscribe to Dynamic Badges
+    const badgesPath = 'badges';
+    const unsubscribeBadges = onSnapshot(
+      collection(db, badgesPath),
+      async (snapshot) => {
+        if (!snapshot.empty) {
+          const loaded: Badge[] = [];
+          snapshot.forEach(docSnap => {
+            loaded.push({ id: docSnap.id, ...docSnap.data() } as Badge);
+          });
+          setBadges(loaded);
+        } else {
+          try {
+            for (const bg of SYSTEM_BADGES) {
+              await setDoc(doc(db, 'badges', bg.id), bg);
+            }
+          } catch (e) {
+            console.warn('Badges initial seeding notice:', e);
+          }
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, badgesPath);
+      }
+    );
+
     return () => {
       unsubscribeItems();
       unsubscribeContrib();
       unsubscribeMetrics();
       unsubscribeChallenges();
+      unsubscribeThemes();
+      unsubscribeBadges();
     };
   }, []);
 
@@ -915,6 +976,105 @@ export default function App() {
     });
   };
 
+  // Dynamic Themes Handlers
+  const handleSaveTheme = async (themeData: Partial<ThemeDefinition>) => {
+    const themeId = themeData.id || `theme_${Date.now()}`;
+    const fullTheme: ThemeDefinition = {
+      id: themeId,
+      name: themeData.name || 'Nouveau Thème',
+      shortName: themeData.shortName || themeData.name || 'Thème',
+      icon: themeData.icon || '🏷️',
+      description: themeData.description || '',
+      keywords: themeData.keywords || [],
+      color: themeData.color || '#0284c7',
+      isCustom: true,
+      createdAt: themeData.createdAt || new Date().toISOString()
+    };
+
+    try {
+      await setDoc(doc(db, 'themes', themeId), fullTheme);
+    } catch (e) {
+      console.warn('Error saving theme to Firestore:', e);
+    }
+
+    setThemes(prev => {
+      const idx = prev.findIndex(t => t.id === themeId);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = fullTheme;
+        return updated;
+      }
+      return [...prev, fullTheme];
+    });
+  };
+
+  const handleDeleteTheme = async (themeId: string) => {
+    try {
+      await deleteDoc(doc(db, 'themes', themeId));
+    } catch (e) {
+      console.warn('Error deleting theme:', e);
+    }
+    setThemes(prev => prev.filter(t => t.id !== themeId));
+  };
+
+  const handleBatchRegisterThemes = async (newThemes: ThemeDefinition[]) => {
+    for (const th of newThemes) {
+      try {
+        await setDoc(doc(db, 'themes', th.id), th);
+      } catch (e) {
+        console.warn('Error registering theme:', e);
+      }
+    }
+    setThemes(prev => {
+      const existingIds = new Set(prev.map(p => p.id));
+      const toAdd = newThemes.filter(nt => !existingIds.has(nt.id));
+      return [...prev, ...toAdd];
+    });
+  };
+
+  // Dynamic Badges Handlers
+  const handleSaveBadge = async (badgeData: Partial<Badge>) => {
+    const badgeId = badgeData.id || `badge_${Date.now()}`;
+    const fullBadge: Badge = {
+      id: badgeId,
+      title: badgeData.title || 'Nouveau Badge',
+      description: badgeData.description || '',
+      icon: badgeData.icon || '🏆',
+      category: badgeData.category || 'defi',
+      requiredXp: badgeData.requiredXp,
+      requiredContributions: badgeData.requiredContributions,
+      requiredRecordings: badgeData.requiredRecordings,
+      requiredValidations: badgeData.requiredValidations,
+      isCustom: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(doc(db, 'badges', badgeId), fullBadge);
+    } catch (e) {
+      console.warn('Error saving badge to Firestore:', e);
+    }
+
+    setBadges(prev => {
+      const idx = prev.findIndex(b => b.id === badgeId);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = fullBadge;
+        return updated;
+      }
+      return [...prev, fullBadge];
+    });
+  };
+
+  const handleDeleteBadge = async (badgeId: string) => {
+    try {
+      await deleteDoc(doc(db, 'badges', badgeId));
+    } catch (e) {
+      console.warn('Error deleting badge:', e);
+    }
+    setBadges(prev => prev.filter(b => b.id !== badgeId));
+  };
+
   // Cloud Functions simulator trigger
   const handleTriggerCloudSync = async () => {
     const metricsPayload: SystemMetric = {
@@ -1031,6 +1191,7 @@ export default function App() {
           <LeaderboardAndRewards
             currentUser={currentUser}
             leaderboardUsers={usersList}
+            badges={badges}
           />
         )}
 
@@ -1041,6 +1202,8 @@ export default function App() {
             systemMetrics={systemMetrics}
             usersList={usersList}
             challenges={challenges}
+            themes={themes}
+            badges={badges}
             onValidateContribution={handleValidateContribution}
             onSaveQuestionnaireItem={handleSaveQuestionnaireItem}
             onDeleteQuestionnaireItem={handleDeleteQuestionnaireItem}
@@ -1048,6 +1211,11 @@ export default function App() {
             onSaveChallenge={handleSaveChallenge}
             onDeleteChallenge={handleDeleteChallenge}
             onToggleActiveChallenge={handleToggleActiveChallenge}
+            onSaveTheme={handleSaveTheme}
+            onDeleteTheme={handleDeleteTheme}
+            onBatchRegisterThemes={handleBatchRegisterThemes}
+            onSaveBadge={handleSaveBadge}
+            onDeleteBadge={handleDeleteBadge}
             onUpdateUserLevelAndBadges={handleUpdateUserLevelAndBadges}
             onUpdateUserAccountStatus={handleUpdateUserAccountStatus}
             onTriggerCloudSync={handleTriggerCloudSync}

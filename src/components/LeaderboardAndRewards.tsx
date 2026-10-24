@@ -19,11 +19,13 @@ import { SYSTEM_BADGES, USER_LEVELS, MYENE_TRIBES, getLevelForXp } from '../serv
 interface LeaderboardAndRewardsProps {
   currentUser: UserProfile | null;
   leaderboardUsers: UserProfile[];
+  badges?: Badge[];
 }
 
 export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
   currentUser,
-  leaderboardUsers
+  leaderboardUsers,
+  badges = SYSTEM_BADGES
 }) => {
   const [selectedTribeFilter, setSelectedTribeFilter] = useState<string>('all');
   const [searchUserQuery, setSearchUserQuery] = useState('');
@@ -125,12 +127,12 @@ export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
             <h3 className="text-lg font-bold text-white">Vos Badges & Titres Honorifiques OMPAGANO</h3>
           </div>
           <span className="text-xs text-[#a8826d]">
-            {userBadges.length} sur {SYSTEM_BADGES.length} débloqués
+            {userBadges.length} sur {badges.length} débloqués
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {SYSTEM_BADGES.map(badge => {
+          {badges.map(badge => {
             const isUnlocked = userBadges.includes(badge.id) || currentXp >= (badge.requiredXp || 99999);
             return (
               <div
