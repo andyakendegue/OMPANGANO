@@ -115,15 +115,15 @@ export default function App() {
   const [usersList, setUsersList] = useState<UserProfile[]>([
     {
       id: 'admin-andy',
-      displayName: 'Andy Migoumbi',
-      fullName: 'Andy Migoumbi',
+      displayName: 'Andy AKENDENGUE',
+      fullName: 'Andy AKENDENGUE',
       contact: 'andymigoumbi@gmail.com',
-      birthDate: '1992-06-14',
-      birthPlace: 'Lambaréné',
-      tribe: 'Enenga',
-      paternalClan: 'Avandji',
-      maternalClan: 'Imvona',
-      villageOfOrigin: 'Lambaréné (Moyen-Ogooué)',
+      birthDate: '1986-09-14',
+      birthPlace: 'Libreville',
+      tribe: 'Ôrungu',
+      paternalClan: 'Ilongo n\'Adjena',
+      maternalClan: 'Agenjé',
+      villageOfOrigin: 'Alumbè (Ogooué-Maritime)',
       registrationCompleted: true,
       email: 'andymigoumbi@gmail.com',
       role: 'admin',
@@ -807,7 +807,7 @@ export default function App() {
       await updateDoc(doc(db, 'contributions', contributionId), {
         status,
         validatorId: currentUser?.id || 'admin',
-        validatorDisplayName: currentUser?.fullName || 'Andy Migoumbi',
+        validatorDisplayName: currentUser?.fullName || 'Andy AKENDENGUE',
         validatorNotes: notes || '',
         validatedAt: new Date().toISOString()
       });

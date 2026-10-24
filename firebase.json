@@ -33,5 +33,13 @@
         ]
       }
     ]
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "ESSAKA ENGINEERING",
+        "supportEmail": "support@enenga.firebaseapp.com"
+      }
+    }
   }
 }

@@ -38,7 +38,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [fullName, setFullName] = useState(currentUser?.fullName || currentUser?.displayName || '');
   const [contact, setContact] = useState(currentUser?.contact || currentUser?.phoneNumber || currentUser?.email || '');
   const [birthDate, setBirthDate] = useState(currentUser?.birthDate || '1995-05-15');
-  const [birthPlace, setBirthPlace] = useState(currentUser?.birthPlace || 'Lambaréné');
+  const [birthPlace, setBirthPlace] = useState(currentUser?.birthPlace || 'Port-Gentil');
   const [tribe, setTribe] = useState<TribeName>(currentUser?.tribe || 'Enenga');
   
   // Paternal clan
@@ -208,7 +208,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ex: Andy Migoumbi"
+                  placeholder="Ex: Jean Onanga"
                   className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#522915] rounded-xl text-white text-xs sm:text-sm focus:outline-none focus:border-[#f59e0b]"
                 />
               </div>
