@@ -24,6 +24,7 @@ import {
 import { 
   QuestionnaireItem, 
   Contribution, 
+  ContributionStatus,
   UserProfile, 
   SystemMetric,
   OfflineSubmission,
@@ -62,6 +63,7 @@ import { BottomNav, AppTab } from './components/BottomNav';
 import { CrowdsourceCard } from './components/CrowdsourceCard';
 import { VocabularyExplorer } from './components/VocabularyExplorer';
 import { LeaderboardAndRewards } from './components/LeaderboardAndRewards';
+import { ValidatorWorkspace } from './components/ValidatorWorkspace';
 import { AdminDashboard } from './components/AdminDashboard';
 import { UserProfileView } from './components/UserProfileView';
 import { AuthModal } from './components/AuthModal';
@@ -558,7 +560,7 @@ export default function App() {
           id: item.id,
           itemId: item.itemId,
           userId: currentUser?.id || 'offline_user',
-          userDisplayName: currentUser?.displayName || 'Contributeur Enenga',
+          userDisplayName: currentUser?.fullName || currentUser?.displayName || 'Contributeur Myènè',
           frenchText: item.frenchText,
           originalMyeneText: item.originalMyeneText,
           isSpellingCorrect: item.isSpellingCorrect,
@@ -604,7 +606,7 @@ export default function App() {
       id: contributionId,
       itemId: data.itemId || '',
       userId: currentUser?.id || 'guest-user',
-      userDisplayName: currentUser?.displayName || 'Contributeur Enenga',
+      userDisplayName: currentUser?.fullName || currentUser?.displayName || 'Contributeur Myènè',
       userPhotoURL: currentUser?.photoURL,
       frenchText: data.frenchText || '',
       originalMyeneText: data.originalMyeneText || '',
@@ -800,6 +802,57 @@ export default function App() {
         badges: extraBadges
       });
     }
+  };
+
+  // Dedicated Validator Workspace handler with explicit oral vs written nuance
+  // "l'écrit peut être bon mais pas la prononciation, la prononciation est bonne mais il a mal écrit"
+  const handleValidateGranular = async (
+    contributionId: string,
+    payload: {
+      status: ContributionStatus;
+      spellingVerdict: 'correct' | 'incorrect';
+      pronunciationVerdict: 'correct' | 'incorrect' | 'no_audio';
+      notes?: string;
+    }
+  ) => {
+    const updatePayload: Partial<Contribution> = {
+      status: payload.status,
+      spellingVerdict: payload.spellingVerdict,
+      pronunciationVerdict: payload.pronunciationVerdict,
+      isSpellingCorrect: payload.spellingVerdict === 'correct',
+      isPronunciationCorrect: payload.pronunciationVerdict === 'correct',
+      validatorId: currentUser?.id || 'validator',
+      validatorDisplayName: currentUser?.fullName || currentUser?.displayName || 'Validateur',
+      validatorNotes: payload.notes || '',
+      validatedAt: new Date().toISOString()
+    };
+
+    try {
+      await updateDoc(doc(db, 'contributions', contributionId), updatePayload);
+    } catch (e) {
+      console.warn('Notice saving granular validation to Firestore:', e);
+    }
+
+    setContributions(prev =>
+      prev.map(c => c.id === contributionId ? { ...c, ...updatePayload } : c)
+    );
+
+    if (currentUser) {
+      const updatedValids = (currentUser.validationsCount || 0) + 1;
+      const extraBadges = [...currentUser.badges];
+      if (updatedValids >= 5 && !extraBadges.includes('badge-cinq-validations')) {
+        extraBadges.push('badge-cinq-validations');
+      }
+      setCurrentUser({
+        ...currentUser,
+        validationsCount: updatedValids,
+        badges: extraBadges
+      });
+    }
+
+    NotificationService.sendLocalNotification('Évaluation Enregistrée 🎯', {
+      body: `La contribution a été évaluée avec nuance.`
+    });
   };
 
   // Admin User level & badge manual manager
@@ -1214,6 +1267,29 @@ export default function App() {
     }
   };
 
+  // RBAC Tab Navigation handler
+  const handleTabNavigation = (tab: AppTab) => {
+    if (tab === 'admin' && currentUser?.role !== 'admin') {
+      return;
+    }
+    if (tab === 'validator' && currentUser?.role !== 'validator' && currentUser?.role !== 'admin') {
+      return;
+    }
+    setCurrentTab(tab);
+  };
+
+  // Guard active tab against role change
+  useEffect(() => {
+    if (currentUser) {
+      if (currentTab === 'admin' && currentUser.role !== 'admin') {
+        setCurrentTab('crowdsource');
+      }
+      if (currentTab === 'validator' && currentUser.role !== 'validator' && currentUser.role !== 'admin') {
+        setCurrentTab('crowdsource');
+      }
+    }
+  }, [currentUser?.role, currentTab]);
+
   const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || INITIAL_ENENGA_ITEMS[0];
 
   // MANDATORY AUTHENTICATION GATE:
@@ -1246,7 +1322,7 @@ export default function App() {
           setCurrentUser(null);
         }}
         currentTab={currentTab}
-        onSelectTab={(tab) => setCurrentTab(tab)}
+        onSelectTab={handleTabNavigation}
       />
 
       {/* Main Content Area */}
@@ -1296,7 +1372,17 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'admin' && (
+        {/* Dedicated Validator Workspace: Oral vs Written nuance */}
+        {currentTab === 'validator' && (currentUser?.role === 'validator' || currentUser?.role === 'admin') && (
+          <ValidatorWorkspace
+            contributions={contributions}
+            currentUser={currentUser}
+            onValidateGranular={handleValidateGranular}
+          />
+        )}
+
+        {/* Administration: ONLY for Admins */}
+        {currentTab === 'admin' && currentUser?.role === 'admin' && (
           <AdminDashboard
             items={items}
             contributions={contributions}
@@ -1349,7 +1435,7 @@ export default function App() {
       {/* Bottom Navigation */}
       <BottomNav
         currentTab={currentTab}
-        onSelectTab={setCurrentTab}
+        onSelectTab={handleTabNavigation}
         userRole={currentUser?.role}
         pendingCount={contributions.filter(c => c.status === 'pending').length}
       />

@@ -100,7 +100,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
     }
 
     if (spellingDecision === 'propose' && !proposedText.trim()) {
-      alert('Veuillez saisir votre proposition de traduction / orthographe en Myènè Enenga.');
+      alert('Veuillez saisir votre proposition de traduction / orthographe en langue Myènè.');
       return;
     }
 
@@ -165,13 +165,13 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
 
       // Reward points calculation
       const xp = audioBlob ? 120 : 50;
-      onRewardEarned(xp, audioBlob ? ['badge-premiere-voix'] : ['badge-plume-enenga']);
+      onRewardEarned(xp, audioBlob ? ['badge-premiere-voix'] : ['badge-dix-traductions']);
 
       NotificationService.addInAppNotification({
         id: 'contrib-' + Date.now(),
         userId: currentUser?.id || 'guest',
         title: 'Contribution Enregistrée ! 🌟',
-        message: `Merci d’enrichir la langue Enenga pour "${item.frenchText}". +${xp} XP gagnés !`,
+        message: `Merci d’enrichir le patrimoine de la langue Myènè pour "${item.frenchText}". +${xp} XP gagnés !`,
         type: 'reward',
         read: false,
         createdAt: new Date().toISOString()
@@ -318,11 +318,11 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
 
         {/* Content Body */}
         <div className="p-5 sm:p-7 space-y-6">
-          {/* Myènè (Enenga) Original Highlight */}
+          {/* Myènè Original Highlight */}
           <div className="bg-[#241208] border-2 border-[#d97706]/40 rounded-2xl p-4 sm:p-5 relative shadow-inner">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#f59e0b]">
-                Traduction proposée en Enenga :
+                Traduction proposée en langue Myènè :
               </span>
               <button
                 type="button"
@@ -352,7 +352,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               <span className="w-6 h-6 rounded-full bg-[#c85a32] text-white flex items-center justify-center text-xs">
                 1
               </span>
-              <span>L’orthographe est-elle bien écrite en Enenga ?</span>
+              <span>L’orthographe est-elle bien écrite en langue Myènè ?</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -391,7 +391,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               <div className="mt-3 p-4 bg-[#1f0f08] border border-[#c85a32]/40 rounded-2xl space-y-3 animate-in fade-in duration-200">
                 <div>
                   <label className="block text-xs font-semibold text-[#fed7aa] mb-1.5">
-                    Votre version exacte en Enenga / Myènè :
+                    Votre version exacte en langue Myènè :
                   </label>
                   <input
                     type="text"
@@ -405,19 +405,19 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-[#a8826d] mb-1">
-                      Variante ou dialecte :
+                      Variante tribale :
                     </label>
                     <select
                       value={dialectVariant}
                       onChange={(e) => setDialectVariant(e.target.value)}
                       className="w-full px-3 py-2 bg-[#140a05] border border-[#522915] rounded-xl text-xs text-[#fed7aa] focus:outline-none focus:border-[#f59e0b]"
                     >
-                      <option value="enenga">Enenga (Lambaréné & Lacs)</option>
-                      <option value="mpongwe">Mpongwè (Estuaire / Libreville)</option>
-                      <option value="galwa">Galwa (Lambaréné fleuve)</option>
-                      <option value="nkomi">Nkomi (Fernan Vaz)</option>
-                      <option value="orungu">Orungu (Port-Gentil)</option>
-                      <option value="adyumba">Adyumba (Lac Azingo)</option>
+                      <option value="enenga">Tribu Enenga (Lambaréné & Lacs)</option>
+                      <option value="mpongwe">Tribu Mpongwè (Estuaire / Libreville)</option>
+                      <option value="galwa">Tribu Galwa (Lambaréné fleuve)</option>
+                      <option value="nkomi">Tribu Nkomi (Fernan Vaz)</option>
+                      <option value="orungu">Tribu Orungu (Port-Gentil)</option>
+                      <option value="adyumba">Tribu Adyumba (Lac Azingo)</option>
                     </select>
                   </div>
 
@@ -461,7 +461,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               </div>
               <h3 className="text-lg font-bold text-white">Ayore polo ! Contribution transmise !</h3>
               <p className="text-xs text-[#bbf7d0]">
-                Votre enregistrement et votre avis orthographique enrichissent les archives vivantes d’Enenga.
+                Votre enregistrement et votre avis enrichissent les archives vivantes de la langue Myènè.
               </p>
               <div className="pt-2 flex items-center justify-center gap-3">
                 <button

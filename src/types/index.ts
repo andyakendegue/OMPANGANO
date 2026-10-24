@@ -121,7 +121,13 @@ export interface QuestionnaireItem {
   updatedAt?: string;
 }
 
-export type ContributionStatus = 'pending' | 'approved' | 'rejected' | 'needs_revision';
+export type ContributionStatus = 
+  | 'pending' 
+  | 'approved' 
+  | 'rejected' 
+  | 'needs_revision'
+  | 'audio_approved_text_revision' 
+  | 'text_approved_audio_revision';
 
 export interface Contribution {
   id: string;
@@ -133,6 +139,7 @@ export interface Contribution {
   frenchText: string;
   originalMyeneText: string;
   isSpellingCorrect: boolean;
+  isPronunciationCorrect?: boolean;
   proposedSpelling?: string;
   dialectVariant?: string;
   comment?: string;
@@ -140,6 +147,8 @@ export interface Contribution {
   audioStoragePath?: string;
   audioDuration?: number;
   status: ContributionStatus;
+  spellingVerdict?: 'correct' | 'incorrect' | 'pending';
+  pronunciationVerdict?: 'correct' | 'incorrect' | 'pending' | 'no_audio';
   validatorId?: string;
   validatorDisplayName?: string;
   validatorNotes?: string;

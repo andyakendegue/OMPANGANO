@@ -64,7 +64,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
         <div className="flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-[#f59e0b]" />
           <div>
-            <h2 className="text-xl font-bold text-white">Mémoire & Vocabulaire Enenga</h2>
+            <h2 className="text-xl font-bold text-white">Mémoire & Vocabulaire Myènè</h2>
             <p className="text-xs text-[#d4af94]">Consultez les trésors lexicaux recueillis par NKALA APP</p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher en français ou en Enenga (ex: pirogue, Mbolo, crabe...)"
+            placeholder="Rechercher en français ou en Myènè (ex: pirogue, Mbolo, crabe...)"
             className="w-full pl-10 pr-4 py-3 bg-[#180d07] border border-[#4a2412] rounded-2xl text-xs sm:text-sm text-white focus:outline-none focus:border-[#f59e0b]"
           />
         </div>
@@ -128,7 +128,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-semibold text-[#f59e0b] tracking-wider">
-                      Enenga (Myènè)
+                      Langue Myènè
                     </span>
                     <span className="text-[10px] text-[#a8826d]">
                       {item.recordingsCount || 5} voix enregistrées
