@@ -22,6 +22,14 @@ service cloud.firestore {
       );
     }
 
+    function isValidator() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['validator', 'admin'])
+      );
+    }
+
     // Profils utilisateurs OMPAGANO
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -57,7 +65,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
-        resource.data.userId == request.auth.uid || isAdmin()
+        resource.data.userId == request.auth.uid || isValidator()
       );
       allow delete: if isAdmin();
     }
