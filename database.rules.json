@@ -1,40 +1,66 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true,
+    ".read": "auth != null",
+    ".write": "auth != null",
 
     "auteurs": {
       ".read": true,
-      ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true"
+      ".write": "auth != null"
     },
-
     "categories_livres": {
       ".read": true,
-      ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true"
+      ".write": "auth != null"
     },
-
     "livres": {
       ".read": true,
-      ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true"
+      ".write": "auth != null"
     },
-
     "mapPoints": {
       ".read": true,
       ".write": "auth != null"
     },
-
     "announcements": {
       ".read": true,
       ".write": "auth != null"
     },
-
     "users": {
-      ".read": true,
+      ".read": "auth != null",
       ".write": "auth != null"
     },
-
-    "news": {
-      ".read": true,
+    "items": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "clans": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "villages": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "contributions": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "metrics": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "challenges": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "themes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "badges": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "admins": {
+      ".read": "auth != null",
       ".write": "auth != null"
     }
   }

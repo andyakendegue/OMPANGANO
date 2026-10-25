@@ -340,15 +340,15 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
     }
   }
 
-  // 2. Write to Realtime Database
-  try {
-    if (rtdb) {
+  // 2. Write to Realtime Database (only if authenticated)
+  if (activeUser && rtdb) {
+    try {
       await rtdbSet(rtdbRef(rtdb, `${collectionPath}/${recordId}`), sanitized);
       rtdbOk = true;
       console.info(`✓ Synchronisé RTDB avec succès: ${collectionPath}/${recordId}`);
+    } catch (err) {
+      console.warn(`Notice d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
     }
-  } catch (err) {
-    console.warn(`Notice d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
   // If Firestore failed or user was not yet authenticated, queue for replay when authenticated & online
@@ -382,22 +382,33 @@ export async function dualDeleteRecord(collectionPath: string, recordId: string)
     }
   }
 
-  try {
-    if (rtdb) {
+  if (activeUser && rtdb) {
+    try {
       await rtdbRemove(rtdbRef(rtdb, `${collectionPath}/${recordId}`));
       rtdbOk = true;
       console.info(`✓ Supprimé de RTDB: ${collectionPath}/${recordId}`);
+    } catch (err) {
+      console.warn(`Notice suppression RTDB sur ${collectionPath}/${recordId}:`, err);
     }
-  } catch (err) {
-    console.error(`✗ Erreur suppression RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
-  // If both failed, queue for replay when back online
-  if (!fsOk && !rtdbOk) {
+  // If Firestore delete failed, queue for replay when back online
+  if (!fsOk) {
     queueOfflineAdminMutation({ type: 'delete', collectionPath, recordId });
   }
 
   return { firestore: fsOk, rtdb: rtdbOk };
+}
+
+// Check if Realtime Database is accessible and needs initial synchronization
+export async function isRealtimeDatabaseEmpty(): Promise<boolean> {
+  if (!auth.currentUser || !rtdb) return false;
+  try {
+    const snap = await rtdbGet(rtdbRef(rtdb, 'metrics/seed_status'));
+    return !snap.exists();
+  } catch {
+    return false;
+  }
 }
 
 // Validate connection on boot (non-blocking, timeout-safe)
