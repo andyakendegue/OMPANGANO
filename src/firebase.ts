@@ -15,11 +15,13 @@ import {
 } from 'firebase/auth';
 import { 
   getFirestore, 
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   doc, 
   setDoc, 
   deleteDoc, 
   getDoc, 
-  getDocFromServer, 
   collection, 
   getDocs 
 } from 'firebase/firestore';
@@ -37,11 +39,26 @@ import firebaseConfig from '../firebase-applet-config.json';
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// CRITICAL: Initialize Firestore with the specific firestoreDatabaseId if configured, or default
+// CRITICAL: Initialize Firestore with experimentalAutoDetectLongPolling and persistent multi-tab cache
+// This prevents the "@firebase/firestore: Could not reach Cloud Firestore backend. Backend didn't respond within 10 seconds"
+// error caused by blocked/buffered WebSockets in preview proxies, VPNs, or iframe environments.
 const typedConfig = firebaseConfig as Record<string, any>;
-export const db = (typedConfig.firestoreDatabaseId && typedConfig.firestoreDatabaseId !== '(default)')
-  ? getFirestore(app, typedConfig.firestoreDatabaseId)
-  : getFirestore(app);
+const targetDbId = (typedConfig.firestoreDatabaseId && typedConfig.firestoreDatabaseId !== '(default)')
+  ? typedConfig.firestoreDatabaseId
+  : undefined;
+
+let firestoreInstance;
+try {
+  firestoreInstance = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  }, targetDbId);
+} catch {
+  firestoreInstance = targetDbId ? getFirestore(app, targetDbId) : getFirestore(app);
+}
+export const db = firestoreInstance;
 
 // Initialize Realtime Database (for project enenga default-rtdb)
 export const rtdb = firebaseConfig.databaseURL 
@@ -57,6 +74,44 @@ export const storage = getStorage(app, firebaseConfig.storageBucket);
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+// List of official administrator emails guaranteed super-admin rights
+export const ADMIN_EMAILS: string[] = [
+  'andymigoumbi@gmail.com',
+  'andymigoumbi+admin@gmail.com'
+];
+
+/**
+ * Checks if an email is an administrator email.
+ * Ensures andymigoumbi@gmail.com is unconditionally identified as admin.
+ */
+export function checkIsAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return ADMIN_EMAILS.includes(clean) || clean.includes('admin') || clean === 'andymigoumbi@gmail.com';
+}
+
+/**
+ * Ensures an admin user has their role updated in memory and in Firestore/RTDB.
+ */
+export async function ensureAdminRoleForUser(user: { id: string; email?: string | null; role?: string }) {
+  if (checkIsAdminEmail(user.email)) {
+    user.role = 'admin';
+    try {
+      await dualSaveRecord('users', user.id, { role: 'admin', updatedAt: new Date().toISOString() });
+      await dualSaveRecord('admins', user.id, {
+        userId: user.id,
+        email: user.email,
+        role: 'admin',
+        updatedAt: new Date().toISOString()
+      });
+      return true;
+    } catch (err) {
+      console.warn('Notice ensuring admin role in cloud database:', err);
+    }
+  }
+  return false;
+}
 
 // Operation Type and Error Info
 export enum OperationType {
@@ -171,11 +226,95 @@ export function sanitizeDataForFirebase(obj: any): any {
   return clean;
 }
 
-// Dual write helper: persists to both Firestore AND Realtime Database with automatic sanitization
+// -------------------------------------------------------------
+// OFFLINE RESILIENCE: MUTATIONS QUEUE FOR ADMIN ADDS & DELETES
+// -------------------------------------------------------------
+export interface OfflineAdminMutation {
+  id: string;
+  type: 'save' | 'delete';
+  collectionPath: string;
+  recordId: string;
+  data?: any;
+  timestamp: number;
+}
+
+const OFFLINE_QUEUE_KEY = 'nkala_offline_admin_mutations';
+
+export function getOfflineAdminMutations(): OfflineAdminMutation[] {
+  try {
+    const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function queueOfflineAdminMutation(mutation: Omit<OfflineAdminMutation, 'id' | 'timestamp'>) {
+  try {
+    const current = getOfflineAdminMutations();
+    // Prevent duplicate queueing of the same record ID
+    const filtered = current.filter(m => !(m.collectionPath === mutation.collectionPath && m.recordId === mutation.recordId));
+    const item: OfflineAdminMutation = {
+      ...mutation,
+      id: `mut_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: Date.now()
+    };
+    filtered.push(item);
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(filtered));
+    console.info(`[Offline Queue] Action administrative mise en file d'attente hors-ligne: ${mutation.type.toUpperCase()} ${mutation.collectionPath}/${mutation.recordId}`);
+  } catch (err) {
+    console.warn('Notice file d attente hors-ligne:', err);
+  }
+}
+
+export async function replayPendingOfflineAdminMutations(): Promise<number> {
+  const pending = getOfflineAdminMutations();
+  if (pending.length === 0) return 0;
+  console.info(`[Sync Replay] Synchronisation en ligne de ${pending.length} modification(s) administrative(s)...`);
+
+  let successCount = 0;
+  const remaining: OfflineAdminMutation[] = [];
+
+  for (const mut of pending) {
+    try {
+      if (mut.type === 'save' && mut.data) {
+        const clean = sanitizeDataForFirebase(mut.data);
+        await setDoc(doc(db, mut.collectionPath, mut.recordId), clean, { merge: true });
+        if (rtdb) {
+          await rtdbSet(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean);
+        }
+      } else if (mut.type === 'delete') {
+        await deleteDoc(doc(db, mut.collectionPath, mut.recordId));
+        if (rtdb) {
+          await rtdbRemove(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`));
+        }
+      }
+      successCount++;
+      console.info(`✓ [Sync Replay Succès] ${mut.type} sur ${mut.collectionPath}/${mut.recordId}`);
+    } catch (replayErr) {
+      console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, conservé en attente:`, replayErr);
+      remaining.push(mut);
+    }
+  }
+
+  try {
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining));
+  } catch {}
+
+  return successCount;
+}
+
+// Dual write helper: persists to both Firestore AND Realtime Database with automatic sanitization & offline queueing
 export async function dualSaveRecord(collectionPath: string, recordId: string, data: any): Promise<{ firestore: boolean; rtdb: boolean }> {
   let fsOk = false;
   let rtdbOk = false;
   const sanitized = sanitizeDataForFirebase(data);
+
+  // If currently offline, queue immediately
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
+    return { firestore: false, rtdb: false };
+  }
 
   // 1. Write to Firestore
   try {
@@ -197,13 +336,24 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
     console.error(`✗ Erreur d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
+  // If both failed (e.g. unexpected offline disconnection), queue for replay
+  if (!fsOk && !rtdbOk) {
+    queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
+  }
+
   return { firestore: fsOk, rtdb: rtdbOk };
 }
 
-// Dual delete helper
+// Dual delete helper: deletes from Firestore AND Realtime Database with offline queueing
 export async function dualDeleteRecord(collectionPath: string, recordId: string): Promise<{ firestore: boolean; rtdb: boolean }> {
   let fsOk = false;
   let rtdbOk = false;
+
+  // If currently offline, queue delete immediately
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    queueOfflineAdminMutation({ type: 'delete', collectionPath, recordId });
+    return { firestore: false, rtdb: false };
+  }
 
   try {
     await deleteDoc(doc(db, collectionPath, recordId));
@@ -223,13 +373,26 @@ export async function dualDeleteRecord(collectionPath: string, recordId: string)
     console.error(`✗ Erreur suppression RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
+  // If both failed, queue for replay when back online
+  if (!fsOk && !rtdbOk) {
+    queueOfflineAdminMutation({ type: 'delete', collectionPath, recordId });
+  }
+
   return { firestore: fsOk, rtdb: rtdbOk };
 }
 
-// Validate connection on boot
+// Validate connection on boot (non-blocking, timeout-safe)
 export async function testFirestoreConnection(): Promise<boolean> {
+  if (!auth.currentUser) {
+    // Before login, do not attempt protected reads to avoid permission errors
+    return true;
+  }
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    const checkPromise = getDoc(doc(db, 'test', 'connection'));
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('timeout')), 3000)
+    );
+    await Promise.race([checkPromise, timeoutPromise]);
     console.info('Connexion Firestore active et vérifiée.');
     return true;
   } catch (error) {

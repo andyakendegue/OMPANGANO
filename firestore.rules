@@ -12,9 +12,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Vérifie si l'utilisateur a le rôle administrateur
+    // Vérifie si l'utilisateur a le rôle administrateur (inclut andymigoumbi@gmail.com)
     function isAdmin() {
       return isSignedIn() && (
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'andymigoumbi@gmail.com') ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')

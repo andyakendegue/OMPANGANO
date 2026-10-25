@@ -24,7 +24,9 @@ import {
   dualSaveRecord,
   dualDeleteRecord,
   ensureFirebaseAuthSession,
-  convertBlobToBase64
+  convertBlobToBase64,
+  replayPendingOfflineAdminMutations,
+  checkIsAdminEmail
 } from './firebase';
 import { 
   QuestionnaireItem, 
@@ -38,7 +40,8 @@ import {
   WeeklyChallenge,
   ThemeDefinition,
   Badge,
-  UserRole
+  UserRole,
+  SeedStatus
 } from './types';
 import { 
   INITIAL_ENENGA_ITEMS, 
@@ -77,6 +80,7 @@ import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { OfflinePackModal } from './components/OfflinePackModal';
 import { ChallengeCelebrationModal } from './components/ChallengeCelebrationModal';
+import { AppUpdateBanner } from './components/AppUpdateBanner';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<AppTab>('crowdsource');
@@ -112,6 +116,10 @@ export default function App() {
   // Offline queue state
   const [pendingOfflineSubmissions, setPendingOfflineSubmissions] = useState<OfflineSubmission[]>([]);
 
+  // Seed status state (tracking official Firebase seed marker /metrics/seed_status)
+  const [seedStatus, setSeedStatus] = useState<SeedStatus | null>(null);
+  const [isSeedingDatabase, setIsSeedingDatabase] = useState<boolean>(false);
+
   // Auth & user state: null by default (unauthenticated users must log in on AuthGateScreen)
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
@@ -122,7 +130,8 @@ export default function App() {
       id: 'admin-andy',
       displayName: 'Andy AKENDENGUE',
       fullName: 'Andy AKENDENGUE',
-      contact: '+241 077 00 00 01',
+      contact: 'andymigoumbi@gmail.com',
+      email: 'andymigoumbi@gmail.com',
       birthDate: '1986-09-14',
       birthPlace: 'Libreville',
       tribe: 'Ôrungu',
@@ -259,9 +268,21 @@ export default function App() {
 
   // Monitor online/offline events
   useEffect(() => {
-    const handleOnline = () => {
+    const handleOnline = async () => {
       setIsOnline(true);
-      syncPendingOfflineData();
+      // 1. Replay queued admin modifications (items, clans, villages, challenges, themes, badges)
+      try {
+        const replayed = await replayPendingOfflineAdminMutations();
+        if (replayed > 0) {
+          NotificationService.sendLocalNotification('Connexion Rétablie ⚡', {
+            body: `${replayed} modification(s) administrative(s) synchronisée(s) avec Firebase.`
+          });
+        }
+      } catch (err) {
+        console.warn('Erreur synchronisation admin replay:', err);
+      }
+      // 2. Replay voice & text submissions
+      await syncPendingOfflineData();
     };
     const handleOffline = () => setIsOnline(false);
 
@@ -289,6 +310,9 @@ export default function App() {
         try {
           const parsed = JSON.parse(e.newValue);
           if (parsed && parsed.id) {
+            if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
+              parsed.role = 'admin';
+            }
             setCurrentUser(parsed);
             if (parsed.registrationCompleted) {
               setIsOnboardingModalOpen(false);
@@ -305,6 +329,10 @@ export default function App() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.id) {
+          if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
+            parsed.role = 'admin';
+            localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
+          }
           setCurrentUser(parsed);
           if (parsed.registrationCompleted) {
             setIsOnboardingModalOpen(false);
@@ -317,11 +345,31 @@ export default function App() {
     // 3. Listen to Firebase Auth state
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
+        const isSuperAdmin = checkIsAdminEmail(fbUser.email);
+
         // Query Firestore to see if user profile already exists with full filiation!
         try {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
-            const cloudProfile = userDoc.data() as UserProfile;
+            let cloudProfile = userDoc.data() as UserProfile;
+
+            // MANDATORY: Ensure andymigoumbi@gmail.com is unconditionally role 'admin'
+            // If they are not admin yet, upgrade their profile in Firestore & RTDB before granting access to UI!
+            if (isSuperAdmin && cloudProfile.role !== 'admin') {
+              cloudProfile = {
+                ...cloudProfile,
+                role: 'admin',
+                updatedAt: new Date().toISOString()
+              };
+              await dualSaveRecord('users', fbUser.uid, { role: 'admin', updatedAt: cloudProfile.updatedAt });
+              await dualSaveRecord('admins', fbUser.uid, {
+                userId: fbUser.uid,
+                email: fbUser.email,
+                role: 'admin',
+                updatedAt: new Date().toISOString()
+              });
+            }
+
             setCurrentUser(cloudProfile);
             try {
               localStorage.setItem('nkala_authenticated_user', JSON.stringify(cloudProfile));
@@ -339,7 +387,7 @@ export default function App() {
         }
 
         // 4. Create and persist user profile in Firestore & RTDB immediately upon first login!
-        const isAdmin = (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
+        const isAdmin = isSuperAdmin || (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
         const initialProfile: UserProfile = {
           id: fbUser.uid,
           displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Contributeur OMPAGANO',
@@ -372,6 +420,14 @@ export default function App() {
 
         // Persist immediately to Firestore and RTDB so Google users are created in database at login!
         await dualSaveRecord('users', initialProfile.id, initialProfile);
+        if (isAdmin) {
+          await dualSaveRecord('admins', initialProfile.id, {
+            userId: initialProfile.id,
+            email: initialProfile.email,
+            role: 'admin',
+            updatedAt: new Date().toISOString()
+          });
+        }
 
         try {
           localStorage.setItem('nkala_authenticated_user', JSON.stringify(initialProfile));
@@ -389,6 +445,10 @@ export default function App() {
           if (activeLocal) {
             const parsed = JSON.parse(activeLocal);
             if (parsed && parsed.id) {
+              if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
+                parsed.role = 'admin';
+                localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
+              }
               setCurrentUser(parsed);
               if (parsed.registrationCompleted) {
                 setIsOnboardingModalOpen(false);
@@ -409,13 +469,31 @@ export default function App() {
     };
   }, []);
 
-  // Firestore Real-time subscriptions & Initial Seeding
+  // Firestore Real-time subscriptions & Seed Status - Active when currentUser is logged in
   useEffect(() => {
+    if (!currentUser) return;
+
+    // 0. Subscribe to Seed Status Marker (/metrics/seed_status)
+    const unsubscribeSeed = onSnapshot(
+      doc(db, 'metrics', 'seed_status'),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const status = snapshot.data() as SeedStatus;
+          setSeedStatus(status);
+        } else {
+          setSeedStatus(null);
+        }
+      },
+      (err) => {
+        console.warn('Notice listening to seed_status:', err);
+      }
+    );
+
     // 1. Subscribe to Items collection
     const itemsPath = 'items';
     const unsubscribeItems = onSnapshot(
       collection(db, itemsPath),
-      async (snapshot) => {
+      (snapshot) => {
         if (!snapshot.empty) {
           const loaded: QuestionnaireItem[] = [];
           snapshot.forEach(docSnap => {
@@ -424,21 +502,15 @@ export default function App() {
           setItems(loaded);
           cacheItemsLocally(loaded);
         } else {
-          // Seed items into Firestore if empty
-          try {
-            for (const item of INITIAL_ENENGA_ITEMS) {
-              await setDoc(doc(db, itemsPath, item.id), item);
-            }
-            cacheItemsLocally(INITIAL_ENENGA_ITEMS);
-          } catch (e) {
-            console.warn('Seeding notice:', e);
-            setItems(INITIAL_ENENGA_ITEMS);
-          }
+          // If Firestore items collection is empty, load local initial items in memory until Admin runs seed
+          getCachedItemsLocally().then(cached => {
+            if (cached && cached.length > 0) setItems(cached);
+            else setItems(INITIAL_ENENGA_ITEMS);
+          });
         }
       },
       (error) => {
         handleFirestoreError(error, OperationType.GET, itemsPath);
-        // Fallback to cached items
         getCachedItemsLocally().then(cached => {
           if (cached && cached.length > 0) setItems(cached);
           else setItems(INITIAL_ENENGA_ITEMS);
@@ -668,6 +740,7 @@ export default function App() {
     );
 
     return () => {
+      unsubscribeSeed();
       unsubscribeItems();
       unsubscribeContrib();
       unsubscribeMetrics();
@@ -678,7 +751,7 @@ export default function App() {
       unsubscribeClans();
       unsubscribeVillages();
     };
-  }, []);
+  }, [currentUser?.id]);
 
   // Sync offline queue to Firestore and Storage
   const syncPendingOfflineData = async () => {
@@ -974,9 +1047,11 @@ export default function App() {
     if (!currentUser) return;
     await ensureFirebaseAuthSession();
 
+    const isSuperAdmin = checkIsAdminEmail(currentUser.email) || checkIsAdminEmail(profileData.email);
     const updated: UserProfile = {
       ...currentUser,
       ...profileData,
+      role: isSuperAdmin ? 'admin' : (profileData.role || currentUser.role),
       registrationCompleted: true,
       updatedAt: new Date().toISOString()
     };
@@ -1128,36 +1203,92 @@ export default function App() {
     }
   };
 
-  // Authentication Gate handler
+  // Authentication Gate handler - PRESERVES FIRESTORE DATA ON RECONNECT
   const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
-    const isAdmin = profileData.role === 'admin' || (profileData.email && profileData.email.toLowerCase().includes('admin')) || false;
+    if (!profileData.id) return;
+
+    // 1. FIRST: Check if the user already exists in Firestore to NEVER wipe out their data or console edits!
+    let existingProfile: UserProfile | null = null;
+    try {
+      const snap = await getDoc(doc(db, 'users', profileData.id));
+      if (snap.exists()) {
+        existingProfile = snap.data() as UserProfile;
+      }
+    } catch (err) {
+      console.warn('Notice checking existing user in Firestore:', err);
+    }
+
+    const isSuperAdmin = checkIsAdminEmail(profileData.email) || checkIsAdminEmail(existingProfile?.email);
+
+    if (existingProfile) {
+      // PRESERVE ALL VALUES FROM FIRESTORE (including manual edits in Firebase Console)
+      const merged: UserProfile = {
+        ...existingProfile,
+        photoURL: profileData.photoURL || existingProfile.photoURL,
+        email: profileData.email || existingProfile.email,
+        role: isSuperAdmin ? 'admin' : existingProfile.role
+      };
+
+      // If user is super-admin and was previously stored as user, upgrade them immediately in Firestore & RTDB
+      if (isSuperAdmin && existingProfile.role !== 'admin') {
+        try {
+          await dualSaveRecord('users', merged.id, { role: 'admin', updatedAt: new Date().toISOString() });
+          await dualSaveRecord('admins', merged.id, {
+            userId: merged.id,
+            email: merged.email,
+            role: 'admin',
+            updatedAt: new Date().toISOString()
+          });
+        } catch (upgradeErr) {
+          console.warn('Notice upgrading super-admin in database:', upgradeErr);
+        }
+      }
+
+      try {
+        localStorage.setItem('nkala_authenticated_user', JSON.stringify(merged));
+      } catch {}
+
+      setCurrentUser(merged);
+      setUsersList(prev => [merged, ...prev.filter(u => u.id !== merged.id)]);
+
+      // If registration was already completed, DO NOT reopen onboarding modal!
+      if (merged.registrationCompleted) {
+        setIsOnboardingModalOpen(false);
+      } else {
+        setIsOnboardingModalOpen(true);
+      }
+      return;
+    }
+
+    // 2. ONLY for brand-new users who have never existed in Firestore:
+    const isAdmin = isSuperAdmin || profileData.role === 'admin' || (profileData.email && profileData.email.toLowerCase().includes('admin')) || false;
     const fullProfile: UserProfile = {
-      id: profileData.id || `user-${Date.now()}`,
+      id: profileData.id,
       displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Contributeur OMPAGANO'),
-      fullName: profileData.fullName || profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Locuteur Myènè'),
+      fullName: profileData.fullName || profileData.displayName || 'Locuteur Myènè',
       contact: profileData.contact || profileData.email || profileData.phoneNumber || '',
-      birthDate: profileData.birthDate || '',
-      birthPlace: profileData.birthPlace || '',
-      tribe: profileData.tribe || 'Enenga',
-      paternalClan: profileData.paternalClan || '',
-      maternalClan: profileData.maternalClan || '',
-      villageOfOrigin: profileData.villageOfOrigin || '',
-      registrationCompleted: profileData.registrationCompleted ?? false,
-      email: profileData.email,
-      phoneNumber: profileData.phoneNumber,
-      photoURL: profileData.photoURL,
+      birthDate: '',
+      birthPlace: '',
+      tribe: 'Enenga',
+      paternalClan: '',
+      maternalClan: '',
+      villageOfOrigin: '',
+      registrationCompleted: false,
+      email: profileData.email || '',
+      phoneNumber: profileData.phoneNumber || '',
+      photoURL: profileData.photoURL || '',
       role: isAdmin ? 'admin' : (profileData.role || 'user'),
-      status: profileData.status || 'active',
-      suspicionScore: profileData.suspicionScore || 0,
-      xp: profileData.xp || (isAdmin ? 2850 : 150),
-      level: profileData.level || (isAdmin ? 'Sage Ancien' : 'Initié Curieux'),
-      levelIndex: profileData.levelIndex || (isAdmin ? 5 : 1),
-      contributionsCount: profileData.contributionsCount || (isAdmin ? 28 : 0),
-      recordingsCount: profileData.recordingsCount || (isAdmin ? 22 : 0),
-      validationsCount: profileData.validationsCount || (isAdmin ? 19 : 0),
-      streakDays: profileData.streakDays || 1,
-      badges: profileData.badges || (isAdmin ? ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'] : ['badge-premiere-voix']),
-      createdAt: profileData.createdAt || new Date().toISOString(),
+      status: 'active',
+      suspicionScore: 0,
+      xp: 150,
+      level: 'Initié Curieux',
+      levelIndex: 1,
+      contributionsCount: 0,
+      recordingsCount: 0,
+      validationsCount: 0,
+      streakDays: 1,
+      badges: ['badge-premiere-voix'],
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
@@ -1165,17 +1296,7 @@ export default function App() {
       localStorage.setItem('nkala_authenticated_user', JSON.stringify(fullProfile));
     } catch {}
     setCurrentUser(fullProfile);
-
-    // Sync to usersList state and Firestore + RTDB
-    setUsersList(prev => {
-      const idx = prev.findIndex(u => u.id === fullProfile.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = fullProfile;
-        return copy;
-      }
-      return [fullProfile, ...prev];
-    });
+    setUsersList(prev => [fullProfile, ...prev.filter(u => u.id !== fullProfile.id)]);
 
     try {
       await ensureFirebaseAuthSession();
@@ -1183,6 +1304,7 @@ export default function App() {
       if (fullProfile.role === 'admin') {
         await dualSaveRecord('admins', fullProfile.id, { 
           userId: fullProfile.id,
+          email: fullProfile.email,
           role: 'admin', 
           updatedAt: new Date().toISOString() 
         });
@@ -1191,8 +1313,98 @@ export default function App() {
       console.warn('Notice syncing profile to database:', err);
     }
 
-    if (!fullProfile.registrationCompleted) {
-      setIsOnboardingModalOpen(true);
+    setIsOnboardingModalOpen(true);
+  };
+
+  // Official First Database Seed (Performed by Admin once, marked permanently in Firestore)
+  const handleExecuteInitialSeed = async () => {
+    if (currentUser?.role !== 'admin') {
+      alert("Seul un administrateur peut initialiser la base de données cloud.");
+      return;
+    }
+
+    setIsSeedingDatabase(true);
+    await ensureFirebaseAuthSession();
+
+    try {
+      // 1. Seed all Items (Questions/Expressions)
+      for (const item of INITIAL_ENENGA_ITEMS) {
+        await dualSaveRecord('items', item.id, item);
+      }
+      cacheItemsLocally(INITIAL_ENENGA_ITEMS);
+      setItems(INITIAL_ENENGA_ITEMS);
+
+      // 2. Seed all Clans
+      for (const clan of INITIAL_CLANS) {
+        await dualSaveRecord('clans', clan.id, clan);
+      }
+      cacheClansLocally(INITIAL_CLANS);
+      setClans(INITIAL_CLANS);
+
+      // 3. Seed all Villages
+      for (const village of INITIAL_VILLAGES) {
+        await dualSaveRecord('villages', village.id, village);
+      }
+      cacheVillagesLocally(INITIAL_VILLAGES);
+      setVillages(INITIAL_VILLAGES);
+
+      // 4. Seed Themes
+      for (const theme of THEMATIC_CATEGORIES) {
+        await dualSaveRecord('themes', theme.id, theme);
+      }
+      setThemes(THEMATIC_CATEGORIES);
+
+      // 5. Seed Badges
+      for (const badge of SYSTEM_BADGES) {
+        await dualSaveRecord('badges', badge.id, badge);
+      }
+      setBadges(SYSTEM_BADGES);
+
+      // 6. Seed Weekly Challenges
+      for (const challenge of INITIAL_WEEKLY_CHALLENGES) {
+        await dualSaveRecord('challenges', challenge.id, challenge);
+      }
+      setChallenges(INITIAL_WEEKLY_CHALLENGES);
+
+      // 7. Write the official permanent Seed Marker in Firestore & RTDB
+      const markerPayload: SeedStatus = {
+        isSeeded: true,
+        seededAt: new Date().toISOString(),
+        seededBy: currentUser.id,
+        seededByName: currentUser.fullName || currentUser.displayName,
+        itemsCount: INITIAL_ENENGA_ITEMS.length,
+        clansCount: INITIAL_CLANS.length,
+        villagesCount: INITIAL_VILLAGES.length,
+        themesCount: THEMATIC_CATEGORIES.length,
+        badgesCount: SYSTEM_BADGES.length,
+        version: '1.0.0-ompagano'
+      };
+
+      await dualSaveRecord('metrics', 'seed_status', markerPayload);
+      setSeedStatus(markerPayload);
+
+      // 8. Update summary metric
+      const metricsPayload: SystemMetric = {
+        id: 'summary',
+        totalItems: INITIAL_ENENGA_ITEMS.length,
+        totalContributions: contributions.length,
+        totalRecordings: contributions.filter(c => !!c.audioUrl).length,
+        totalValidated: contributions.filter(c => c.status === 'approved').length,
+        totalUsers: usersList.length,
+        lastUpdated: new Date().toISOString()
+      };
+      await dualSaveRecord('metrics', 'summary', metricsPayload);
+      setSystemMetrics(metricsPayload);
+
+      NotificationService.sendLocalNotification('Premier Seed Firebase Réussi 🌱', {
+        body: `Base de données initialisée : ${INITIAL_ENENGA_ITEMS.length} questions et ${INITIAL_CLANS.length} clans propagés.`
+      });
+      alert(`Félicitations ! Le premier Seed officiel de la base Firebase a été effectué avec succès.\n\n- ${INITIAL_ENENGA_ITEMS.length} questions injectées dans /items\n- ${INITIAL_CLANS.length} clans configurés dans /clans\n- ${INITIAL_VILLAGES.length} villages rattachés dans /villages\n\nLe marqueur permanent 'seed_status' est maintenant enregistré dans Firebase. Tous vos périphériques et utilisateurs accèdent désormais aux mêmes données en temps réel !`);
+    } catch (err: any) {
+      console.error('Erreur lors du Seed initial:', err);
+      alert("Erreur lors du seed : " + (err.message || 'Vérifiez la connexion'));
+    } finally {
+      setIsSeedingDatabase(false);
     }
   };
 
@@ -1304,9 +1516,7 @@ export default function App() {
       isActive: challengeData.isActive ?? true
     };
 
-    try {
-      await setDoc(doc(db, 'challenges', id), fullChallenge);
-    } catch {}
+    await dualSaveRecord('challenges', id, fullChallenge);
 
     setChallenges(prev => {
       const idx = prev.findIndex(c => c.id === id);
@@ -1325,17 +1535,16 @@ export default function App() {
   };
 
   const handleDeleteChallenge = async (challengeId: string) => {
-    try {
-      await deleteDoc(doc(db, 'challenges', challengeId));
-    } catch {}
+    await dualDeleteRecord('challenges', challengeId);
     setChallenges(prev => prev.filter(c => c.id !== challengeId));
   };
 
   const handleToggleActiveChallenge = async (challengeId: string, currentStatus: boolean) => {
     const newStatus = !currentStatus;
-    try {
-      await updateDoc(doc(db, 'challenges', challengeId), { isActive: newStatus });
-    } catch {}
+    const target = challenges.find(c => c.id === challengeId);
+    if (target) {
+      await dualSaveRecord('challenges', challengeId, { ...target, isActive: newStatus });
+    }
     setChallenges(prev => prev.map(c => c.id === challengeId ? { ...c, isActive: newStatus } : c));
   };
 
@@ -1343,13 +1552,8 @@ export default function App() {
   const handleBatchImportItems = async (newItems: QuestionnaireItem[]) => {
     if (!newItems || newItems.length === 0) return;
 
-    try {
-      // Save items to Firestore in batches
-      for (const it of newItems.slice(0, 50)) {
-        await setDoc(doc(db, 'items', it.id), it);
-      }
-    } catch (e) {
-      console.warn('Batch import firestore notice:', e);
+    for (const it of newItems) {
+      await dualSaveRecord('items', it.id, it);
     }
 
     setItems(prev => {
@@ -1365,7 +1569,7 @@ export default function App() {
     }));
 
     NotificationService.sendLocalNotification('Importation Réussie ! 📚', {
-      body: `${newItems.length} phrases ont été importées et classées dans le corpus OMPAGANO.`
+      body: `${newItems.length} phrases ont été importées et synchronisées dans Firebase.`
     });
   };
 
@@ -1384,11 +1588,7 @@ export default function App() {
       createdAt: themeData.createdAt || new Date().toISOString()
     };
 
-    try {
-      await setDoc(doc(db, 'themes', themeId), fullTheme);
-    } catch (e) {
-      console.warn('Error saving theme to Firestore:', e);
-    }
+    await dualSaveRecord('themes', themeId, fullTheme);
 
     setThemes(prev => {
       const idx = prev.findIndex(t => t.id === themeId);
@@ -1402,21 +1602,13 @@ export default function App() {
   };
 
   const handleDeleteTheme = async (themeId: string) => {
-    try {
-      await deleteDoc(doc(db, 'themes', themeId));
-    } catch (e) {
-      console.warn('Error deleting theme:', e);
-    }
+    await dualDeleteRecord('themes', themeId);
     setThemes(prev => prev.filter(t => t.id !== themeId));
   };
 
   const handleBatchRegisterThemes = async (newThemes: ThemeDefinition[]) => {
     for (const th of newThemes) {
-      try {
-        await setDoc(doc(db, 'themes', th.id), th);
-      } catch (e) {
-        console.warn('Error registering theme:', e);
-      }
+      await dualSaveRecord('themes', th.id, th);
     }
     setThemes(prev => {
       const existingIds = new Set(prev.map(p => p.id));
@@ -1442,11 +1634,7 @@ export default function App() {
       updatedAt: new Date().toISOString()
     };
 
-    try {
-      await setDoc(doc(db, 'badges', badgeId), fullBadge);
-    } catch (e) {
-      console.warn('Error saving badge to Firestore:', e);
-    }
+    await dualSaveRecord('badges', badgeId, fullBadge);
 
     setBadges(prev => {
       const idx = prev.findIndex(b => b.id === badgeId);
@@ -1460,11 +1648,7 @@ export default function App() {
   };
 
   const handleDeleteBadge = async (badgeId: string) => {
-    try {
-      await deleteDoc(doc(db, 'badges', badgeId));
-    } catch (e) {
-      console.warn('Error deleting badge:', e);
-    }
+    await dualDeleteRecord('badges', badgeId);
     setBadges(prev => prev.filter(b => b.id !== badgeId));
   };
 
@@ -1579,14 +1763,20 @@ export default function App() {
   // "Tant qu'on n'est pas connecté on ne peut pas accéder à l'app et on reste sur l'écran de connexion."
   if (!currentUser) {
     return (
-      <AuthGateScreen
-        onLoginSuccess={handleLoginSuccess}
-      />
+      <>
+        <AppUpdateBanner />
+        <AuthGateScreen
+          onLoginSuccess={handleLoginSuccess}
+        />
+      </>
     );
   }
 
   return (
     <div className="african-pattern-bg min-h-screen text-[#fdfaf7] flex flex-col font-sans">
+      {/* Code Update Banner if new version available */}
+      <AppUpdateBanner />
+
       {/* Top Navbar with OMPAGANO Branding */}
       <Navbar
         currentUser={currentUser}
@@ -1701,6 +1891,9 @@ export default function App() {
             onUpdateUserRole={handleUpdateUserRole}
             onTriggerCloudSync={handleTriggerCloudSync}
             currentUser={currentUser}
+            seedStatus={seedStatus}
+            onExecuteInitialSeed={handleExecuteInitialSeed}
+            isSeedingDatabase={isSeedingDatabase}
           />
         )}
 

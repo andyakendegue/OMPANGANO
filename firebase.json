@@ -24,6 +24,15 @@
         ]
       },
       {
+        "source": "/version.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "**/*.@(js|css|png|jpg|jpeg|gif|svg|webp|webm|mp3|wav|csv)",
         "headers": [
           {
