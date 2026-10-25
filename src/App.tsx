@@ -123,6 +123,7 @@ export default function App() {
   // Auth & user state: null by default (unauthenticated users must log in on AuthGateScreen)
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
+  const [isFirebaseAuthReady, setIsFirebaseAuthReady] = useState<boolean>(false);
 
   // Registered users for admin management and fraud detection
   const [usersList, setUsersList] = useState<UserProfile[]>([
@@ -323,29 +324,14 @@ export default function App() {
     };
     window.addEventListener('storage', handleStorageChange);
 
-    // 2. Check if an existing authenticated session is stored in localStorage
-    try {
-      const stored = localStorage.getItem('nkala_authenticated_user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.id) {
-          if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
-            parsed.role = 'admin';
-            localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
-          }
-          setCurrentUser(parsed);
-          if (parsed.registrationCompleted) {
-            setIsOnboardingModalOpen(false);
-          }
-          setIsAuthChecking(false);
-        }
-      }
-    } catch {}
-
-    // 3. Listen to Firebase Auth state
+    // 2. Listen to Firebase Auth state (single source of truth for Firestore authentication)
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
+        setIsFirebaseAuthReady(true);
         const isSuperAdmin = checkIsAdminEmail(fbUser.email);
+
+        // Replay any pending offline admin mutations now that we have a valid Firebase Auth token
+        replayPendingOfflineAdminMutations().catch(() => {});
 
         // Query Firestore to see if user profile already exists with full filiation!
         try {
@@ -386,7 +372,7 @@ export default function App() {
           console.warn('Notice checking cloud user profile:', fetchErr);
         }
 
-        // 4. Create and persist user profile in Firestore & RTDB immediately upon first login!
+        // 3. Create and persist user profile in Firestore & RTDB immediately upon first login!
         const isAdmin = isSuperAdmin || (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
         const initialProfile: UserProfile = {
           id: fbUser.uid,
@@ -439,25 +425,33 @@ export default function App() {
         setIsAuthChecking(false);
         return;
       } else {
-        // If Firebase Auth returns null
+        // Firebase Auth returned null: verify if an anonymous/bridge session can be established for a stored profile
         try {
           const activeLocal = localStorage.getItem('nkala_authenticated_user');
           if (activeLocal) {
             const parsed = JSON.parse(activeLocal);
             if (parsed && parsed.id) {
-              if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
-                parsed.role = 'admin';
-                localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
+              const fallbackAuth = await ensureFirebaseAuthSession();
+              if (fallbackAuth) {
+                if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
+                  parsed.role = 'admin';
+                  localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
+                }
+                setIsFirebaseAuthReady(true);
+                setCurrentUser(parsed);
+                if (parsed.registrationCompleted) {
+                  setIsOnboardingModalOpen(false);
+                }
+                setIsAuthChecking(false);
+                return;
+              } else {
+                // No valid Firebase Auth session exists: clear stale localStorage so user signs in properly
+                localStorage.removeItem('nkala_authenticated_user');
               }
-              setCurrentUser(parsed);
-              if (parsed.registrationCompleted) {
-                setIsOnboardingModalOpen(false);
-              }
-              setIsAuthChecking(false);
-              return;
             }
           }
         } catch {}
+        setIsFirebaseAuthReady(false);
         setCurrentUser(null);
       }
       setIsAuthChecking(false);
@@ -469,9 +463,9 @@ export default function App() {
     };
   }, []);
 
-  // Firestore Real-time subscriptions & Seed Status - Active when currentUser is logged in
+  // Firestore Real-time subscriptions & Seed Status - Active ONLY when currentUser AND Firebase Auth are ready
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !isFirebaseAuthReady || !auth.currentUser) return;
 
     // 0. Subscribe to Seed Status Marker (/metrics/seed_status)
     const unsubscribeSeed = onSnapshot(
@@ -584,7 +578,7 @@ export default function App() {
     const challengesPath = 'challenges';
     const unsubscribeChallenges = onSnapshot(
       collection(db, challengesPath),
-      async (snapshot) => {
+      (snapshot) => {
         if (!snapshot.empty) {
           const loaded: WeeklyChallenge[] = [];
           snapshot.forEach(docSnap => {
@@ -592,14 +586,7 @@ export default function App() {
           });
           setChallenges(loaded);
         } else {
-          // Initial seed if empty
-          try {
-            for (const ch of INITIAL_WEEKLY_CHALLENGES) {
-              await setDoc(doc(db, 'challenges', ch.id), ch);
-            }
-          } catch (e) {
-            console.warn('Initial challenges seed notice:', e);
-          }
+          setChallenges(INITIAL_WEEKLY_CHALLENGES);
         }
       },
       (error) => {
@@ -611,7 +598,7 @@ export default function App() {
     const themesPath = 'themes';
     const unsubscribeThemes = onSnapshot(
       collection(db, themesPath),
-      async (snapshot) => {
+      (snapshot) => {
         if (!snapshot.empty) {
           const loaded: ThemeDefinition[] = [];
           snapshot.forEach(docSnap => {
@@ -619,13 +606,7 @@ export default function App() {
           });
           setThemes(loaded);
         } else {
-          try {
-            for (const th of THEMATIC_CATEGORIES) {
-              await setDoc(doc(db, 'themes', th.id), th);
-            }
-          } catch (e) {
-            console.warn('Themes initial seeding notice:', e);
-          }
+          setThemes(THEMATIC_CATEGORIES);
         }
       },
       (error) => {
@@ -637,7 +618,7 @@ export default function App() {
     const badgesPath = 'badges';
     const unsubscribeBadges = onSnapshot(
       collection(db, badgesPath),
-      async (snapshot) => {
+      (snapshot) => {
         if (!snapshot.empty) {
           const loaded: Badge[] = [];
           snapshot.forEach(docSnap => {
@@ -645,13 +626,7 @@ export default function App() {
           });
           setBadges(loaded);
         } else {
-          try {
-            for (const bg of SYSTEM_BADGES) {
-              await setDoc(doc(db, 'badges', bg.id), bg);
-            }
-          } catch (e) {
-            console.warn('Badges initial seeding notice:', e);
-          }
+          setBadges(SYSTEM_BADGES);
         }
       },
       (error) => {
@@ -681,7 +656,7 @@ export default function App() {
     const clansPath = 'clans';
     const unsubscribeClans = onSnapshot(
       collection(db, clansPath),
-      async (snapshot) => {
+      (snapshot) => {
         if (!snapshot.empty) {
           const loaded: ClanRegistry[] = [];
           snapshot.forEach(docSnap => {
@@ -690,14 +665,10 @@ export default function App() {
           setClans(loaded);
           cacheClansLocally(loaded);
         } else {
-          try {
-            for (const cl of INITIAL_CLANS) {
-              await dualSaveRecord('clans', cl.id, cl);
-            }
-            cacheClansLocally(INITIAL_CLANS);
-          } catch (e) {
-            console.warn('Notice seeding clans:', e);
-          }
+          getCachedClansLocally().then(cached => {
+            if (cached && cached.length > 0) setClans(cached);
+            else setClans(INITIAL_CLANS);
+          });
         }
       },
       (error) => {
@@ -712,7 +683,7 @@ export default function App() {
     const villagesPath = 'villages';
     const unsubscribeVillages = onSnapshot(
       collection(db, villagesPath),
-      async (snapshot) => {
+      (snapshot) => {
         if (!snapshot.empty) {
           const loaded: VillageRegistry[] = [];
           snapshot.forEach(docSnap => {
@@ -721,14 +692,10 @@ export default function App() {
           setVillages(loaded);
           cacheVillagesLocally(loaded);
         } else {
-          try {
-            for (const vi of INITIAL_VILLAGES) {
-              await dualSaveRecord('villages', vi.id, vi);
-            }
-            cacheVillagesLocally(INITIAL_VILLAGES);
-          } catch (e) {
-            console.warn('Notice seeding villages:', e);
-          }
+          getCachedVillagesLocally().then(cached => {
+            if (cached && cached.length > 0) setVillages(cached);
+            else setVillages(INITIAL_VILLAGES);
+          });
         }
       },
       (error) => {
@@ -751,7 +718,7 @@ export default function App() {
       unsubscribeClans();
       unsubscribeVillages();
     };
-  }, [currentUser?.id]);
+  }, [currentUser?.id, isFirebaseAuthReady]);
 
   // Sync offline queue to Firestore and Storage
   const syncPendingOfflineData = async () => {
@@ -1206,6 +1173,11 @@ export default function App() {
   // Authentication Gate handler - PRESERVES FIRESTORE DATA ON RECONNECT
   const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
     if (!profileData.id) return;
+
+    await ensureFirebaseAuthSession();
+    if (auth.currentUser) {
+      setIsFirebaseAuthReady(true);
+    }
 
     // 1. FIRST: Check if the user already exists in Firestore to NEVER wipe out their data or console edits!
     let existingProfile: UserProfile | null = null;
