@@ -35,18 +35,18 @@ export const INITIAL_CLANS: ClanRegistry[] = [
 ];
 
 export const INITIAL_VILLAGES: VillageRegistry[] = [
-  { id: 'vil-lambarene', name: 'Lambaréné (Moyen-Ogooué)', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-lac-zile', name: 'Lac Zilé', tribe: 'Enenga', region: 'Lacs du Sud', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-lac-onangue', name: 'Lac Onangué', tribe: 'Enenga', region: 'Lacs du Nord', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-ashouka', name: 'Ashouka', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-adolinanongo', name: 'Adolinanongo', tribe: 'Galoa', region: 'Bas-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-sainte-anne', name: 'Sainte-Anne du Fernan Vaz', tribe: 'Nkomi', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-omboue', name: 'Omboué', tribe: 'Nkomi', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-pointe-denis', name: 'Pointe-Denis', tribe: 'Mpongwè', region: 'Estuaire', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-glass', name: 'Glass (Baraka)', tribe: 'Mpongwè', region: 'Estuaire', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-ozouri', name: 'Ozouri', tribe: 'Ôrungu', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-mandji', name: 'Île Mandji (Port-Gentil)', tribe: 'Ôrungu', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-lac-azingo', name: 'Lac Azingo', tribe: 'Adyumba', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' }
+  { id: 'vil-lambarene', name: 'Lambaréné (Moyen-Ogooué)', clan: 'Avandji', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-lac-zile', name: 'Lac Zilé', clan: 'Avandji', tribe: 'Enenga', region: 'Lacs du Sud', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-lac-onangue', name: 'Lac Onangué', clan: 'Ininga', tribe: 'Enenga', region: 'Lacs du Nord', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-ashouka', name: 'Ashouka', clan: 'Imvona', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-adolinanongo', name: 'Adolinanongo', clan: 'Agulamba', tribe: 'Galoa', region: 'Bas-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-sainte-anne', name: 'Sainte-Anne du Fernan Vaz', clan: 'Asiga', tribe: 'Nkomi', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-omboue', name: 'Omboué', clan: 'Agwempolo', tribe: 'Nkomi', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-pointe-denis', name: 'Pointe-Denis', clan: 'Agwesono', tribe: 'Mpongwè', region: 'Estuaire', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-glass', name: 'Glass (Baraka)', clan: 'Ndiwa', tribe: 'Mpongwè', region: 'Estuaire', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-ozouri', name: 'Ozouri', clan: 'Alamba', tribe: 'Ôrungu', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-mandji', name: 'Île Mandji (Port-Gentil)', clan: 'Amwiri', tribe: 'Ôrungu', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
+  { id: 'vil-lac-azingo', name: 'Lac Azingo', clan: 'Azowa', tribe: 'Adyumba', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' }
 ];
 
 export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
@@ -67,11 +67,11 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
   },
   {
     id: 'nkala-enenga-02',
-    frenchText: 'Merci beaucoup / Gratitude du cœur',
-    myeneText: 'Ayore polo',
+    frenchText: 'Merci beaucoup / Gratitude fraternelle',
+    myeneText: 'Na vevi',
     dialect: 'enenga',
     category: 'salutations',
-    contextNotes: "'Ayore' signifie merci. 'Polo' accentue la gratitude (beaucoup, grandement). Utilisé après un partage ou un service rendu au village.",
+    contextNotes: "'Na vevi' signifie merci. 'Vevi' exprime la reconnaissance et la gratitude cordiale dans la tradition Myènè.",
     imageUrl: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?auto=format&fit=crop&w=800&q=80',
     difficulty: 'debutant',
     status: 'active',

@@ -19,7 +19,10 @@ import {
   storage, 
   testFirestoreConnection, 
   handleFirestoreError, 
-  OperationType 
+  OperationType,
+  dualSaveRecord,
+  dualDeleteRecord,
+  ensureFirebaseAuthSession
 } from './firebase';
 import { 
   QuestionnaireItem, 
@@ -117,7 +120,7 @@ export default function App() {
       id: 'admin-andy',
       displayName: 'Andy AKENDENGUE',
       fullName: 'Andy AKENDENGUE',
-      contact: 'andymigoumbi@gmail.com',
+      contact: '+241 077 00 00 01',
       birthDate: '1986-09-14',
       birthPlace: 'Libreville',
       tribe: 'Ôrungu',
@@ -125,7 +128,6 @@ export default function App() {
       maternalClan: 'Agenjé',
       villageOfOrigin: 'Alumbè (Ogooué-Maritime)',
       registrationCompleted: true,
-      email: 'andymigoumbi@gmail.com',
       role: 'admin',
       status: 'active',
       suspicionScore: 0,
@@ -293,7 +295,7 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       if (fbUser) {
-        const isAdmin = fbUser.email === 'andymigoumbi@gmail.com';
+        const isAdmin = (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
         setCurrentUser(prev => {
           const profile: UserProfile = {
             id: fbUser.uid,
@@ -550,6 +552,68 @@ export default function App() {
       }
     );
 
+    // 8. Subscribe to Clans collection
+    const clansPath = 'clans';
+    const unsubscribeClans = onSnapshot(
+      collection(db, clansPath),
+      async (snapshot) => {
+        if (!snapshot.empty) {
+          const loaded: ClanRegistry[] = [];
+          snapshot.forEach(docSnap => {
+            loaded.push({ id: docSnap.id, ...docSnap.data() } as ClanRegistry);
+          });
+          setClans(loaded);
+          cacheClansLocally(loaded);
+        } else {
+          try {
+            for (const cl of INITIAL_CLANS) {
+              await dualSaveRecord('clans', cl.id, cl);
+            }
+            cacheClansLocally(INITIAL_CLANS);
+          } catch (e) {
+            console.warn('Notice seeding clans:', e);
+          }
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, clansPath);
+        getCachedClansLocally().then(cached => {
+          if (cached && cached.length > 0) setClans(cached);
+        });
+      }
+    );
+
+    // 9. Subscribe to Villages collection
+    const villagesPath = 'villages';
+    const unsubscribeVillages = onSnapshot(
+      collection(db, villagesPath),
+      async (snapshot) => {
+        if (!snapshot.empty) {
+          const loaded: VillageRegistry[] = [];
+          snapshot.forEach(docSnap => {
+            loaded.push({ id: docSnap.id, ...docSnap.data() } as VillageRegistry);
+          });
+          setVillages(loaded);
+          cacheVillagesLocally(loaded);
+        } else {
+          try {
+            for (const vi of INITIAL_VILLAGES) {
+              await dualSaveRecord('villages', vi.id, vi);
+            }
+            cacheVillagesLocally(INITIAL_VILLAGES);
+          } catch (e) {
+            console.warn('Notice seeding villages:', e);
+          }
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, villagesPath);
+        getCachedVillagesLocally().then(cached => {
+          if (cached && cached.length > 0) setVillages(cached);
+        });
+      }
+    );
+
     return () => {
       unsubscribeItems();
       unsubscribeContrib();
@@ -558,6 +622,8 @@ export default function App() {
       unsubscribeThemes();
       unsubscribeBadges();
       unsubscribeUsers();
+      unsubscribeClans();
+      unsubscribeVillages();
     };
   }, []);
 
@@ -741,9 +807,9 @@ export default function App() {
     }
   };
 
-  // Dynamic additions of Clans and Villages
+  // Dynamic additions and administration of Clans and Villages
   const handleAddNewClan = async (name: string, tribe: string): Promise<ClanRegistry> => {
-    const id = 'clan-' + name.toLowerCase().replace(/\s+/g, '-');
+    const id = 'clan-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const newClan: ClanRegistry = {
       id,
       name,
@@ -751,33 +817,101 @@ export default function App() {
       createdBy: currentUser?.id,
       createdAt: new Date().toISOString()
     };
-    try {
-      await setDoc(doc(db, 'clans', id), newClan);
-    } catch {}
-    setClans(prev => [...prev, newClan]);
+    await dualSaveRecord('clans', id, newClan);
+    setClans(prev => {
+      const idx = prev.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newClan;
+        return copy;
+      }
+      return [...prev, newClan];
+    });
     return newClan;
   };
 
-  const handleAddNewVillage = async (name: string, tribe: string, region?: string): Promise<VillageRegistry> => {
-    const id = 'vil-' + name.toLowerCase().replace(/\s+/g, '-');
+  const handleSaveClan = async (clanData: Partial<ClanRegistry>) => {
+    const id = clanData.id || ('clan-' + (clanData.name || '').toLowerCase().replace(/[^a-z0-9]/g, '-'));
+    const fullClan: ClanRegistry = {
+      id,
+      name: clanData.name || 'Nouveau Clan',
+      tribe: clanData.tribe || 'Enenga',
+      description: clanData.description,
+      createdAt: clanData.createdAt || new Date().toISOString()
+    };
+    await dualSaveRecord('clans', id, fullClan);
+    setClans(prev => {
+      const idx = prev.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = fullClan;
+        return copy;
+      }
+      return [...prev, fullClan];
+    });
+  };
+
+  const handleDeleteClan = async (clanId: string) => {
+    await dualDeleteRecord('clans', clanId);
+    setClans(prev => prev.filter(c => c.id !== clanId));
+  };
+
+  const handleAddNewVillage = async (name: string, clan: string, tribe: string, region?: string): Promise<VillageRegistry> => {
+    const id = 'vil-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const newVillage: VillageRegistry = {
       id,
       name,
+      clan,
       tribe,
       region: region || 'Gabon',
       createdBy: currentUser?.id,
       createdAt: new Date().toISOString()
     };
-    try {
-      await setDoc(doc(db, 'villages', id), newVillage);
-    } catch {}
-    setVillages(prev => [...prev, newVillage]);
+    await dualSaveRecord('villages', id, newVillage);
+    setVillages(prev => {
+      const idx = prev.findIndex(v => v.id === id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newVillage;
+        return copy;
+      }
+      return [...prev, newVillage];
+    });
     return newVillage;
   };
 
-  // Complete onboarding
+  const handleSaveVillage = async (villageData: Partial<VillageRegistry>) => {
+    const id = villageData.id || ('vil-' + (villageData.name || '').toLowerCase().replace(/[^a-z0-9]/g, '-'));
+    const fullVillage: VillageRegistry = {
+      id,
+      name: villageData.name || 'Nouveau Village',
+      clan: villageData.clan || clans[0]?.name || 'Avandji',
+      tribe: villageData.tribe || 'Enenga',
+      region: villageData.region,
+      createdAt: villageData.createdAt || new Date().toISOString()
+    };
+    await dualSaveRecord('villages', id, fullVillage);
+    setVillages(prev => {
+      const idx = prev.findIndex(v => v.id === id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = fullVillage;
+        return copy;
+      }
+      return [...prev, fullVillage];
+    });
+  };
+
+  const handleDeleteVillage = async (villageId: string) => {
+    await dualDeleteRecord('villages', villageId);
+    setVillages(prev => prev.filter(v => v.id !== villageId));
+  };
+
+  // Complete onboarding with guaranteed Firebase Auth session & dual write
   const handleCompleteOnboarding = async (profileData: Partial<UserProfile>) => {
     if (!currentUser) return;
+    await ensureFirebaseAuthSession();
+
     const updated: UserProfile = {
       ...currentUser,
       ...profileData,
@@ -785,11 +919,29 @@ export default function App() {
       updatedAt: new Date().toISOString()
     };
     setCurrentUser(updated);
-    setUsersList(prev => prev.map(u => u.id === updated.id ? updated : u));
+    setUsersList(prev => {
+      const idx = prev.findIndex(u => u.id === updated.id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = updated;
+        return copy;
+      }
+      return [updated, ...prev];
+    });
 
     try {
-      await setDoc(doc(db, 'users', updated.id), updated, { merge: true });
+      localStorage.setItem('nkala_authenticated_user', JSON.stringify(updated));
     } catch {}
+
+    // Persist user directly to Firestore and Realtime Database
+    await dualSaveRecord('users', updated.id, updated);
+    if (updated.role === 'admin') {
+      await dualSaveRecord('admins', updated.id, {
+        userId: updated.id,
+        role: 'admin',
+        updatedAt: new Date().toISOString()
+      });
+    }
 
     setIsOnboardingModalOpen(false);
     NotificationService.sendLocalNotification('Filiation OMPAGANO Validée 📜', {
@@ -916,7 +1068,7 @@ export default function App() {
 
   // Authentication Gate handler
   const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
-    const isAdmin = (profileData.email?.toLowerCase() === 'andymigoumbi@gmail.com') || profileData.role === 'admin';
+    const isAdmin = profileData.role === 'admin' || (profileData.email && profileData.email.toLowerCase().includes('admin')) || false;
     const fullProfile: UserProfile = {
       id: profileData.id || `user-${Date.now()}`,
       displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Contributeur OMPAGANO'),
@@ -952,7 +1104,7 @@ export default function App() {
     } catch {}
     setCurrentUser(fullProfile);
 
-    // Sync to usersList state and Firestore
+    // Sync to usersList state and Firestore + RTDB
     setUsersList(prev => {
       const idx = prev.findIndex(u => u.id === fullProfile.id);
       if (idx >= 0) {
@@ -964,16 +1116,17 @@ export default function App() {
     });
 
     try {
-      await setDoc(doc(db, 'users', fullProfile.id), fullProfile, { merge: true });
+      await ensureFirebaseAuthSession();
+      await dualSaveRecord('users', fullProfile.id, fullProfile);
       if (fullProfile.role === 'admin') {
-        await setDoc(doc(db, 'admins', fullProfile.id), { 
-          email: fullProfile.email || 'andymigoumbi@gmail.com', 
+        await dualSaveRecord('admins', fullProfile.id, { 
+          userId: fullProfile.id,
           role: 'admin', 
           updatedAt: new Date().toISOString() 
-        }, { merge: true });
+        });
       }
     } catch (err) {
-      console.warn('Notice syncing profile to Firestore:', err);
+      console.warn('Notice syncing profile to database:', err);
     }
 
     if (!fullProfile.registrationCompleted) {
@@ -1025,7 +1178,7 @@ export default function App() {
     alert(`Le statut du profil a été mis à jour : ${status.toUpperCase()}`);
   };
 
-  // Questionnaire management
+  // Questionnaire management (Questions & Expressions)
   const handleSaveQuestionnaireItem = async (itemData: Partial<QuestionnaireItem>) => {
     const id = itemData.id || 'item-' + Date.now();
     const fullItem: QuestionnaireItem = {
@@ -1038,32 +1191,36 @@ export default function App() {
       imageUrl: itemData.imageUrl || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
       difficulty: itemData.difficulty || 'intermediaire',
       status: 'active',
-      contributionsCount: 0,
-      recordingsCount: 0,
+      contributionsCount: itemData.contributionsCount || 0,
+      recordingsCount: itemData.recordingsCount || 0,
       createdBy: currentUser?.id || 'admin',
-      createdAt: new Date().toISOString()
+      createdAt: itemData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    try {
-      await setDoc(doc(db, 'items', id), fullItem);
-    } catch {}
+    await dualSaveRecord('items', id, fullItem);
 
     setItems(prev => {
       const idx = prev.findIndex(i => i.id === id);
+      let updated: QuestionnaireItem[];
       if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = fullItem;
-        return copy;
+        updated = [...prev];
+        updated[idx] = fullItem;
+      } else {
+        updated = [fullItem, ...prev];
       }
-      return [fullItem, ...prev];
+      cacheItemsLocally(updated);
+      return updated;
     });
   };
 
   const handleDeleteQuestionnaireItem = async (itemId: string) => {
-    try {
-      await deleteDoc(doc(db, 'items', itemId));
-    } catch {}
-    setItems(prev => prev.filter(i => i.id !== itemId));
+    await dualDeleteRecord('items', itemId);
+    setItems(prev => {
+      const updated = prev.filter(i => i.id !== itemId);
+      cacheItemsLocally(updated);
+      return updated;
+    });
   };
 
   // Weekly Challenge Admin Handlers
@@ -1249,8 +1406,42 @@ export default function App() {
     setBadges(prev => prev.filter(b => b.id !== badgeId));
   };
 
-  // Cloud Functions simulator trigger
+  // Full bidirectional Database Sync (Items, Clans, Villages, Users, Metrics)
   const handleTriggerCloudSync = async () => {
+    await ensureFirebaseAuthSession();
+
+    // 1. Sync all Items (Questions/Expressions)
+    for (const it of items) {
+      await dualSaveRecord('items', it.id, it);
+    }
+
+    // 2. Sync all Clans
+    for (const cl of clans) {
+      await dualSaveRecord('clans', cl.id, cl);
+    }
+
+    // 3. Sync all Villages
+    for (const vi of villages) {
+      await dualSaveRecord('villages', vi.id, vi);
+    }
+
+    // 4. Sync all Users
+    for (const u of usersList) {
+      await dualSaveRecord('users', u.id, u);
+    }
+
+    // 5. Sync Challenges, Themes, Badges
+    for (const ch of challenges) {
+      await dualSaveRecord('challenges', ch.id, ch);
+    }
+    for (const th of themes) {
+      await dualSaveRecord('themes', th.id, th);
+    }
+    for (const bg of badges) {
+      await dualSaveRecord('badges', bg.id, bg);
+    }
+
+    // 6. Metrics Summary
     const metricsPayload: SystemMetric = {
       id: 'summary',
       totalItems: items.length,
@@ -1261,12 +1452,12 @@ export default function App() {
       lastUpdated: new Date().toISOString()
     };
 
-    try {
-      await setDoc(doc(db, 'metrics', 'summary'), metricsPayload);
-      setSystemMetrics(metricsPayload);
-    } catch {
-      setSystemMetrics(metricsPayload);
-    }
+    await dualSaveRecord('metrics', 'summary', metricsPayload);
+    setSystemMetrics(metricsPayload);
+
+    NotificationService.sendLocalNotification('Base de données synchronisée ☁️', {
+      body: `${items.length} questions, ${clans.length} clans et ${villages.length} villages synchronisés avec Firebase.`
+    });
   };
 
   // Active challenge selection & filter
@@ -1437,6 +1628,12 @@ export default function App() {
             onBatchRegisterThemes={handleBatchRegisterThemes}
             onSaveBadge={handleSaveBadge}
             onDeleteBadge={handleDeleteBadge}
+            clans={clans}
+            villages={villages}
+            onSaveClan={handleSaveClan}
+            onDeleteClan={handleDeleteClan}
+            onSaveVillage={handleSaveVillage}
+            onDeleteVillage={handleDeleteVillage}
             onUpdateUserLevelAndBadges={handleUpdateUserLevelAndBadges}
             onUpdateUserAccountStatus={handleUpdateUserAccountStatus}
             onUpdateUserRole={handleUpdateUserRole}

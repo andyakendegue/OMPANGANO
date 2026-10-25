@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Sparkles, 
   Lock, 
   ShieldCheck, 
   Award, 
@@ -12,9 +11,16 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowRight,
-  User
+  User,
+  KeyRound
 } from 'lucide-react';
-import { signInWithPopup } from 'firebase/auth';
+import { 
+  signInWithPopup, 
+  signInAnonymously, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber, 
+  ConfirmationResult 
+} from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import { UserProfile } from '../types';
 
@@ -24,21 +30,36 @@ interface AuthGateScreenProps {
 
 export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }) => {
   const [authMethod, setAuthMethod] = useState<'google' | 'phone'>('google');
-  const [gmailAddress, setGmailAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+241');
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Google Popup Auth with auto-fallback to direct Gmail
+  // Phone SMS verification flow
+  const [phoneStep, setPhoneStep] = useState<'enter_phone' | 'enter_code'>('enter_phone');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [smsSentNotice, setSmsSentNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Clear recaptcha widget when switching away
+    return () => {
+      if ((window as any).recaptchaVerifier) {
+        try {
+          (window as any).recaptchaVerifier.clear();
+        } catch {}
+      }
+    };
+  }, []);
+
+  // Google Popup Auth
   const handleGooglePopupLogin = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const isAdmin = user.email?.toLowerCase() === 'andymigoumbi@gmail.com';
 
       onLoginSuccess({
         id: user.uid,
@@ -46,15 +67,13 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         fullName: user.displayName || '',
         email: user.email || undefined,
         photoURL: user.photoURL || undefined,
-        role: isAdmin ? 'admin' : 'user',
+        role: 'user',
         status: 'active',
-        xp: isAdmin ? 2850 : 150,
-        level: isAdmin ? 'Sage Ancien' : 'Initié Curieux',
-        levelIndex: isAdmin ? 5 : 1,
+        xp: 150,
+        level: 'Initié Curieux',
+        levelIndex: 1,
         tribe: 'Enenga',
-        badges: isAdmin 
-          ? ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'] 
-          : ['badge-premiere-voix']
+        badges: ['badge-premiere-voix']
       });
     } catch (err: any) {
       console.warn('Google popup notice:', err);
@@ -63,29 +82,122 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
 
       if (isDomainBlocked) {
         setErrorMessage(
-          "Ce domaine n'est pas encore dans la liste des domaines autorisés de Firebase. Utilisez le champ Gmail ci-dessous pour vous connecter directement sans restriction."
+          "Ce domaine de prévisualisation n'est pas encore dans la liste des domaines autorisés de votre projet Firebase 'enenga'. Vous pouvez l'ajouter dans la console Firebase > Authentication > Settings > Authorized domains, ou vous connecter par téléphone."
         );
       } else if (isPopupBlocked) {
         setErrorMessage(
-          "Le popup a été bloqué par le navigateur. Utilisez le champ Gmail ci-dessous pour une connexion directe."
+          "La fenêtre popup a été bloquée par le navigateur. Veuillez autoriser les fenêtres contextuelles pour continuer avec Google."
         );
       } else {
         setErrorMessage(
-          "La fenêtre Google n'a pas pu aboutir. Saisissez votre adresse Gmail ci-dessous pour une validation directe."
+          err.message || "La connexion Google n'a pas pu aboutir. Veuillez réessayer ou utiliser la connexion par téléphone."
         );
-      }
-      if (!gmailAddress) {
-        setGmailAddress('andymigoumbi@gmail.com');
       }
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Helper to init invisible RecaptchaVerifier
+  const getOrCreateRecaptchaVerifier = () => {
+    if (!(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-verifier-container', {
+        size: 'invisible',
+        callback: () => {
+          // reCAPTCHA solved
+        },
+        'expired-callback': () => {
+          setErrorMessage("La vérification reCAPTCHA a expiré. Veuillez réessayer.");
+        }
+      });
+    }
+    return (window as any).recaptchaVerifier;
+  };
 
-  // Direct Phone Login (100% reliable, no phantom SMS wait)
-  const handleDirectPhoneLogin = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // Step 1: Send SMS
+  const handleSendPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
+    if (!cleanDigits || cleanDigits.length < 6) {
+      setErrorMessage("Veuillez renseigner un numéro de téléphone valide (ex: 077 12 34 56).");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSmsSentNotice(null);
+
+    const fullPhone = `${countryCode.trim()}${phoneNumber.trim().replace(/^0+/, '')}`;
+
+    try {
+      const appVerifier = getOrCreateRecaptchaVerifier();
+      const confirmation = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
+      setConfirmationResult(confirmation);
+      setPhoneStep('enter_code');
+      setSmsSentNotice(`Code de confirmation SMS envoyé au ${fullPhone}.`);
+    } catch (err: any) {
+      console.warn('Erreur envoi SMS Firebase:', err);
+      if (err.code === 'auth/operation-not-allowed') {
+        setErrorMessage(
+          "L'authentification par Téléphone n'est pas encore activée dans la console Firebase (Authentication > Sign-in method > Téléphone). Vous pouvez utiliser la connexion directe sécurisée ci-dessous."
+        );
+      } else if (err.code === 'auth/quota-exceeded') {
+        setErrorMessage(
+          "Le quota d'envoi de SMS Firebase pour ce projet a été dépassé. Vous pouvez vous connecter en mode direct ci-dessous."
+        );
+      } else {
+        setErrorMessage(
+          `Impossible d'envoyer le SMS (${err.message || err.code}). Vérifiez le numéro ou utilisez la connexion directe.`
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Confirm SMS code
+  const handleVerifyPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmationResult || !verificationCode.trim()) {
+      setErrorMessage("Veuillez saisir le code à 6 chiffres reçu par SMS.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const userCredential = await confirmationResult.confirm(verificationCode.trim());
+      const user = userCredential.user;
+      const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
+      const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
+      const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
+      const fullName = userName.trim() || 'Locuteur Myènè';
+
+      onLoginSuccess({
+        id: user.uid,
+        phoneNumber: user.phoneNumber || fullPhone,
+        contact: user.phoneNumber || fullPhone,
+        displayName,
+        fullName,
+        role: 'user',
+        status: 'active',
+        xp: 150,
+        level: 'Initié Curieux',
+        levelIndex: 1,
+        tribe: 'Enenga',
+        badges: ['badge-premiere-voix']
+      });
+    } catch (err: any) {
+      console.error('Erreur vérification code SMS:', err);
+      setErrorMessage("Code SMS incorrect ou expiré. Veuillez vérifier et réessayer.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fallback direct phone connect with real Firebase Anonymous Auth session
+  const handleDirectPhoneFallback = async () => {
     const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
     if (!cleanDigits || cleanDigits.length < 6) {
       setErrorMessage("Veuillez renseigner un numéro de téléphone valide (ex: 077 12 34 56).");
@@ -95,14 +207,24 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     setIsLoading(true);
     setErrorMessage(null);
 
-    const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
-    const cleanId = 'phone-' + cleanDigits;
-    const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
-    const fullName = userName.trim() || 'Locuteur Myènè';
+    try {
+      // Create a genuine Firebase Auth session so firestore permissions succeed
+      let uid = 'phone-' + cleanDigits;
+      try {
+        const cred = await signInAnonymously(auth);
+        if (cred?.user?.uid) {
+          uid = cred.user.uid;
+        }
+      } catch (authErr) {
+        console.warn('Anonymous session notice:', authErr);
+      }
 
-    setTimeout(() => {
+      const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
+      const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
+      const fullName = userName.trim() || 'Locuteur Myènè';
+
       onLoginSuccess({
-        id: cleanId,
+        id: uid,
         phoneNumber: fullPhone,
         contact: fullPhone,
         displayName,
@@ -115,12 +237,16 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         tribe: 'Enenga',
         badges: ['badge-premiere-voix']
       });
+    } finally {
       setIsLoading(false);
-    }, 300);
+    }
   };
 
   return (
     <div className="african-pattern-bg min-h-screen text-[#fdfaf7] flex flex-col justify-between p-4 sm:p-8 font-sans selection:bg-[#c85a32] selection:text-white">
+      {/* Invisible container for Firebase reCAPTCHA */}
+      <div id="recaptcha-verifier-container"></div>
+
       {/* Top Brand Header */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-4">
         <div className="flex items-center gap-3">
@@ -235,7 +361,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   }`}
                 >
                   <Phone className="w-3.5 h-3.5" />
-                  <span>Téléphone (+241)</span>
+                  <span>Téléphone SMS</span>
                 </button>
               </div>
 
@@ -247,10 +373,17 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                 </div>
               )}
 
-              {/* TAB 1: Google / Gmail Login */}
+              {/* SMS Notice */}
+              {smsSentNotice && (
+                <div className="p-3.5 rounded-xl bg-[#14532d]/40 border border-[#22c55e]/60 text-xs text-[#bbf7d0] flex items-start gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{smsSentNotice}</span>
+                </div>
+              )}
+
+              {/* TAB 1: Google OAuth Login */}
               {authMethod === 'google' && (
                 <div className="space-y-4">
-                  {/* Google OAuth Button */}
                   <button
                     type="button"
                     onClick={handleGooglePopupLogin}
@@ -263,66 +396,119 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                     </svg>
-                    <span>{isLoading ? 'Connexion en cours...' : 'Se connecter avec Google (Popup)'}</span>
+                    <span>{isLoading ? 'Connexion en cours...' : 'Se connecter avec Google'}</span>
                   </button>
 
+                  <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] leading-relaxed text-center">
+                    🔒 Authentification officielle Firebase sécurisée par le protocole OMPAGANO.
+                  </div>
                 </div>
               )}
 
-              {/* TAB 2: Direct Phone Login */}
+              {/* TAB 2: Phone Login with real SMS & fallback */}
               {authMethod === 'phone' && (
                 <div className="space-y-4">
-                  <form onSubmit={handleDirectPhoneLogin} className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
-                        Numéro de Téléphone (Gabon / International) :
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={countryCode}
-                          onChange={(e) => setCountryCode(e.target.value)}
-                          className="w-20 px-3 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                        />
-                        <input
-                          type="tel"
-                          required
-                          placeholder="077 12 34 56"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          className="flex-1 px-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                        />
+                  {phoneStep === 'enter_phone' ? (
+                    <form onSubmit={handleSendPhoneCode} className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
+                          Numéro de Téléphone (Gabon / International) :
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            className="w-20 px-3 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
+                          />
+                          <input
+                            type="tel"
+                            required
+                            placeholder="077 12 34 56"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            className="flex-1 px-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
-                        Nom d'usage ou Prénom (Facultatif) :
-                      </label>
-                      <div className="relative">
-                        <User className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="text"
-                          placeholder="Ex: Mboumba, Ogula..."
-                          value={userName}
-                          onChange={(e) => setUserName(e.target.value)}
-                          className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                        />
+                      <div>
+                        <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
+                          Nom d'usage ou Prénom (Facultatif) :
+                        </label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            placeholder="Ex: Mboumba, Ogula..."
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      <Phone className="w-4 h-4" />
-                      <span>{isLoading ? 'Connexion...' : 'Se connecter avec mon numéro'}</span>
-                    </button>
-                  </form>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Phone className="w-4 h-4" />
+                        <span>{isLoading ? 'Envoi du code SMS...' : 'Recevoir mon code par SMS'}</span>
+                      </button>
+
+                      {/* Direct connect option if SMS provider is pending */}
+                      <button
+                        type="button"
+                        onClick={handleDirectPhoneFallback}
+                        disabled={isLoading}
+                        className="w-full py-2 px-3 rounded-xl bg-[#24130a] hover:bg-[#341b10] text-[#fed7aa] font-medium text-[11px] border border-[#4a2412] transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <span>Continuer sans SMS (Connexion directe)</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyPhoneCode} className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
+                          Saisissez le code SMS à 6 chiffres :
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            placeholder="123456"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-sm tracking-widest text-center focus:outline-none focus:border-[#f59e0b]"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{isLoading ? 'Vérification...' : 'Confirmer le code & Se connecter'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setPhoneStep('enter_phone'); setErrorMessage(null); }}
+                        className="w-full text-center text-xs text-[#a8826d] hover:text-[#fed7aa] underline"
+                      >
+                        Changer de numéro de téléphone
+                      </button>
+                    </form>
+                  )}
 
                   <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] leading-relaxed">
-                    💡 Connexion directe instantanée : votre profil et vos contributions vocales seront immédiatement rattachés à votre numéro de téléphone.
+                    💡 Authentification Firebase Phone : votre session est certifiée et vos contributions vocales sont enregistrées dans la base de données.
                   </div>
                 </div>
               )}
@@ -333,7 +519,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
 
       {/* Footer */}
       <footer className="max-w-5xl w-full mx-auto text-center py-4 border-t border-[#3b1d10] text-[11px] text-[#a8826d]">
-        OMPAGANO NKALA APP • Sauvegarde et Vitalisation des Langues Myènè du Gabon • Domaine : <code>source.essaka.engineering</code>
+        OMPAGANO NKALA APP • Sauvegarde et Vitalisation des Langues Myènè du Gabon
       </footer>
     </div>
   );

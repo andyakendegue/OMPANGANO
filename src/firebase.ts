@@ -5,14 +5,30 @@ import {
   signInWithPopup, 
   signOut as fbSignOut,
   onAuthStateChanged,
+  signInAnonymously,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
   User as FirebaseUser
 } from 'firebase/auth';
 import { 
   getFirestore, 
   doc, 
+  setDoc,
+  deleteDoc,
+  getDoc,
   getDocFromServer,
-  enableIndexedDbPersistence
+  collection,
+  getDocs
 } from 'firebase/firestore';
+import { 
+  getDatabase, 
+  ref as rtdbRef, 
+  set as rtdbSet, 
+  remove as rtdbRemove,
+  get as rtdbGet,
+  child as rtdbChild
+} from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -20,9 +36,15 @@ import firebaseConfig from '../firebase-applet-config.json';
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // CRITICAL: Initialize Firestore with the specific firestoreDatabaseId if configured, or default
-export const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)')
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+const typedConfig = firebaseConfig as Record<string, any>;
+export const db = (typedConfig.firestoreDatabaseId && typedConfig.firestoreDatabaseId !== '(default)')
+  ? getFirestore(app, typedConfig.firestoreDatabaseId)
   : getFirestore(app);
+
+// Initialize Realtime Database (for project enenga default-rtdb)
+export const rtdb = firebaseConfig.databaseURL 
+  ? getDatabase(app, firebaseConfig.databaseURL)
+  : getDatabase(app);
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);
@@ -30,7 +52,7 @@ export const auth = getAuth(app);
 // Initialize Firebase Storage (bucket for voice recordings)
 export const storage = getStorage(app, firebaseConfig.storageBucket);
 
-// Providers
+// Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
@@ -82,6 +104,68 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   return errInfo;
 }
 
+// Ensure there is always a valid Firebase Auth session before database writes
+export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> {
+  if (auth.currentUser) return auth.currentUser;
+  try {
+    const cred = await signInAnonymously(auth);
+    return cred.user;
+  } catch (err) {
+    console.warn('Notice establishing anonymous Firebase session:', err);
+    return null;
+  }
+}
+
+// Dual write helper: persists to both Firestore AND Realtime Database
+export async function dualSaveRecord(collectionPath: string, recordId: string, data: any): Promise<{ firestore: boolean; rtdb: boolean }> {
+  let fsOk = false;
+  let rtdbOk = false;
+
+  // 1. Write to Firestore
+  try {
+    await setDoc(doc(db, collectionPath, recordId), data, { merge: true });
+    fsOk = true;
+  } catch (err) {
+    console.warn(`Firestore save error on ${collectionPath}/${recordId}:`, err);
+  }
+
+  // 2. Write to Realtime Database
+  try {
+    if (rtdb) {
+      await rtdbSet(rtdbRef(rtdb, `${collectionPath}/${recordId}`), data);
+      rtdbOk = true;
+    }
+  } catch (err) {
+    console.warn(`RTDB save error on ${collectionPath}/${recordId}:`, err);
+  }
+
+  return { firestore: fsOk, rtdb: rtdbOk };
+}
+
+// Dual delete helper
+export async function dualDeleteRecord(collectionPath: string, recordId: string): Promise<{ firestore: boolean; rtdb: boolean }> {
+  let fsOk = false;
+  let rtdbOk = false;
+
+  try {
+    await deleteDoc(doc(db, collectionPath, recordId));
+    fsOk = true;
+  } catch (err) {
+    console.warn(`Firestore delete error on ${collectionPath}/${recordId}:`, err);
+  }
+
+  try {
+    if (rtdb) {
+      await rtdbRemove(rtdbRef(rtdb, `${collectionPath}/${recordId}`));
+      rtdbOk = true;
+    }
+  } catch (err) {
+    console.warn(`RTDB delete error on ${collectionPath}/${recordId}:`, err);
+  }
+
+  return { firestore: fsOk, rtdb: rtdbOk };
+}
+
 // Validate connection on boot
 export async function testFirestoreConnection(): Promise<boolean> {
   try {
@@ -95,3 +179,13 @@ export async function testFirestoreConnection(): Promise<boolean> {
     return false;
   }
 }
+
+export { 
+  signInWithPopup, 
+  fbSignOut, 
+  onAuthStateChanged, 
+  signInAnonymously, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber 
+};
+export type { ConfirmationResult };
