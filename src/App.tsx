@@ -83,26 +83,96 @@ import { OfflinePackModal } from './components/OfflinePackModal';
 import { ChallengeCelebrationModal } from './components/ChallengeCelebrationModal';
 import { AppUpdateBanner } from './components/AppUpdateBanner';
 
+const DELETED_RECORDS_STORAGE_KEY = 'nkala_deleted_records_v1';
+
+function getDeletedIds(collectionName: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_RECORDS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed[collectionName]) ? parsed[collectionName] : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function markIdAsDeleted(collectionName: string, id: string): void {
+  try {
+    const raw = localStorage.getItem(DELETED_RECORDS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    const current: string[] = Array.isArray(parsed[collectionName]) ? parsed[collectionName] : [];
+    if (!current.includes(id)) {
+      parsed[collectionName] = [...current, id];
+      localStorage.setItem(DELETED_RECORDS_STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch {}
+}
+
+function unmarkIdAsDeleted(collectionName: string, id: string): void {
+  try {
+    const raw = localStorage.getItem(DELETED_RECORDS_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    const current: string[] = Array.isArray(parsed[collectionName]) ? parsed[collectionName] : [];
+    if (current.includes(id)) {
+      parsed[collectionName] = current.filter(x => x !== id);
+      localStorage.setItem(DELETED_RECORDS_STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch {}
+}
+
+function clearAllDeletedIds(): void {
+  try {
+    localStorage.removeItem(DELETED_RECORDS_STORAGE_KEY);
+  } catch {}
+}
+
+function isDatabaseMarkedSeeded(): boolean {
+  try {
+    return localStorage.getItem('nkala_db_seeded') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function markDatabaseSeeded(): void {
+  try {
+    localStorage.setItem('nkala_db_seeded', 'true');
+  } catch {}
+}
+
 export default function App() {
   const [currentTab, setCurrentTab] = useState<AppTab>('crowdsource');
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
-  // Data states
-  const [items, setItems] = useState<QuestionnaireItem[]>(INITIAL_ENENGA_ITEMS);
+  // Data states (filtered against any locally deleted IDs)
+  const [items, setItems] = useState<QuestionnaireItem[]>(() =>
+    INITIAL_ENENGA_ITEMS.filter(i => !getDeletedIds('items').has(i.id))
+  );
   const [currentItemIndex, setCurrentItemIndex] = useState<number>(0);
   const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [clans, setClans] = useState<ClanRegistry[]>(INITIAL_CLANS);
-  const [villages, setVillages] = useState<VillageRegistry[]>(INITIAL_VILLAGES);
+  const [clans, setClans] = useState<ClanRegistry[]>(() =>
+    INITIAL_CLANS.filter(c => !getDeletedIds('clans').has(c.id))
+  );
+  const [villages, setVillages] = useState<VillageRegistry[]>(() =>
+    INITIAL_VILLAGES.filter(v => !getDeletedIds('villages').has(v.id))
+  );
 
   // Weekly Challenges states
-  const [challenges, setChallenges] = useState<WeeklyChallenge[]>(INITIAL_WEEKLY_CHALLENGES);
+  const [challenges, setChallenges] = useState<WeeklyChallenge[]>(() =>
+    INITIAL_WEEKLY_CHALLENGES.filter(c => !getDeletedIds('challenges').has(c.id))
+  );
   const [activeChallengeId, setActiveChallengeId] = useState<string>('defi-peche-semaine');
   const [isChallengeFilterActive, setIsChallengeFilterActive] = useState<boolean>(false);
   const [celebrationChallenge, setCelebrationChallenge] = useState<WeeklyChallenge | null>(null);
 
   // Dynamic Themes & Dynamic Badges states
-  const [themes, setThemes] = useState<ThemeDefinition[]>(THEMATIC_CATEGORIES);
-  const [badges, setBadges] = useState<Badge[]>(SYSTEM_BADGES);
+  const [themes, setThemes] = useState<ThemeDefinition[]>(() =>
+    THEMATIC_CATEGORIES.filter(t => !getDeletedIds('themes').has(t.id))
+  );
+  const [badges, setBadges] = useState<Badge[]>(() =>
+    SYSTEM_BADGES.filter(b => !getDeletedIds('badges').has(b.id))
+  );
 
   const [systemMetrics, setSystemMetrics] = useState<SystemMetric>({
     id: 'summary',
@@ -471,23 +541,15 @@ export default function App() {
     // 0. Subscribe to Seed Status Marker (/metrics/seed_status)
     const unsubscribeSeed = onSnapshot(
       doc(db, 'metrics', 'seed_status'),
-      async (snapshot) => {
+      (snapshot) => {
         if (snapshot.exists()) {
           const status = snapshot.data() as SeedStatus;
           setSeedStatus(status);
-          // If Admin is connected and Realtime Database is accessible & empty, mirror current data to RTDB
-          if (currentUser?.role === 'admin' && !snapshot.metadata.fromCache) {
-            const rtdbEmpty = await isRealtimeDatabaseEmpty();
-            if (rtdbEmpty) {
-              handleTriggerCloudSync().catch(() => {});
-            }
+          if (status?.isSeeded) {
+            markDatabaseSeeded();
           }
         } else if (!snapshot.metadata.fromCache) {
           setSeedStatus(null);
-          // Automatically run first initial seed when Admin connects and server has no seed_status yet
-          if (currentUser?.role === 'admin') {
-            handleExecuteInitialSeed(true).catch(() => {});
-          }
         }
       },
       (err) => {
@@ -500,26 +562,44 @@ export default function App() {
     const unsubscribeItems = onSnapshot(
       collection(db, itemsPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('items');
         if (!snapshot.empty) {
+          markDatabaseSeeded();
           const loaded: QuestionnaireItem[] = [];
           snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as QuestionnaireItem);
+            if (!deletedSet.has(docSnap.id)) {
+              loaded.push({ id: docSnap.id, ...docSnap.data() } as QuestionnaireItem);
+            }
           });
           setItems(loaded);
           cacheItemsLocally(loaded);
         } else {
-          // If Firestore items collection is empty, load local initial items in memory until Admin runs seed
-          getCachedItemsLocally().then(cached => {
-            if (cached && cached.length > 0) setItems(cached);
-            else setItems(INITIAL_ENENGA_ITEMS);
-          });
+          if (isDatabaseMarkedSeeded()) {
+            setItems([]);
+            cacheItemsLocally([]);
+          } else {
+            getCachedItemsLocally().then(cached => {
+              const filteredCache = (cached || []).filter(i => !deletedSet.has(i.id));
+              if (filteredCache.length > 0 && deletedSet.size === 0) {
+                setItems(filteredCache);
+              } else {
+                const remainingInitial = INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id));
+                setItems(remainingInitial);
+                cacheItemsLocally(remainingInitial);
+              }
+            });
+          }
         }
       },
       (error) => {
         handleFirestoreError(error, OperationType.GET, itemsPath);
+        const deletedSet = getDeletedIds('items');
         getCachedItemsLocally().then(cached => {
-          if (cached && cached.length > 0) setItems(cached);
-          else setItems(INITIAL_ENENGA_ITEMS);
+          const filteredCache = (cached || []).filter(i => !deletedSet.has(i.id));
+          if (filteredCache.length > 0) setItems(filteredCache);
+          else if (!isDatabaseMarkedSeeded()) {
+            setItems(INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id)));
+          }
         });
       }
     );
@@ -529,15 +609,17 @@ export default function App() {
     const unsubscribeContrib = onSnapshot(
       collection(db, contribPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('contributions');
         const loaded: Contribution[] = [];
         snapshot.forEach(docSnap => {
-          loaded.push({ id: docSnap.id, ...docSnap.data() } as Contribution);
+          if (!deletedSet.has(docSnap.id)) {
+            loaded.push({ id: docSnap.id, ...docSnap.data() } as Contribution);
+          }
         });
-        if (loaded.length > 0) {
+        if (!snapshot.empty || isDatabaseMarkedSeeded() || deletedSet.size > 0) {
           setContributions(loaded);
         } else {
-          // Provide sample contributions if empty for demonstration
-          setContributions([
+          const sampleContribs: Contribution[] = [
             {
               id: 'c-01',
               itemId: 'nkala-enenga-01',
@@ -547,7 +629,7 @@ export default function App() {
               originalMyeneText: 'Mbolo vana',
               isSpellingCorrect: true,
               proposedSpelling: 'Mbolo vana',
-              status: 'approved',
+              status: 'approved' as ContributionStatus,
               createdAt: '2026-01-11T12:00:00Z'
             },
             {
@@ -561,10 +643,11 @@ export default function App() {
               proposedSpelling: 'Irende si bendi go nongo y’omvua',
               dialectVariant: 'galwa',
               comment: 'Prononciation avec "u" doux vers Lambaréné.',
-              status: 'pending',
+              status: 'pending' as ContributionStatus,
               createdAt: '2026-01-13T15:30:00Z'
             }
-          ]);
+          ].filter(c => !deletedSet.has(c.id));
+          setContributions(sampleContribs);
         }
       },
       (error) => {
@@ -591,14 +674,19 @@ export default function App() {
     const unsubscribeChallenges = onSnapshot(
       collection(db, challengesPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('challenges');
         if (!snapshot.empty) {
           const loaded: WeeklyChallenge[] = [];
           snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as WeeklyChallenge);
+            if (!deletedSet.has(docSnap.id)) {
+              loaded.push({ id: docSnap.id, ...docSnap.data() } as WeeklyChallenge);
+            }
           });
           setChallenges(loaded);
+        } else if (isDatabaseMarkedSeeded()) {
+          setChallenges([]);
         } else {
-          setChallenges(INITIAL_WEEKLY_CHALLENGES);
+          setChallenges(INITIAL_WEEKLY_CHALLENGES.filter(c => !deletedSet.has(c.id)));
         }
       },
       (error) => {
@@ -611,14 +699,19 @@ export default function App() {
     const unsubscribeThemes = onSnapshot(
       collection(db, themesPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('themes');
         if (!snapshot.empty) {
           const loaded: ThemeDefinition[] = [];
           snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as ThemeDefinition);
+            if (!deletedSet.has(docSnap.id)) {
+              loaded.push({ id: docSnap.id, ...docSnap.data() } as ThemeDefinition);
+            }
           });
           setThemes(loaded);
+        } else if (isDatabaseMarkedSeeded()) {
+          setThemes([]);
         } else {
-          setThemes(THEMATIC_CATEGORIES);
+          setThemes(THEMATIC_CATEGORIES.filter(t => !deletedSet.has(t.id)));
         }
       },
       (error) => {
@@ -631,14 +724,19 @@ export default function App() {
     const unsubscribeBadges = onSnapshot(
       collection(db, badgesPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('badges');
         if (!snapshot.empty) {
           const loaded: Badge[] = [];
           snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as Badge);
+            if (!deletedSet.has(docSnap.id)) {
+              loaded.push({ id: docSnap.id, ...docSnap.data() } as Badge);
+            }
           });
           setBadges(loaded);
+        } else if (isDatabaseMarkedSeeded()) {
+          setBadges([]);
         } else {
-          setBadges(SYSTEM_BADGES);
+          setBadges(SYSTEM_BADGES.filter(b => !deletedSet.has(b.id)));
         }
       },
       (error) => {
@@ -669,24 +767,37 @@ export default function App() {
     const unsubscribeClans = onSnapshot(
       collection(db, clansPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('clans');
         if (!snapshot.empty) {
           const loaded: ClanRegistry[] = [];
           snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as ClanRegistry);
+            if (!deletedSet.has(docSnap.id)) {
+              loaded.push({ id: docSnap.id, ...docSnap.data() } as ClanRegistry);
+            }
           });
           setClans(loaded);
           cacheClansLocally(loaded);
+        } else if (isDatabaseMarkedSeeded()) {
+          setClans([]);
+          cacheClansLocally([]);
         } else {
           getCachedClansLocally().then(cached => {
-            if (cached && cached.length > 0) setClans(cached);
-            else setClans(INITIAL_CLANS);
+            const filtered = (cached || []).filter(c => !deletedSet.has(c.id));
+            if (filtered.length > 0 && deletedSet.size === 0) setClans(filtered);
+            else {
+              const rem = INITIAL_CLANS.filter(c => !deletedSet.has(c.id));
+              setClans(rem);
+              cacheClansLocally(rem);
+            }
           });
         }
       },
       (error) => {
         handleFirestoreError(error, OperationType.GET, clansPath);
+        const deletedSet = getDeletedIds('clans');
         getCachedClansLocally().then(cached => {
-          if (cached && cached.length > 0) setClans(cached);
+          const filtered = (cached || []).filter(c => !deletedSet.has(c.id));
+          if (filtered.length > 0) setClans(filtered);
         });
       }
     );
@@ -696,24 +807,37 @@ export default function App() {
     const unsubscribeVillages = onSnapshot(
       collection(db, villagesPath),
       (snapshot) => {
+        const deletedSet = getDeletedIds('villages');
         if (!snapshot.empty) {
           const loaded: VillageRegistry[] = [];
           snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as VillageRegistry);
+            if (!deletedSet.has(docSnap.id)) {
+              loaded.push({ id: docSnap.id, ...docSnap.data() } as VillageRegistry);
+            }
           });
           setVillages(loaded);
           cacheVillagesLocally(loaded);
+        } else if (isDatabaseMarkedSeeded()) {
+          setVillages([]);
+          cacheVillagesLocally([]);
         } else {
           getCachedVillagesLocally().then(cached => {
-            if (cached && cached.length > 0) setVillages(cached);
-            else setVillages(INITIAL_VILLAGES);
+            const filtered = (cached || []).filter(v => !deletedSet.has(v.id));
+            if (filtered.length > 0 && deletedSet.size === 0) setVillages(filtered);
+            else {
+              const rem = INITIAL_VILLAGES.filter(v => !deletedSet.has(v.id));
+              setVillages(rem);
+              cacheVillagesLocally(rem);
+            }
           });
         }
       },
       (error) => {
         handleFirestoreError(error, OperationType.GET, villagesPath);
+        const deletedSet = getDeletedIds('villages');
         getCachedVillagesLocally().then(cached => {
-          if (cached && cached.length > 0) setVillages(cached);
+          const filtered = (cached || []).filter(v => !deletedSet.has(v.id));
+          if (filtered.length > 0) setVillages(filtered);
         });
       }
     );
@@ -924,6 +1048,7 @@ export default function App() {
   // Dynamic additions and administration of Clans and Villages
   const handleAddNewClan = async (name: string, tribe: string): Promise<ClanRegistry> => {
     const id = 'clan-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    unmarkIdAsDeleted('clans', id);
     const newClan: ClanRegistry = {
       id,
       name,
@@ -931,21 +1056,25 @@ export default function App() {
       createdBy: currentUser?.id,
       createdAt: new Date().toISOString()
     };
-    await dualSaveRecord('clans', id, newClan);
     setClans(prev => {
       const idx = prev.findIndex(c => c.id === id);
+      let updated: ClanRegistry[];
       if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = newClan;
-        return copy;
+        updated = [...prev];
+        updated[idx] = newClan;
+      } else {
+        updated = [...prev, newClan];
       }
-      return [...prev, newClan];
+      cacheClansLocally(updated);
+      return updated;
     });
+    await dualSaveRecord('clans', id, newClan);
     return newClan;
   };
 
   const handleSaveClan = async (clanData: Partial<ClanRegistry>) => {
     const id = clanData.id || ('clan-' + (clanData.name || '').toLowerCase().replace(/[^a-z0-9]/g, '-'));
+    unmarkIdAsDeleted('clans', id);
     const fullClan: ClanRegistry = {
       id,
       name: clanData.name || 'Nouveau Clan',
@@ -953,25 +1082,34 @@ export default function App() {
       description: clanData.description,
       createdAt: clanData.createdAt || new Date().toISOString()
     };
-    await dualSaveRecord('clans', id, fullClan);
     setClans(prev => {
       const idx = prev.findIndex(c => c.id === id);
+      let updated: ClanRegistry[];
       if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = fullClan;
-        return copy;
+        updated = [...prev];
+        updated[idx] = fullClan;
+      } else {
+        updated = [...prev, fullClan];
       }
-      return [...prev, fullClan];
+      cacheClansLocally(updated);
+      return updated;
     });
+    await dualSaveRecord('clans', id, fullClan);
   };
 
   const handleDeleteClan = async (clanId: string) => {
+    markIdAsDeleted('clans', clanId);
+    setClans(prev => {
+      const next = prev.filter(c => c.id !== clanId);
+      cacheClansLocally(next);
+      return next;
+    });
     await dualDeleteRecord('clans', clanId);
-    setClans(prev => prev.filter(c => c.id !== clanId));
   };
 
   const handleAddNewVillage = async (name: string, clan: string, tribe: string, region?: string): Promise<VillageRegistry> => {
     const id = 'vil-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    unmarkIdAsDeleted('villages', id);
     const newVillage: VillageRegistry = {
       id,
       name,
@@ -981,21 +1119,25 @@ export default function App() {
       createdBy: currentUser?.id,
       createdAt: new Date().toISOString()
     };
-    await dualSaveRecord('villages', id, newVillage);
     setVillages(prev => {
       const idx = prev.findIndex(v => v.id === id);
+      let updated: VillageRegistry[];
       if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = newVillage;
-        return copy;
+        updated = [...prev];
+        updated[idx] = newVillage;
+      } else {
+        updated = [...prev, newVillage];
       }
-      return [...prev, newVillage];
+      cacheVillagesLocally(updated);
+      return updated;
     });
+    await dualSaveRecord('villages', id, newVillage);
     return newVillage;
   };
 
   const handleSaveVillage = async (villageData: Partial<VillageRegistry>) => {
     const id = villageData.id || ('vil-' + (villageData.name || '').toLowerCase().replace(/[^a-z0-9]/g, '-'));
+    unmarkIdAsDeleted('villages', id);
     const fullVillage: VillageRegistry = {
       id,
       name: villageData.name || 'Nouveau Village',
@@ -1004,21 +1146,29 @@ export default function App() {
       region: villageData.region,
       createdAt: villageData.createdAt || new Date().toISOString()
     };
-    await dualSaveRecord('villages', id, fullVillage);
     setVillages(prev => {
       const idx = prev.findIndex(v => v.id === id);
+      let updated: VillageRegistry[];
       if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = fullVillage;
-        return copy;
+        updated = [...prev];
+        updated[idx] = fullVillage;
+      } else {
+        updated = [...prev, fullVillage];
       }
-      return [...prev, fullVillage];
+      cacheVillagesLocally(updated);
+      return updated;
     });
+    await dualSaveRecord('villages', id, fullVillage);
   };
 
   const handleDeleteVillage = async (villageId: string) => {
+    markIdAsDeleted('villages', villageId);
+    setVillages(prev => {
+      const next = prev.filter(v => v.id !== villageId);
+      cacheVillagesLocally(next);
+      return next;
+    });
     await dualDeleteRecord('villages', villageId);
-    setVillages(prev => prev.filter(v => v.id !== villageId));
   };
 
   // Complete onboarding with guaranteed Firebase Auth session & dual write
@@ -1312,25 +1462,28 @@ export default function App() {
     await ensureFirebaseAuthSession();
 
     try {
+      clearAllDeletedIds();
+      markDatabaseSeeded();
+
       // 1. Seed all Items (Questions/Expressions)
       for (const item of INITIAL_ENENGA_ITEMS) {
         await dualSaveRecord('items', item.id, item);
       }
-      cacheItemsLocally(INITIAL_ENENGA_ITEMS);
+      await cacheItemsLocally(INITIAL_ENENGA_ITEMS);
       setItems(INITIAL_ENENGA_ITEMS);
 
       // 2. Seed all Clans
       for (const clan of INITIAL_CLANS) {
         await dualSaveRecord('clans', clan.id, clan);
       }
-      cacheClansLocally(INITIAL_CLANS);
+      await cacheClansLocally(INITIAL_CLANS);
       setClans(INITIAL_CLANS);
 
       // 3. Seed all Villages
       for (const village of INITIAL_VILLAGES) {
         await dualSaveRecord('villages', village.id, village);
       }
-      cacheVillagesLocally(INITIAL_VILLAGES);
+      await cacheVillagesLocally(INITIAL_VILLAGES);
       setVillages(INITIAL_VILLAGES);
 
       // 4. Seed Themes
@@ -1419,12 +1572,9 @@ export default function App() {
 
   // Delete Contribution / Response
   const handleDeleteContribution = async (contributionId: string) => {
-    try {
-      await deleteDoc(doc(db, 'contributions', contributionId));
-    } catch (e) {
-      console.warn('Notice deleting contribution from Firestore:', e);
-    }
+    markIdAsDeleted('contributions', contributionId);
     setContributions(prev => prev.filter(c => c.id !== contributionId));
+    await dualDeleteRecord('contributions', contributionId);
   };
 
   // Admin Anti-Fraud account status update
@@ -1444,6 +1594,7 @@ export default function App() {
   // Questionnaire management (Questions & Expressions)
   const handleSaveQuestionnaireItem = async (itemData: Partial<QuestionnaireItem>) => {
     const id = itemData.id || 'item-' + Date.now();
+    unmarkIdAsDeleted('items', id);
     const fullItem: QuestionnaireItem = {
       id,
       frenchText: itemData.frenchText || '',
@@ -1461,8 +1612,6 @@ export default function App() {
       updatedAt: new Date().toISOString()
     };
 
-    await dualSaveRecord('items', id, fullItem);
-
     setItems(prev => {
       const idx = prev.findIndex(i => i.id === id);
       let updated: QuestionnaireItem[];
@@ -1475,40 +1624,24 @@ export default function App() {
       cacheItemsLocally(updated);
       return updated;
     });
+
+    await dualSaveRecord('items', id, fullItem);
   };
 
   const handleDeleteQuestionnaireItem = async (itemId: string) => {
-    const remainingItems = items.filter(i => i.id !== itemId);
-    setItems(remainingItems);
-    cacheItemsLocally(remainingItems);
-
+    markIdAsDeleted('items', itemId);
+    setItems(prev => {
+      const remaining = prev.filter(i => i.id !== itemId);
+      cacheItemsLocally(remaining);
+      return remaining;
+    });
     await dualDeleteRecord('items', itemId);
-
-    // If the database hadn't been seeded yet, persist the remaining items so the deletion is permanent across devices
-    if (!seedStatus?.isSeeded && currentUser?.role === 'admin') {
-      for (const it of remainingItems) {
-        await dualSaveRecord('items', it.id, it);
-      }
-      const markerPayload: SeedStatus = {
-        isSeeded: true,
-        seededAt: new Date().toISOString(),
-        seededBy: currentUser.id,
-        seededByName: currentUser.fullName || currentUser.displayName,
-        itemsCount: remainingItems.length,
-        clansCount: clans.length,
-        villagesCount: villages.length,
-        themesCount: themes.length,
-        badgesCount: badges.length,
-        version: '1.0.0-ompagano'
-      };
-      await dualSaveRecord('metrics', 'seed_status', markerPayload);
-      setSeedStatus(markerPayload);
-    }
   };
 
   // Weekly Challenge Admin Handlers
   const handleSaveChallenge = async (challengeData: Partial<WeeklyChallenge>) => {
     const id = challengeData.id || `defi-${Date.now()}`;
+    unmarkIdAsDeleted('challenges', id);
     const fullChallenge: WeeklyChallenge = {
       id,
       title: challengeData.title || 'Défi Hebdomadaire',
@@ -1525,8 +1658,6 @@ export default function App() {
       isActive: challengeData.isActive ?? true
     };
 
-    await dualSaveRecord('challenges', id, fullChallenge);
-
     setChallenges(prev => {
       const idx = prev.findIndex(c => c.id === id);
       if (idx >= 0) {
@@ -1537,6 +1668,8 @@ export default function App() {
       return [fullChallenge, ...prev];
     });
 
+    await dualSaveRecord('challenges', id, fullChallenge);
+
     setActiveChallengeId(id);
     NotificationService.sendLocalNotification('Nouveau Défi Hebdomadaire ! 🎯', {
       body: `Le défi "${fullChallenge.title}" est maintenant disponible.`
@@ -1544,17 +1677,18 @@ export default function App() {
   };
 
   const handleDeleteChallenge = async (challengeId: string) => {
-    await dualDeleteRecord('challenges', challengeId);
+    markIdAsDeleted('challenges', challengeId);
     setChallenges(prev => prev.filter(c => c.id !== challengeId));
+    await dualDeleteRecord('challenges', challengeId);
   };
 
   const handleToggleActiveChallenge = async (challengeId: string, currentStatus: boolean) => {
     const newStatus = !currentStatus;
     const target = challenges.find(c => c.id === challengeId);
+    setChallenges(prev => prev.map(c => c.id === challengeId ? { ...c, isActive: newStatus } : c));
     if (target) {
       await dualSaveRecord('challenges', challengeId, { ...target, isActive: newStatus });
     }
-    setChallenges(prev => prev.map(c => c.id === challengeId ? { ...c, isActive: newStatus } : c));
   };
 
   // Batch import phrases handler (CSV Import)
@@ -1562,7 +1696,7 @@ export default function App() {
     if (!newItems || newItems.length === 0) return;
 
     for (const it of newItems) {
-      await dualSaveRecord('items', it.id, it);
+      unmarkIdAsDeleted('items', it.id);
     }
 
     setItems(prev => {
@@ -1570,6 +1704,10 @@ export default function App() {
       cacheItemsLocally(merged);
       return merged;
     });
+
+    for (const it of newItems) {
+      await dualSaveRecord('items', it.id, it);
+    }
 
     setSystemMetrics(prev => ({
       ...prev,
@@ -1585,6 +1723,7 @@ export default function App() {
   // Dynamic Themes Handlers
   const handleSaveTheme = async (themeData: Partial<ThemeDefinition>) => {
     const themeId = themeData.id || `theme_${Date.now()}`;
+    unmarkIdAsDeleted('themes', themeId);
     const fullTheme: ThemeDefinition = {
       id: themeId,
       name: themeData.name || 'Nouveau Thème',
@@ -1597,8 +1736,6 @@ export default function App() {
       createdAt: themeData.createdAt || new Date().toISOString()
     };
 
-    await dualSaveRecord('themes', themeId, fullTheme);
-
     setThemes(prev => {
       const idx = prev.findIndex(t => t.id === themeId);
       if (idx >= 0) {
@@ -1608,27 +1745,34 @@ export default function App() {
       }
       return [...prev, fullTheme];
     });
+
+    await dualSaveRecord('themes', themeId, fullTheme);
   };
 
   const handleDeleteTheme = async (themeId: string) => {
-    await dualDeleteRecord('themes', themeId);
+    markIdAsDeleted('themes', themeId);
     setThemes(prev => prev.filter(t => t.id !== themeId));
+    await dualDeleteRecord('themes', themeId);
   };
 
   const handleBatchRegisterThemes = async (newThemes: ThemeDefinition[]) => {
     for (const th of newThemes) {
-      await dualSaveRecord('themes', th.id, th);
+      unmarkIdAsDeleted('themes', th.id);
     }
     setThemes(prev => {
       const existingIds = new Set(prev.map(p => p.id));
       const toAdd = newThemes.filter(nt => !existingIds.has(nt.id));
       return [...prev, ...toAdd];
     });
+    for (const th of newThemes) {
+      await dualSaveRecord('themes', th.id, th);
+    }
   };
 
   // Dynamic Badges Handlers
   const handleSaveBadge = async (badgeData: Partial<Badge>) => {
     const badgeId = badgeData.id || `badge_${Date.now()}`;
+    unmarkIdAsDeleted('badges', badgeId);
     const fullBadge: Badge = {
       id: badgeId,
       title: badgeData.title || 'Nouveau Badge',
@@ -1643,8 +1787,6 @@ export default function App() {
       updatedAt: new Date().toISOString()
     };
 
-    await dualSaveRecord('badges', badgeId, fullBadge);
-
     setBadges(prev => {
       const idx = prev.findIndex(b => b.id === badgeId);
       if (idx >= 0) {
@@ -1654,11 +1796,14 @@ export default function App() {
       }
       return [...prev, fullBadge];
     });
+
+    await dualSaveRecord('badges', badgeId, fullBadge);
   };
 
   const handleDeleteBadge = async (badgeId: string) => {
-    await dualDeleteRecord('badges', badgeId);
+    markIdAsDeleted('badges', badgeId);
     setBadges(prev => prev.filter(b => b.id !== badgeId));
+    await dualDeleteRecord('badges', badgeId);
   };
 
   // Full bidirectional Database Sync (Items, Clans, Villages, Users, Metrics)
@@ -1782,7 +1927,7 @@ export default function App() {
     }
   }, [currentUser?.role, currentTab]);
 
-  const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || INITIAL_ENENGA_ITEMS[0];
+  const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || null;
 
   // MANDATORY AUTHENTICATION GATE:
   // "Tant qu'on n'est pas connecté on ne peut pas accéder à l'app et on reste sur l'écran de connexion."
@@ -1829,30 +1974,47 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6">
         {currentTab === 'crowdsource' && (
-          <CrowdsourceCard
-            item={currentItem}
-            currentUser={currentUser}
-            isOnline={isOnline}
-            onNext={handleNextExpression}
-            onPrev={handlePrevExpression}
-            hasPrev={currentItemIndex > 0}
-            hasNext={currentItemIndex < displayedItems.length - 1}
-            currentIndex={currentItemIndex}
-            totalCount={displayedItems.length}
-            onSubmitContribution={handleSaveContribution}
-            onRewardEarned={handleRewardEarned}
-            challenges={challenges.filter(c => c.isActive)}
-            activeChallengeId={activeChallengeId}
-            onSelectChallenge={setActiveChallengeId}
-            userChallengeProgress={currentUser?.weeklyProgress?.[activeChallengeId] || 0}
-            isChallengeCompleted={currentUser?.completedChallenges?.includes(activeChallengeId) || false}
-            isChallengeFilterActive={isChallengeFilterActive}
-            onToggleChallengeFilter={() => {
-              setIsChallengeFilterActive(prev => !prev);
-              setCurrentItemIndex(0);
-            }}
-            filteredChallengeItemsCount={items.filter(i => i.category === activeChallenge?.theme || i.theme === activeChallenge?.theme).length}
-          />
+          currentItem ? (
+            <CrowdsourceCard
+              item={currentItem}
+              currentUser={currentUser}
+              isOnline={isOnline}
+              onNext={handleNextExpression}
+              onPrev={handlePrevExpression}
+              hasPrev={currentItemIndex > 0}
+              hasNext={currentItemIndex < displayedItems.length - 1}
+              currentIndex={currentItemIndex}
+              totalCount={displayedItems.length}
+              onSubmitContribution={handleSaveContribution}
+              onRewardEarned={handleRewardEarned}
+              challenges={challenges.filter(c => c.isActive)}
+              activeChallengeId={activeChallengeId}
+              onSelectChallenge={setActiveChallengeId}
+              userChallengeProgress={currentUser?.weeklyProgress?.[activeChallengeId] || 0}
+              isChallengeCompleted={currentUser?.completedChallenges?.includes(activeChallengeId) || false}
+              isChallengeFilterActive={isChallengeFilterActive}
+              onToggleChallengeFilter={() => {
+                setIsChallengeFilterActive(prev => !prev);
+                setCurrentItemIndex(0);
+              }}
+              filteredChallengeItemsCount={items.filter(i => i.category === activeChallenge?.theme || i.theme === activeChallenge?.theme).length}
+            />
+          ) : (
+            <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
+              <p className="text-lg font-semibold text-[#f5efe6] mb-2">Aucune fiche disponible pour le moment</p>
+              <p className="text-sm text-[#c2a896] mb-4">
+                Toutes les fiches ont été supprimées ou aucune fiche n'est encore publiée dans la base de données.
+              </p>
+              {currentUser?.role === 'admin' && (
+                <button
+                  onClick={() => setCurrentTab('admin')}
+                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition"
+                >
+                  Ouvrir l'Administration pour ajouter des fiches
+                </button>
+              )}
+            </div>
+          )
         )}
 
         {currentTab === 'explore' && (
