@@ -398,6 +398,7 @@ export default function App() {
     // 2. Listen to Firebase Auth state (single source of truth for Firestore authentication)
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
+        setIsAuthChecking(true);
         setIsFirebaseAuthReady(true);
         const isSuperAdmin = checkIsAdminEmail(fbUser.email);
 
@@ -441,6 +442,22 @@ export default function App() {
           }
         } catch (fetchErr) {
           console.warn('Notice checking cloud user profile:', fetchErr);
+          // Fallback to locally cached user if network is slow/offline for this same uid
+          try {
+            const cachedRaw = localStorage.getItem('nkala_authenticated_user');
+            if (cachedRaw) {
+              const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
+              if (cachedProfile && cachedProfile.id === fbUser.uid) {
+                if (isSuperAdmin && cachedProfile.role !== 'admin') {
+                  cachedProfile.role = 'admin';
+                }
+                setCurrentUser(cachedProfile);
+                setIsOnboardingModalOpen(!cachedProfile.registrationCompleted);
+                setIsAuthChecking(false);
+                return;
+              }
+            }
+          } catch {}
         }
 
         // 3. Create and persist user profile in Firestore & RTDB immediately upon first login!
@@ -1336,118 +1353,123 @@ export default function App() {
   const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
     if (!profileData.id) return;
 
-    await ensureFirebaseAuthSession();
-    if (auth.currentUser) {
-      setIsFirebaseAuthReady(true);
-    }
-
-    // 1. FIRST: Check if the user already exists in Firestore to NEVER wipe out their data or console edits!
-    let existingProfile: UserProfile | null = null;
-    try {
-      const snap = await getDoc(doc(db, 'users', profileData.id));
-      if (snap.exists()) {
-        existingProfile = snap.data() as UserProfile;
-      }
-    } catch (err) {
-      console.warn('Notice checking existing user in Firestore:', err);
-    }
-
-    const isSuperAdmin = checkIsAdminEmail(profileData.email) || checkIsAdminEmail(existingProfile?.email);
-
-    if (existingProfile) {
-      // PRESERVE ALL VALUES FROM FIRESTORE (including manual edits in Firebase Console)
-      const merged: UserProfile = {
-        ...existingProfile,
-        photoURL: profileData.photoURL || existingProfile.photoURL,
-        email: profileData.email || existingProfile.email,
-        role: isSuperAdmin ? 'admin' : existingProfile.role
-      };
-
-      // If user is super-admin and was previously stored as user, upgrade them immediately in Firestore & RTDB
-      if (isSuperAdmin && existingProfile.role !== 'admin') {
-        try {
-          await dualSaveRecord('users', merged.id, { role: 'admin', updatedAt: new Date().toISOString() });
-          await dualSaveRecord('admins', merged.id, {
-            userId: merged.id,
-            email: merged.email,
-            role: 'admin',
-            updatedAt: new Date().toISOString()
-          });
-        } catch (upgradeErr) {
-          console.warn('Notice upgrading super-admin in database:', upgradeErr);
-        }
-      }
-
-      try {
-        localStorage.setItem('nkala_authenticated_user', JSON.stringify(merged));
-      } catch {}
-
-      setCurrentUser(merged);
-      setUsersList(prev => [merged, ...prev.filter(u => u.id !== merged.id)]);
-
-      // If registration was already completed, DO NOT reopen onboarding modal!
-      if (merged.registrationCompleted) {
-        setIsOnboardingModalOpen(false);
-      } else {
-        setIsOnboardingModalOpen(true);
-      }
-      return;
-    }
-
-    // 2. ONLY for brand-new users who have never existed in Firestore:
-    const isAdmin = isSuperAdmin || profileData.role === 'admin' || (profileData.email && profileData.email.toLowerCase().includes('admin')) || false;
-    const fullProfile: UserProfile = {
-      id: profileData.id,
-      displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Contributeur OMPAGANO'),
-      fullName: profileData.fullName || profileData.displayName || 'Locuteur Myènè',
-      contact: profileData.contact || profileData.email || profileData.phoneNumber || '',
-      birthDate: '',
-      birthPlace: '',
-      tribe: 'Enenga',
-      paternalClan: '',
-      maternalClan: '',
-      villageOfOrigin: '',
-      registrationCompleted: false,
-      email: profileData.email || '',
-      phoneNumber: profileData.phoneNumber || '',
-      photoURL: profileData.photoURL || '',
-      role: isAdmin ? 'admin' : (profileData.role || 'user'),
-      status: 'active',
-      suspicionScore: 0,
-      xp: 150,
-      level: 'Initié Curieux',
-      levelIndex: 1,
-      contributionsCount: 0,
-      recordingsCount: 0,
-      validationsCount: 0,
-      streakDays: 1,
-      badges: ['badge-premiere-voix'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    try {
-      localStorage.setItem('nkala_authenticated_user', JSON.stringify(fullProfile));
-    } catch {}
-    setCurrentUser(fullProfile);
-    setUsersList(prev => [fullProfile, ...prev.filter(u => u.id !== fullProfile.id)]);
-
+    setIsAuthChecking(true);
     try {
       await ensureFirebaseAuthSession();
-      await dualSaveRecord('users', fullProfile.id, fullProfile);
-      if (fullProfile.role === 'admin') {
-        await dualSaveRecord('admins', fullProfile.id, { 
-          userId: fullProfile.id,
-          email: fullProfile.email,
-          role: 'admin', 
-          updatedAt: new Date().toISOString() 
-        });
+      if (auth.currentUser) {
+        setIsFirebaseAuthReady(true);
       }
-    } catch (err) {
-      console.warn('Notice syncing profile to database:', err);
-    }
 
-    setIsOnboardingModalOpen(true);
+      // 1. FIRST: Check if the user already exists in Firestore to NEVER wipe out their data or console edits!
+      let existingProfile: UserProfile | null = null;
+      try {
+        const snap = await getDoc(doc(db, 'users', profileData.id));
+        if (snap.exists()) {
+          existingProfile = snap.data() as UserProfile;
+        }
+      } catch (err) {
+        console.warn('Notice checking existing user in Firestore:', err);
+      }
+
+      const isSuperAdmin = checkIsAdminEmail(profileData.email) || checkIsAdminEmail(existingProfile?.email);
+
+      if (existingProfile) {
+        // PRESERVE ALL VALUES FROM FIRESTORE (including manual edits in Firebase Console)
+        const merged: UserProfile = {
+          ...existingProfile,
+          photoURL: profileData.photoURL || existingProfile.photoURL,
+          email: profileData.email || existingProfile.email,
+          role: isSuperAdmin ? 'admin' : existingProfile.role
+        };
+
+        // If user is super-admin and was previously stored as user, upgrade them immediately in Firestore & RTDB
+        if (isSuperAdmin && existingProfile.role !== 'admin') {
+          try {
+            await dualSaveRecord('users', merged.id, { role: 'admin', updatedAt: new Date().toISOString() });
+            await dualSaveRecord('admins', merged.id, {
+              userId: merged.id,
+              email: merged.email,
+              role: 'admin',
+              updatedAt: new Date().toISOString()
+            });
+          } catch (upgradeErr) {
+            console.warn('Notice upgrading super-admin in database:', upgradeErr);
+          }
+        }
+
+        try {
+          localStorage.setItem('nkala_authenticated_user', JSON.stringify(merged));
+        } catch {}
+
+        setCurrentUser(merged);
+        setUsersList(prev => [merged, ...prev.filter(u => u.id !== merged.id)]);
+
+        // If registration was already completed, DO NOT reopen onboarding modal!
+        if (merged.registrationCompleted) {
+          setIsOnboardingModalOpen(false);
+        } else {
+          setIsOnboardingModalOpen(true);
+        }
+        return;
+      }
+
+      // 2. ONLY for brand-new users who have never existed in Firestore:
+      const isAdmin = isSuperAdmin || profileData.role === 'admin' || (profileData.email && profileData.email.toLowerCase().includes('admin')) || false;
+      const fullProfile: UserProfile = {
+        id: profileData.id,
+        displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Contributeur OMPAGANO'),
+        fullName: profileData.fullName || profileData.displayName || 'Locuteur Myènè',
+        contact: profileData.contact || profileData.email || profileData.phoneNumber || '',
+        birthDate: '',
+        birthPlace: '',
+        tribe: 'Enenga',
+        paternalClan: '',
+        maternalClan: '',
+        villageOfOrigin: '',
+        registrationCompleted: false,
+        email: profileData.email || '',
+        phoneNumber: profileData.phoneNumber || '',
+        photoURL: profileData.photoURL || '',
+        role: isAdmin ? 'admin' : (profileData.role || 'user'),
+        status: 'active',
+        suspicionScore: 0,
+        xp: 150,
+        level: 'Initié Curieux',
+        levelIndex: 1,
+        contributionsCount: 0,
+        recordingsCount: 0,
+        validationsCount: 0,
+        streakDays: 1,
+        badges: ['badge-premiere-voix'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem('nkala_authenticated_user', JSON.stringify(fullProfile));
+      } catch {}
+      setCurrentUser(fullProfile);
+      setUsersList(prev => [fullProfile, ...prev.filter(u => u.id !== fullProfile.id)]);
+
+      try {
+        await ensureFirebaseAuthSession();
+        await dualSaveRecord('users', fullProfile.id, fullProfile);
+        if (fullProfile.role === 'admin') {
+          await dualSaveRecord('admins', fullProfile.id, { 
+            userId: fullProfile.id,
+            email: fullProfile.email,
+            role: 'admin', 
+            updatedAt: new Date().toISOString() 
+          });
+        }
+      } catch (err) {
+        console.warn('Notice syncing profile to database:', err);
+      }
+
+      setIsOnboardingModalOpen(true);
+    } finally {
+      setIsAuthChecking(false);
+    }
   };
 
   // Official First Database Seed (Performed by Admin once, marked permanently in Firestore & RTDB)
@@ -1928,6 +1950,61 @@ export default function App() {
   }, [currentUser?.role, currentTab]);
 
   const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || null;
+
+  // SESSION RESTORATION / AUTOMATIC RECONNECTION LOADING SCREEN:
+  // Displayed while Firebase Auth & Firestore check if the user is already authenticated in the background,
+  // preventing the user from seeing the login screen and clicking "Se connecter" unnecessarily.
+  if (isAuthChecking && !currentUser) {
+    let cachedUserPreview: Partial<UserProfile> | null = null;
+    try {
+      const raw = localStorage.getItem('nkala_authenticated_user');
+      if (raw) cachedUserPreview = JSON.parse(raw);
+    } catch {}
+
+    return (
+      <div className="african-pattern-bg min-h-screen text-[#fdfaf7] flex flex-col items-center justify-center p-6 font-sans">
+        <AppUpdateBanner />
+        <div className="max-w-md w-full bg-[#1a1310]/95 border border-[#4a3525] rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-36 h-36 bg-[#e67e22]/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-[#d35400]/15 rounded-full blur-2xl pointer-events-none" />
+
+          {/* Animated Spinner */}
+          <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-4 border-[#3a281d]" />
+            <div className="absolute inset-0 rounded-full border-4 border-t-[#e67e22] border-r-[#f39c12] border-b-transparent border-l-transparent animate-spin" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#e67e22] to-[#d35400] flex items-center justify-center shadow-lg">
+              <span className="text-xl font-black text-white tracking-tighter">OM</span>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#e67e22]/15 border border-[#e67e22]/40 text-[#f39c12] text-xs font-bold uppercase tracking-wider mb-4">
+            <span className="w-2 h-2 rounded-full bg-[#f39c12] animate-pulse" />
+            Connexion automatique en cours
+          </div>
+
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#fdfaf7] mb-2">
+            {cachedUserPreview?.fullName || cachedUserPreview?.displayName
+              ? `Bon retour, ${cachedUserPreview.fullName || cachedUserPreview.displayName} !`
+              : 'Restauration de votre session OMPAGANO...'}
+          </h1>
+
+          <p className="text-sm text-[#c2a896] leading-relaxed mb-6">
+            Veuillez patienter quelques instants pendant la reconnexion sécurisée à votre compte et la synchronisation de vos données.
+            <strong className="block text-[#f5efe6] mt-1.5 font-medium">
+              Vous n'avez pas besoin d'appuyer sur « Se connecter ».
+            </strong>
+          </p>
+
+          {cachedUserPreview?.email && (
+            <div className="bg-[#241a15] border border-[#3a2a22] rounded-xl px-4 py-2.5 text-xs text-[#d5c3b5] inline-flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>Compte détecté : <strong className="text-white">{cachedUserPreview.email}</strong></span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // MANDATORY AUTHENTICATION GATE:
   // "Tant qu'on n'est pas connecté on ne peut pas accéder à l'app et on reste sur l'écran de connexion."

@@ -58,8 +58,9 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
+      // If Firebase Auth already restored a non-anonymous user session in the background, use it directly without opening a popup
+      const existingFbUser = auth.currentUser && !auth.currentUser.isAnonymous ? auth.currentUser : null;
+      const user = existingFbUser || (await signInWithPopup(auth, googleProvider)).user;
 
       const isUserAdmin = checkIsAdminEmail(user.email);
       onLoginSuccess({
