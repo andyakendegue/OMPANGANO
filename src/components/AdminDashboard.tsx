@@ -45,7 +45,8 @@ import {
   Badge,
   UserRole,
   ClanRegistry,
-  VillageRegistry
+  VillageRegistry,
+  SeedStatus
 } from '../types';
 import { SYSTEM_BADGES, USER_LEVELS, calculateSuspicionScore, THEMATIC_CATEGORIES } from '../services/seedData';
 import { CsvImportSection } from './CsvImportSection';
@@ -87,6 +88,9 @@ interface AdminDashboardProps {
   onUpdateUserRole?: (userId: string, newRole: UserRole) => Promise<void>;
   onTriggerCloudSync: () => Promise<void>;
   currentUser: UserProfile | null;
+  seedStatus?: SeedStatus | null;
+  onExecuteInitialSeed?: () => Promise<void>;
+  isSeedingDatabase?: boolean;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -120,7 +124,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateUserAccountStatus,
   onUpdateUserRole,
   onTriggerCloudSync,
-  currentUser
+  currentUser,
+  seedStatus,
+  onExecuteInitialSeed,
+  isSeedingDatabase = false
 }) => {
   const [activeTab, setActiveTab] = useState<
     'stats' | 'users' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'hosting' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
@@ -458,6 +465,77 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {syncStatusMessage}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* SEED STATUS BANNER (GESTION DU PREMIER SEED OFFICIEL) */}
+      <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+        seedStatus?.isSeeded 
+          ? 'bg-[#14532d]/20 border-[#22c55e]/50 text-[#bbf7d0]'
+          : 'bg-[#78350f]/30 border-[#f59e0b]/60 text-[#fed7aa]'
+      }`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className={`p-2.5 rounded-xl shrink-0 ${
+              seedStatus?.isSeeded ? 'bg-[#22c55e]/20 text-[#4ade80]' : 'bg-[#f59e0b]/20 text-[#f59e0b]'
+            }`}>
+              {seedStatus?.isSeeded ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm sm:text-base text-white font-serif">
+                  {seedStatus?.isSeeded 
+                    ? '✓ Base de Données Firebase Initialisée & Certifiée' 
+                    : '⚠️ Premier Seed Firebase Non Effectué (Données Locales Uniquement)'}
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  seedStatus?.isSeeded 
+                    ? 'bg-[#22c55e]/20 text-[#4ade80] border border-[#22c55e]/40' 
+                    : 'bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40'
+                }`}>
+                  {seedStatus?.isSeeded ? 'Seed Cloud Actif' : 'Marqueur Manquant'}
+                </span>
+              </div>
+              <p className="text-xs text-[#d4af94] mt-1 leading-relaxed max-w-2xl">
+                {seedStatus?.isSeeded ? (
+                  <>
+                    Le marqueur permanent <code className="text-[#fde047] font-mono font-bold">/metrics/seed_status</code> est actif dans Firebase. 
+                    <strong> {seedStatus.itemsCount} questions</strong>, <strong>{seedStatus.clansCount} clans</strong> et <strong>{seedStatus.villagesCount} villages</strong> sont stockés dans le Cloud et synchronisés sur tous vos périphériques.
+                    {seedStatus.seededByName && <span className="block mt-0.5 text-[11px] text-[#a8826d]">Initialisé par {seedStatus.seededByName} le {new Date(seedStatus.seededAt).toLocaleString('fr-FR')}.</span>}
+                  </>
+                ) : (
+                  <>
+                    Le corpus linguistique et généalogique est actuellement en <strong>mémoire locale sur ce périphérique</strong>.
+                    Pour que les questions, clans et villages soient consultables et modifiables <strong>depuis n'importe quel autre ordinateur ou smartphone</strong>, vous devez exécuter le Premier Seed officiel.
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-2 w-full sm:w-auto justify-end">
+            {!seedStatus?.isSeeded ? (
+              <button
+                type="button"
+                onClick={onExecuteInitialSeed}
+                disabled={isSeedingDatabase}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#15803d] to-[#047857] hover:opacity-95 text-white font-bold text-xs shadow-lg border border-[#22c55e]/40 active:scale-95 disabled:opacity-50 transition-all"
+              >
+                <Sparkles className={`w-4 h-4 ${isSeedingDatabase ? 'animate-spin' : ''}`} />
+                <span>{isSeedingDatabase ? 'Injection dans Firebase en cours...' : '🌱 Effectuer le Premier Seed dans Firebase'}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onExecuteInitialSeed}
+                disabled={isSeedingDatabase}
+                className="text-[11px] px-3 py-1.5 rounded-lg bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] border border-[#4a2412] transition-colors"
+                title="Réinjecte l'intégralité du corpus si vous souhaitez forcer un re-seed"
+              >
+                {isSeedingDatabase ? 'Re-seed en cours...' : 'Forcer un Re-seed Cloud'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

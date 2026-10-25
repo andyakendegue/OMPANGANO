@@ -216,3 +216,16 @@ export interface OfflinePackStatus {
   downloadProgress: number;
   downloadDate?: string;
 }
+
+export interface SeedStatus {
+  isSeeded: boolean;
+  seededAt: string;
+  seededBy: string;
+  seededByName: string;
+  itemsCount: number;
+  clansCount: number;
+  villagesCount: number;
+  themesCount?: number;
+  badgesCount?: number;
+  version?: string;
+}

@@ -21,7 +21,7 @@ import {
   signInWithPhoneNumber, 
   ConfirmationResult 
 } from 'firebase/auth';
-import { auth, googleProvider, signInWithPhoneBridge } from '../firebase';
+import { auth, googleProvider, signInWithPhoneBridge, checkIsAdminEmail } from '../firebase';
 import { UserProfile } from '../types';
 
 interface AuthGateScreenProps {
@@ -61,6 +61,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
+      const isUserAdmin = checkIsAdminEmail(user.email);
       onLoginSuccess({
         id: user.uid,
         displayName: user.displayName || user.email?.split('@')[0] || 'Contributeur OMPAGANO',
@@ -68,7 +69,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         contact: user.email || user.phoneNumber || '',
         email: user.email || '',
         photoURL: user.photoURL || '',
-        role: 'user',
+        role: isUserAdmin ? 'admin' : 'user',
         status: 'active',
         xp: 150,
         level: 'Initié Curieux',

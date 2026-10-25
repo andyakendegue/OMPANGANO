@@ -15,6 +15,7 @@ import {
   Layers,
   ArrowRight
 } from 'lucide-react';
+import { appVersionService } from '../services/appVersionService';
 
 interface HostingCustomDomainAdminProps {
   onTriggerSync?: () => Promise<void>;
@@ -238,6 +239,67 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
             <p className="text-stone-400 text-[10px]">Exécute : vite build && firebase deploy --only hosting:ompangano</p>
             <p className="text-stone-400 mt-2"># Résultat :</p>
             <p className="text-emerald-300">ompangano.web.app mis à jour • enenga reste inchangé</p>
+          </div>
+        </div>
+      </div>
+
+      {/* SPA Cache & Live Code Invalidation Monitor */}
+      <div className="bg-gradient-to-br from-[#27150c] to-[#1c0f08] rounded-2xl p-5 border border-[#522b17] shadow-lg text-[#fdfaf7] space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#c85a32]/20 border border-[#c85a32]/40 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-[#f59e0b]" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-white">Gestion du Cache SPA & Synchronisation du Code</h4>
+              <p className="text-xs text-[#fed7aa]/80">
+                Évite que les utilisateurs restent bloqués sur un vieux bundle JavaScript lors d'une mise à jour.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={async () => {
+              const hasNew = await appVersionService.checkForUpdate();
+              if (hasNew) {
+                alert("Une nouvelle version a été détectée sur le serveur ! Le bandeau de mise à jour s'affiche.");
+              } else {
+                alert("Votre application exécute la version la plus récente du code.");
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#c85a32] hover:bg-[#b4431e] text-white text-xs font-bold transition-all shadow active:scale-95 cursor-pointer shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Tester la détection de version</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div className="bg-black/30 p-3 rounded-xl border border-white/5 space-y-1">
+            <span className="font-bold text-emerald-400 flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" /> 1. En-tête no-cache
+            </span>
+            <p className="text-stone-300">
+              <code>index.html</code> et <code>version.json</code> sont configurés avec <code>no-store, no-cache</code> dans <code>firebase.json</code>. Le navigateur télécharge toujours le dernier index.
+            </p>
+          </div>
+
+          <div className="bg-black/30 p-3 rounded-xl border border-white/5 space-y-1">
+            <span className="font-bold text-amber-400 flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" /> 2. Version Polling
+            </span>
+            <p className="text-stone-300">
+              L'application interroge <code>/version.json</code> au retour sur l'onglet, lors du focus ou toutes les 3 minutes. Dès qu'un déploiement a lieu, un bandeau invite l'utilisateur à actualiser.
+            </p>
+          </div>
+
+          <div className="bg-black/30 p-3 rounded-xl border border-white/5 space-y-1">
+            <span className="font-bold text-blue-400 flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" /> 3. ChunkLoadError Auto-Recovery
+            </span>
+            <p className="text-stone-300">
+              L'écouteur global <code>vite:preloadError</code> détecte si un module dynamique a été écrasé par un nouveau déploiement et recharge automatiquement la page sans écran blanc.
+            </p>
           </div>
         </div>
       </div>
