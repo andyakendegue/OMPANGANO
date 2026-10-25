@@ -89,6 +89,7 @@ export async function cacheItemsLocally(items: QuestionnaireItem[]): Promise<voi
     const db = await openDatabase();
     const tx = db.transaction(STORE_ITEMS, 'readwrite');
     const store = tx.objectStore(STORE_ITEMS);
+    store.clear();
     for (const item of items) {
       store.put(item);
     }
@@ -182,6 +183,7 @@ export async function cacheClansLocally(clans: ClanRegistry[]): Promise<void> {
     const db = await openDatabase();
     const tx = db.transaction(STORE_CLANS, 'readwrite');
     const store = tx.objectStore(STORE_CLANS);
+    store.clear();
     for (const c of clans) store.put(c);
   } catch (e) {
     console.warn('Cache clans error:', e);
@@ -207,6 +209,7 @@ export async function cacheVillagesLocally(villages: VillageRegistry[]): Promise
     const db = await openDatabase();
     const tx = db.transaction(STORE_VILLAGES, 'readwrite');
     const store = tx.objectStore(STORE_VILLAGES);
+    store.clear();
     for (const v of villages) store.put(v);
   } catch (e) {
     console.warn('Cache villages error:', e);
