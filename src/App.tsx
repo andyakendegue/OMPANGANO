@@ -26,7 +26,8 @@ import {
   ensureFirebaseAuthSession,
   convertBlobToBase64,
   replayPendingOfflineAdminMutations,
-  checkIsAdminEmail
+  checkIsAdminEmail,
+  isRealtimeDatabaseEmpty
 } from './firebase';
 import { 
   QuestionnaireItem, 
@@ -470,12 +471,23 @@ export default function App() {
     // 0. Subscribe to Seed Status Marker (/metrics/seed_status)
     const unsubscribeSeed = onSnapshot(
       doc(db, 'metrics', 'seed_status'),
-      (snapshot) => {
+      async (snapshot) => {
         if (snapshot.exists()) {
           const status = snapshot.data() as SeedStatus;
           setSeedStatus(status);
-        } else {
+          // If Admin is connected and Realtime Database is accessible & empty, mirror current data to RTDB
+          if (currentUser?.role === 'admin' && !snapshot.metadata.fromCache) {
+            const rtdbEmpty = await isRealtimeDatabaseEmpty();
+            if (rtdbEmpty) {
+              handleTriggerCloudSync().catch(() => {});
+            }
+          }
+        } else if (!snapshot.metadata.fromCache) {
           setSeedStatus(null);
+          // Automatically run first initial seed when Admin connects and server has no seed_status yet
+          if (currentUser?.role === 'admin') {
+            handleExecuteInitialSeed(true).catch(() => {});
+          }
         }
       },
       (err) => {
@@ -1288,12 +1300,13 @@ export default function App() {
     setIsOnboardingModalOpen(true);
   };
 
-  // Official First Database Seed (Performed by Admin once, marked permanently in Firestore)
-  const handleExecuteInitialSeed = async () => {
+  // Official First Database Seed (Performed by Admin once, marked permanently in Firestore & RTDB)
+  const handleExecuteInitialSeed = async (silent: boolean = false) => {
     if (currentUser?.role !== 'admin') {
-      alert("Seul un administrateur peut initialiser la base de données cloud.");
+      if (!silent) alert("Seul un administrateur peut initialiser la base de données cloud.");
       return;
     }
+    if (isSeedingDatabase) return;
 
     setIsSeedingDatabase(true);
     await ensureFirebaseAuthSession();
@@ -1371,10 +1384,14 @@ export default function App() {
       NotificationService.sendLocalNotification('Premier Seed Firebase Réussi 🌱', {
         body: `Base de données initialisée : ${INITIAL_ENENGA_ITEMS.length} questions et ${INITIAL_CLANS.length} clans propagés.`
       });
-      alert(`Félicitations ! Le premier Seed officiel de la base Firebase a été effectué avec succès.\n\n- ${INITIAL_ENENGA_ITEMS.length} questions injectées dans /items\n- ${INITIAL_CLANS.length} clans configurés dans /clans\n- ${INITIAL_VILLAGES.length} villages rattachés dans /villages\n\nLe marqueur permanent 'seed_status' est maintenant enregistré dans Firebase. Tous vos périphériques et utilisateurs accèdent désormais aux mêmes données en temps réel !`);
+      if (!silent) {
+        alert(`Félicitations ! Le premier Seed officiel de la base Firebase a été effectué avec succès.\n\n- ${INITIAL_ENENGA_ITEMS.length} questions injectées dans /items\n- ${INITIAL_CLANS.length} clans configurés dans /clans\n- ${INITIAL_VILLAGES.length} villages rattachés dans /villages\n\nLe marqueur permanent 'seed_status' est maintenant enregistré dans Firebase. Tous vos périphériques et utilisateurs accèdent désormais aux mêmes données en temps réel !`);
+      }
     } catch (err: any) {
       console.error('Erreur lors du Seed initial:', err);
-      alert("Erreur lors du seed : " + (err.message || 'Vérifiez la connexion'));
+      if (!silent) {
+        alert("Erreur lors du seed : " + (err.message || 'Vérifiez la connexion'));
+      }
     } finally {
       setIsSeedingDatabase(false);
     }
@@ -1461,12 +1478,32 @@ export default function App() {
   };
 
   const handleDeleteQuestionnaireItem = async (itemId: string) => {
+    const remainingItems = items.filter(i => i.id !== itemId);
+    setItems(remainingItems);
+    cacheItemsLocally(remainingItems);
+
     await dualDeleteRecord('items', itemId);
-    setItems(prev => {
-      const updated = prev.filter(i => i.id !== itemId);
-      cacheItemsLocally(updated);
-      return updated;
-    });
+
+    // If the database hadn't been seeded yet, persist the remaining items so the deletion is permanent across devices
+    if (!seedStatus?.isSeeded && currentUser?.role === 'admin') {
+      for (const it of remainingItems) {
+        await dualSaveRecord('items', it.id, it);
+      }
+      const markerPayload: SeedStatus = {
+        isSeeded: true,
+        seededAt: new Date().toISOString(),
+        seededBy: currentUser.id,
+        seededByName: currentUser.fullName || currentUser.displayName,
+        itemsCount: remainingItems.length,
+        clansCount: clans.length,
+        villagesCount: villages.length,
+        themesCount: themes.length,
+        badgesCount: badges.length,
+        version: '1.0.0-ompagano'
+      };
+      await dualSaveRecord('metrics', 'seed_status', markerPayload);
+      setSeedStatus(markerPayload);
+    }
   };
 
   // Weekly Challenge Admin Handlers
@@ -1672,6 +1709,22 @@ export default function App() {
 
     await dualSaveRecord('metrics', 'summary', metricsPayload);
     setSystemMetrics(metricsPayload);
+
+    // 7. Ensure Seed Status Marker is also present in both Firestore & Realtime Database
+    const markerPayload: SeedStatus = seedStatus || {
+      isSeeded: true,
+      seededAt: new Date().toISOString(),
+      seededBy: currentUser?.id || 'admin',
+      seededByName: currentUser?.fullName || currentUser?.displayName || 'Admin',
+      itemsCount: items.length,
+      clansCount: clans.length,
+      villagesCount: villages.length,
+      themesCount: themes.length,
+      badgesCount: badges.length,
+      version: '1.0.0-ompagano'
+    };
+    await dualSaveRecord('metrics', 'seed_status', markerPayload);
+    setSeedStatus(markerPayload);
 
     NotificationService.sendLocalNotification('Base de données synchronisée ☁️', {
       body: `${items.length} questions, ${clans.length} clans et ${villages.length} villages synchronisés avec Firebase.`
