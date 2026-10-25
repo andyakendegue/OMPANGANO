@@ -200,12 +200,15 @@ export async function signInWithPhoneBridge(phoneNumber: string): Promise<Fireba
 
 // Ensure there is always a valid Firebase Auth session before database writes
 export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> {
+  try {
+    await auth.authStateReady();
+  } catch {}
   if (auth.currentUser) return auth.currentUser;
   try {
     const cred = await signInAnonymously(auth);
     return cred.user;
-  } catch (err) {
-    console.warn('Notice establishing anonymous Firebase session:', err);
+  } catch {
+    // Anonymous auth might be disabled in Firebase Console; user must sign in via Google/Phone
     return null;
   }
 }
@@ -270,6 +273,13 @@ export function queueOfflineAdminMutation(mutation: Omit<OfflineAdminMutation, '
 export async function replayPendingOfflineAdminMutations(): Promise<number> {
   const pending = getOfflineAdminMutations();
   if (pending.length === 0) return 0;
+
+  const activeUser = await ensureFirebaseAuthSession();
+  if (!activeUser) {
+    // Cannot replay to Firestore until user is authenticated
+    return 0;
+  }
+
   console.info(`[Sync Replay] Synchronisation en ligne de ${pending.length} modification(s) administrative(s)...`);
 
   let successCount = 0;
@@ -281,12 +291,12 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
         const clean = sanitizeDataForFirebase(mut.data);
         await setDoc(doc(db, mut.collectionPath, mut.recordId), clean, { merge: true });
         if (rtdb) {
-          await rtdbSet(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean);
+          await rtdbSet(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean).catch(() => {});
         }
       } else if (mut.type === 'delete') {
         await deleteDoc(doc(db, mut.collectionPath, mut.recordId));
         if (rtdb) {
-          await rtdbRemove(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`));
+          await rtdbRemove(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`)).catch(() => {});
         }
       }
       successCount++;
@@ -316,13 +326,18 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
     return { firestore: false, rtdb: false };
   }
 
-  // 1. Write to Firestore
-  try {
-    await setDoc(doc(db, collectionPath, recordId), sanitized, { merge: true });
-    fsOk = true;
-    console.info(`✓ Synchronisé Firestore avec succès: ${collectionPath}/${recordId}`);
-  } catch (err) {
-    console.error(`✗ Erreur d'enregistrement Firestore sur ${collectionPath}/${recordId}:`, err);
+  // Wait for Firebase Auth state to settle before writing to Firestore
+  const activeUser = await ensureFirebaseAuthSession();
+
+  // 1. Write to Firestore (only if authenticated to prevent Missing or insufficient permissions)
+  if (activeUser) {
+    try {
+      await setDoc(doc(db, collectionPath, recordId), sanitized, { merge: true });
+      fsOk = true;
+      console.info(`✓ Synchronisé Firestore avec succès: ${collectionPath}/${recordId}`);
+    } catch (err) {
+      console.warn(`Notice d'enregistrement Firestore sur ${collectionPath}/${recordId}:`, err);
+    }
   }
 
   // 2. Write to Realtime Database
@@ -333,11 +348,11 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
       console.info(`✓ Synchronisé RTDB avec succès: ${collectionPath}/${recordId}`);
     }
   } catch (err) {
-    console.error(`✗ Erreur d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
+    console.warn(`Notice d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
-  // If both failed (e.g. unexpected offline disconnection), queue for replay
-  if (!fsOk && !rtdbOk) {
+  // If Firestore failed or user was not yet authenticated, queue for replay when authenticated & online
+  if (!fsOk) {
     queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
   }
 
@@ -355,12 +370,16 @@ export async function dualDeleteRecord(collectionPath: string, recordId: string)
     return { firestore: false, rtdb: false };
   }
 
-  try {
-    await deleteDoc(doc(db, collectionPath, recordId));
-    fsOk = true;
-    console.info(`✓ Supprimé de Firestore: ${collectionPath}/${recordId}`);
-  } catch (err) {
-    console.error(`✗ Erreur suppression Firestore sur ${collectionPath}/${recordId}:`, err);
+  const activeUser = await ensureFirebaseAuthSession();
+
+  if (activeUser) {
+    try {
+      await deleteDoc(doc(db, collectionPath, recordId));
+      fsOk = true;
+      console.info(`✓ Supprimé de Firestore: ${collectionPath}/${recordId}`);
+    } catch (err) {
+      console.warn(`Notice suppression Firestore sur ${collectionPath}/${recordId}:`, err);
+    }
   }
 
   try {

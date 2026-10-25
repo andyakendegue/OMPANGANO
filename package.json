@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting:ompangano"
+    "deploy:hosting": "npm run build && firebase deploy --only hosting:ompangano,firestore:rules"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
