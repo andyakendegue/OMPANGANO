@@ -21,7 +21,7 @@ import {
   signInWithPhoneNumber, 
   ConfirmationResult 
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, signInWithPhoneBridge } from '../firebase';
 import { UserProfile } from '../types';
 
 interface AuthGateScreenProps {
@@ -64,9 +64,10 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
       onLoginSuccess({
         id: user.uid,
         displayName: user.displayName || user.email?.split('@')[0] || 'Contributeur OMPAGANO',
-        fullName: user.displayName || '',
-        email: user.email || undefined,
-        photoURL: user.photoURL || undefined,
+        fullName: user.displayName || user.email?.split('@')[0] || 'Locuteur Myènè',
+        contact: user.email || user.phoneNumber || '',
+        email: user.email || '',
+        photoURL: user.photoURL || '',
         role: 'user',
         status: 'active',
         xp: 150,
@@ -196,7 +197,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     }
   };
 
-  // Fallback direct phone connect with real Firebase Anonymous Auth session
+  // Fallback direct phone connect with real Firebase Auth session
   const handleDirectPhoneFallback = async () => {
     const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
     if (!cleanDigits || cleanDigits.length < 6) {
@@ -208,17 +209,9 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     setErrorMessage(null);
 
     try {
-      // Create a genuine Firebase Auth session so firestore permissions succeed
-      let uid = 'phone-' + cleanDigits;
-      try {
-        const cred = await signInAnonymously(auth);
-        if (cred?.user?.uid) {
-          uid = cred.user.uid;
-        }
-      } catch (authErr) {
-        console.warn('Anonymous session notice:', authErr);
-      }
-
+      // Connects with genuine Firebase Auth session so firestore permissions succeed
+      const fbUser = await signInWithPhoneBridge(phoneNumber);
+      const uid = fbUser.uid;
       const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
       const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
       const fullName = userName.trim() || 'Locuteur Myènè';
@@ -237,6 +230,9 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         tribe: 'Enenga',
         badges: ['badge-premiere-voix']
       });
+    } catch (err: any) {
+      console.warn('Phone connect notice:', err);
+      setErrorMessage("Impossible d'initialiser la session sécurisée. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }

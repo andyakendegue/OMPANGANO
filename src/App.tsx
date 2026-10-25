@@ -5,6 +5,7 @@ import {
   onSnapshot, 
   setDoc, 
   getDocs, 
+  getDoc,
   updateDoc, 
   deleteDoc, 
   query, 
@@ -22,7 +23,8 @@ import {
   OperationType,
   dualSaveRecord,
   dualDeleteRecord,
-  ensureFirebaseAuthSession
+  ensureFirebaseAuthSession,
+  convertBlobToBase64
 } from './firebase';
 import { 
   QuestionnaireItem, 
@@ -277,72 +279,120 @@ export default function App() {
     };
   }, []);
 
-  // Firebase auth state subscription
+  // Firebase auth state subscription & Cross-tab synchronization
   useEffect(() => {
     testFirestoreConnection();
 
-    // Check if an existing authenticated session is stored in localStorage
+    // 1. Cross-tab storage synchronization: when Tab 1 completes onboarding, Tab 2 updates immediately
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nkala_authenticated_user' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && parsed.id) {
+            setCurrentUser(parsed);
+            if (parsed.registrationCompleted) {
+              setIsOnboardingModalOpen(false);
+            }
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // 2. Check if an existing authenticated session is stored in localStorage
     try {
       const stored = localStorage.getItem('nkala_authenticated_user');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.id) {
           setCurrentUser(parsed);
+          if (parsed.registrationCompleted) {
+            setIsOnboardingModalOpen(false);
+          }
           setIsAuthChecking(false);
         }
       }
     } catch {}
 
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+    // 3. Listen to Firebase Auth state
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
-        const isAdmin = (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
-        setCurrentUser(prev => {
-          const profile: UserProfile = {
-            id: fbUser.uid,
-            displayName: fbUser.displayName || prev?.displayName || fbUser.email?.split('@')[0] || 'Contributeur OMPAGANO',
-            fullName: prev?.fullName || fbUser.displayName || '',
-            contact: prev?.contact || fbUser.phoneNumber || fbUser.email || '',
-            birthDate: prev?.birthDate || '',
-            birthPlace: prev?.birthPlace || '',
-            tribe: prev?.tribe || 'Enenga',
-            paternalClan: prev?.paternalClan || '',
-            maternalClan: prev?.maternalClan || '',
-            villageOfOrigin: prev?.villageOfOrigin || '',
-            registrationCompleted: prev?.registrationCompleted ?? false,
-            email: fbUser.email || prev?.email,
-            phoneNumber: fbUser.phoneNumber || prev?.phoneNumber,
-            photoURL: fbUser.photoURL || prev?.photoURL,
-            role: isAdmin ? 'admin' : (prev?.role || 'user'),
-            status: prev?.status || 'active',
-            suspicionScore: prev?.suspicionScore || 0,
-            xp: prev?.xp || 150,
-            level: prev?.level || 'Initié Curieux',
-            levelIndex: prev?.levelIndex || 1,
-            contributionsCount: prev?.contributionsCount || 0,
-            recordingsCount: prev?.recordingsCount || 0,
-            validationsCount: prev?.validationsCount || 0,
-            streakDays: prev?.streakDays || 1,
-            badges: prev?.badges || ['badge-premiere-voix'],
-            createdAt: prev?.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          try {
-            localStorage.setItem('nkala_authenticated_user', JSON.stringify(profile));
-          } catch {}
-          if (!profile.registrationCompleted) {
-            setIsOnboardingModalOpen(true);
+        // Query Firestore to see if user profile already exists with full filiation!
+        try {
+          const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+          if (userDoc.exists()) {
+            const cloudProfile = userDoc.data() as UserProfile;
+            setCurrentUser(cloudProfile);
+            try {
+              localStorage.setItem('nkala_authenticated_user', JSON.stringify(cloudProfile));
+            } catch {}
+            if (cloudProfile.registrationCompleted) {
+              setIsOnboardingModalOpen(false);
+            } else {
+              setIsOnboardingModalOpen(true);
+            }
+            setIsAuthChecking(false);
+            return;
           }
-          return profile;
-        });
+        } catch (fetchErr) {
+          console.warn('Notice checking cloud user profile:', fetchErr);
+        }
+
+        // 4. Create and persist user profile in Firestore & RTDB immediately upon first login!
+        const isAdmin = (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
+        const initialProfile: UserProfile = {
+          id: fbUser.uid,
+          displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Contributeur OMPAGANO',
+          fullName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Locuteur Myènè',
+          contact: fbUser.email || fbUser.phoneNumber || '',
+          birthDate: '',
+          birthPlace: '',
+          tribe: 'Enenga',
+          paternalClan: '',
+          maternalClan: '',
+          villageOfOrigin: '',
+          registrationCompleted: false,
+          email: fbUser.email || '',
+          phoneNumber: fbUser.phoneNumber || '',
+          photoURL: fbUser.photoURL || '',
+          role: isAdmin ? 'admin' : 'user',
+          status: 'active',
+          suspicionScore: 0,
+          xp: 150,
+          level: 'Initié Curieux',
+          levelIndex: 1,
+          contributionsCount: 0,
+          recordingsCount: 0,
+          validationsCount: 0,
+          streakDays: 1,
+          badges: ['badge-premiere-voix'],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        // Persist immediately to Firestore and RTDB so Google users are created in database at login!
+        await dualSaveRecord('users', initialProfile.id, initialProfile);
+
+        try {
+          localStorage.setItem('nkala_authenticated_user', JSON.stringify(initialProfile));
+        } catch {}
+
+        setCurrentUser(initialProfile);
+        setUsersList(prev => [initialProfile, ...prev.filter(u => u.id !== initialProfile.id)]);
+        setIsOnboardingModalOpen(true);
+        setIsAuthChecking(false);
+        return;
       } else {
-        // If Firebase Auth returns null (e.g. user logged in via phone or direct Gmail)
-        // Check if there is an active valid session in localStorage
+        // If Firebase Auth returns null
         try {
           const activeLocal = localStorage.getItem('nkala_authenticated_user');
           if (activeLocal) {
             const parsed = JSON.parse(activeLocal);
             if (parsed && parsed.id) {
               setCurrentUser(parsed);
+              if (parsed.registrationCompleted) {
+                setIsOnboardingModalOpen(false);
+              }
               setIsAuthChecking(false);
               return;
             }
@@ -353,7 +403,10 @@ export default function App() {
       setIsAuthChecking(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      unsubscribe();
+    };
   }, []);
 
   // Firestore Real-time subscriptions & Initial Seeding
@@ -691,7 +744,16 @@ export default function App() {
         await uploadBytes(audioRef, audioBlob);
         finalAudioUrl = await getDownloadURL(audioRef);
       } catch (err) {
-        console.warn('Storage direct upload notice:', err);
+        console.warn('Storage direct upload notice, convertissant en audio permanent:', err);
+      }
+
+      // Fallback: If Firebase Storage upload did not produce a remote URL, convert blob to permanent Base64
+      if (!finalAudioUrl || finalAudioUrl.startsWith('blob:')) {
+        try {
+          finalAudioUrl = await convertBlobToBase64(audioBlob);
+        } catch (b64Err) {
+          console.warn('Base64 audio fallback notice:', b64Err);
+        }
       }
     }
 
@@ -714,7 +776,7 @@ export default function App() {
     };
 
     try {
-      await setDoc(doc(db, 'contributions', contributionId), payload);
+      await dualSaveRecord('contributions', contributionId, payload);
       setContributions(prev => [payload, ...prev]);
 
       // Track Weekly Challenge progression

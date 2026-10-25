@@ -4,22 +4,24 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut as fbSignOut,
-  onAuthStateChanged,
-  signInAnonymously,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
+  onAuthStateChanged, 
+  signInAnonymously, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber, 
   ConfirmationResult,
-  User as FirebaseUser
+  User as FirebaseUser,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { 
   getFirestore, 
   doc, 
-  setDoc,
-  deleteDoc,
-  getDoc,
-  getDocFromServer,
-  collection,
-  getDocs
+  setDoc, 
+  deleteDoc, 
+  getDoc, 
+  getDocFromServer, 
+  collection, 
+  getDocs 
 } from 'firebase/firestore';
 import { 
   getDatabase, 
@@ -56,7 +58,7 @@ export const storage = getStorage(app, firebaseConfig.storageBucket);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// Operation Type and Error Info conforming strictly to Firebase Integration Skill
+// Operation Type and Error Info
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -104,6 +106,43 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   return errInfo;
 }
 
+// Convert audio Blob into permanent base64 data URL
+export function convertBlobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Connect user with phone number using real Firebase Auth account (guaranteeing genuine Firebase session)
+export async function signInWithPhoneBridge(phoneNumber: string): Promise<FirebaseUser> {
+  const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
+  const internalEmail = `tel_${cleanDigits}@ompagano.ga`;
+  const internalPassword = `ompa_${cleanDigits}_gab_2026!`;
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, internalEmail, internalPassword);
+    return cred.user;
+  } catch (err: any) {
+    if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-login-credentials') {
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, internalEmail, internalPassword);
+        return cred.user;
+      } catch (createErr: any) {
+        console.warn('Notice creating phone bridge account:', createErr);
+        // Fallback to anonymous if email creation fails
+        const anonCred = await signInAnonymously(auth);
+        return anonCred.user;
+      }
+    }
+    // Attempt anonymous fallback
+    const anonCred = await signInAnonymously(auth);
+    return anonCred.user;
+  }
+}
+
 // Ensure there is always a valid Firebase Auth session before database writes
 export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> {
   if (auth.currentUser) return auth.currentUser;
@@ -116,27 +155,46 @@ export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> 
   }
 }
 
-// Dual write helper: persists to both Firestore AND Realtime Database
+// Clean undefined values to prevent Firestore & RTDB crash: "Unsupported field value: undefined"
+export function sanitizeDataForFirebase(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeDataForFirebase(item));
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeDataForFirebase(value);
+    }
+  }
+  return clean;
+}
+
+// Dual write helper: persists to both Firestore AND Realtime Database with automatic sanitization
 export async function dualSaveRecord(collectionPath: string, recordId: string, data: any): Promise<{ firestore: boolean; rtdb: boolean }> {
   let fsOk = false;
   let rtdbOk = false;
+  const sanitized = sanitizeDataForFirebase(data);
 
   // 1. Write to Firestore
   try {
-    await setDoc(doc(db, collectionPath, recordId), data, { merge: true });
+    await setDoc(doc(db, collectionPath, recordId), sanitized, { merge: true });
     fsOk = true;
+    console.info(`✓ Synchronisé Firestore avec succès: ${collectionPath}/${recordId}`);
   } catch (err) {
-    console.warn(`Firestore save error on ${collectionPath}/${recordId}:`, err);
+    console.error(`✗ Erreur d'enregistrement Firestore sur ${collectionPath}/${recordId}:`, err);
   }
 
   // 2. Write to Realtime Database
   try {
     if (rtdb) {
-      await rtdbSet(rtdbRef(rtdb, `${collectionPath}/${recordId}`), data);
+      await rtdbSet(rtdbRef(rtdb, `${collectionPath}/${recordId}`), sanitized);
       rtdbOk = true;
+      console.info(`✓ Synchronisé RTDB avec succès: ${collectionPath}/${recordId}`);
     }
   } catch (err) {
-    console.warn(`RTDB save error on ${collectionPath}/${recordId}:`, err);
+    console.error(`✗ Erreur d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
   return { firestore: fsOk, rtdb: rtdbOk };
@@ -150,17 +208,19 @@ export async function dualDeleteRecord(collectionPath: string, recordId: string)
   try {
     await deleteDoc(doc(db, collectionPath, recordId));
     fsOk = true;
+    console.info(`✓ Supprimé de Firestore: ${collectionPath}/${recordId}`);
   } catch (err) {
-    console.warn(`Firestore delete error on ${collectionPath}/${recordId}:`, err);
+    console.error(`✗ Erreur suppression Firestore sur ${collectionPath}/${recordId}:`, err);
   }
 
   try {
     if (rtdb) {
       await rtdbRemove(rtdbRef(rtdb, `${collectionPath}/${recordId}`));
       rtdbOk = true;
+      console.info(`✓ Supprimé de RTDB: ${collectionPath}/${recordId}`);
     }
   } catch (err) {
-    console.warn(`RTDB delete error on ${collectionPath}/${recordId}:`, err);
+    console.error(`✗ Erreur suppression RTDB sur ${collectionPath}/${recordId}:`, err);
   }
 
   return { firestore: fsOk, rtdb: rtdbOk };
@@ -186,6 +246,8 @@ export {
   onAuthStateChanged, 
   signInAnonymously, 
   RecaptchaVerifier, 
-  signInWithPhoneNumber 
+  signInWithPhoneNumber,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
 };
 export type { ConfirmationResult };
