@@ -42,6 +42,7 @@ export interface ClanRegistry {
   id: string;
   name: string;
   tribe: string;
+  description?: string;
   createdBy?: string;
   createdAt: string;
 }
@@ -49,7 +50,9 @@ export interface ClanRegistry {
 export interface VillageRegistry {
   id: string;
   name: string;
-  tribe: string;
+  clan: string; // Clan de rattachement
+  clanId?: string;
+  tribe: string; // Tribu de rattachement
   region?: string;
   createdBy?: string;
   createdAt: string;

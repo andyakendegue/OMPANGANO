@@ -459,9 +459,9 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               <div className="w-12 h-12 mx-auto rounded-full bg-[#22c55e]/20 flex items-center justify-center text-[#4ade80]">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-bold text-white">Ayore polo ! Contribution transmise !</h3>
+              <h3 className="text-lg font-bold text-white">Na vevi ! Félicitations pour votre contribution !</h3>
               <p className="text-xs text-[#bbf7d0]">
-                Votre enregistrement et votre avis enrichissent les archives vivantes de la langue Myènè.
+                Votre enregistrement et votre avis enrichissent fidèlement le patrimoine linguistique Myènè.
               </p>
               <div className="pt-2 flex items-center justify-center gap-3">
                 <button

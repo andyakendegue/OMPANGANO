@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Mail, 
   Phone, 
   ShieldCheck, 
-  Sparkles, 
-  ArrowRight, 
   CheckCircle2, 
   AlertCircle,
   User,
-  Lock
+  KeyRound,
+  ArrowRight
 } from 'lucide-react';
-import { signInWithPopup } from 'firebase/auth';
+import { 
+  signInWithPopup, 
+  signInAnonymously,
+  RecaptchaVerifier, 
+  signInWithPhoneNumber, 
+  ConfirmationResult 
+} from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import { UserProfile } from '../types';
 
@@ -27,23 +32,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onLoginSuccess
 }) => {
   const [authMethod, setAuthMethod] = useState<'google' | 'phone'>('google');
-  const [gmailAddress, setGmailAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+241');
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Phone verification state
+  const [phoneStep, setPhoneStep] = useState<'enter_phone' | 'enter_code'>('enter_phone');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if ((window as any).modalRecaptchaVerifier) {
+        try {
+          (window as any).modalRecaptchaVerifier.clear();
+        } catch {}
+      }
+    };
+  }, []);
+
   if (!isOpen) return null;
 
-  // Google Popup Auth with auto-fallback to direct Gmail
+  // Google Popup Auth
   const handleGooglePopupLogin = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const isAdmin = user.email?.toLowerCase() === 'andymigoumbi@gmail.com';
 
       onLoginSuccess({
         id: user.uid,
@@ -51,15 +69,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         fullName: user.displayName || '',
         email: user.email || undefined,
         photoURL: user.photoURL || undefined,
-        role: isAdmin ? 'admin' : 'user',
+        role: 'user',
         status: 'active',
-        xp: isAdmin ? 2850 : 150,
-        level: isAdmin ? 'Sage Ancien' : 'Initié Curieux',
-        levelIndex: isAdmin ? 5 : 1,
+        xp: 150,
+        level: 'Initié Curieux',
+        levelIndex: 1,
         tribe: 'Enenga',
-        badges: isAdmin 
-          ? ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'] 
-          : ['badge-premiere-voix']
+        badges: ['badge-premiere-voix']
       });
       onClose();
     } catch (err: any) {
@@ -69,84 +85,135 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       if (isDomainBlocked) {
         setErrorMessage(
-          "Ce domaine de prévisualisation n'est pas configuré dans Firebase. Utilisez la saisie directe de votre adresse Gmail ci-dessous."
+          "Ce domaine de prévisualisation n'est pas configuré dans Firebase. Utilisez la connexion téléphonique."
         );
       } else if (isPopupBlocked) {
         setErrorMessage(
-          "La fenêtre popup a été bloquée. Utilisez la saisie directe de votre adresse Gmail ci-dessous."
+          "La fenêtre popup a été bloquée par le navigateur. Veuillez autoriser les fenêtres contextuelles."
         );
       } else {
         setErrorMessage(
-          "La fenêtre Google n'a pas pu aboutir. Saisissez votre adresse Gmail ci-dessous pour une validation directe."
+          err.message || "La connexion Google n'a pas pu aboutir. Veuillez utiliser la connexion par téléphone."
         );
-      }
-      if (!gmailAddress) {
-        setGmailAddress('andymigoumbi@gmail.com');
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Direct Gmail / Email Login (100% reliable)
-  const handleDirectGmailLogin = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const cleanEmail = gmailAddress.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-      setErrorMessage("Veuillez saisir une adresse email valide (ex: andymigoumbi@gmail.com).");
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    const isAdmin = cleanEmail === 'andymigoumbi@gmail.com';
-    const cleanId = 'user-' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
-    const namePart = cleanEmail.split('@')[0];
-    const formattedName = isAdmin ? 'Andy Migoumbi' : (namePart.charAt(0).toUpperCase() + namePart.slice(1));
-
-    setTimeout(() => {
-      onLoginSuccess({
-        id: cleanId,
-        email: cleanEmail,
-        contact: cleanEmail,
-        displayName: formattedName,
-        fullName: formattedName,
-        role: isAdmin ? 'admin' : 'user',
-        status: 'active',
-        xp: isAdmin ? 2850 : 150,
-        level: isAdmin ? 'Sage Ancien' : 'Initié Curieux',
-        levelIndex: isAdmin ? 5 : 1,
-        tribe: 'Enenga',
-        badges: isAdmin 
-          ? ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'] 
-          : ['badge-premiere-voix']
+  // Helper for RecaptchaVerifier
+  const getOrCreateRecaptchaVerifier = () => {
+    if (!(window as any).modalRecaptchaVerifier) {
+      (window as any).modalRecaptchaVerifier = new RecaptchaVerifier(auth, 'modal-recaptcha-container', {
+        size: 'invisible',
+        callback: () => {},
+        'expired-callback': () => {
+          setErrorMessage("reCAPTCHA expiré. Veuillez réessayer.");
+        }
       });
-      setIsLoading(false);
-      onClose();
-    }, 300);
+    }
+    return (window as any).modalRecaptchaVerifier;
   };
 
-  // Direct Phone Login (100% reliable)
-  const handleDirectPhoneLogin = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // Step 1: Send SMS
+  const handleSendPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
     const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
     if (!cleanDigits || cleanDigits.length < 6) {
-      setErrorMessage("Veuillez renseigner un numéro de téléphone valide (ex: 077 12 34 56).");
+      setErrorMessage("Veuillez renseigner un numéro de téléphone valide.");
       return;
     }
 
     setIsLoading(true);
     setErrorMessage(null);
 
-    const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
-    const cleanId = 'phone-' + cleanDigits;
-    const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
-    const fullName = userName.trim() || 'Locuteur Myènè';
+    const fullPhone = `${countryCode.trim()}${phoneNumber.trim().replace(/^0+/, '')}`;
 
-    setTimeout(() => {
+    try {
+      const appVerifier = getOrCreateRecaptchaVerifier();
+      const confirmation = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
+      setConfirmationResult(confirmation);
+      setPhoneStep('enter_code');
+    } catch (err: any) {
+      console.warn('Erreur envoi SMS Firebase:', err);
+      if (err.code === 'auth/operation-not-allowed') {
+        setErrorMessage("L'authentification Téléphone doit être activée dans la console Firebase. Vous pouvez vous connecter en mode direct ci-dessous.");
+      } else {
+        setErrorMessage(`Impossible d'envoyer le SMS (${err.message || err.code}). Vous pouvez continuer avec la connexion directe.`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Confirm SMS code
+  const handleVerifyPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmationResult || !verificationCode.trim()) {
+      setErrorMessage("Veuillez saisir le code à 6 chiffres reçu.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const userCredential = await confirmationResult.confirm(verificationCode.trim());
+      const user = userCredential.user;
+      const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
+      const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
+      const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
+      const fullName = userName.trim() || 'Locuteur Myènè';
+
       onLoginSuccess({
-        id: cleanId,
+        id: user.uid,
+        phoneNumber: user.phoneNumber || fullPhone,
+        contact: user.phoneNumber || fullPhone,
+        displayName,
+        fullName,
+        role: 'user',
+        status: 'active',
+        xp: 150,
+        level: 'Initié Curieux',
+        levelIndex: 1,
+        tribe: 'Enenga',
+        badges: ['badge-premiere-voix']
+      });
+      onClose();
+    } catch (err: any) {
+      console.error('Erreur vérification code:', err);
+      setErrorMessage("Code SMS incorrect ou expiré.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Direct Phone Fallback with Anonymous Auth
+  const handleDirectPhoneFallback = async () => {
+    const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
+    if (!cleanDigits || cleanDigits.length < 6) {
+      setErrorMessage("Veuillez renseigner un numéro de téléphone valide.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      let uid = 'phone-' + cleanDigits;
+      try {
+        const cred = await signInAnonymously(auth);
+        if (cred?.user?.uid) uid = cred.user.uid;
+      } catch (authErr) {
+        console.warn('Notice anonymous session:', authErr);
+      }
+
+      const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
+      const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
+      const fullName = userName.trim() || 'Locuteur Myènè';
+
+      onLoginSuccess({
+        id: uid,
         phoneNumber: fullPhone,
         contact: fullPhone,
         displayName,
@@ -159,13 +226,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         tribe: 'Enenga',
         badges: ['badge-premiere-voix']
       });
-      setIsLoading(false);
       onClose();
-    }, 300);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div id="modal-recaptcha-container"></div>
       <div className="relative w-full max-w-md warm-card-gradient border-2 border-[#d97706]/40 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 text-white">
         {/* Close Button */}
         <button
@@ -205,7 +274,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Google / Gmail</span>
+            <span>Google</span>
           </button>
           <button
             type="button"
@@ -215,7 +284,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }`}
           >
             <Phone className="w-3.5 h-3.5" />
-            <span>Téléphone (+241)</span>
+            <span>Téléphone SMS</span>
           </button>
         </div>
 
@@ -226,7 +295,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        {/* TAB 1: Google / Gmail */}
+        {/* TAB 1: Google */}
         {authMethod === 'google' && (
           <div className="space-y-3.5">
             <button
@@ -240,103 +309,115 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              <span>{isLoading ? 'Connexion en cours...' : 'Continuer avec Google (Popup)'}</span>
+              <span>{isLoading ? 'Connexion en cours...' : 'Continuer avec Google'}</span>
             </button>
 
-            <div className="relative flex py-0.5 items-center">
-              <div className="flex-grow border-t border-[#3b1d10]"></div>
-              <span className="flex-shrink mx-2 text-[10px] uppercase font-bold text-[#a8826d] tracking-wider">
-                ou saisie directe
-              </span>
-              <div className="flex-grow border-t border-[#3b1d10]"></div>
+            <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] text-center">
+              🔒 Connexion sécurisée au compte contributeur OMPAGANO.
             </div>
-
-            <form onSubmit={handleDirectGmailLogin} className="space-y-2.5">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#fed7aa] mb-1">
-                  Adresse Gmail / Email :
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="andymigoumbi@gmail.com"
-                  value={gmailAddress}
-                  onChange={(e) => setGmailAddress(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{isLoading ? 'Validation...' : 'Valider & Accéder'}</span>
-              </button>
-            </form>
-
-            <p className="text-[10px] text-center text-[#a8826d]">
-              L'adresse <code className="text-[#f59e0b]">andymigoumbi@gmail.com</code> active les privilèges Administrateur 👑.
-            </p>
           </div>
         )}
 
-        {/* TAB 2: Direct Phone */}
+        {/* TAB 2: Phone */}
         {authMethod === 'phone' && (
           <div className="space-y-3.5">
-            <form onSubmit={handleDirectPhoneLogin} className="space-y-2.5">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#fed7aa] mb-1">
-                  Numéro de Téléphone :
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className="w-20 px-2.5 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                  />
-                  <input
-                    type="tel"
-                    required
-                    placeholder="077 12 34 56"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                  />
+            {phoneStep === 'enter_phone' ? (
+              <form onSubmit={handleSendPhoneCode} className="space-y-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#fed7aa] mb-1">
+                    Numéro de Téléphone :
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-20 px-2.5 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
+                    />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="077 12 34 56"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#fed7aa] mb-1">
-                  Nom d'usage (facultatif) :
-                </label>
-                <div className="relative">
-                  <User className="w-3.5 h-3.5 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Ex: Mboumba, Onanga..."
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                  />
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#fed7aa] mb-1">
+                    Nom d'usage (facultatif) :
+                  </label>
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Ex: Mboumba, Onanga..."
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <Phone className="w-4 h-4" />
-                <span>{isLoading ? 'Connexion...' : 'Se connecter avec ce numéro'}</span>
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>{isLoading ? 'Envoi...' : 'Recevoir mon code SMS'}</span>
+                </button>
 
-            <div className="p-2.5 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[10px] text-[#a8826d] leading-relaxed">
-              💡 Connexion immédiate : vos contributions orales et écrites sont instantanément rattachées à ce numéro.
-            </div>
+                <button
+                  type="button"
+                  onClick={handleDirectPhoneFallback}
+                  disabled={isLoading}
+                  className="w-full py-2 px-3 rounded-xl bg-[#24130a] hover:bg-[#341b10] text-[#fed7aa] font-medium text-[11px] border border-[#4a2412] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span>Continuer sans SMS (Connexion directe)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyPhoneCode} className="space-y-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#fed7aa] mb-1">
+                    Code SMS reçu :
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-3.5 h-3.5 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      placeholder="123456"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-white font-mono text-sm tracking-widest text-center focus:outline-none focus:border-[#f59e0b]"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{isLoading ? 'Vérification...' : 'Valider le code'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setPhoneStep('enter_phone'); setErrorMessage(null); }}
+                  className="w-full text-center text-[11px] text-[#a8826d] hover:text-[#fed7aa] underline"
+                >
+                  Changer de numéro
+                </button>
+              </form>
+            )}
           </div>
         )}
       </div>

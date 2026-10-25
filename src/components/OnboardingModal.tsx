@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, 
   Sparkles, 
   Plus, 
   Check, 
@@ -9,9 +8,9 @@ import {
   MapPin, 
   Users, 
   Calendar, 
-  Phone, 
   UserCheck,
-  Lock
+  Lock,
+  Compass
 } from 'lucide-react';
 import { UserProfile, TribeName, ClanRegistry, VillageRegistry } from '../types';
 import { MYENE_TRIBES } from '../services/seedData';
@@ -23,7 +22,7 @@ interface OnboardingModalProps {
   villages: VillageRegistry[];
   onComplete: (profileData: Partial<UserProfile>) => Promise<void>;
   onAddNewClan: (name: string, tribe: string) => Promise<ClanRegistry>;
-  onAddNewVillage: (name: string, tribe: string, region?: string) => Promise<VillageRegistry>;
+  onAddNewVillage: (name: string, clan: string, tribe: string, region?: string) => Promise<VillageRegistry>;
 }
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({
@@ -38,23 +37,29 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [fullName, setFullName] = useState(currentUser?.fullName || currentUser?.displayName || '');
   const [contact, setContact] = useState(currentUser?.contact || currentUser?.phoneNumber || currentUser?.email || '');
   const [birthDate, setBirthDate] = useState(currentUser?.birthDate || '1995-05-15');
-  const [birthPlace, setBirthPlace] = useState(currentUser?.birthPlace || 'Port-Gentil');
+  const [birthPlace, setBirthPlace] = useState(currentUser?.birthPlace || 'Lambaréné');
   const [tribe, setTribe] = useState<TribeName>(currentUser?.tribe || 'Enenga');
   
-  // Paternal clan
+  // Paternal clan & tribe
+  const [paternalTribe, setPaternalTribe] = useState<TribeName>(currentUser?.tribe || 'Enenga');
   const [paternalClan, setPaternalClan] = useState(currentUser?.paternalClan || '');
   const [isAddingNewPaternalClan, setIsAddingNewPaternalClan] = useState(false);
   const [customPaternalClan, setCustomPaternalClan] = useState('');
+  const [customPaternalClanTribe, setCustomPaternalClanTribe] = useState<TribeName>('Enenga');
 
-  // Maternal clan
+  // Maternal clan & tribe
+  const [maternalTribe, setMaternalTribe] = useState<TribeName>(currentUser?.tribe || 'Enenga');
   const [maternalClan, setMaternalClan] = useState(currentUser?.maternalClan || '');
   const [isAddingNewMaternalClan, setIsAddingNewMaternalClan] = useState(false);
   const [customMaternalClan, setCustomMaternalClan] = useState('');
+  const [customMaternalClanTribe, setCustomMaternalClanTribe] = useState<TribeName>('Enenga');
 
-  // Village of origin
+  // Village of origin (attached to Clan & Tribe)
   const [villageOfOrigin, setVillageOfOrigin] = useState(currentUser?.villageOfOrigin || '');
   const [isAddingNewVillage, setIsAddingNewVillage] = useState(false);
   const [customVillage, setCustomVillage] = useState('');
+  const [customVillageClan, setCustomVillageClan] = useState('');
+  const [customVillageRegion, setCustomVillageRegion] = useState('');
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,12 +68,36 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     if (currentUser) {
       if (currentUser.fullName) setFullName(currentUser.fullName);
       if (currentUser.contact) setContact(currentUser.contact);
-      if (currentUser.tribe) setTribe(currentUser.tribe);
+      if (currentUser.tribe) {
+        setTribe(currentUser.tribe);
+        setPaternalTribe(currentUser.tribe);
+        setMaternalTribe(currentUser.tribe);
+        setCustomPaternalClanTribe(currentUser.tribe);
+        setCustomMaternalClanTribe(currentUser.tribe);
+      }
       if (currentUser.paternalClan) setPaternalClan(currentUser.paternalClan);
       if (currentUser.maternalClan) setMaternalClan(currentUser.maternalClan);
       if (currentUser.villageOfOrigin) setVillageOfOrigin(currentUser.villageOfOrigin);
     }
   }, [currentUser]);
+
+  // Synchronize paternal & maternal tribe with primary tribe when changed
+  const handlePrimaryTribeChange = (t: TribeName) => {
+    setTribe(t);
+    setPaternalTribe(t);
+    setMaternalTribe(t);
+    setCustomPaternalClanTribe(t);
+    setCustomMaternalClanTribe(t);
+  };
+
+  // Filter clans by attached tribe
+  const paternalClansList = clans.filter(c => c.tribe === paternalTribe);
+  const maternalClansList = clans.filter(c => c.tribe === maternalTribe);
+
+  // Filter villages by paternal clan if chosen, or show all
+  const filteredVillages = paternalClan 
+    ? villages.filter(v => v.clan === paternalClan)
+    : villages;
 
   if (!isOpen) return null;
 
@@ -95,7 +124,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         setErrorMessage('Veuillez saisir le nom du nouveau clan paternel.');
         return;
       }
-      const created = await onAddNewClan(customPaternalClan.trim(), tribe);
+      const created = await onAddNewClan(customPaternalClan.trim(), customPaternalClanTribe);
       finalPaternalClan = created.name;
     } else if (!finalPaternalClan) {
       setErrorMessage('Veuillez sélectionner ou ajouter votre clan paternel.');
@@ -108,7 +137,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         setErrorMessage('Veuillez saisir le nom du nouveau clan maternel.');
         return;
       }
-      const created = await onAddNewClan(customMaternalClan.trim(), tribe);
+      const created = await onAddNewClan(customMaternalClan.trim(), customMaternalClanTribe);
       finalMaternalClan = created.name;
     } else if (!finalMaternalClan) {
       setErrorMessage('Veuillez sélectionner ou ajouter votre clan maternel.');
@@ -121,7 +150,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         setErrorMessage('Veuillez saisir le nom du nouveau village d’origine.');
         return;
       }
-      const created = await onAddNewVillage(customVillage.trim(), tribe);
+      const targetClanName = customVillageClan || finalPaternalClan || clans[0]?.name || 'Avandji';
+      const targetClanObj = clans.find(c => c.name === targetClanName);
+      const targetTribe = targetClanObj?.tribe || tribe;
+
+      const created = await onAddNewVillage(
+        customVillage.trim(), 
+        targetClanName, 
+        targetTribe, 
+        customVillageRegion.trim() || undefined
+      );
       finalVillage = created.name;
     } else if (!finalVillage) {
       setErrorMessage('Veuillez sélectionner ou ajouter votre village d’origine.');
@@ -176,9 +214,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             Bienvenue dans OMPAGANO
           </h2>
           <p className="text-xs sm:text-sm text-[#fed7aa] max-w-lg mx-auto leading-relaxed">
-            <strong className="text-[#f59e0b]">« Ompagano »</strong> signifie le programme en Myènè. 
-            C'est avec l'ensemble des contributeurs que nous définissons ensemble le programme éducatif et la transmission de la langue.
-            Renseignez votre filiation et vos origines pour accéder à la plateforme.
+            <strong className="text-[#f59e0b]">« Ompagano »</strong> est le programme participatif de sauvegarde de la langue Myènè. 
+            Renseignez votre filiation clanique et vos origines territoriales pour accéder au corpus et contribuer.
           </p>
         </div>
 
@@ -215,14 +252,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
               <div>
                 <label className="block text-[#fed7aa] font-medium mb-1">
-                  Contact (Tél / WhatsApp / Email) <span className="text-[#ef4444]">*</span>
+                  Contact (Tél / WhatsApp) <span className="text-[#ef4444]">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  placeholder="+241 074 00 00 00 / email"
+                  placeholder="+241 074 00 00 00"
                   className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#522915] rounded-xl text-white text-xs sm:text-sm focus:outline-none focus:border-[#f59e0b]"
                 />
               </div>
@@ -263,17 +300,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <span>2. Filiation Généalogique & Origines</span>
             </h3>
 
-            {/* Tribu */}
+            {/* Tribu Principale */}
             <div>
               <label className="block text-[#fed7aa] font-medium mb-1.5">
-                Votre Tribu Myènè <span className="text-[#ef4444]">*</span>
+                Votre Tribu Myènè Principale <span className="text-[#ef4444]">*</span>
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {MYENE_TRIBES.map((t) => (
                   <button
                     key={t}
                     type="button"
-                    onClick={() => setTribe(t)}
+                    onClick={() => handlePrimaryTribeChange(t)}
                     className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition-all ${
                       tribe === t
                         ? 'terracotta-gradient text-white shadow-lg ring-1 ring-[#f59e0b]'
@@ -286,137 +323,232 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               </div>
             </div>
 
-            {/* Paternal Clan Dropdown + Add Option */}
-            <div className="space-y-1.5">
+            {/* Clan Paternel : Rattaché à une Tribu */}
+            <div className="p-3.5 bg-[#24130a] rounded-xl border border-[#522915] space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-[#fed7aa] font-medium">
-                  Nom du Clan Paternel <span className="text-[#ef4444]">*</span>
+                <label className="text-[#fed7aa] font-semibold flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-[#f59e0b]" />
+                  <span>Clan Paternel (rattaché à une tribu) <span className="text-[#ef4444]">*</span></span>
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsAddingNewPaternalClan(!isAddingNewPaternalClan)}
-                  className="text-xs text-[#f59e0b] hover:underline flex items-center gap-1"
+                  className="text-xs text-[#f59e0b] hover:underline flex items-center gap-1 font-medium"
                 >
                   <Plus className="w-3 h-3" />
-                  <span>{isAddingNewPaternalClan ? 'Choisir dans la liste' : 'Rajouter mon clan'}</span>
+                  <span>{isAddingNewPaternalClan ? 'Choisir existant' : 'Créer nouveau clan'}</span>
                 </button>
               </div>
 
               {!isAddingNewPaternalClan ? (
-                <select
-                  value={paternalClan}
-                  onChange={(e) => setPaternalClan(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#522915] rounded-xl text-white text-xs sm:text-sm focus:outline-none focus:border-[#f59e0b]"
-                >
-                  <option value="">-- Sélectionnez votre clan paternel --</option>
-                  {clans.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      Clan {c.name} ({c.tribe})
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu du père :</label>
+                    <select
+                      value={paternalTribe}
+                      onChange={(e) => {
+                        setPaternalTribe(e.target.value as TribeName);
+                        setPaternalClan('');
+                      }}
+                      className="w-full px-2.5 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                    >
+                      {MYENE_TRIBES.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Clan paternel disponible :</label>
+                    <select
+                      value={paternalClan}
+                      onChange={(e) => setPaternalClan(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                    >
+                      <option value="">-- Sélectionnez le clan ({paternalTribe}) --</option>
+                      {paternalClansList.map((c) => (
+                        <option key={c.id} value={c.name}>
+                          Clan {c.name} (Tribu: {c.tribe})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               ) : (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    value={customPaternalClan}
-                    onChange={(e) => setCustomPaternalClan(e.target.value)}
-                    placeholder="Saisissez le nom de votre clan paternel..."
-                    className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#c85a32] rounded-xl text-white text-xs sm:text-sm focus:outline-none"
-                  />
-                  <p className="text-[11px] text-[#a8826d]">
-                    Ce clan sera ajouté au registre collaboratif d’OMPAGANO.
-                  </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu de rattachement :</label>
+                    <select
+                      value={customPaternalClanTribe}
+                      onChange={(e) => setCustomPaternalClanTribe(e.target.value as TribeName)}
+                      className="w-full px-2.5 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
+                    >
+                      {MYENE_TRIBES.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Nom du nouveau clan :</label>
+                    <input
+                      type="text"
+                      value={customPaternalClan}
+                      onChange={(e) => setCustomPaternalClan(e.target.value)}
+                      placeholder="Ex: Avandji, Ndiwa, Asiga..."
+                      className="w-full px-3 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
+                    />
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Maternal Clan Dropdown + Add Option */}
-            <div className="space-y-1.5">
+            {/* Clan Maternel : Rattaché à une Tribu */}
+            <div className="p-3.5 bg-[#24130a] rounded-xl border border-[#522915] space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-[#fed7aa] font-medium">
-                  Nom du Clan Maternel <span className="text-[#ef4444]">*</span>
+                <label className="text-[#fed7aa] font-semibold flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-[#c85a32]" />
+                  <span>Clan Maternel (rattaché à une tribu) <span className="text-[#ef4444]">*</span></span>
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsAddingNewMaternalClan(!isAddingNewMaternalClan)}
-                  className="text-xs text-[#f59e0b] hover:underline flex items-center gap-1"
+                  className="text-xs text-[#f59e0b] hover:underline flex items-center gap-1 font-medium"
                 >
                   <Plus className="w-3 h-3" />
-                  <span>{isAddingNewMaternalClan ? 'Choisir dans la liste' : 'Rajouter mon clan'}</span>
+                  <span>{isAddingNewMaternalClan ? 'Choisir existant' : 'Créer nouveau clan'}</span>
                 </button>
               </div>
 
               {!isAddingNewMaternalClan ? (
-                <select
-                  value={maternalClan}
-                  onChange={(e) => setMaternalClan(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#522915] rounded-xl text-white text-xs sm:text-sm focus:outline-none focus:border-[#f59e0b]"
-                >
-                  <option value="">-- Sélectionnez votre clan maternel --</option>
-                  {clans.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      Clan {c.name} ({c.tribe})
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu de la mère :</label>
+                    <select
+                      value={maternalTribe}
+                      onChange={(e) => {
+                        setMaternalTribe(e.target.value as TribeName);
+                        setMaternalClan('');
+                      }}
+                      className="w-full px-2.5 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                    >
+                      {MYENE_TRIBES.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Clan maternel disponible :</label>
+                    <select
+                      value={maternalClan}
+                      onChange={(e) => setMaternalClan(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                    >
+                      <option value="">-- Sélectionnez le clan ({maternalTribe}) --</option>
+                      {maternalClansList.map((c) => (
+                        <option key={c.id} value={c.name}>
+                          Clan {c.name} (Tribu: {c.tribe})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               ) : (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    value={customMaternalClan}
-                    onChange={(e) => setCustomMaternalClan(e.target.value)}
-                    placeholder="Saisissez le nom de votre clan maternel..."
-                    className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#c85a32] rounded-xl text-white text-xs sm:text-sm focus:outline-none"
-                  />
-                  <p className="text-[11px] text-[#a8826d]">
-                    Ce clan sera ajouté au registre collaboratif d’OMPAGANO.
-                  </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu de rattachement :</label>
+                    <select
+                      value={customMaternalClanTribe}
+                      onChange={(e) => setCustomMaternalClanTribe(e.target.value as TribeName)}
+                      className="w-full px-2.5 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
+                    >
+                      {MYENE_TRIBES.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Nom du nouveau clan :</label>
+                    <input
+                      type="text"
+                      value={customMaternalClan}
+                      onChange={(e) => setCustomMaternalClan(e.target.value)}
+                      placeholder="Ex: Agulamba, Imvona, Azowa..."
+                      className="w-full px-3 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
+                    />
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Village d'Origine Dropdown + Add Option */}
-            <div className="space-y-1.5">
+            {/* Village d'Origine : Rattaché à un Clan & une Tribu */}
+            <div className="p-3.5 bg-[#24130a] rounded-xl border border-[#522915] space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-[#fed7aa] font-medium">
-                  Village d'Origine <span className="text-[#ef4444]">*</span>
+                <label className="text-[#fed7aa] font-semibold flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#10b981]" />
+                  <span>Village d'Origine (rattaché à un clan) <span className="text-[#ef4444]">*</span></span>
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsAddingNewVillage(!isAddingNewVillage)}
-                  className="text-xs text-[#f59e0b] hover:underline flex items-center gap-1"
+                  className="text-xs text-[#f59e0b] hover:underline flex items-center gap-1 font-medium"
                 >
                   <Plus className="w-3 h-3" />
-                  <span>{isAddingNewVillage ? 'Choisir dans la liste' : 'Rajouter mon village'}</span>
+                  <span>{isAddingNewVillage ? 'Choisir existant' : 'Créer nouveau village'}</span>
                 </button>
               </div>
 
               {!isAddingNewVillage ? (
-                <select
-                  value={villageOfOrigin}
-                  onChange={(e) => setVillageOfOrigin(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#522915] rounded-xl text-white text-xs sm:text-sm focus:outline-none focus:border-[#f59e0b]"
-                >
-                  <option value="">-- Sélectionnez votre village d’origine --</option>
-                  {villages.map((v) => (
-                    <option key={v.id} value={v.name}>
-                      {v.name} ({v.tribe})
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <select
+                    value={villageOfOrigin}
+                    onChange={(e) => setVillageOfOrigin(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#180d07] border border-[#522915] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+                  >
+                    <option value="">-- Sélectionnez votre village d’origine --</option>
+                    {filteredVillages.map((v) => (
+                      <option key={v.id} value={v.name}>
+                        {v.name} (Clan: {v.clan || 'Enenga'}, Tribu: {v.tribe})
+                      </option>
+                    ))}
+                    {filteredVillages.length === 0 && (
+                      <option disabled value="">Aucun village enregistré pour ce clan, vous pouvez le créer.</option>
+                    )}
+                  </select>
+                </div>
               ) : (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    value={customVillage}
-                    onChange={(e) => setCustomVillage(e.target.value)}
-                    placeholder="Saisissez le nom de votre village ou campement..."
-                    className="w-full px-3.5 py-2.5 bg-[#24130a] border border-[#c85a32] rounded-xl text-white text-xs sm:text-sm focus:outline-none"
-                  />
-                  <p className="text-[11px] text-[#a8826d]">
-                    Ce village enrichira la carte culturelle d’OMPAGANO.
-                  </p>
+                <div className="space-y-2 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] text-[#a8826d] mb-0.5">Nom du village :</label>
+                      <input
+                        type="text"
+                        value={customVillage}
+                        onChange={(e) => setCustomVillage(e.target.value)}
+                        placeholder="Ex: Lac Onangué, Ozouri, Glass..."
+                        className="w-full px-3 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#a8826d] mb-0.5">Clan de rattachement :</label>
+                      <select
+                        value={customVillageClan || paternalClan || clans[0]?.name}
+                        onChange={(e) => setCustomVillageClan(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
+                      >
+                        {clans.map(c => (
+                          <option key={c.id} value={c.name}>Clan {c.name} ({c.tribe})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={customVillageRegion}
+                      onChange={(e) => setCustomVillageRegion(e.target.value)}
+                      placeholder="Région / Province (facultatif, ex: Moyen-Ogooué)"
+                      className="w-full px-3 py-1.5 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none"
+                    />
+                  </div>
                 </div>
               )}
             </div>

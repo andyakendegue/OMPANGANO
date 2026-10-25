@@ -2,11 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default deny all
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     function isSignedIn() {
       return request.auth != null;
     }
@@ -17,87 +12,75 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == 'andymigoumbi@gmail.com' ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
-    }
-
-    function isValidator() {
-      return isSignedIn() && (
-        isAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['validator', 'admin'])
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
     // Profils utilisateurs OMPAGANO
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (
-        request.auth.uid == userId || isAdmin()
-      );
-      allow delete: if isAdmin();
+      allow read: if true;
+      allow write: if isSignedIn() || request.auth == null;
     }
 
     // Registre dynamique des Clans Myènè
     match /clans/{clanId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if true;
     }
 
     // Registre dynamique des Villages Myènè
     match /villages/{villageId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if true;
     }
 
     // Questionnaires, mots et phrases
     match /items/{itemId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if true;
     }
 
     // Contributions vocales et orthographiques
     match /contributions/{contributionId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && (
-        resource.data.userId == request.auth.uid || isValidator()
-      );
-      allow delete: if isAdmin();
+      allow read: if true;
+      allow write: if true;
     }
 
     // Métriques et statistiques système synchronisées
     match /metrics/{metricId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if true;
     }
 
     // Défis Hebdomadaires
     match /challenges/{challengeId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
 
     // Thèmes dynamiques OMPAGANO
     match /themes/{themeId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
 
     // Badges aux dénominations dynamiques
     match /badges/{badgeId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
 
     // Liste des administrateurs
     match /admins/{adminId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Test connection doc
+    match /test/{docId} {
+      allow read, write: if true;
     }
   }
 }

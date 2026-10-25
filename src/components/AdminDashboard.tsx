@@ -32,7 +32,8 @@ import {
   Download,
   Crown,
   UserCog,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Compass
 } from 'lucide-react';
 import { 
   QuestionnaireItem, 
@@ -42,7 +43,9 @@ import {
   WeeklyChallenge,
   ThemeDefinition,
   Badge,
-  UserRole
+  UserRole,
+  ClanRegistry,
+  VillageRegistry
 } from '../types';
 import { SYSTEM_BADGES, USER_LEVELS, calculateSuspicionScore, THEMATIC_CATEGORIES } from '../services/seedData';
 import { CsvImportSection } from './CsvImportSection';
@@ -50,6 +53,7 @@ import { WeeklyChallengesAdmin } from './WeeklyChallengesAdmin';
 import { ThemeManagerAdmin } from './ThemeManagerAdmin';
 import { BadgesManagerAdmin } from './BadgesManagerAdmin';
 import { HostingCustomDomainAdmin } from './HostingCustomDomainAdmin';
+import { ClanVillageAdmin } from './ClanVillageAdmin';
 
 interface AdminDashboardProps {
   items: QuestionnaireItem[];
@@ -59,6 +63,8 @@ interface AdminDashboardProps {
   challenges: WeeklyChallenge[];
   themes?: ThemeDefinition[];
   badges?: Badge[];
+  clans: ClanRegistry[];
+  villages: VillageRegistry[];
   onValidateContribution: (contributionId: string, status: 'approved' | 'rejected' | 'needs_revision', notes?: string) => Promise<void>;
   onDeleteContribution?: (contributionId: string) => Promise<void>;
   onSaveQuestionnaireItem: (item: Partial<QuestionnaireItem>) => Promise<void>;
@@ -72,6 +78,10 @@ interface AdminDashboardProps {
   onBatchRegisterThemes?: (newThemes: ThemeDefinition[]) => Promise<void>;
   onSaveBadge?: (badge: Partial<Badge>) => Promise<void>;
   onDeleteBadge?: (badgeId: string) => Promise<void>;
+  onSaveClan: (clan: Partial<ClanRegistry>) => Promise<void>;
+  onDeleteClan: (clanId: string) => Promise<void>;
+  onSaveVillage: (village: Partial<VillageRegistry>) => Promise<void>;
+  onDeleteVillage: (villageId: string) => Promise<void>;
   onUpdateUserLevelAndBadges: (userId: string, newLevelIndex: number, badges: string[], bonusXp?: number) => Promise<void>;
   onUpdateUserAccountStatus: (userId: string, status: 'active' | 'flagged' | 'suspended') => Promise<void>;
   onUpdateUserRole?: (userId: string, newRole: UserRole) => Promise<void>;
@@ -87,6 +97,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   challenges,
   themes = THEMATIC_CATEGORIES,
   badges = SYSTEM_BADGES,
+  clans,
+  villages,
   onValidateContribution,
   onDeleteContribution,
   onSaveQuestionnaireItem,
@@ -100,6 +112,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onBatchRegisterThemes,
   onSaveBadge,
   onDeleteBadge,
+  onSaveClan,
+  onDeleteClan,
+  onSaveVillage,
+  onDeleteVillage,
   onUpdateUserLevelAndBadges,
   onUpdateUserAccountStatus,
   onUpdateUserRole,
@@ -107,8 +123,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'stats' | 'users' | 'validation' | 'defis' | 'themes' | 'badges_manager' | 'hosting' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
+    'stats' | 'users' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'hosting' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
   >('stats');
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMessage, setSyncStatusMessage] = useState<string | null>(null);
 
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
@@ -413,13 +432,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={onTriggerCloudSync}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl terracotta-gradient hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-95 shrink-0"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Synchroniser Métriques</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+          <button
+            onClick={async () => {
+              setIsSyncing(true);
+              setSyncStatusMessage(null);
+              try {
+                await onTriggerCloudSync();
+                setSyncStatusMessage("Base de données Firebase 'enenga' synchronisée avec succès !");
+                setTimeout(() => setSyncStatusMessage(null), 4000);
+              } catch (e: any) {
+                setSyncStatusMessage("Erreur de synchronisation : " + (e?.message || 'Vérifiez la connexion'));
+              } finally {
+                setIsSyncing(false);
+              }
+            }}
+            disabled={isSyncing}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl terracotta-gradient hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Synchronisation...' : 'Synchroniser avec la Base de Données'}</span>
+          </button>
+          {syncStatusMessage && (
+            <div className="text-[11px] font-semibold text-[#fde047] bg-[#27150c] px-3 py-1 rounded-lg border border-[#f59e0b]/40">
+              {syncStatusMessage}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Navigation Tabs */}
@@ -432,6 +471,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         >
           <BarChart3 className="w-4 h-4" />
           <span>Vue d'ensemble</span>
+        </button>
+
+        {/* TAB: CLANS & VILLAGES (NOUVEAU) */}
+        <button
+          onClick={() => setActiveTab('clans_villages')}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'clans_villages' ? 'bg-[#c85a32] text-white shadow-md font-bold' : 'bg-[#27150c] text-[#fed7aa] hover:bg-[#341b10]'
+          }`}
+        >
+          <Compass className="w-4 h-4 text-[#f59e0b]" />
+          <span>Clans & Villages ({clans.length}/{villages.length})</span>
         </button>
 
         {/* TAB: USERS & ADMIN ROLES */}
@@ -536,6 +586,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <span>Anti-Fraude</span>
         </button>
       </div>
+
+      {/* ========================================================= */}
+      {/* TAB: CLANS & VILLAGES (HIERARCHIE TRIBU -> CLAN -> VILLAGE) */}
+      {/* ========================================================= */}
+      {activeTab === 'clans_villages' && (
+        <ClanVillageAdmin
+          clans={clans}
+          villages={villages}
+          onSaveClan={onSaveClan}
+          onDeleteClan={onDeleteClan}
+          onSaveVillage={onSaveVillage}
+          onDeleteVillage={onDeleteVillage}
+        />
+      )}
 
       {/* ========================================================= */}
       {/* TAB: USERS & ADMIN PRIVILEGES (DECIDER QUI EST ADMIN)     */}
