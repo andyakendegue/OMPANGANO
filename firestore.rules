@@ -2,14 +2,17 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Vérifie si l'utilisateur est authentifié avec une session Firebase valide
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Vérifie si l'utilisateur est le propriétaire du document
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Vérifie si l'utilisateur a le rôle administrateur
     function isAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
@@ -18,69 +21,60 @@ service cloud.firestore {
       );
     }
 
-    // Profils utilisateurs OMPAGANO
+    // Profils utilisateurs OMPAGANO : lecture et écriture STRICTEMENT réservées aux connectés
     match /users/{userId} {
-      allow read: if true;
-      allow write: if isSignedIn() || request.auth == null;
+      allow read, write: if isSignedIn();
     }
 
-    // Registre dynamique des Clans Myènè
+    // Registre dynamique des Clans Myènè : lecture et écriture réservées aux connectés
     match /clans/{clanId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
-    // Registre dynamique des Villages Myènè
+    // Registre dynamique des Villages Myènè : lecture et écriture réservées aux connectés
     match /villages/{villageId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
-    // Questionnaires, mots et phrases
+    // Questionnaires, mots et phrases : lecture et écriture réservées aux connectés
     match /items/{itemId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
-    // Contributions vocales et orthographiques
+    // Contributions vocales et orthographiques : lecture et écriture réservées aux connectés
     match /contributions/{contributionId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
     // Métriques et statistiques système synchronisées
     match /metrics/{metricId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
     // Défis Hebdomadaires
     match /challenges/{challengeId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
     // Thèmes dynamiques OMPAGANO
     match /themes/{themeId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
     // Badges aux dénominations dynamiques
     match /badges/{badgeId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if isSignedIn();
     }
 
     // Liste des administrateurs
     match /admins/{adminId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Test connection doc
+    // Diagnostics / Test de connexion
     match /test/{docId} {
-      allow read, write: if true;
+      allow read, write: if isSignedIn();
     }
   }
 }
