@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>OMPAGANO NKALA APP - Crowdsourcing Linguistique Myènè</title>
     <meta name="description" content="OMPAGANO NKALA APP - Programme collaboratif et participatif de préservation, d'apprentissage et de numérisation de la langue Myènè avec filiation généalogique, défis hebdomadaires et thèmes dynamiques." />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="icon" type="image/png" href="/pwa-192x192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -21,7 +22,13 @@
     <meta name="apple-mobile-web-app-title" content="OMPAGANO" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <script>
+      // Register Service Worker at the earliest possible moment for instant offline support across Firefox, Android & iOS Safari
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(function () {});
+      }
+    </script>
   </head>
   <body class="bg-[#1c120c] text-[#fdfaf7] antialiased selection:bg-[#c85a32] selection:text-white min-h-screen">
     <div id="root"></div>
