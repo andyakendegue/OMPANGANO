@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   collection, 
   doc, 
@@ -84,6 +84,7 @@ import { OnboardingModal } from './components/OnboardingModal';
 import { OfflinePackModal } from './components/OfflinePackModal';
 import { ChallengeCelebrationModal } from './components/ChallengeCelebrationModal';
 import { AppUpdateBanner } from './components/AppUpdateBanner';
+import { TermsConsentModal, TermsConsentPayload } from './components/TermsConsentModal';
 
 const DELETED_RECORDS_STORAGE_KEY = 'nkala_deleted_records_v1';
 
@@ -336,9 +337,31 @@ export default function App() {
   // Modals
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
+  const [isTermsConsentModalOpen, setIsTermsConsentModalOpen] = useState(false);
   const [isOfflinePackModalOpen, setIsOfflinePackModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(1);
+  const hasShownTermsReminderRef = useRef<string | null>(null);
+
+  // Automatic reminder for already-registered users who have not yet accepted Platform Terms & Data Usage Consent (Annexe 1)
+  useEffect(() => {
+    if (
+      currentUser &&
+      currentUser.registrationCompleted &&
+      (!currentUser.termsAccepted || !currentUser.dataUsageAccepted) &&
+      !isOnboardingModalOpen &&
+      hasShownTermsReminderRef.current !== currentUser.id
+    ) {
+      hasShownTermsReminderRef.current = currentUser.id;
+      setIsTermsConsentModalOpen(true);
+    }
+  }, [
+    currentUser?.id,
+    currentUser?.registrationCompleted,
+    currentUser?.termsAccepted,
+    currentUser?.dataUsageAccepted,
+    isOnboardingModalOpen
+  ]);
 
   // Monitor online/offline events
   useEffect(() => {
@@ -994,6 +1017,15 @@ export default function App() {
 
   // Submit contribution handler
   const handleSaveContribution = async (data: Partial<Contribution>, audioBlob?: Blob): Promise<boolean> => {
+    // Chaque contributeur individuel doit valider électroniquement les conditions et l'utilisation de ses données avant toute contribution.
+    if (currentUser && (!currentUser.termsAccepted || !currentUser.dataUsageAccepted)) {
+      setIsTermsConsentModalOpen(true);
+      NotificationService.sendLocalNotification('Validation des Conditions Requise 📜', {
+        body: "Veuillez accepter les conditions de la plateforme et valider l'utilisation de vos données avant de soumettre votre contribution."
+      });
+      return false;
+    }
+
     const contributionId = 'contrib-' + Date.now();
     let finalAudioUrl = data.audioUrl;
 
@@ -1296,6 +1328,40 @@ export default function App() {
     setIsOnboardingModalOpen(false);
     NotificationService.sendLocalNotification('Filiation OMPAGANO Validée 📜', {
       body: `Bienvenue dans le programme ${updated.fullName} de la tribu ${updated.tribe} !`
+    });
+  };
+
+  // Accept Platform Terms & Data Usage Consent (Annexe 1 - for already registered or updating users)
+  const handleAcceptTermsConsent = async (consentData: TermsConsentPayload) => {
+    if (!currentUser) return;
+    await ensureFirebaseAuthSession();
+
+    const updated: UserProfile = {
+      ...currentUser,
+      ...consentData,
+      updatedAt: new Date().toISOString()
+    };
+
+    setCurrentUser(updated);
+    setUsersList(prev => {
+      const idx = prev.findIndex(u => u.id === updated.id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = updated;
+        return copy;
+      }
+      return [updated, ...prev];
+    });
+
+    try {
+      localStorage.setItem('nkala_authenticated_user', JSON.stringify(updated));
+    } catch {}
+
+    await dualSaveRecord('users', updated.id, updated);
+    setIsTermsConsentModalOpen(false);
+
+    NotificationService.sendLocalNotification('Consentement Individuel Enregistré ✅', {
+      body: `Merci ${updated.fullName} ! Votre validation des conditions et de l'utilisation des données est certifiée.`
     });
   };
 
@@ -2132,6 +2198,37 @@ export default function App() {
         onSelectTab={handleTabNavigation}
       />
 
+      {/* Persistent Reminder Banner for Already-Registered Users who have not yet accepted Platform Terms & Data Usage Consent */}
+      {currentUser.registrationCompleted && (!currentUser.termsAccepted || !currentUser.dataUsageAccepted) && (
+        <div className="bg-gradient-to-r from-[#7c2d12] via-[#9a3412] to-[#78350f] border-b border-[#f59e0b]/60 px-4 py-3 shadow-lg">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3">
+              <span className="w-8 h-8 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/50 flex items-center justify-center text-base shrink-0">
+                📜
+              </span>
+              <div className="text-xs leading-relaxed">
+                <span className="font-black text-[#fde047] uppercase tracking-wider mr-2">
+                  Rappel Contributeur Enregistré :
+                </span>
+                <span className="text-white font-medium">
+                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (OMPAGANO / NKALA – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et participer au partage des revenus.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <button
+                type="button"
+                onClick={() => setIsTermsConsentModalOpen(true)}
+                className="px-4 py-1.5 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#180d07] font-black text-xs shadow-md transition active:scale-95"
+              >
+                Lire & Accepter les Conditions
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6">
         {currentTab === 'crowdsource' && (
@@ -2252,6 +2349,7 @@ export default function App() {
             contributions={contributions}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             onOpenOnboarding={() => setIsOnboardingModalOpen(true)}
+            onOpenTermsConsent={() => setIsTermsConsentModalOpen(true)}
             onOpenOfflinePack={() => setIsOfflinePackModalOpen(true)}
             onSignOut={() => {
               try {
@@ -2286,6 +2384,18 @@ export default function App() {
         onComplete={handleCompleteOnboarding}
         onAddNewClan={handleAddNewClan}
         onAddNewVillage={handleAddNewVillage}
+        onOpenFullContractModal={() => setIsTermsConsentModalOpen(true)}
+      />
+
+      {/* Platform Terms & Data Usage Consent Modal (Annexe 1 + Partnership Contract + Reminder for Existing Users) */}
+      <TermsConsentModal
+        isOpen={isTermsConsentModalOpen}
+        currentUser={currentUser}
+        isReminderForExistingUser={
+          !!(currentUser && currentUser.registrationCompleted && (!currentUser.termsAccepted || !currentUser.dataUsageAccepted))
+        }
+        onAcceptConsent={handleAcceptTermsConsent}
+        onClose={() => setIsTermsConsentModalOpen(false)}
       />
 
       {/* Offline Pack Manager Modal */}

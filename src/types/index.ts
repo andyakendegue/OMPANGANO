@@ -34,6 +34,16 @@ export interface UserProfile {
   badges: string[];
   weeklyProgress?: Record<string, number>; // challengeId -> currentCount
   completedChallenges?: string[]; // IDs of finished challenges
+  // Conditions de la plateforme & Consentement d'utilisation des données (Contrat AMPANGANO / NKALA - Annexe 1)
+  termsAccepted?: boolean;
+  dataUsageAccepted?: boolean;
+  consentVoiceUsage?: boolean;
+  consentImageUsage?: boolean;
+  termsAcceptedAt?: string;
+  termsVersion?: string;
+  partnerAssociation?: string;
+  electronicSignature?: string;
+  legalGuardianName?: string;
   createdAt: string;
   updatedAt: string;
 }

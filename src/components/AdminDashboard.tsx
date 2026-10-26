@@ -252,6 +252,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // User & Role Management Filters
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'admin' | 'validator' | 'user'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'flagged' | 'suspended'>('all');
+  const [userConsentFilter, setUserConsentFilter] = useState<'all' | 'accepted' | 'pending'>('all');
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
   // Badges & Levels state
@@ -390,6 +391,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       'Telephone',
       'Role',
       'Statut_Compte',
+      'Conditions_Et_Annexe1_Acceptees',
+      'Autorisation_Donnees_IA',
+      'Autorisation_Voix',
+      'Autorisation_Image',
+      'Association_Partenaire',
+      'Date_Signature_Consentement',
       'Tribu',
       'Clan_Paternel',
       'Clan_Maternel',
@@ -417,6 +424,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       escapeCSV(u.phoneNumber || u.contact || ''),
       escapeCSV(u.role),
       escapeCSV(u.status),
+      escapeCSV(u.termsAccepted && u.dataUsageAccepted ? 'OUI' : 'EN_ATTENTE'),
+      escapeCSV(u.dataUsageAccepted ? 'OUI' : 'NON'),
+      escapeCSV(u.consentVoiceUsage !== false ? 'OUI' : 'NON'),
+      escapeCSV(u.consentImageUsage ? 'OUI' : 'NON'),
+      escapeCSV(u.partnerAssociation || ''),
+      escapeCSV(u.termsAcceptedAt || ''),
       escapeCSV(u.tribe),
       escapeCSV(u.paternalClan),
       escapeCSV(u.maternalClan),
@@ -463,6 +476,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const filteredUsers = usersList.filter(u => {
     if (userRoleFilter !== 'all' && u.role !== userRoleFilter) return false;
     if (userStatusFilter !== 'all' && u.status !== userStatusFilter) return false;
+    const hasSignedConsent = !!(u.termsAccepted && u.dataUsageAccepted);
+    if (userConsentFilter === 'accepted' && !hasSignedConsent) return false;
+    if (userConsentFilter === 'pending' && hasSignedConsent) return false;
     if (userSearchQuery.trim()) {
       const q = userSearchQuery.toLowerCase();
       const matchQuery = (u.fullName || '').toLowerCase().includes(q) ||
@@ -472,7 +488,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         (u.tribe || '').toLowerCase().includes(q) ||
         (u.paternalClan || '').toLowerCase().includes(q) ||
         (u.maternalClan || '').toLowerCase().includes(q) ||
-        (u.villageOfOrigin || '').toLowerCase().includes(q);
+        (u.villageOfOrigin || '').toLowerCase().includes(q) ||
+        (u.partnerAssociation || '').toLowerCase().includes(q);
       if (!matchQuery) return false;
     }
     return true;
@@ -787,17 +804,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </p>
             </div>
 
-            <button
-              onClick={handleExportUsersCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white rounded-xl text-xs font-bold border border-stone-600 transition shadow shrink-0 self-start sm:self-center"
-            >
-              <Download className="w-4 h-4 text-[#f59e0b]" />
-              <span>Exporter Utilisateurs en CSV</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-center shrink-0">
+              <button
+                onClick={handleExportUsersCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white rounded-xl text-xs font-bold border border-stone-600 transition shadow"
+              >
+                <Download className="w-4 h-4 text-[#f59e0b]" />
+                <span>Exporter Utilisateurs en CSV</span>
+              </button>
+            </div>
           </div>
 
           {/* Quick Stats on Users */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div className="p-3 bg-[#180d07] border border-[#3b1d10] rounded-xl text-center">
               <span className="text-[11px] text-[#a8826d]">Total Utilisateurs</span>
               <div className="text-xl font-bold text-white mt-0.5">{usersList.length}</div>
@@ -814,10 +833,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {usersList.filter(u => u.role === 'validator').length}
               </div>
             </div>
-            <div className="p-3 bg-[#180d07] border border-[#3b1d10] rounded-xl text-center">
-              <span className="text-[11px] text-emerald-400">✍️ Contributeurs</span>
+            <div className="p-3 bg-[#180d07] border border-[#22c55e]/30 rounded-xl text-center">
+              <span className="text-[11px] text-emerald-400">📜 Consentement Signé</span>
               <div className="text-xl font-bold text-emerald-400 mt-0.5">
-                {usersList.filter(u => u.role === 'user').length}
+                {usersList.filter(u => u.termsAccepted && u.dataUsageAccepted).length}
+              </div>
+            </div>
+            <div className="p-3 bg-[#180d07] border border-[#f59e0b]/30 rounded-xl text-center">
+              <span className="text-[11px] text-[#fde047]">⏳ En attente (Rappel)</span>
+              <div className="text-xl font-bold text-[#fde047] mt-0.5">
+                {usersList.filter(u => !(u.termsAccepted && u.dataUsageAccepted)).length}
               </div>
             </div>
           </div>
@@ -850,6 +875,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   {role === 'all' ? 'Tous' : role === 'admin' ? 'Admins' : role === 'validator' ? 'Validateurs' : 'Contributeurs'}
                 </button>
               ))}
+
+              <div className="h-4 w-px bg-[#3b1d10] mx-1" />
+
+              <span className="text-[#d4af94]">Consentement :</span>
+              {(['all', 'accepted', 'pending'] as const).map(cStatus => (
+                <button
+                  key={cStatus}
+                  onClick={() => setUserConsentFilter(cStatus)}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                    userConsentFilter === cStatus
+                      ? 'bg-amber-600 text-white shadow'
+                      : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'
+                  }`}
+                >
+                  {cStatus === 'all' ? 'Tous' : cStatus === 'accepted' ? '✓ Consentement Signé' : '⏳ Rappel en attente'}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -863,6 +905,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               filteredUsers.map((user) => {
                 const isAdmin = user.role === 'admin';
                 const isValidator = user.role === 'validator';
+                const hasAcceptedConsent = !!(user.termsAccepted && user.dataUsageAccepted);
                 return (
                   <div
                     key={user.id}
@@ -900,6 +943,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             }`}>
                               {user.status === 'suspended' ? 'Suspendu' : user.status === 'flagged' ? 'Signalé' : 'Actif'}
                             </span>
+
+                            {hasAcceptedConsent ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-500/40 font-bold">
+                                ✓ Conditions & Données Validées
+                              </span>
+                            ) : (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-900/50 text-[#fde047] border border-amber-500/40 font-semibold">
+                                ⏳ Rappel Conditions Actif
+                              </span>
+                            )}
                           </div>
 
                           <div className="text-xs text-[#d4af94] mt-0.5">
@@ -910,7 +963,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             Clans: <span>{user.paternalClan || 'N/A'} (Pat.) / {user.maternalClan || 'N/A'} (Mat.)</span> • Village : <span>{user.villageOfOrigin || 'Non déclaré'}</span>
                           </div>
 
-                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#fed7aa]">
+                          <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-[#fed7aa]">
                             <span>⭐ {user.xp || 0} XP ({user.level || 'Initié'})</span>
                             <span>🎙️ {user.recordingsCount || 0} audios</span>
                             <span>📝 {user.contributionsCount || 0} contribs</span>
