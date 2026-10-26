@@ -34,6 +34,7 @@ export interface UserProfile {
   badges: string[];
   weeklyProgress?: Record<string, number>; // challengeId -> currentCount
   completedChallenges?: string[]; // IDs of finished challenges
+  favoriteItemIds?: string[]; // IDs of favorite vocabulary items saved by the user
   // Conditions de la plateforme & Consentement d'utilisation des données (Contrat AMPANGANO / NKALA - Annexe 1)
   termsAccepted?: boolean;
   dataUsageAccepted?: boolean;
@@ -53,6 +54,9 @@ export interface ClanRegistry {
   name: string;
   tribe: string;
   description?: string;
+  historicalMeaning?: string;
+  geographicalOrigins?: string;
+  mottoOrSymbol?: string;
   createdBy?: string;
   createdAt: string;
 }

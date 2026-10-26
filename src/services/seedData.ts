@@ -20,21 +20,191 @@ export const MYENE_TRIBES: TribeName[] = [
 ];
 
 export const INITIAL_CLANS: ClanRegistry[] = [
-  { id: 'clan-agwesono', name: 'Agwesono', tribe: 'Mpongwè', description: 'Clan historique Mpongwè de la rive gauche de l’Estuaire (Pointe-Denis).', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-avandji', name: 'Avandji', tribe: 'Enenga', description: 'Grand clan Enenga des rives de l’Ogooué et du Lac Zilé (Lambaréné).', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-agulamba', name: 'Agulamba', tribe: 'Galoa', description: 'Clan Galoa établi dans le Bas-Ogooué et autour d’Adolinanongo.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-asiga', name: 'Asiga', tribe: 'Nkomi', description: 'Clan Nkomi de la lagune du Fernan Vaz (Eliwa Nkomi).', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-azowa', name: 'Azowa', tribe: 'Adyumba', description: 'Clan Adyumba gardien des traditions du Lac Azingo.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-ndiwa', name: 'Ndiwa', tribe: 'Mpongwè', description: 'Clan Mpongwè de Glass et Baraka (Estuaire du Komo).', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-imvona', name: 'Imvona', tribe: 'Enenga', description: 'Clan Enenga établi vers Ashouka et le Moyen-Ogooué.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-agwempolo', name: 'Agwempolo', tribe: 'Nkomi', description: 'Clan royal et lignager Nkomi d’Omboué et du Fernan Vaz.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-alamba', name: 'Alamba', tribe: 'Ôrungu', description: 'Clan Ôrungu du delta de l’Ogooué et d’Ozouri.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-ogula', name: 'Ogula', tribe: 'Galoa', description: 'Clan Galoa des lacs et rives du Moyen-Ogooué.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-ininga', name: 'Ininga', tribe: 'Enenga', description: 'Clan Enenga des Lacs du Nord et du Lac Onangué.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-amwiri', name: 'Amwiri', tribe: 'Ôrungu', description: 'Clan Ôrungu de l’Île Mandji (Port-Gentil) et du littoral.', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-ilongo-n-adjena', name: "Ilongo n'Adjena", tribe: 'Ôrungu', description: 'Clan traditionnel Ôrungu de l’Ogooué-Maritime (Alumbè & Mandji).', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'clan-agenje', name: 'Agenjé', tribe: 'Ôrungu', description: 'Clan lignager Ôrungu du delta maritime et des lagunes.', createdAt: '2026-01-01T00:00:00Z' }
+  {
+    id: 'clan-agwesono',
+    name: 'Agwesono',
+    tribe: 'Mpongwè',
+    description: 'Clan historique Mpongwè de la rive gauche de l’Estuaire (Pointe-Denis).',
+    historicalMeaning: 'Lignée princière et gardienne des traités coutumiers de l’Estuaire, associée au roi Denis Rapontchombo (Ntoko) et à la diplomatie maritime Mpongwè.',
+    geographicalOrigins: 'Rive gauche de l’Estuaire du Komo, Pointe-Denis (Ndzomoé) et littoral atlantique de la province de l’Estuaire.',
+    mottoOrSymbol: 'Hospitalité royale, maîtrise des passes maritimes et sagesse diplomatique.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-avandji',
+    name: 'Avandji',
+    tribe: 'Enenga',
+    description: 'Grand clan Enenga des rives de l’Ogooué et du Lac Zilé (Lambaréné).',
+    historicalMeaning: 'Piliers historiques de la confédération Enenga, maîtres des eaux fluviales et détenteurs de la mémoire des anciens comptoirs et passages de l’Ogooué.',
+    geographicalOrigins: 'Île et rives de Lambaréné, Lac Zilé et bief moyen du fleuve Ogooué (province du Moyen-Ogooué).',
+    mottoOrSymbol: 'Gardiens du fleuve et de l’alliance fraternelle des lacs.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-agulamba',
+    name: 'Agulamba',
+    tribe: 'Galoa',
+    description: 'Clan Galoa établi dans le Bas-Ogooué et autour d’Adolinanongo.',
+    historicalMeaning: 'Clan d’orateurs, de chefs coutumiers et de grands navigateurs Galoa ayant joué un rôle central dans les échanges entre Lambaréné et les grands lacs du Sud.',
+    geographicalOrigins: 'Adolinanongo, Bas-Ogooué, rives du Lac Azingo et chenaux fluviaux du Moyen-Ogooué.',
+    mottoOrSymbol: 'Éloquence du verbe (Ompangano) et maîtrise des courants.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-asiga',
+    name: 'Asiga',
+    tribe: 'Nkomi',
+    description: 'Clan Nkomi de la lagune du Fernan Vaz (Eliwa Nkomi).',
+    historicalMeaning: 'Lignée ancestrale Nkomi liée à l’autorité spirituelle et coutumière autour du Rengo (souverain Nkomi) et à la préservation des lois sacrées de la lagune.',
+    geographicalOrigins: 'Lagune du Fernan Vaz (Eliwa Nkomi), Sainte-Anne du Fernan Vaz et littoral sud de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Gardien des sanctuaires lagunaires et de la parole des anciens.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-azowa',
+    name: 'Azowa',
+    tribe: 'Adyumba',
+    description: 'Clan Adyumba gardien des traditions du Lac Azingo.',
+    historicalMeaning: 'Clan historique issu de la migration ancienne depuis l’Estuaire vers les lacs intérieurs, dépositaire des chants rituels et des savoirs halieutiques Adyumba.',
+    geographicalOrigins: 'Bassin du Lac Azingo et rives septentrionales du Moyen-Ogooué.',
+    mottoOrSymbol: 'Fidélité aux ancêtres et paix des eaux profondes.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-ndiwa',
+    name: 'Ndiwa',
+    tribe: 'Mpongwè',
+    description: 'Clan Mpongwè de Glass et Baraka (Estuaire du Komo).',
+    historicalMeaning: 'Illustre lignée Mpongwè des rives droites de l’Estuaire, reconnue pour ses lettrés, ses commerçants historiques et la conservation des proverbes classiques.',
+    geographicalOrigins: 'Quartiers historiques de Glass, Baraka et Oloumi sur la rive nord de l’Estuaire du Komo (Libreville).',
+    mottoOrSymbol: 'Mémoire lettrée et rayonnement culturel Mpongwè.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-imvona',
+    name: 'Imvona',
+    tribe: 'Enenga',
+    description: 'Clan Enenga établi vers Ashouka et le Moyen-Ogooué.',
+    historicalMeaning: 'Lignée de maîtres-piroguiers et de sages coutumiers Enenga veillant sur la confluence des voies d’eau et les alliances inter-claniques.',
+    geographicalOrigins: 'Ashouka, bief fluvial de l’Ogooué et lacs environnants de Lambaréné (Moyen-Ogooué).',
+    mottoOrSymbol: 'Vigilance sur les berges et solidarité du lignage.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-agwempolo',
+    name: 'Agwempolo',
+    tribe: 'Nkomi',
+    description: 'Clan royal et lignager Nkomi d’Omboué et du Fernan Vaz.',
+    historicalMeaning: 'Signifie littéralement « la grande lignée / le grand clan » ; lignée noble Nkomi détentrice des prérogatives royales et des conseils d’aînés d’Omboué.',
+    geographicalOrigins: 'Omboué, rives orientales de la lagune du Fernan Vaz et terres du département d’Étimboué (Ogooué-Maritime).',
+    mottoOrSymbol: 'Noblesse coutumière et justice du conseil des anciens.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-alamba',
+    name: 'Alamba',
+    tribe: 'Ôrungu',
+    description: 'Clan Ôrungu du delta de l’Ogooué et d’Ozouri.',
+    historicalMeaning: 'Clan historique du royaume Ôrungu, gardien des embouchures du delta de l’Ogooué et des rites maritimes transmis depuis les souverains Agamwinboni.',
+    geographicalOrigins: 'Delta maritime de l’Ogooué, Ozouri, Cap Lopez et chenaux côtiers de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Souveraineté du delta et maîtrise de l’océan (Ntchuwa).',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-ogula',
+    name: 'Ogula',
+    tribe: 'Galoa',
+    description: 'Clan Galoa des lacs et rives du Moyen-Ogooué.',
+    historicalMeaning: 'Clan ancien de la sphère Galoa dont le nom évoque la force tranquille des eaux et la continuité généalogique à travers les villages lacustres.',
+    geographicalOrigins: 'Lacs du Sud de Lambaréné (Onangué, Ezanga) et rives du Moyen-Ogooué.',
+    mottoOrSymbol: 'Harmonie entre la grande forêt et les lacs.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-ininga',
+    name: 'Ininga',
+    tribe: 'Enenga',
+    description: 'Clan Enenga des Lacs du Nord et du Lac Onangué.',
+    historicalMeaning: 'Lignée fondatrice intimement liée à l’ethnonyme même des Enenga, gardienne des sanctuaires insulaires et de la tradition orale pure du Lac Onangué.',
+    geographicalOrigins: 'Lac Onangué, Lacs du Nord et îles fluviales de la région de Lambaréné (Moyen-Ogooué).',
+    mottoOrSymbol: 'Pureté de la langue des îles et mémoire des origines.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-amwiri',
+    name: 'Amwiri',
+    tribe: 'Ôrungu',
+    description: 'Clan Ôrungu de l’Île Mandji (Port-Gentil) et du littoral.',
+    historicalMeaning: 'Clan rattaché à la tradition spirituelle des génies tutélaires des eaux (Ombwiri / Imbwiri) et aux lignées fondatrices de l’Île Mandji.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez et baies côtières de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Sagesse sacrée des eaux et protection du terroir Mandji.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-ilongo-n-adjena',
+    name: "Ilongo n'Adjena",
+    tribe: 'Ôrungu',
+    description: 'Clan traditionnel Ôrungu de l’Ogooué-Maritime (Alumbè & Mandji).',
+    historicalMeaning: 'Grande lignée Ôrungu dont la tradition orale préserve la généalogie des anciens chefs de terre et des alliances claniques entre fleuve et océan.',
+    geographicalOrigins: 'Alumbè, Île Mandji (Port-Gentil) et bas-delta de l’Ogooué (province de l’Ogooué-Maritime).',
+    mottoOrSymbol: 'Transmission intergénérationnelle et honneur du sang.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-agenje',
+    name: 'Agenjé',
+    tribe: 'Ôrungu',
+    description: 'Clan lignager Ôrungu du delta maritime et des lagunes.',
+    historicalMeaning: 'Clan côtier Ôrungu réputé pour sa connaissance des marées, de la navigation hauturière et des chants rituels d’accueil et de bénédiction.',
+    geographicalOrigins: 'Delta maritime de l’Ogooué, lagunes côtières et Île Mandji (Ogooué-Maritime).',
+    mottoOrSymbol: 'Fraternité des rives et mémoire des ancêtres navigateurs.',
+    createdAt: '2026-01-01T00:00:00Z'
+  }
 ];
+
+export function getClanHistoricalAndGeoInfo(
+  clan: Partial<ClanRegistry> & { name: string; tribe?: string },
+  villages: VillageRegistry[] = []
+): {
+  historicalMeaning: string;
+  geographicalOrigins: string;
+  mottoOrSymbol: string;
+  associatedVillages: string[];
+} {
+  const normName = (clan.name || '').trim().toLowerCase();
+  const preset = INITIAL_CLANS.find(c => c.name.trim().toLowerCase() === normName);
+  const matchedVillages = villages
+    .filter(v => (v.clan || '').trim().toLowerCase() === normName)
+    .map(v => v.name);
+
+  const tribe = clan.tribe || preset?.tribe || 'Myènè';
+  const defaultGeoByTribe: Record<string, string> = {
+    'Mpongwè': 'Estuaire du Komo, rives de Libreville (Glass, Baraka, Louis) et Pointe-Denis (province de l’Estuaire).',
+    'Enenga': 'Bassin fluvial de Lambaréné, Lac Zilé, Lac Onangué et rives du Moyen-Ogooué.',
+    'Galoa': 'Moyen-Ogooué, Adolinanongo, Lambaréné et grands lacs du Sud (Onangué, Ezanga).',
+    'Nkomi': 'Lagune du Fernan Vaz (Eliwa Nkomi), Omboué et Sainte-Anne (province de l’Ogooué-Maritime).',
+    'Adyumba': 'Rives du Lac Azingo et voies d’eau septentrionales du Moyen-Ogooué.',
+    'Ôrungu': 'Île Mandji (Port-Gentil), Cap Lopez, Alumbè, Ozouri et delta maritime de l’Ogooué (Ogooué-Maritime).'
+  };
+
+  return {
+    historicalMeaning:
+      clan.historicalMeaning ||
+      preset?.historicalMeaning ||
+      clan.description ||
+      `Lignée clanique traditionnelle de la tribu ${tribe}, dépositaire des alliances coutumières, de la filiation OMPAGANO et de la transmission orale du parler ${tribe}.`,
+    geographicalOrigins:
+      clan.geographicalOrigins ||
+      preset?.geographicalOrigins ||
+      defaultGeoByTribe[tribe] ||
+      'Bassin de l’Ogooué, lacs et littoral maritime du Gabon.',
+    mottoOrSymbol:
+      clan.mottoOrSymbol ||
+      preset?.mottoOrSymbol ||
+      `Sauvegarde du patrimoine oral et de la mémoire généalogique ${tribe}.`,
+    associatedVillages: matchedVillages
+  };
+}
 
 export const INITIAL_VILLAGES: VillageRegistry[] = [
   { id: 'vil-lambarene', name: 'Lambaréné (Moyen-Ogooué)', clan: 'Avandji', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },

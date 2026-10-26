@@ -166,28 +166,10 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         offlineQueued: !isOnline
       };
 
-      if (!isOnline) {
-        // Save to offline IndexedDB
-        await saveOfflineContribution({
-          id: 'off-' + Date.now(),
-          itemId: item.id,
-          frenchText: item.frenchText,
-          originalMyeneText: item.myeneText,
-          isSpellingCorrect: isCorrect,
-          proposedSpelling: finalProposed,
-          isFrenchMeaningExact: isFrenchExact,
-          frenchMeaningType: finalFrenchType,
-          proposedFrenchMeaning: finalProposedFrench || undefined,
-          secondaryMeaning: finalSecondaryMeaning || undefined,
-          dialectVariant,
-          comment: contributorNotes.trim(),
-          audioBlob: audioBlob || undefined,
-          audioDataUrl: audioDataUrl || undefined,
-          audioDuration,
-          timestamp: Date.now()
-        });
-      } else {
-        await onSubmitContribution(contributionPayload, audioBlob || undefined);
+      const submittedOk = await onSubmitContribution(contributionPayload, audioBlob || undefined);
+      if (!submittedOk) {
+        setIsSubmitting(false);
+        return;
       }
 
       // Fire celebratory confetti!

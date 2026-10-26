@@ -7,24 +7,32 @@ import {
   Shield,
   Users,
   X,
-  Sparkles
+  Sparkles,
+  Star,
+  MapPin,
+  ScrollText,
+  Compass
 } from 'lucide-react';
 import { 
   QuestionnaireItem, 
   ThemeDefinition, 
   ClanRegistry, 
+  VillageRegistry,
   UserProfile, 
   Contribution 
 } from '../types';
-import { THEMATIC_CATEGORIES, INITIAL_CLANS } from '../services/seedData';
+import { THEMATIC_CATEGORIES, INITIAL_CLANS, INITIAL_VILLAGES, getClanHistoricalAndGeoInfo } from '../services/seedData';
 
 interface VocabularyExplorerProps {
   items: QuestionnaireItem[];
   themes?: ThemeDefinition[];
   clans?: ClanRegistry[];
+  villages?: VillageRegistry[];
   currentUser?: UserProfile | null;
   contributions?: Contribution[];
   usersList?: UserProfile[];
+  favoriteItemIds?: string[];
+  onToggleFavorite?: (itemId: string) => void;
   onSelectExpression: (index: number) => void;
 }
 
@@ -60,17 +68,23 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
   items,
   themes = THEMATIC_CATEGORIES,
   clans = INITIAL_CLANS,
+  villages = INITIAL_VILLAGES,
   currentUser = null,
   contributions = [],
   usersList = [],
+  favoriteItemIds = [],
+  onToggleFavorite,
   onSelectExpression
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedClan, setSelectedClan] = useState<string>('all');
+  const [onlyFavorites, setOnlyFavorites] = useState<boolean>(false);
   const [playingItemId, setPlayingItemId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 40;
+
+  const favoriteSet = useMemo(() => new Set(favoriteItemIds), [favoriteItemIds]);
 
   // Consolidate all known clans (from registry + currentUser + usersList + items)
   const allClansRegistry = useMemo<ClanRegistry[]>(() => {
@@ -81,7 +95,9 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     }
     for (const c of clans) {
       if (c && c.name && c.name.toLowerCase() !== 'inconnu') {
-        map.set(normalizeClanKey(c.name), c);
+        const key = normalizeClanKey(c.name);
+        const existing = map.get(key);
+        map.set(key, existing ? { ...existing, ...c } : c);
       }
     }
 
@@ -287,25 +303,52 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     return Array.from(groups.entries());
   }, [allClansRegistry]);
 
-  // Selected clan details for the active banner
+  // Selected clan details (including historical meaning & geographical origins) for the dynamic callout
   const activeClanInfo = useMemo(() => {
     if (selectedClan === 'all') return null;
+
     if (selectedClan === '__my_clans__') {
+      const patObj = allClansRegistry.find(c => normalizeClanKey(c.name) === normalizeClanKey(userPaternalClan)) || {
+        name: userPaternalClan || 'Paternel',
+        tribe: currentUser?.tribe || 'Myènè'
+      };
+      const matObj = allClansRegistry.find(c => normalizeClanKey(c.name) === normalizeClanKey(userMaternalClan)) || {
+        name: userMaternalClan || 'Maternel',
+        tribe: currentUser?.tribe || 'Myènè'
+      };
+      const patMeta = getClanHistoricalAndGeoInfo(patObj, villages);
+      const matMeta = getClanHistoricalAndGeoInfo(matObj, villages);
+
       return {
         name: [userPaternalClan, userMaternalClan].filter(Boolean).join(' & '),
         tribe: currentUser?.tribe || 'Myènè',
-        description: 'Vocabulaire rattaché à vos lignées claniques paternelle et maternelle.'
+        description: 'Alliance généalogique de vos lignées claniques paternelle et maternelle.',
+        historicalMeaning: `Lignée paternelle (${patObj.name}) : ${patMeta.historicalMeaning} • Lignée maternelle (${matObj.name}) : ${matMeta.historicalMeaning}`,
+        geographicalOrigins: `${patObj.name} : ${patMeta.geographicalOrigins} | ${matObj.name} : ${matMeta.geographicalOrigins}`,
+        mottoOrSymbol: 'Double ancrage lignager OMPAGANO (paternel & maternel).',
+        associatedVillages: Array.from(new Set([...patMeta.associatedVillages, ...matMeta.associatedVillages]))
       };
     }
+
     const found = allClansRegistry.find(
       c => normalizeClanKey(c.name) === normalizeClanKey(selectedClan)
-    );
-    return found || {
+    ) || {
+      id: `clan-${normalizeClanKey(selectedClan)}`,
       name: selectedClan,
       tribe: currentUser?.tribe || 'Myènè',
-      description: `Expressions et mémoire lexicale associées au clan ${selectedClan}.`
+      description: `Expressions et mémoire lexicale associées au clan ${selectedClan}.`,
+      createdAt: '2026-01-01T00:00:00Z'
     };
-  }, [selectedClan, allClansRegistry, userPaternalClan, userMaternalClan, currentUser?.tribe]);
+
+    const enriched = getClanHistoricalAndGeoInfo(found, villages);
+    return {
+      ...found,
+      historicalMeaning: enriched.historicalMeaning,
+      geographicalOrigins: enriched.geographicalOrigins,
+      mottoOrSymbol: enriched.mottoOrSymbol,
+      associatedVillages: enriched.associatedVillages
+    };
+  }, [selectedClan, allClansRegistry, userPaternalClan, userMaternalClan, currentUser?.tribe, villages]);
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
@@ -313,6 +356,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
 
     for (const it of items) {
       if (!doesItemMatchClan(it, selectedClan)) continue;
+      if (onlyFavorites && !favoriteSet.has(it.id)) continue;
       totalMatchingClan++;
       const cat = it.category || it.theme || 'vie_quotidienne_famille';
       counts.set(cat, (counts.get(cat) || 0) + 1);
@@ -353,11 +397,12 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     }
 
     return list;
-  }, [items, themes, selectedClan, itemClanMetadata]);
+  }, [items, themes, selectedClan, itemClanMetadata, onlyFavorites, favoriteSet]);
 
   const filteredItems = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return items.filter(item => {
+      if (onlyFavorites && !favoriteSet.has(item.id)) return false;
       if (!doesItemMatchClan(item, selectedClan)) return false;
 
       const itemCat = item.category || item.theme || '';
@@ -373,7 +418,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
         itemClans.some(c => c.toLowerCase().includes(q))
       );
     });
-  }, [items, selectedClan, selectedCategory, searchQuery, itemClanMetadata]);
+  }, [items, selectedClan, selectedCategory, searchQuery, itemClanMetadata, onlyFavorites, favoriteSet]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -398,7 +443,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     <div className="w-full max-w-4xl mx-auto space-y-5 pb-20">
       {/* Search and Filters */}
       <div className="warm-card-gradient rounded-3xl p-5 border border-[#4a2412] shadow-xl space-y-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-[#f59e0b]" />
             <div>
@@ -408,9 +453,28 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#180d07] border border-[#4a2412] text-[#f59e0b]">
-            {filteredItems.length} résultat(s)
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setOnlyFavorites(prev => !prev);
+                setCurrentPage(1);
+              }}
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${
+                onlyFavorites
+                  ? 'bg-[#f59e0b] text-[#180d07] border-[#fde047] shadow-md'
+                  : 'bg-[#180d07] border-[#4a2412] text-[#fde047] hover:border-[#f59e0b]/60'
+              }`}
+              title="Filtrer uniquement votre vocabulaire favori"
+            >
+              <Star className={`w-3.5 h-3.5 ${onlyFavorites || favoriteItemIds.length > 0 ? 'fill-current' : ''}`} />
+              <span>Mes Favoris ({favoriteItemIds.length})</span>
+            </button>
+
+            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#180d07] border border-[#4a2412] text-[#f59e0b]">
+              {filteredItems.length} résultat(s)
+            </span>
+          </div>
         </div>
 
         {/* Search Bar + Clan Dropdown Filter Row */}
@@ -562,43 +626,91 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
           </div>
         )}
 
-        {/* Active Clan Info Banner */}
-        {activeClanInfo && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-2xl bg-[#180d07]/90 border border-[#f59e0b]/40">
-            <div className="flex items-start sm:items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/40 flex items-center justify-center text-sm shrink-0">
-                🏛️
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-black text-[#fde047] uppercase tracking-wider">
-                    Clan {activeClanInfo.name}
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#2b160c] text-[#f59e0b] border border-[#4a2412]">
-                    Tribu {activeClanInfo.tribe}
-                  </span>
-                  <span className="text-[10px] text-emerald-300 font-semibold">
-                    • {filteredItems.length} expression(s) affichée(s)
-                  </span>
+        {/* Dynamic Clan Historical Meaning & Geographical Origins Info Card */}
+        {activeClanInfo ? (
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-[#180d07] via-[#221209] to-[#2c160b] border border-[#f59e0b]/50 shadow-lg space-y-3 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[#4a2412]/80 pb-2.5">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/40 flex items-center justify-center text-lg shrink-0 shadow-inner">
+                  🏛️
                 </div>
-                {activeClanInfo.description && (
-                  <p className="text-[11px] text-[#d4af94] mt-0.5">
-                    {activeClanInfo.description}
-                  </p>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-black text-[#fde047] uppercase tracking-wider">
+                      Clan {activeClanInfo.name}
+                    </span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#2b160c] text-[#f59e0b] border border-[#f59e0b]/40">
+                      Tribu {activeClanInfo.tribe}
+                    </span>
+                    <span className="text-[10px] text-emerald-300 font-semibold">
+                      • {filteredItems.length} expression(s) associée(s)
+                    </span>
+                  </div>
+                  {activeClanInfo.mottoOrSymbol && (
+                    <p className="text-[11px] text-[#fed7aa] italic mt-0.5 flex items-center gap-1">
+                      <Compass className="w-3 h-3 text-[#f59e0b] shrink-0" />
+                      <span>{activeClanInfo.mottoOrSymbol}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedClan('all');
+                  setCurrentPage(1);
+                }}
+                className="self-end sm:self-center inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] text-[11px] font-semibold border border-[#4a2412] shrink-0 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Tous les clans</span>
+              </button>
+            </div>
+
+            {/* Historical Meaning & Geographical Origins Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-[#180d07]/90 border border-[#3b1d10] space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#f59e0b]">
+                  <ScrollText className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                  <span>Signification Historique & Lignage</span>
+                </div>
+                <p className="text-[11px] text-[#e5cbb8] leading-relaxed">
+                  {activeClanInfo.historicalMeaning}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#180d07]/90 border border-[#3b1d10] space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Origines Géographiques & Terroirs</span>
+                </div>
+                <p className="text-[11px] text-[#e5cbb8] leading-relaxed">
+                  {activeClanInfo.geographicalOrigins}
+                </p>
+                {activeClanInfo.associatedVillages && activeClanInfo.associatedVillages.length > 0 && (
+                  <div className="pt-1 flex flex-wrap items-center gap-1">
+                    <span className="text-[10px] font-semibold text-[#a8826d]">Villages rattachés :</span>
+                    {activeClanInfo.associatedVillages.map(vName => (
+                      <span
+                        key={vName}
+                        className="text-[10px] px-2 py-0.5 rounded-md bg-[#24130a] text-emerald-300 border border-emerald-500/30 font-medium"
+                      >
+                        📍 {vName}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedClan('all');
-                setCurrentPage(1);
-              }}
-              className="self-end sm:self-center inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] text-[11px] font-semibold border border-[#4a2412] shrink-0"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Réinitialiser</span>
-            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-[#180d07]/75 border border-[#3b1d10] text-[11px] text-[#d4af94]">
+            <div className="flex items-center gap-2">
+              <ScrollText className="w-4 h-4 text-[#f59e0b] shrink-0" />
+              <span>
+                Sélectionnez un <strong>clan Myènè</strong> dans le menu déroulant (ou cliquez sur un badge de clan) pour découvrir sa <strong>signification historique</strong> et ses <strong>origines géographiques</strong>.
+              </span>
+            </div>
           </div>
         )}
 
@@ -627,18 +739,23 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       {filteredItems.length === 0 && (
         <div className="warm-card-gradient rounded-3xl p-8 border border-[#4a2412] text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#180d07] border border-[#4a2412] flex items-center justify-center mx-auto text-xl">
-            🏛️
+            {onlyFavorites ? '⭐' : '🏛️'}
           </div>
           <h3 className="text-base font-bold text-white">
-            Aucune expression trouvée pour ces critères
+            {onlyFavorites
+              ? 'Aucun vocabulaire favori pour ces critères'
+              : 'Aucune expression trouvée pour ces critères'}
           </h3>
           <p className="text-xs text-[#d4af94] max-w-md mx-auto">
-            Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés ({selectedClan !== 'all' ? `Clan ${activeClanInfo?.name}` : 'Tous les clans'}).
+            {onlyFavorites
+              ? "Cliquez sur l'étoile « Favori » sur les cartes du vocabulaire pour sauvegarder vos expressions Myènè préférées et les retrouver ici ainsi que dans votre Profil."
+              : `Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés (${selectedClan !== 'all' ? `Clan ${activeClanInfo?.name}` : 'Tous les clans'}).`}
           </p>
           <div className="flex items-center justify-center gap-2 pt-1">
             <button
               type="button"
               onClick={() => {
+                setOnlyFavorites(false);
                 setSelectedClan('all');
                 setSelectedCategory('all');
                 setSearchQuery('');
@@ -665,11 +782,16 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
           const itemNuanceContrib = contributions.find(
             c => c.itemId === item.id && (c.proposedFrenchMeaning || c.secondaryMeaning)
           );
+          const isFavorite = favoriteSet.has(item.id);
 
           return (
             <div
               key={item.id}
-              className="warm-card-gradient rounded-2xl overflow-hidden border border-[#4a2412] hover:border-[#d97706]/40 transition-all shadow-lg flex flex-col justify-between"
+              className={`warm-card-gradient rounded-2xl overflow-hidden border transition-all shadow-lg flex flex-col justify-between ${
+                isFavorite
+                  ? 'border-[#f59e0b]/70 ring-1 ring-[#f59e0b]/30'
+                  : 'border-[#4a2412] hover:border-[#d97706]/40'
+              }`}
             >
               <div className="relative h-32 w-full overflow-hidden bg-[#180d07]">
                 <img
@@ -679,11 +801,31 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1c100a] to-transparent" />
-                <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#180d07]/80 text-[#fde047] border border-[#d97706]/40">
-                  {item.difficulty}
-                </span>
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#180d07]/80 text-[#fde047] border border-[#d97706]/40">
+                    {item.difficulty}
+                  </span>
+                  {onToggleFavorite && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite(item.id);
+                      }}
+                      aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                      title={isFavorite ? 'Retirer de mon vocabulaire favori' : 'Sauvegarder dans mes favoris'}
+                      className={`p-1.5 rounded-full border transition-all active:scale-90 ${
+                        isFavorite
+                          ? 'bg-[#f59e0b] text-[#180d07] border-[#fde047] shadow-md'
+                          : 'bg-[#180d07]/85 text-[#fed7aa] border-[#4a2412] hover:border-[#f59e0b] hover:text-[#fde047]'
+                      }`}
+                    >
+                      <Star className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+                    </button>
+                  )}
+                </div>
                 {itemClans.length > 0 && (
-                  <div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[70%]">
+                  <div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[65%]">
                     {itemClans.slice(0, 2).map(clanName => {
                       const isHighlighted =
                         (selectedClan !== 'all' && normalizeClanKey(selectedClan) === normalizeClanKey(clanName)) ||
@@ -697,7 +839,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                             setSelectedClan(clanName);
                             setCurrentPage(1);
                           }}
-                          title={`Filtrer par le clan ${clanName}`}
+                          title={`Filtrer et voir l'histoire du clan ${clanName}`}
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
                             isHighlighted
                               ? 'bg-[#f59e0b] text-[#180d07] shadow'
@@ -759,16 +901,36 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-[#3b1d10]">
-                  <button
-                    onClick={() => handleSpeak(item.myeneText, item.id)}
-                    className="p-2 rounded-xl bg-[#24130a] hover:bg-[#381e11] text-[#f59e0b] border border-[#4a2412] transition-colors"
-                    title="Écouter la prononciation"
-                  >
-                    <Volume2 className={`w-4 h-4 ${playingItemId === item.id ? 'animate-bounce' : ''}`} />
-                  </button>
+                <div className="flex items-center justify-between pt-2 border-t border-[#3b1d10] gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleSpeak(item.myeneText, item.id)}
+                      className="p-2 rounded-xl bg-[#24130a] hover:bg-[#381e11] text-[#f59e0b] border border-[#4a2412] transition-colors"
+                      title="Écouter la prononciation"
+                    >
+                      <Volume2 className={`w-4 h-4 ${playingItemId === item.id ? 'animate-bounce' : ''}`} />
+                    </button>
+
+                    {onToggleFavorite && (
+                      <button
+                        type="button"
+                        onClick={() => onToggleFavorite(item.id)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all active:scale-95 ${
+                          isFavorite
+                            ? 'bg-[#f59e0b]/20 text-[#fde047] border-[#f59e0b]/60'
+                            : 'bg-[#24130a] text-[#d4af94] border-[#4a2412] hover:text-[#fde047] hover:border-[#f59e0b]/40'
+                        }`}
+                        title={isFavorite ? 'Retirer de mes favoris' : 'Ajouter à mes favoris'}
+                      >
+                        <Star className={`w-3.5 h-3.5 ${isFavorite ? 'fill-[#f59e0b] text-[#f59e0b]' : ''}`} />
+                        <span>{isFavorite ? 'Favori' : 'Favori'}</span>
+                      </button>
+                    )}
+                  </div>
 
                   <button
+                    type="button"
                     onClick={() => onSelectExpression(originalIndex >= 0 ? originalIndex : 0)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl terracotta-gradient text-white text-xs font-semibold shadow hover:opacity-95 active:scale-95 transition-transform"
                   >
