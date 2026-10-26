@@ -115,7 +115,7 @@ function ompaganoUniversalOfflinePlugin(): Plugin {
           const assets = buildDevManifestList();
           res.statusCode = 200;
           origSetHeader('Content-Type', 'application/json; charset=utf-8');
-          origSetHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          origSetHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
           res.end(JSON.stringify({ version: 'dev', buildTime: Date.now(), assets }));
           return;
         }
@@ -128,7 +128,7 @@ function ompaganoUniversalOfflinePlugin(): Plugin {
             const injectedSw = swSource.replace('self.__WB_MANIFEST || []', JSON.stringify(assets));
             res.statusCode = 200;
             origSetHeader('Content-Type', 'application/javascript; charset=utf-8');
-            origSetHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            origSetHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
             origSetHeader('Service-Worker-Allowed', '/');
             res.end(injectedSw);
             return;

@@ -57,7 +57,9 @@ app.get(['/sw.js', '/__ompagano_manifest.json', '/version.json', '/manifest.webm
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
   }
 
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  // IMPORTANT: Never use 'no-store' on /sw.js or /manifest.webmanifest because Firefox & Safari
+  // purge Service Worker scripts with 'no-store' when the tab is closed, breaking offline tab reopen!
+  res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
   res.send(fs.readFileSync(filePath));
 });
 
@@ -77,13 +79,13 @@ app.use(
   })
 );
 
-// SPA Fallback: Always return clean 200 OK index.html (never redirect)
+// SPA Fallback: Always return clean 200 OK index.html (never redirect, never no-store)
 app.get('*', (_req, res) => {
   const indexHtmlPath = path.join(DIST_DIR, 'index.html');
   if (fs.existsSync(indexHtmlPath)) {
     res.status(200);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
     res.send(fs.readFileSync(indexHtmlPath));
   } else {
     res.status(503).send('Building application...');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const CACHE_NAME = 'ompagano-offline-v5';
-const READY_STORAGE_KEY = 'ompagano_airplane_ready_v5';
+const CACHE_NAME = 'ompagano-offline-v6';
+const READY_STORAGE_KEY = 'ompagano_airplane_ready_v6';
 
 export interface OfflineShellStatus {
   isReady: boolean;

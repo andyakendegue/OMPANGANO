@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   BarChart3, 
   CheckCircle, 
@@ -70,7 +70,10 @@ interface AdminDashboardProps {
   onDeleteContribution?: (contributionId: string) => Promise<void>;
   onSaveQuestionnaireItem: (item: Partial<QuestionnaireItem>) => Promise<void>;
   onDeleteQuestionnaireItem: (itemId: string) => Promise<void>;
-  onBatchImportItems: (newItems: QuestionnaireItem[]) => Promise<void>;
+  onBatchImportItems: (
+    newItems: QuestionnaireItem[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => Promise<void>;
   onSaveChallenge: (challenge: Partial<WeeklyChallenge>) => Promise<void>;
   onDeleteChallenge: (challengeId: string) => Promise<void>;
   onToggleActiveChallenge: (challengeId: string, currentStatus: boolean) => Promise<void>;
@@ -151,12 +154,100 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [formData, setFormData] = useState({
     frenchText: '',
     myeneText: '',
-    category: 'vie_quotidienne',
+    category: 'vie_quotidienne_famille',
     difficulty: 'intermediaire' as 'debutant' | 'intermediaire' | 'avance',
     contextNotes: '',
     imageUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
     dialect: 'enenga'
   });
+
+  // Fiches (Questionnaires) Filtering & Pagination states for 10,000+ items
+  const [ficheThemeFilter, setFicheThemeFilter] = useState<string>('all');
+  const [ficheDialectFilter, setFicheDialectFilter] = useState<string>('all');
+  const [ficheDifficultyFilter, setFicheDifficultyFilter] = useState<string>('all');
+  const [ficheSearchQuery, setFicheSearchQuery] = useState<string>('');
+  const [ficheCurrentPage, setFicheCurrentPage] = useState<number>(1);
+  const [fichePageSize, setFichePageSize] = useState<number>(50);
+
+  // Unified theme catalog + legacy category mapping with O(N) item counts
+  const ficheThemeOptions = useMemo(() => {
+    const LEGACY_LABELS: Record<string, { name: string; shortName: string; icon: string }> = {
+      salutations: { name: 'Salutations & Civilités', shortName: 'Salutations', icon: '👋' },
+      fleuve_peche: { name: 'Fleuve Ogooué & Pêche', shortName: 'Fleuve & Pêche', icon: '🛶' },
+      nature_faune: { name: 'Faune, Flore & Lacs', shortName: 'Faune & Lacs', icon: '🐆' },
+      vie_quotidienne: { name: 'Vie au Village & Artisanat', shortName: 'Vie au Village', icon: '🏡' },
+      famille_communaute: { name: 'Famille & Communauté', shortName: 'Famille', icon: '👨‍👩‍👧‍👦' },
+      proverbes_contes: { name: 'Proverbes & Sagesse', shortName: 'Proverbes', icon: '📜' }
+    };
+
+    const countsMap = new Map<string, number>();
+    for (const it of items) {
+      const key = it.category || it.theme || 'vie_quotidienne_famille';
+      countsMap.set(key, (countsMap.get(key) || 0) + 1);
+    }
+
+    const resultMap = new Map<string, { id: string; name: string; shortName: string; icon: string; count: number }>();
+
+    for (const th of themes) {
+      resultMap.set(th.id, {
+        id: th.id,
+        name: th.name,
+        shortName: th.shortName || th.name,
+        icon: th.icon || '🏷️',
+        count: countsMap.get(th.id) || 0
+      });
+    }
+
+    for (const [catKey, count] of countsMap.entries()) {
+      if (!resultMap.has(catKey)) {
+        const legacy = LEGACY_LABELS[catKey];
+        resultMap.set(catKey, {
+          id: catKey,
+          name: legacy ? legacy.name : catKey.replace(/_/g, ' '),
+          shortName: legacy ? legacy.shortName : catKey.replace(/_/g, ' '),
+          icon: legacy ? legacy.icon : '🏷️',
+          count
+        });
+      }
+    }
+
+    return Array.from(resultMap.values()).sort((a, b) => b.count - a.count);
+  }, [items, themes]);
+
+  const filteredQuestionnaireItems = useMemo(() => {
+    const q = ficheSearchQuery.trim().toLowerCase();
+    return items.filter(it => {
+      const itemTheme = it.category || it.theme || '';
+      if (ficheThemeFilter !== 'all' && itemTheme !== ficheThemeFilter) {
+        return false;
+      }
+      if (ficheDialectFilter !== 'all' && (it.dialect || 'enenga').toLowerCase() !== ficheDialectFilter.toLowerCase()) {
+        return false;
+      }
+      if (ficheDifficultyFilter !== 'all' && it.difficulty !== ficheDifficultyFilter) {
+        return false;
+      }
+      if (q) {
+        const matchFr = (it.frenchText || '').toLowerCase().includes(q);
+        const matchMy = (it.myeneText || '').toLowerCase().includes(q);
+        const matchId = (it.id || '').toLowerCase().includes(q);
+        const matchNotes = (it.contextNotes || '').toLowerCase().includes(q);
+        const matchMod = (it.moduleThematique || '').toLowerCase().includes(q);
+        const matchApi = (it.phoneticApi || '').toLowerCase().includes(q);
+        if (!matchFr && !matchMy && !matchId && !matchNotes && !matchMod && !matchApi) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [items, ficheThemeFilter, ficheDialectFilter, ficheDifficultyFilter, ficheSearchQuery]);
+
+  const totalFichePages = Math.max(1, Math.ceil(filteredQuestionnaireItems.length / fichePageSize));
+  const safeFichePage = Math.min(ficheCurrentPage, totalFichePages);
+  const paginatedQuestionnaireItems = useMemo(() => {
+    const start = (safeFichePage - 1) * fichePageSize;
+    return filteredQuestionnaireItems.slice(start, start + fichePageSize);
+  }, [filteredQuestionnaireItems, safeFichePage, fichePageSize]);
 
   // User & Role Management Filters
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'admin' | 'validator' | 'user'>('all');
@@ -1213,23 +1304,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <CsvImportSection
           onImportItems={onBatchImportItems}
           currentItemsCount={items.length}
+          existingItems={items}
           themes={themes}
           onRegisterNewThemes={onBatchRegisterThemes}
         />
       )}
 
-      {/* TAB: QUESTIONNAIRE CONFIGURATION */}
+      {/* TAB: QUESTIONNAIRE CONFIGURATION (AVEC FILTRAGE PAR THÈME & PAGINATION 10 000+ FICHES) */}
       {activeTab === 'questionnaires' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white">Création & Gestion des Phrases / Images OMPAGANO</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-white">
+                Création & Gestion des Fiches OMPAGANO ({items.length} fiches en base)
+              </h3>
+              <p className="text-xs text-[#d4af94]">
+                Filtrez instantanément par thème, dialecte ou mot-clé et naviguez par pages sans avoir à scroller toute la base.
+              </p>
+            </div>
             <button
               onClick={() => {
                 setEditingItemId(null);
                 setFormData({
                   frenchText: '',
                   myeneText: '',
-                  category: 'vie_quotidienne',
+                  category: ficheThemeFilter !== 'all' ? ficheThemeFilter : (themes[0]?.id || 'vie_quotidienne_famille'),
                   difficulty: 'intermediaire',
                   contextNotes: '',
                   imageUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
@@ -1237,7 +1336,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 });
                 setIsEditingItem(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl terracotta-gradient text-white text-xs font-semibold shadow-md active:scale-95 transition-transform"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl terracotta-gradient text-white text-xs font-semibold shadow-md active:scale-95 transition-transform self-start sm:self-auto shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Créer une Nouvelle Fiche</span>
@@ -1281,18 +1380,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[#fed7aa] font-medium mb-1">Catégorie thématique :</label>
+                  <label className="block text-[#fed7aa] font-medium mb-1">Thème / Catégorie thématique :</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-[#fed7aa] focus:outline-none"
                   >
-                    <option value="salutations">Salutations & Civilités</option>
-                    <option value="fleuve_peche">Fleuve Ogooué & Pêche</option>
-                    <option value="nature_faune">Faune, Flore & Lacs</option>
-                    <option value="vie_quotidienne">Vie au Village & Artisanat</option>
-                    <option value="famille_communaute">Famille & Communauté</option>
-                    <option value="proverbes_contes">Proverbes & Sagesse</option>
+                    {ficheThemeOptions.map(th => (
+                      <option key={th.id} value={th.id}>
+                        {th.icon} {th.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1348,47 +1446,319 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </form>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {items.map(item => (
-              <div key={item.id} className="p-4 bg-[#27150c] border border-[#4a2412] rounded-2xl flex items-center justify-between gap-3 shadow-md">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <img src={item.imageUrl} alt={item.frenchText} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#4a2412]" />
-                  <div className="overflow-hidden">
-                    <h5 className="font-bold text-xs text-white truncate">{item.frenchText}</h5>
-                    <p className="font-serif text-sm text-[#f59e0b] truncate">{item.myeneText}</p>
-                    <span className="text-[10px] text-[#a8826d] capitalize">{item.category} • {item.difficulty}</span>
-                  </div>
-                </div>
+          {/* BARRE DE FILTRAGE PAR THÈME, RECHERCHE & DIALECTE (POUR 10 000+ QUESTIONS) */}
+          <div className="p-4 bg-[#1e110a] border border-[#4a2412] rounded-2xl space-y-3.5 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider">
+                <Layers className="w-4 h-4" />
+                <span>Filtrer les Fiches par Thème ({ficheThemeOptions.length} thèmes disponibles)</span>
+              </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+              {(ficheThemeFilter !== 'all' || ficheDialectFilter !== 'all' || ficheDifficultyFilter !== 'all' || ficheSearchQuery.trim() !== '') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFicheThemeFilter('all');
+                    setFicheDialectFilter('all');
+                    setFicheDifficultyFilter('all');
+                    setFicheSearchQuery('');
+                    setFicheCurrentPage(1);
+                  }}
+                  className="text-[11px] text-[#f59e0b] hover:underline font-semibold self-start sm:self-auto"
+                >
+                  Réinitialiser tous les filtres ({items.length} fiches)
+                </button>
+              )}
+            </div>
+
+            {/* Interactive Theme Selector Pills */}
+            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setFicheThemeFilter('all');
+                  setFicheCurrentPage(1);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  ficheThemeFilter === 'all'
+                    ? 'bg-[#c85a32] text-white shadow-md'
+                    : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10] border border-[#3f2113]'
+                }`}
+              >
+                <span>📚 Tous les thèmes</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 text-white">
+                  {items.length}
+                </span>
+              </button>
+
+              {ficheThemeOptions.map(th => (
+                <button
+                  key={th.id}
+                  type="button"
+                  onClick={() => {
+                    setFicheThemeFilter(th.id);
+                    setFicheCurrentPage(1);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    ficheThemeFilter === th.id
+                      ? 'bg-[#f59e0b] text-black font-bold shadow-md'
+                      : 'bg-[#27150c] text-[#fed7aa] hover:bg-[#341b10] border border-[#3f2113]'
+                  }`}
+                >
+                  <span>{th.icon}</span>
+                  <span>{th.shortName}</span>
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    ficheThemeFilter === th.id ? 'bg-black/20 text-black font-bold' : 'bg-[#140a05] text-[#f59e0b]'
+                  }`}>
+                    {th.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input + Theme Dropdown + Dialect & Difficulty Filters */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+              <div className="relative sm:col-span-5">
+                <Search className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={ficheSearchQuery}
+                  onChange={(e) => {
+                    setFicheSearchQuery(e.target.value);
+                    setFicheCurrentPage(1);
+                  }}
+                  placeholder="Rechercher français, Myènè, ID, phonétique..."
+                  className="w-full pl-9 pr-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-xs text-white focus:outline-none focus:border-[#f59e0b]"
+                />
+              </div>
+
+              <div className="sm:col-span-3">
+                <select
+                  value={ficheThemeFilter}
+                  onChange={(e) => {
+                    setFicheThemeFilter(e.target.value);
+                    setFicheCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-xs text-[#fed7aa] focus:outline-none focus:border-[#f59e0b]"
+                >
+                  <option value="all">Tous les thèmes ({items.length})</option>
+                  {ficheThemeOptions.map(th => (
+                    <option key={th.id} value={th.id}>
+                      {th.icon} {th.name} ({th.count})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <select
+                  value={ficheDialectFilter}
+                  onChange={(e) => {
+                    setFicheDialectFilter(e.target.value);
+                    setFicheCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-xs text-[#fed7aa] focus:outline-none focus:border-[#f59e0b]"
+                >
+                  <option value="all">Tous dialectes</option>
+                  <option value="orungu">Ôrungu</option>
+                  <option value="enenga">Enenga</option>
+                  <option value="galwa">Galoa</option>
+                  <option value="mpongwe">Mpongwè</option>
+                  <option value="nkomi">Nkomi</option>
+                  <option value="adyumba">Adyumba</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <select
+                  value={ficheDifficultyFilter}
+                  onChange={(e) => {
+                    setFicheDifficultyFilter(e.target.value);
+                    setFicheCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-xs text-[#fed7aa] focus:outline-none focus:border-[#f59e0b]"
+                >
+                  <option value="all">Toute difficulté</option>
+                  <option value="debutant">Débutant</option>
+                  <option value="intermediaire">Intermédiaire</option>
+                  <option value="avance">Avancé</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Top Pagination Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-[#3b1d10] text-xs">
+              <div className="text-[#d4af94]">
+                Affichage de{' '}
+                <strong className="text-white">
+                  {filteredQuestionnaireItems.length === 0 ? 0 : (safeFichePage - 1) * fichePageSize + 1}
+                </strong>{' '}
+                à{' '}
+                <strong className="text-white">
+                  {Math.min(safeFichePage * fichePageSize, filteredQuestionnaireItems.length)}
+                </strong>{' '}
+                sur <strong className="text-[#f59e0b]">{filteredQuestionnaireItems.length}</strong> fiche(s) filtrée(s)
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={fichePageSize}
+                  onChange={(e) => {
+                    setFichePageSize(Number(e.target.value));
+                    setFicheCurrentPage(1);
+                  }}
+                  className="px-2.5 py-1 bg-[#140a05] border border-[#4a2412] rounded-lg text-[11px] text-[#fed7aa]"
+                >
+                  <option value={50}>50 / page</option>
+                  <option value={100}>100 / page</option>
+                  <option value={250}>250 / page</option>
+                </select>
+
+                <div className="flex items-center gap-1">
                   <button
-                    onClick={() => {
-                      setEditingItemId(item.id);
-                      setFormData({
-                        frenchText: item.frenchText,
-                        myeneText: item.myeneText,
-                        category: item.category,
-                        difficulty: item.difficulty,
-                        contextNotes: item.contextNotes || '',
-                        imageUrl: item.imageUrl || '',
-                        dialect: item.dialect || 'enenga'
-                      });
-                      setIsEditingItem(true);
-                    }}
-                    className="p-2 rounded-lg bg-[#180d07] hover:bg-[#341b10] text-[#fed7aa]"
+                    type="button"
+                    disabled={safeFichePage <= 1}
+                    onClick={() => setFicheCurrentPage(1)}
+                    className="px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] disabled:opacity-40 font-bold"
                   >
-                    <Edit className="w-3.5 h-3.5" />
+                    « Début
                   </button>
                   <button
-                    onClick={() => onDeleteQuestionnaireItem(item.id)}
-                    className="p-2 rounded-lg bg-[#180d07] hover:bg-[#7f1d1d] text-[#fca5a5]"
+                    type="button"
+                    disabled={safeFichePage <= 1}
+                    onClick={() => setFicheCurrentPage(p => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] disabled:opacity-40 font-bold"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    ‹ Préc.
+                  </button>
+                  <span className="px-3 py-1 rounded-lg bg-[#140a05] border border-[#4a2412] text-white font-bold">
+                    Page {safeFichePage} / {totalFichePages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={safeFichePage >= totalFichePages}
+                    onClick={() => setFicheCurrentPage(p => Math.min(totalFichePages, p + 1))}
+                    className="px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] disabled:opacity-40 font-bold"
+                  >
+                    Suiv. ›
+                  </button>
+                  <button
+                    type="button"
+                    disabled={safeFichePage >= totalFichePages}
+                    onClick={() => setFicheCurrentPage(totalFichePages)}
+                    className="px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] disabled:opacity-40 font-bold"
+                  >
+                    Fin »
                   </button>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
+
+          {/* PAGINATED FICHES LIST */}
+          {paginatedQuestionnaireItems.length === 0 ? (
+            <div className="p-10 bg-[#1e110a] border border-[#4a2412] rounded-2xl text-center space-y-2">
+              <div className="text-sm font-bold text-white">Aucune fiche ne correspond à ce filtre</div>
+              <p className="text-xs text-[#a8826d]">
+                Essayez de changer de thème ou d'effacer la recherche pour afficher les autres fiches.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {paginatedQuestionnaireItems.map(item => {
+                const thObj = ficheThemeOptions.find(t => t.id === (item.category || item.theme));
+                return (
+                  <div key={item.id} className="p-4 bg-[#27150c] border border-[#4a2412] hover:border-[#d97706]/50 rounded-2xl flex items-center justify-between gap-3 shadow-md transition-colors">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.frenchText}
+                        loading="lazy"
+                        className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#4a2412]"
+                      />
+                      <div className="overflow-hidden space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#180d07] text-[#f59e0b] border border-[#4a2412] font-bold truncate">
+                            {thObj ? `${thObj.icon} ${thObj.shortName}` : item.category}
+                          </span>
+                          <span className="text-[10px] text-[#a8826d] font-mono truncate">
+                            {item.id}
+                          </span>
+                        </div>
+                        <h5 className="font-bold text-xs text-white truncate">{item.frenchText}</h5>
+                        <p className="font-serif text-sm text-[#f59e0b] truncate">{item.myeneText}</p>
+                        <span className="text-[10px] text-[#a8826d] capitalize block">
+                          {item.dialect || 'enenga'} • {item.difficulty}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingItemId(item.id);
+                          setFormData({
+                            frenchText: item.frenchText,
+                            myeneText: item.myeneText,
+                            category: item.category || item.theme || 'vie_quotidienne_famille',
+                            difficulty: item.difficulty,
+                            contextNotes: item.contextNotes || '',
+                            imageUrl: item.imageUrl || '',
+                            dialect: item.dialect || 'enenga'
+                          });
+                          setIsEditingItem(true);
+                        }}
+                        className="p-2 rounded-lg bg-[#180d07] hover:bg-[#341b10] text-[#fed7aa]"
+                        title="Modifier la fiche"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteQuestionnaireItem(item.id)}
+                        className="p-2 rounded-lg bg-[#180d07] hover:bg-[#7f1d1d] text-[#fca5a5]"
+                        title="Supprimer la fiche"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Bottom Pagination Bar for quick navigation after reading the 50 items */}
+          {totalFichePages > 1 && (
+            <div className="flex items-center justify-between p-3 bg-[#1e110a] border border-[#4a2412] rounded-2xl text-xs">
+              <span className="text-[#a8826d]">
+                Page <strong className="text-white">{safeFichePage}</strong> sur <strong className="text-white">{totalFichePages}</strong>
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safeFichePage <= 1}
+                  onClick={() => {
+                    setFicheCurrentPage(p => Math.max(1, p - 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] disabled:opacity-40 font-bold"
+                >
+                  ‹ Page précédente
+                </button>
+                <button
+                  type="button"
+                  disabled={safeFichePage >= totalFichePages}
+                  onClick={() => {
+                    setFicheCurrentPage(p => Math.min(totalFichePages, p + 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-[#c85a32] hover:opacity-90 text-white disabled:opacity-40 font-bold"
+                >
+                  Page suivante ›
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

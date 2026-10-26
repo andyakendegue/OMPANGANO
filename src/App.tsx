@@ -22,6 +22,7 @@ import {
   handleFirestoreError, 
   OperationType,
   dualSaveRecord,
+  dualBatchSaveRecords,
   dualDeleteRecord,
   ensureFirebaseAuthSession,
   convertBlobToBase64,
@@ -52,7 +53,8 @@ import {
   INITIAL_VILLAGES, 
   INITIAL_WEEKLY_CHALLENGES,
   THEMATIC_CATEGORIES,
-  getLevelForXp 
+  getLevelForXp,
+  deduplicateParsedCsvItems
 } from './services/seedData';
 import { 
   getPendingOfflineContributions, 
@@ -1778,32 +1780,48 @@ export default function App() {
     }
   };
 
-  // Batch import phrases handler (CSV Import)
-  const handleBatchImportItems = async (newItems: QuestionnaireItem[]) => {
-    if (!newItems || newItems.length === 0) return;
+  // Batch import phrases handler (CSV Import - Resumable, Deduplicated & Production-Safe)
+  const handleBatchImportItems = async (
+    incomingItems: QuestionnaireItem[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => {
+    if (!incomingItems || incomingItems.length === 0) return;
 
-    for (const it of newItems) {
+    // 1. Deduplicate against all currently existing items so re-uploading the same file NEVER creates duplicates
+    // and NEVER overwrites live items or their contributions!
+    const { newItemsToImport } = deduplicateParsedCsvItems(incomingItems, items);
+    if (newItemsToImport.length === 0) {
+      onProgress?.(0, 0);
+      return;
+    }
+
+    for (const it of newItemsToImport) {
       unmarkIdAsDeleted('items', it.id);
     }
 
-    setItems(prev => {
-      const merged = [...newItems, ...prev];
-      cacheItemsLocally(merged);
-      return merged;
-    });
+    const updatedItemsList = [...newItemsToImport, ...items];
+    setItems(updatedItemsList);
+    cacheItemsLocally(updatedItemsList);
 
-    for (const it of newItems) {
-      await dualSaveRecord('items', it.id, it);
-    }
+    // 2. Commit in fast, safe chunks of 250 documents per Firestore writeBatch + RTDB update
+    await dualBatchSaveRecords(
+      'items',
+      newItemsToImport.map(it => ({ id: it.id, data: it })),
+      onProgress
+    );
 
-    setSystemMetrics(prev => ({
-      ...prev,
-      totalItems: prev.totalItems + newItems.length,
+    const updatedTotal = updatedItemsList.length;
+    const nextMetrics: SystemMetric = {
+      ...systemMetrics,
+      id: 'summary',
+      totalItems: updatedTotal,
       lastUpdated: new Date().toISOString()
-    }));
+    };
+    setSystemMetrics(nextMetrics);
+    await dualSaveRecord('metrics', 'summary', nextMetrics);
 
     NotificationService.sendLocalNotification('Importation Réussie ! 📚', {
-      body: `${newItems.length} phrases ont été importées et synchronisées dans Firebase.`
+      body: `${newItemsToImport.length} nouvelles phrases ont été importées sans aucun doublon dans Firebase.`
     });
   };
 
@@ -1897,10 +1915,11 @@ export default function App() {
   const handleTriggerCloudSync = async () => {
     await ensureFirebaseAuthSession();
 
-    // 1. Sync all Items (Questions/Expressions)
-    for (const it of items) {
-      await dualSaveRecord('items', it.id, it);
-    }
+    // 1. Sync all Items in fast 250-doc batches (supports 10,000+ items cleanly)
+    await dualBatchSaveRecords(
+      'items',
+      items.map(it => ({ id: it.id, data: it }))
+    );
 
     // 2. Sync all Clans
     for (const cl of clans) {
@@ -2162,6 +2181,7 @@ export default function App() {
         {currentTab === 'explore' && (
           <VocabularyExplorer
             items={items}
+            themes={themes}
             onSelectExpression={(index) => {
               setCurrentItemIndex(index);
               setCurrentTab('crowdsource');

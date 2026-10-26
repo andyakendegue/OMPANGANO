@@ -23,12 +23,14 @@ import {
   deleteDoc, 
   getDoc, 
   collection, 
-  getDocs 
+  getDocs,
+  writeBatch
 } from 'firebase/firestore';
 import { 
   getDatabase, 
   ref as rtdbRef, 
   set as rtdbSet, 
+  update as rtdbUpdate,
   remove as rtdbRemove,
   get as rtdbGet,
   child as rtdbChild
@@ -357,6 +359,72 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
   }
 
   return { firestore: fsOk, rtdb: rtdbOk };
+}
+
+/**
+ * High-speed chunked batch writer for large CSV imports (1,000 to 10,000+ items).
+ * Commits in chunks of 250 documents per Firestore `writeBatch` (well below the 500-op hard limit)
+ * and multi-key updates in Realtime Database, reporting live progress after each chunk.
+ */
+export async function dualBatchSaveRecords(
+  collectionPath: string,
+  records: Array<{ id: string; data: any }>,
+  onProgress?: (savedCount: number, totalCount: number) => void
+): Promise<{ savedCount: number; totalCount: number }> {
+  const totalCount = records.length;
+  if (totalCount === 0) {
+    onProgress?.(0, 0);
+    return { savedCount: 0, totalCount: 0 };
+  }
+
+  const activeUser = await ensureFirebaseAuthSession();
+  const CHUNK_SIZE = 250;
+  let savedCount = 0;
+
+  for (let start = 0; start < totalCount; start += CHUNK_SIZE) {
+    const chunk = records.slice(start, start + CHUNK_SIZE);
+    const rtdbChunkPayload: Record<string, any> = {};
+
+    if (activeUser && (typeof navigator === 'undefined' || navigator.onLine)) {
+      try {
+        const batch = writeBatch(db);
+        for (const entry of chunk) {
+          const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
+          if (!safeId) continue;
+          const sanitized = sanitizeDataForFirebase(entry.data);
+          batch.set(doc(db, collectionPath, safeId), sanitized, { merge: true });
+          rtdbChunkPayload[safeId] = sanitized;
+        }
+        await batch.commit();
+      } catch (batchErr) {
+        console.warn(`[Batch Import] Fallback unitaire sur le lot ${start}-${start + chunk.length}:`, batchErr);
+        for (const entry of chunk) {
+          const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
+          if (!safeId) continue;
+          const sanitized = sanitizeDataForFirebase(entry.data);
+          rtdbChunkPayload[safeId] = sanitized;
+          try {
+            await setDoc(doc(db, collectionPath, safeId), sanitized, { merge: true });
+          } catch (singleErr) {
+            console.warn(`[Batch Import] Erreur sur ${collectionPath}/${safeId}:`, singleErr);
+          }
+        }
+      }
+
+      if (rtdb && Object.keys(rtdbChunkPayload).length > 0) {
+        try {
+          await rtdbUpdate(rtdbRef(rtdb, collectionPath), rtdbChunkPayload);
+        } catch (rtdbErr) {
+          console.warn(`[Batch Import] Notice RTDB sur le lot ${start}-${start + chunk.length}:`, rtdbErr);
+        }
+      }
+    }
+
+    savedCount += chunk.length;
+    onProgress?.(savedCount, totalCount);
+  }
+
+  return { savedCount, totalCount };
 }
 
 // Dual delete helper: deletes from Firestore AND Realtime Database with offline queueing
