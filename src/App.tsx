@@ -405,24 +405,23 @@ export default function App() {
       testFirestoreConnection();
     }
 
-    // 0. Instant Airplane Mode / Offline session restoration:
-    // When the phone is in Airplane Mode, immediately restore the saved user profile from localStorage
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      try {
-        const rawOfflineUser = localStorage.getItem('nkala_authenticated_user');
-        if (rawOfflineUser) {
-          const parsedOffline = JSON.parse(rawOfflineUser) as UserProfile;
-          if (parsedOffline && parsedOffline.id) {
-            if (checkIsAdminEmail(parsedOffline.email) && parsedOffline.role !== 'admin') {
-              parsedOffline.role = 'admin';
-            }
-            setCurrentUser(parsedOffline);
-            setIsOnboardingModalOpen(!parsedOffline.registrationCompleted);
-            setIsAuthChecking(false);
+    // 0. Instant session restoration (Online & Airplane Mode):
+    // Immediately restore the saved user profile from localStorage so the app opens in 0ms without waiting for network timeouts
+    try {
+      const rawSavedUser = localStorage.getItem('nkala_authenticated_user');
+      if (rawSavedUser) {
+        const parsedSaved = JSON.parse(rawSavedUser) as UserProfile;
+        if (parsedSaved && parsedSaved.id) {
+          if (checkIsAdminEmail(parsedSaved.email) && parsedSaved.role !== 'admin') {
+            parsedSaved.role = 'admin';
+            localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsedSaved));
           }
+          setCurrentUser(parsedSaved);
+          setIsOnboardingModalOpen(!parsedSaved.registrationCompleted);
+          setIsAuthChecking(false);
         }
-      } catch {}
-    }
+      }
+    } catch {}
 
     // 1. Cross-tab storage synchronization: when Tab 1 completes onboarding, Tab 2 updates immediately
     const handleStorageChange = (e: StorageEvent) => {
@@ -449,26 +448,31 @@ export default function App() {
         setIsFirebaseAuthReady(true);
         const isSuperAdmin = checkIsAdminEmail(fbUser.email);
 
-        // If device is in Airplane Mode (!navigator.onLine) and we have the cached profile, restore it immediately without waiting for network timeout
-        if (typeof navigator !== 'undefined' && !navigator.onLine) {
-          try {
-            const cachedRaw = localStorage.getItem('nkala_authenticated_user');
-            if (cachedRaw) {
-              const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
-              if (cachedProfile && cachedProfile.id === fbUser.uid) {
-                if (isSuperAdmin && cachedProfile.role !== 'admin') {
-                  cachedProfile.role = 'admin';
-                }
-                setCurrentUser(cachedProfile);
-                setIsOnboardingModalOpen(!cachedProfile.registrationCompleted);
-                setIsAuthChecking(false);
-                return;
+        // Immediately hydrate from localStorage if matching user so UI never blocks on slow/offline networks
+        let restoredFromLocal = false;
+        try {
+          const cachedRaw = localStorage.getItem('nkala_authenticated_user');
+          if (cachedRaw) {
+            const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
+            if (cachedProfile && cachedProfile.id === fbUser.uid) {
+              if (isSuperAdmin && cachedProfile.role !== 'admin') {
+                cachedProfile.role = 'admin';
               }
+              setCurrentUser(cachedProfile);
+              setIsOnboardingModalOpen(!cachedProfile.registrationCompleted);
+              setIsAuthChecking(false);
+              restoredFromLocal = true;
             }
-          } catch {}
+          }
+        } catch {}
+
+        if (typeof navigator !== 'undefined' && !navigator.onLine && restoredFromLocal) {
+          return;
         }
 
-        setIsAuthChecking(true);
+        if (!restoredFromLocal) {
+          setIsAuthChecking(true);
+        }
 
         // Replay any pending offline admin mutations now that we have a valid Firebase Auth token
         if (typeof navigator === 'undefined' || navigator.onLine) {
@@ -512,22 +516,10 @@ export default function App() {
           }
         } catch (fetchErr) {
           console.warn('Notice checking cloud user profile:', fetchErr);
-          // Fallback to locally cached user if network is slow/offline for this same uid
-          try {
-            const cachedRaw = localStorage.getItem('nkala_authenticated_user');
-            if (cachedRaw) {
-              const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
-              if (cachedProfile && cachedProfile.id === fbUser.uid) {
-                if (isSuperAdmin && cachedProfile.role !== 'admin') {
-                  cachedProfile.role = 'admin';
-                }
-                setCurrentUser(cachedProfile);
-                setIsOnboardingModalOpen(!cachedProfile.registrationCompleted);
-                setIsAuthChecking(false);
-                return;
-              }
-            }
-          } catch {}
+          if (restoredFromLocal) {
+            setIsAuthChecking(false);
+            return;
+          }
         }
 
         // 3. Create and persist user profile in Firestore & RTDB immediately upon first login!
@@ -594,24 +586,21 @@ export default function App() {
                 localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
               }
 
-              // In Airplane Mode (!navigator.onLine), restore the local profile directly without requiring a network auth call
-              if (typeof navigator !== 'undefined' && !navigator.onLine) {
-                setCurrentUser(parsed);
-                setIsOnboardingModalOpen(!parsed.registrationCompleted);
-                setIsAuthChecking(false);
-                return;
-              }
+              // Always restore the saved profile immediately so Airplane Mode / weak network never logs the user out
+              setCurrentUser(parsed);
+              setIsOnboardingModalOpen(!parsed.registrationCompleted);
+              setIsAuthChecking(false);
 
-              const fallbackAuth = await ensureFirebaseAuthSession();
-              if (fallbackAuth) {
-                setIsFirebaseAuthReady(true);
-                setCurrentUser(parsed);
-                if (parsed.registrationCompleted) {
-                  setIsOnboardingModalOpen(false);
-                }
-                setIsAuthChecking(false);
-                return;
+              if (typeof navigator === 'undefined' || navigator.onLine) {
+                ensureFirebaseAuthSession()
+                  .then((fallbackAuth) => {
+                    if (fallbackAuth) {
+                      setIsFirebaseAuthReady(true);
+                    }
+                  })
+                  .catch(() => {});
               }
+              return;
             }
           }
         } catch {}

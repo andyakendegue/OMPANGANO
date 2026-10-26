@@ -17,6 +17,7 @@ import {
   clearOfflineStorage, 
   getPendingOfflineContributions 
 } from '../services/offlineStorage';
+import { warmUpOfflineShell, useOfflineShellStatus } from '../services/pwaOfflineManager';
 
 interface OfflinePackModalProps {
   isOpen: boolean;
@@ -39,11 +40,13 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
   const [downloadProgressPct, setDownloadProgressPct] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState<OfflineSubmission[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const offlineShell = useOfflineShellStatus();
 
   useEffect(() => {
     if (isOpen) {
       setPackStatus(getOfflinePackStatus());
       getPendingOfflineContributions().then(setPendingSubmissions);
+      warmUpOfflineShell();
     }
   }, [isOpen]);
 
@@ -51,15 +54,15 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
 
   const handleStartDownload = async () => {
     if (!isOnline) {
-      alert("Une connexion Internet est requise pour télécharger les phrases et les images.");
       return;
     }
 
     setIsDownloading(true);
     setDownloadProgressPct(0);
-    setDownloadStepMsg("Initialisation de l'archive locale...");
+    setDownloadStepMsg("Initialisation de l'archive locale & Mode Avion Safari...");
 
     try {
+      await warmUpOfflineShell();
       const result = await downloadFullOfflinePack(items, (pct, msg) => {
         setDownloadProgressPct(pct);
         setDownloadStepMsg(msg);

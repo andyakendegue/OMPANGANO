@@ -9,10 +9,12 @@ import {
   RefreshCw, 
   DownloadCloud,
   Globe2,
-  HardDrive
+  HardDrive,
+  CheckCircle2
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
+import { useOfflineShellStatus } from '../services/pwaOfflineManager';
 
 interface NavbarProps {
   currentUser: UserProfile | null;
@@ -41,6 +43,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
   onSelectTab
 }) => {
+  const offlineShell = useOfflineShellStatus();
+
   return (
     <header className="sticky top-0 z-40 bg-[#170d08]/95 backdrop-blur-md border-b border-[#3d1f11] px-3.5 py-3 sm:px-6">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
@@ -82,23 +86,29 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenOfflinePack}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fed7aa] border border-[#4a2412] text-xs font-semibold active:scale-95 transition-all"
-            title="Gérer le pack hors-ligne"
+            title={offlineShell.isReady ? "Application prête pour le Mode Avion" : "Gérer le pack hors-ligne"}
           >
-            <DownloadCloud className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span className="hidden md:inline">Mode Hors-ligne</span>
+            {offlineShell.isReady ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#22c55e]" />
+            ) : (
+              <DownloadCloud className="w-3.5 h-3.5 text-[#f59e0b]" />
+            )}
+            <span className="hidden md:inline">
+              {offlineShell.isReady ? 'Mode Avion Prêt' : 'Mode Hors-ligne'}
+            </span>
           </button>
 
           {/* Online / Offline status */}
-          <div className="hidden xs:flex items-center">
+          <div className="flex items-center">
             {isOnline ? (
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#14532d]/40 text-[#86efac] border border-[#22c55e]/30">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-medium bg-[#14532d]/40 text-[#86efac] border border-[#22c55e]/30">
                 <Wifi className="w-3 h-3 text-[#22c55e]" />
                 <span className="hidden lg:inline">En ligne</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#7f1d1d]/40 text-[#fca5a5] border border-[#ef4444]/30 animate-pulse">
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-medium bg-[#7f1d1d]/40 text-[#fca5a5] border border-[#ef4444]/30 animate-pulse">
                 <WifiOff className="w-3 h-3 text-[#ef4444]" />
-                <span>Hors-ligne</span>
+                <span>Mode Avion</span>
               </span>
             )}
           </div>

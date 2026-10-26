@@ -23,6 +23,8 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, signInWithPhoneBridge, checkIsAdminEmail } from '../firebase';
 import { UserProfile } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
+import { useOfflineShellStatus } from '../services/pwaOfflineManager';
 
 interface AuthGateScreenProps {
   onLoginSuccess: (profile: Partial<UserProfile>) => void;
@@ -35,6 +37,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const offlineShell = useOfflineShellStatus();
 
   // Phone SMS verification flow
   const [phoneStep, setPhoneStep] = useState<'enter_phone' | 'enter_code'>('enter_phone');
@@ -199,7 +202,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     }
   };
 
-  // Fallback direct phone connect with real Firebase Auth session
+  // Fallback direct phone connect with real Firebase Auth session (or local offline session in Airplane Mode)
   const handleDirectPhoneFallback = async () => {
     const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
     if (!cleanDigits || cleanDigits.length < 6) {
@@ -210,13 +213,21 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     setIsLoading(true);
     setErrorMessage(null);
 
+    const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
+    const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
+    const fullName = userName.trim() || 'Locuteur Myènè';
+
     try {
-      // Connects with genuine Firebase Auth session so firestore permissions succeed
-      const fbUser = await signInWithPhoneBridge(phoneNumber);
-      const uid = fbUser.uid;
-      const fullPhone = `${countryCode.trim()} ${phoneNumber.trim()}`;
-      const displayName = userName.trim() || ('Gardien ' + cleanDigits.slice(-4));
-      const fullName = userName.trim() || 'Locuteur Myènè';
+      // Connects with genuine Firebase Auth session when online, or falls back to local UID in Airplane Mode
+      let uid = `phone-${cleanDigits}`;
+      if (typeof navigator === 'undefined' || navigator.onLine) {
+        try {
+          const fbUser = await signInWithPhoneBridge(phoneNumber);
+          if (fbUser?.uid) uid = fbUser.uid;
+        } catch {
+          // Network unreachable / Airplane Mode: proceed with deterministic local UID
+        }
+      }
 
       onLoginSuccess({
         id: uid,
@@ -246,7 +257,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
       <div id="recaptcha-verifier-container"></div>
 
       {/* Top Brand Header */}
-      <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-4">
+      <header className="max-w-5xl w-full mx-auto flex items-center justify-between gap-2 py-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[#c85a32] via-[#f59e0b] to-[#0d9488] shadow-lg border border-[#f59e0b]/40">
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
@@ -268,9 +279,18 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-[#fed7aa] bg-[#27150c]/80 border border-[#4a2412] px-3.5 py-1.5 rounded-full">
-          <ShieldCheck className="w-4 h-4 text-[#22c55e]" />
-          <span>Accès Sécurisé Réservé</span>
+        <div className="flex items-center gap-2">
+          <PWAInstallButton />
+          {offlineShell.isReady && (
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#86efac] bg-[#14532d]/40 border border-[#22c55e]/30 px-2.5 py-1.5 rounded-full">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#22c55e]" />
+              <span>Mode Avion Prêt</span>
+            </div>
+          )}
+          <div className="hidden md:flex items-center gap-2 text-xs text-[#fed7aa] bg-[#27150c]/80 border border-[#4a2412] px-3.5 py-1.5 rounded-full">
+            <ShieldCheck className="w-4 h-4 text-[#22c55e]" />
+            <span>Accès Sécurisé Réservé</span>
+          </div>
         </div>
       </header>
 
