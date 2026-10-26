@@ -10,10 +10,16 @@ import {
   Calendar, 
   UserCheck,
   Lock,
-  Compass
+  Compass,
+  Scale,
+  FileText,
+  ShieldCheck,
+  Mic,
+  Image as ImageIcon
 } from 'lucide-react';
 import { UserProfile, TribeName, ClanRegistry, VillageRegistry } from '../types';
 import { MYENE_TRIBES } from '../services/seedData';
+import { CURRENT_TERMS_VERSION } from './TermsConsentModal';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -23,6 +29,7 @@ interface OnboardingModalProps {
   onComplete: (profileData: Partial<UserProfile>) => Promise<void>;
   onAddNewClan: (name: string, tribe: string) => Promise<ClanRegistry>;
   onAddNewVillage: (name: string, clan: string, tribe: string, region?: string) => Promise<VillageRegistry>;
+  onOpenFullContractModal?: () => void;
 }
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({
@@ -32,7 +39,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   villages,
   onComplete,
   onAddNewClan,
-  onAddNewVillage
+  onAddNewVillage,
+  onOpenFullContractModal
 }) => {
   const [fullName, setFullName] = useState(currentUser?.fullName || currentUser?.displayName || '');
   const [contact, setContact] = useState(currentUser?.contact || currentUser?.phoneNumber || currentUser?.email || '');
@@ -61,6 +69,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [customVillageClan, setCustomVillageClan] = useState('');
   const [customVillageRegion, setCustomVillageRegion] = useState('');
 
+  // Conditions de la plateforme & Consentement d'utilisation des données (Contributeur Individuel)
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(currentUser?.termsAccepted ?? false);
+  const [dataUsageAccepted, setDataUsageAccepted] = useState<boolean>(currentUser?.dataUsageAccepted ?? false);
+  const [consentVoiceUsage, setConsentVoiceUsage] = useState<boolean>(currentUser?.consentVoiceUsage ?? true);
+  const [consentImageUsage, setConsentImageUsage] = useState<boolean>(currentUser?.consentImageUsage ?? false);
+  const [legalGuardianName, setLegalGuardianName] = useState<string>(currentUser?.legalGuardianName || '');
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -78,6 +93,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       if (currentUser.paternalClan) setPaternalClan(currentUser.paternalClan);
       if (currentUser.maternalClan) setMaternalClan(currentUser.maternalClan);
       if (currentUser.villageOfOrigin) setVillageOfOrigin(currentUser.villageOfOrigin);
+      if (currentUser.termsAccepted !== undefined) setTermsAccepted(currentUser.termsAccepted);
+      if (currentUser.dataUsageAccepted !== undefined) setDataUsageAccepted(currentUser.dataUsageAccepted);
+      if (currentUser.consentVoiceUsage !== undefined) setConsentVoiceUsage(currentUser.consentVoiceUsage);
+      if (currentUser.consentImageUsage !== undefined) setConsentImageUsage(currentUser.consentImageUsage);
+      if (currentUser.legalGuardianName) setLegalGuardianName(currentUser.legalGuardianName);
     }
   }, [currentUser]);
 
@@ -166,6 +186,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       return;
     }
 
+    if (!termsAccepted || !dataUsageAccepted) {
+      setErrorMessage(
+        "Vous devez accepter les Conditions Générales de la plateforme et valider l'autorisation d'utilisation de vos données pour poursuivre."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onComplete({
@@ -179,6 +206,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         maternalClan: finalMaternalClan,
         villageOfOrigin: finalVillage,
         registrationCompleted: true,
+        termsAccepted: true,
+        dataUsageAccepted: true,
+        consentVoiceUsage,
+        consentImageUsage,
+        partnerAssociation: 'Contributeur Individuel',
+        electronicSignature: `Lu et approuvé - ${fullName.trim()}`,
+        legalGuardianName: legalGuardianName.trim() || undefined,
+        termsAcceptedAt: new Date().toISOString(),
+        termsVersion: CURRENT_TERMS_VERSION,
         suspicionScore: 0,
         status: 'active',
         badges: Array.from(new Set([...(currentUser?.badges || []), 'badge-genealogie-verifiee']))
@@ -554,6 +590,109 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </div>
           </div>
 
+          {/* 3. Conditions de la Plateforme & Consentement d'Utilisation des Données (Contributeur Individuel) */}
+          <div className="p-4 bg-[#180d07] rounded-2xl border border-[#f59e0b]/40 space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#3b1d10] pb-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#f59e0b] flex items-center gap-1.5">
+                <Scale className="w-4 h-4" />
+                <span>3. Conditions de la Plateforme & Utilisation des Données</span>
+              </h3>
+
+              <div className="flex items-center gap-2">
+                {onOpenFullContractModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenFullContractModal}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#381e11] text-[#fde047] border border-[#f59e0b]/40 text-[11px] font-bold transition"
+                  >
+                    <FileText className="w-3 h-3 text-[#f59e0b]" />
+                    <span>Lire les Conditions Complètes & Barème UC</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Synthèse des engagements du contributeur individuel */}
+            <div className="p-3 rounded-xl bg-[#24130a] border border-[#3b1d10] text-[11px] text-[#d4af94] space-y-1.5 leading-relaxed">
+              <div className="font-bold text-[#fde047] flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
+                <span>Synthèse du Consentement du Contributeur Individuel (Essaka Engineering) :</span>
+              </div>
+              <p>
+                <strong>(1)</strong> Mes textes, traductions, images et enregistrements vocaux sont collectés par <strong>Essaka Engineering</strong> (Port-Gentil, Gabon, RCCM RG/POG 2022 A 1290) dans le cadre du programme participatif <strong>OMPAGANO</strong>.{' '}
+                <strong>(2)</strong> Ils servent à entraîner et améliorer des modèles d'intelligence artificielle valorisant les langues gabonaises, utilisés notamment dans l'application <strong>NKALA</strong>.{' '}
+                <strong>(3)</strong> Ma participation individuelle donne droit à un partage des Revenus Nets IA au prorata de mes Unités de Contribution (UC) validées (paiement par Mobile Money Airtel/Moov Money ou virement en FCFA).{' '}
+                <strong>(4)</strong> Je dispose d'un droit d'accès, de correction, de suppression (sous 60 jours) et de retrait (Loi n° 001/2011 & CNPDCP).{' '}
+                <strong>(5)</strong> Je participe librement et conserve mes droits d'auteur (OAPI Accord de Bangui Annexe VII).
+              </p>
+            </div>
+
+            {/* Représentant légal si mineur */}
+            <div>
+              <label className="block text-[11px] text-[#fed7aa] font-medium mb-1">
+                Pour un contributeur mineur (Nom & qualité du parent ou représentant légal – facultatif si majeur) :
+              </label>
+              <input
+                type="text"
+                value={legalGuardianName}
+                onChange={(e) => setLegalGuardianName(e.target.value)}
+                placeholder="Laisser vide si vous êtes majeur(e)"
+                className="w-full px-3 py-2 bg-[#24130a] border border-[#522915] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
+              />
+            </div>
+
+            {/* Checkboxes */}
+            <div className="space-y-2">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#24130a] border border-[#522915] hover:border-[#f59e0b] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[#f59e0b] rounded shrink-0"
+                />
+                <span className="text-xs text-white leading-snug">
+                  <strong className="text-[#fde047]">J'accepte les Conditions Générales de la plateforme OMPAGANO / NKALA</strong> applicables aux contributeurs individuels. <span className="text-[#ef4444] font-bold">*</span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#24130a] border border-[#522915] hover:border-[#f59e0b] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={dataUsageAccepted}
+                  onChange={(e) => setDataUsageAccepted(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[#f59e0b] rounded shrink-0"
+                />
+                <span className="text-xs text-white leading-snug">
+                  <strong className="text-[#fde047]">Je valide l'utilisation de mes données personnelles et linguistiques</strong> pour l'entraînement des Modèles IA d'Essaka Engineering et le partage des revenus associés. <span className="text-[#ef4444] font-bold">*</span>
+                </span>
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className="flex items-center gap-2 p-2 rounded-xl bg-[#24130a]/70 border border-[#3b1d10] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consentVoiceUsage}
+                    onChange={(e) => setConsentVoiceUsage(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-[#c85a32] rounded shrink-0"
+                  />
+                  <Mic className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                  <span className="text-[11px] text-[#fed7aa]">J'autorise l'usage de ma <strong>voix</strong> (enregistrements audio)</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded-xl bg-[#24130a]/70 border border-[#3b1d10] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consentImageUsage}
+                    onChange={(e) => setConsentImageUsage(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-[#c85a32] rounded shrink-0"
+                  />
+                  <ImageIcon className="w-3.5 h-3.5 text-[#10b981] shrink-0" />
+                  <span className="text-[11px] text-[#fed7aa]">J'autorise l'usage de mon <strong>image</strong> (facultatif)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           {/* Submit */}
           <div className="pt-2">
             <button
@@ -564,12 +703,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               {isSubmitting ? (
                 <>
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Validation de la filiation OMPAGANO...</span>
+                  <span>Validation de la filiation & du consentement...</span>
                 </>
               ) : (
                 <>
                   <Check className="w-5 h-5 text-[#fde047]" />
-                  <span>Valider mon Enregistrement & Accéder au Programme</span>
+                  <span>Valider mon Enregistrement, mes Conditions & Accéder au Programme</span>
                   <Sparkles className="w-4 h-4 text-[#fde047]" />
                 </>
               )}
