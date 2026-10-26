@@ -606,7 +606,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#381e11] text-[#fde047] border border-[#f59e0b]/40 text-[11px] font-bold transition"
                   >
                     <FileText className="w-3 h-3 text-[#f59e0b]" />
-                    <span>Lire les Conditions Complètes & Barème UC</span>
+                    <span>Lire les Conditions & Système de Badges/Points</span>
                   </button>
                 )}
               </div>
@@ -621,7 +621,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <p>
                 <strong>(1)</strong> Mes textes, traductions, images et enregistrements vocaux sont collectés par <strong>Essaka Engineering</strong> (Port-Gentil, Gabon, RCCM RG/POG 2022 A 1290) dans le cadre du programme participatif <strong>OMPAGANO</strong>.{' '}
                 <strong>(2)</strong> Ils servent à entraîner et améliorer des modèles d'intelligence artificielle valorisant les langues gabonaises, utilisés notamment dans l'application <strong>NKALA</strong>.{' '}
-                <strong>(3)</strong> Ma participation individuelle donne droit à un partage des Revenus Nets IA au prorata de mes Unités de Contribution (UC) validées (paiement par Mobile Money Airtel/Moov Money ou virement en FCFA).{' '}
+                <strong>(3)</strong> Ma participation individuelle est valorisée par un système de <strong>Points d'Expérience (XP), de Rangs culturels, de Badges et de Défis</strong> pouvant donner lieu à des récompenses en fonction de mes accomplissements validés.{' '}
                 <strong>(4)</strong> Je dispose d'un droit d'accès, de correction, de suppression (sous 60 jours) et de retrait (Loi n° 001/2011 & CNPDCP).{' '}
                 <strong>(5)</strong> Je participe librement et conserve mes droits d'auteur (OAPI Accord de Bangui Annexe VII).
               </p>
@@ -663,7 +663,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   className="mt-0.5 w-4 h-4 accent-[#f59e0b] rounded shrink-0"
                 />
                 <span className="text-xs text-white leading-snug">
-                  <strong className="text-[#fde047]">Je valide l'utilisation de mes données personnelles et linguistiques</strong> pour l'entraînement des Modèles IA d'Essaka Engineering et le partage des revenus associés. <span className="text-[#ef4444] font-bold">*</span>
+                  <strong className="text-[#fde047]">Je valide l'utilisation de mes données personnelles et linguistiques</strong> pour l'entraînement des Modèles IA d'Essaka Engineering et l'attribution de mes points, badges et récompenses d'accomplissement. <span className="text-[#ef4444] font-bold">*</span>
                 </span>
               </label>
 

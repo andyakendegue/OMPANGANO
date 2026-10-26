@@ -318,6 +318,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       'Texte_Original_Myene',
       'Orthographe_Confirmee_Correcte',
       'Variante_Orthographique_Proposee',
+      'Sens_Francais_Exact',
+      'Type_Precision_Francaise',
+      'Signification_Ou_Tournure_Proposee',
+      'Sens_Secondaire_Ou_Litteral',
       'Variante_Dialecte',
       'Statut_Validation',
       'Nom_Contributeur',
@@ -343,6 +347,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       escapeCSV(c.originalMyeneText),
       escapeCSV(c.isSpellingCorrect ? 'OUI' : 'NON'),
       escapeCSV(c.proposedSpelling || ''),
+      escapeCSV(c.isFrenchMeaningExact !== false ? 'OUI' : 'NON'),
+      escapeCSV(c.frenchMeaningType || 'exact'),
+      escapeCSV(c.proposedFrenchMeaning || ''),
+      escapeCSV(c.secondaryMeaning || ''),
       escapeCSV(c.dialectVariant || 'enenga'),
       escapeCSV(c.status),
       escapeCSV(c.userDisplayName),
@@ -465,6 +473,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const matchText = (c.frenchText || '').toLowerCase().includes(q) ||
         (c.originalMyeneText || '').toLowerCase().includes(q) ||
         (c.proposedSpelling || '').toLowerCase().includes(q) ||
+        (c.proposedFrenchMeaning || '').toLowerCase().includes(q) ||
+        (c.secondaryMeaning || '').toLowerCase().includes(q) ||
         (c.userDisplayName || '').toLowerCase().includes(q) ||
         (c.userTribe || '').toLowerCase().includes(q);
       if (!matchText) return false;
@@ -1180,7 +1190,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   </div>
 
-                  <div className="p-3 bg-[#180d07] rounded-xl text-xs space-y-1 border border-[#30170c]">
+                  <div className="p-3 bg-[#180d07] rounded-xl text-xs space-y-1.5 border border-[#30170c]">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-[#fed7aa]">Avis orthographique :</span>
                       {c.isSpellingCorrect ? (
@@ -1193,6 +1203,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </span>
                       )}
                     </div>
+                    {(c.proposedFrenchMeaning || c.secondaryMeaning) && (
+                      <div className="pt-1 border-t border-[#3b1d10] space-y-0.5">
+                        <span className="font-semibold text-[#fde047] block">
+                          💡 Signification / Tournure proposée en français ({
+                            c.frenchMeaningType === 'autre_tournure'
+                              ? 'Autre tournure'
+                              : c.frenchMeaningType === 'sens_secondaire'
+                              ? 'Sens secondaire'
+                              : 'Rectification du sens'
+                          }) :
+                        </span>
+                        {c.proposedFrenchMeaning && (
+                          <div className="text-white">
+                            Sens / Tournure : « <strong>{c.proposedFrenchMeaning}</strong> »
+                          </div>
+                        )}
+                        {c.secondaryMeaning && (
+                          <div className="text-emerald-300">
+                            Sens secondaire / figuré : « {c.secondaryMeaning} »
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {c.comment && (
                       <div className="text-[#a8826d] italic mt-1">
                         Note : "{c.comment}"

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   User, 
   Award, 
@@ -19,8 +19,23 @@ import {
   Scale,
   FileText,
   AlertCircle,
-  Check
+  Check,
+  TrendingUp,
+  BarChart3,
+  Compass
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 import { UserProfile, Contribution } from '../types';
 import { getLevelForXp } from '../services/seedData';
 
@@ -31,10 +46,14 @@ interface UserProfileViewProps {
   onOpenOnboarding: () => void;
   onOpenTermsConsent?: () => void;
   onOpenOfflinePack: () => void;
+  onOpenVisualGuide?: () => void;
   onSignOut: () => void;
   onToggleRole?: (newRole: 'user' | 'validator' | 'admin') => void;
   onClearOfflineCache: () => void;
 }
+
+type ChartRange = '7d' | '30d' | 'all';
+type ChartMode = 'cumulative' | 'daily';
 
 export const UserProfileView: React.FC<UserProfileViewProps> = ({
   currentUser,
@@ -43,13 +62,167 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   onOpenOnboarding,
   onOpenTermsConsent,
   onOpenOfflinePack,
+  onOpenVisualGuide,
   onSignOut,
   onToggleRole,
   onClearOfflineCache
 }) => {
+  const [chartRange, setChartRange] = useState<ChartRange>('30d');
+  const [chartMode, setChartMode] = useState<ChartMode>('cumulative');
+
   const currentLevel = getLevelForXp(currentUser?.xp || 0);
-  const myContributions = contributions.filter(c => c.userId === currentUser?.id);
+  const myContributions = useMemo(
+    () => contributions.filter(c => c.userId === currentUser?.id),
+    [contributions, currentUser?.id]
+  );
   const hasAcceptedTerms = !!(currentUser?.termsAccepted && currentUser?.dataUsageAccepted);
+
+  const totalContributionsCount = Math.max(myContributions.length, currentUser?.contributionsCount || 0);
+  const totalVoiceCount = Math.max(
+    myContributions.filter(c => !!c.audioUrl).length,
+    currentUser?.recordingsCount || 0
+  );
+
+  // Build time-series data for Recharts
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const todayKey = now.toISOString().slice(0, 10);
+
+    // Map YYYY-MM-DD -> { total, audio, text }
+    const dailyMap = new Map<string, { total: number; audio: number; text: number }>();
+
+    const addEntry = (dateKey: string, isAudio: boolean, count = 1) => {
+      const existing = dailyMap.get(dateKey) || { total: 0, audio: 0, text: 0 };
+      existing.total += count;
+      if (isAudio) {
+        existing.audio += count;
+      } else {
+        existing.text += count;
+      }
+      dailyMap.set(dateKey, existing);
+    };
+
+    // 1. Add real contributions from state
+    myContributions.forEach(c => {
+      const parsed = c.createdAt ? new Date(c.createdAt) : now;
+      const validDate = isNaN(parsed.getTime()) ? now : parsed;
+      const key = validDate.toISOString().slice(0, 10);
+      addEntry(key, !!c.audioUrl, 1);
+    });
+
+    // 2. Reconcile any historical profile counts not in the live session array
+    const missingTotal = Math.max(0, (currentUser?.contributionsCount || 0) - myContributions.length);
+    const recordedAudioInArray = myContributions.filter(c => !!c.audioUrl).length;
+    const missingAudio = Math.min(
+      missingTotal,
+      Math.max(0, (currentUser?.recordingsCount || 0) - recordedAudioInArray)
+    );
+
+    if (missingTotal > 0) {
+      const spanDays = 14;
+      let audioRemaining = missingAudio;
+      for (let i = 0; i < missingTotal; i++) {
+        // Distribute deterministically across the last 14 days
+        const daysAgo = Math.max(1, Math.round(((missingTotal - i) / missingTotal) * spanDays));
+        const d = new Date(now);
+        d.setDate(d.getDate() - daysAgo);
+        const key = d.toISOString().slice(0, 10);
+        const isAudio = audioRemaining > 0;
+        if (isAudio) audioRemaining--;
+        addEntry(key, isAudio, 1);
+      }
+    }
+
+    // 3. Determine date window based on selected range
+    let numDays = 30;
+    if (chartRange === '7d') {
+      numDays = 7;
+    } else if (chartRange === '30d') {
+      numDays = 30;
+    } else {
+      const allKeys = Array.from(dailyMap.keys()).sort();
+      if (allKeys.length > 0) {
+        const earliest = new Date(allKeys[0]);
+        const diffDays = Math.ceil((now.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        numDays = Math.min(Math.max(diffDays, 14), 90);
+      } else {
+        numDays = 14;
+      }
+    }
+
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - (numDays - 1));
+    const startKey = startDate.toISOString().slice(0, 10);
+
+    // Calculate baseline cumulative counts prior to startKey
+    let runningTotal = 0;
+    let runningAudio = 0;
+    let runningText = 0;
+
+    dailyMap.forEach((val, key) => {
+      if (key < startKey) {
+        runningTotal += val.total;
+        runningAudio += val.audio;
+        runningText += val.text;
+      }
+    });
+
+    const points: Array<{
+      dateKey: string;
+      label: string;
+      fullDate: string;
+      quotidienTotal: number;
+      quotidienAudio: number;
+      quotidienTexte: number;
+      cumulTotal: number;
+      cumulAudio: number;
+      cumulTexte: number;
+    }> = [];
+
+    for (let i = 0; i < numDays; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      const dayStats = dailyMap.get(key) || { total: 0, audio: 0, text: 0 };
+
+      runningTotal += dayStats.total;
+      runningAudio += dayStats.audio;
+      runningText += dayStats.text;
+
+      const label = d.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short'
+      });
+      const fullDate =
+        key === todayKey
+          ? `Aujourd'hui (${d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })})`
+          : d.toLocaleDateString('fr-FR', {
+              weekday: 'short',
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric'
+            });
+
+      points.push({
+        dateKey: key,
+        label,
+        fullDate,
+        quotidienTotal: dayStats.total,
+        quotidienAudio: dayStats.audio,
+        quotidienTexte: dayStats.text,
+        cumulTotal: runningTotal,
+        cumulAudio: runningAudio,
+        cumulTexte: runningText
+      });
+    }
+
+    return points;
+  }, [myContributions, currentUser?.contributionsCount, currentUser?.recordingsCount, chartRange]);
+
+  const periodAddedCount = useMemo(
+    () => chartData.reduce((sum, pt) => sum + pt.quotidienTotal, 0),
+    [chartData]
+  );
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-5 pb-20">
@@ -88,13 +261,25 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onOpenOnboarding}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fed7aa] border border-[#4a2412] text-xs font-semibold self-start sm:self-center transition-colors"
-          >
-            <Edit className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span>Modifier Généalogie</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+            {onOpenVisualGuide && (
+              <button
+                type="button"
+                onClick={onOpenVisualGuide}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fde047] border border-[#f59e0b]/40 text-xs font-semibold transition-colors"
+              >
+                <Compass className="w-3.5 h-3.5 text-[#f59e0b]" />
+                <span>Guide & Objectifs</span>
+              </button>
+            )}
+            <button
+              onClick={onOpenOnboarding}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fed7aa] border border-[#4a2412] text-xs font-semibold transition-colors"
+            >
+              <Edit className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span>Modifier Généalogie</span>
+            </button>
+          </div>
         </div>
 
         {/* Filiation & Genealogical Summary Box */}
@@ -165,7 +350,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
 
           <p className="text-xs text-[#d4af94] leading-relaxed">
-            Contrat de Contribution Individuelle et de Partage des Revenus <strong>OMPAGANO – Application NKALA</strong> (Essaka Engineering, Droit gabonais Loi n° 001/2011 & OAPI).
+            Charte de Contribution Individuelle, Utilisation des Données et Système de Badges, Points & Récompenses <strong>OMPAGANO – Application NKALA</strong> (Essaka Engineering, Droit gabonais Loi n° 001/2011 & OAPI).
           </p>
 
           {hasAcceptedTerms && (
@@ -230,14 +415,209 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             <div className="text-[10px] text-[#a8826d] uppercase font-semibold">Points XP</div>
           </div>
           <div className="p-3 bg-[#180d07] rounded-2xl border border-[#3b1d10] text-center">
-            <div className="text-xl font-black text-[#c85a32]">{myContributions.length}</div>
+            <div className="text-xl font-black text-[#c85a32]">{totalContributionsCount}</div>
             <div className="text-[10px] text-[#a8826d] uppercase font-semibold">Contributions</div>
           </div>
           <div className="p-3 bg-[#180d07] rounded-2xl border border-[#3b1d10] text-center">
-            <div className="text-xl font-black text-[#22c55e]">
-              {myContributions.filter(c => !!c.audioUrl).length}
-            </div>
+            <div className="text-xl font-black text-[#22c55e]">{totalVoiceCount}</div>
             <div className="text-[10px] text-[#a8826d] uppercase font-semibold">Voix données</div>
+          </div>
+        </div>
+
+        {/* Recharts Contribution Progression Chart */}
+        <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#f59e0b]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#f59e0b]">
+                  Progression des Contributions au Fil du Temps
+                </h3>
+              </div>
+              <p className="text-[11px] text-[#a8826d] mt-0.5">
+                {chartMode === 'cumulative'
+                  ? `Évolution cumulée (${totalContributionsCount} contribution${totalContributionsCount > 1 ? 's' : ''} au total)`
+                  : `Activité par jour (+${periodAddedCount} contribution${periodAddedCount > 1 ? 's' : ''} sur la période)`}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              {/* Mode selector */}
+              <div className="inline-flex rounded-xl bg-[#24130a] p-0.5 border border-[#3b1d10]">
+                <button
+                  type="button"
+                  onClick={() => setChartMode('cumulative')}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
+                    chartMode === 'cumulative'
+                      ? 'bg-[#f59e0b] text-[#180d07] shadow'
+                      : 'text-[#d4af94] hover:text-white'
+                  }`}
+                >
+                  <TrendingUp className="w-3 h-3" />
+                  <span>Cumulé</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartMode('daily')}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
+                    chartMode === 'daily'
+                      ? 'bg-[#f59e0b] text-[#180d07] shadow'
+                      : 'text-[#d4af94] hover:text-white'
+                  }`}
+                >
+                  <BarChart3 className="w-3 h-3" />
+                  <span>Quotidien</span>
+                </button>
+              </div>
+
+              {/* Range selector */}
+              <div className="inline-flex rounded-xl bg-[#24130a] p-0.5 border border-[#3b1d10]">
+                {(
+                  [
+                    { id: '7d', label: '7j' },
+                    { id: '30d', label: '30j' },
+                    { id: 'all', label: 'Tout' }
+                  ] as const
+                ).map(tab => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setChartRange(tab.id)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+                      chartRange === tab.id
+                        ? 'bg-[#c85a32] text-white shadow'
+                        : 'text-[#a8826d] hover:text-[#fed7aa]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="h-64 w-full pt-1">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartMode === 'cumulative' ? (
+                <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorCumulTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="colorCumulAudio" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#3b1d10" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    stroke="#a8826d"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={{ stroke: '#3b1d10' }}
+                    minTickGap={16}
+                  />
+                  <YAxis
+                    stroke="#a8826d"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#24130a',
+                      borderColor: '#f59e0b',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      color: '#fdfaf7'
+                    }}
+                    labelFormatter={(_, payload) =>
+                      payload && payload[0]?.payload?.fullDate
+                        ? payload[0].payload.fullDate
+                        : ''
+                    }
+                  />
+                  <Legend
+                    wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
+                    iconType="circle"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cumulTotal"
+                    name="Total Contributions"
+                    stroke="#f59e0b"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorCumulTotal)"
+                    activeDot={{ r: 5, fill: '#f59e0b', stroke: '#180d07', strokeWidth: 2 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cumulAudio"
+                    name="Voix enregistrées"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorCumulAudio)"
+                    activeDot={{ r: 4, fill: '#22c55e', stroke: '#180d07', strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              ) : (
+                <BarChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#3b1d10" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    stroke="#a8826d"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={{ stroke: '#3b1d10' }}
+                    minTickGap={16}
+                  />
+                  <YAxis
+                    stroke="#a8826d"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#24130a',
+                      borderColor: '#f59e0b',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      color: '#fdfaf7'
+                    }}
+                    labelFormatter={(_, payload) =>
+                      payload && payload[0]?.payload?.fullDate
+                        ? payload[0].payload.fullDate
+                        : ''
+                    }
+                  />
+                  <Legend
+                    wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
+                    iconType="circle"
+                  />
+                  <Bar
+                    dataKey="quotidienAudio"
+                    name="Voix enregistrées"
+                    stackId="daily"
+                    fill="#22c55e"
+                    radius={[0, 0, 4, 4]}
+                  />
+                  <Bar
+                    dataKey="quotidienTexte"
+                    name="Écrit & Orthographe"
+                    stackId="daily"
+                    fill="#f59e0b"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              )}
+            </ResponsiveContainer>
           </div>
         </div>
 

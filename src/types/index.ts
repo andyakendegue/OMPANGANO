@@ -116,6 +116,8 @@ export interface QuestionnaireItem {
   frenchText: string;
   myeneText: string;
   dialect: DialectGroup | string;
+  clan?: string;
+  clans?: string[];
   category: string;
   theme?: ThematicCategory | string;
   moduleThematique?: string;
@@ -142,18 +144,30 @@ export type ContributionStatus =
   | 'audio_approved_text_revision' 
   | 'text_approved_audio_revision';
 
+export type FrenchMeaningNuanceType =
+  | 'exact'
+  | 'correction_sens'
+  | 'autre_tournure'
+  | 'sens_secondaire';
+
 export interface Contribution {
   id: string;
   itemId: string;
   userId: string;
   userDisplayName: string;
   userTribe?: string;
+  userPaternalClan?: string;
+  userMaternalClan?: string;
   userPhotoURL?: string;
   frenchText: string;
   originalMyeneText: string;
   isSpellingCorrect: boolean;
   isPronunciationCorrect?: boolean;
   proposedSpelling?: string;
+  isFrenchMeaningExact?: boolean;
+  frenchMeaningType?: FrenchMeaningNuanceType;
+  proposedFrenchMeaning?: string;
+  secondaryMeaning?: string;
   dialectVariant?: string;
   comment?: string;
   audioUrl?: string;
@@ -212,6 +226,10 @@ export interface OfflineSubmission {
   originalMyeneText: string;
   isSpellingCorrect: boolean;
   proposedSpelling?: string;
+  isFrenchMeaningExact?: boolean;
+  frenchMeaningType?: FrenchMeaningNuanceType;
+  proposedFrenchMeaning?: string;
+  secondaryMeaning?: string;
   dialectVariant?: string;
   comment?: string;
   audioBlob?: Blob;

@@ -13,9 +13,17 @@ import {
   WifiOff, 
   Award,
   Globe2,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquareQuote,
+  Compass
 } from 'lucide-react';
-import { QuestionnaireItem, UserProfile, Contribution, WeeklyChallenge } from '../types';
+import {
+  QuestionnaireItem,
+  UserProfile,
+  Contribution,
+  WeeklyChallenge,
+  FrenchMeaningNuanceType
+} from '../types';
 import { AudioRecorder } from './AudioRecorder';
 import { saveOfflineContribution } from '../services/offlineStorage';
 import { NotificationService } from '../services/notificationService';
@@ -42,6 +50,7 @@ interface CrowdsourceCardProps {
   isChallengeFilterActive?: boolean;
   onToggleChallengeFilter?: () => void;
   filteredChallengeItemsCount?: number;
+  onOpenVisualGuide?: () => void;
 }
 
 export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
@@ -63,15 +72,22 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
   isChallengeCompleted = false,
   isChallengeFilterActive = false,
   onToggleChallengeFilter,
-  filteredChallengeItemsCount
+  filteredChallengeItemsCount,
+  onOpenVisualGuide
 }) => {
-  // Orthography state
+  // Step 1: Orthography state
   const [spellingDecision, setSpellingDecision] = useState<'correct' | 'propose' | null>(null);
   const [proposedText, setProposedText] = useState('');
   const [dialectVariant, setDialectVariant] = useState('enenga');
   const [contributorNotes, setContributorNotes] = useState('');
 
-  // Audio state
+  // Step 2 (Before speaking Myènè): French meaning, alternative phrasing, or secondary sense
+  const [frenchMeaningDecision, setFrenchMeaningDecision] = useState<'exact' | 'propose'>('exact');
+  const [frenchMeaningType, setFrenchMeaningType] = useState<FrenchMeaningNuanceType>('correction_sens');
+  const [proposedFrenchMeaning, setProposedFrenchMeaning] = useState('');
+  const [secondaryMeaning, setSecondaryMeaning] = useState('');
+
+  // Step 3: Audio state
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioDataUrl, setAudioDataUrl] = useState<string | null>(null);
   const [audioDuration, setAudioDuration] = useState<number>(0);
@@ -104,6 +120,17 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
       return;
     }
 
+    if (
+      frenchMeaningDecision === 'propose' &&
+      !proposedFrenchMeaning.trim() &&
+      !secondaryMeaning.trim()
+    ) {
+      alert(
+        'Veuillez saisir votre proposition de signification en français, une autre tournure ou un sens secondaire.'
+      );
+      return;
+    }
+
     if (!audioBlob && !audioDataUrl) {
       const confirmNoAudio = window.confirm(
         'Vous n’avez pas encore enregistré votre prononciation vocale. Voulez-vous tout de même soumettre sans audio ?'
@@ -116,6 +143,10 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
     try {
       const isCorrect = spellingDecision === 'correct';
       const finalProposed = isCorrect ? item.myeneText : proposedText.trim();
+      const isFrenchExact = frenchMeaningDecision === 'exact';
+      const finalFrenchType: FrenchMeaningNuanceType = isFrenchExact ? 'exact' : frenchMeaningType;
+      const finalProposedFrench = !isFrenchExact ? proposedFrenchMeaning.trim() : '';
+      const finalSecondaryMeaning = !isFrenchExact ? secondaryMeaning.trim() : '';
 
       const contributionPayload: Partial<Contribution> = {
         itemId: item.id,
@@ -123,6 +154,10 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         originalMyeneText: item.myeneText,
         isSpellingCorrect: isCorrect,
         proposedSpelling: finalProposed,
+        isFrenchMeaningExact: isFrenchExact,
+        frenchMeaningType: finalFrenchType,
+        proposedFrenchMeaning: finalProposedFrench || undefined,
+        secondaryMeaning: finalSecondaryMeaning || undefined,
         dialectVariant: dialectVariant,
         comment: contributorNotes.trim(),
         audioDuration: audioDuration || 3,
@@ -140,6 +175,10 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
           originalMyeneText: item.myeneText,
           isSpellingCorrect: isCorrect,
           proposedSpelling: finalProposed,
+          isFrenchMeaningExact: isFrenchExact,
+          frenchMeaningType: finalFrenchType,
+          proposedFrenchMeaning: finalProposedFrench || undefined,
+          secondaryMeaning: finalSecondaryMeaning || undefined,
           dialectVariant,
           comment: contributorNotes.trim(),
           audioBlob: audioBlob || undefined,
@@ -163,8 +202,10 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         // confetti fallback
       }
 
-      // Reward points calculation
-      const xp = audioBlob ? 120 : 50;
+      // Reward points calculation (+20 XP bonus if contributor also enriches French meaning/nuance)
+      const baseXp = audioBlob ? 120 : 50;
+      const nuanceBonus = !isFrenchExact && (finalProposedFrench || finalSecondaryMeaning) ? 20 : 0;
+      const xp = baseXp + nuanceBonus;
       onRewardEarned(xp, audioBlob ? ['badge-premiere-voix'] : ['badge-dix-traductions']);
 
       NotificationService.addInAppNotification({
@@ -190,6 +231,10 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
     setIsSubmittedSuccess(false);
     setSpellingDecision(null);
     setProposedText('');
+    setFrenchMeaningDecision('exact');
+    setFrenchMeaningType('correction_sens');
+    setProposedFrenchMeaning('');
+    setSecondaryMeaning('');
     setContributorNotes('');
     handleAudioReset();
     onNext();
@@ -232,11 +277,23 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         />
       )}
 
-      {/* Top Navigation Pager */}
+      {/* Top Navigation Pager & Visual Guide Trigger */}
       <div className="flex items-center justify-between mb-3 px-1 text-xs text-[#d4af94]">
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="w-2 h-2 rounded-full bg-[#c85a32]" />
-          <span>Expression {currentIndex + 1} sur {totalCount}</span>
+        <div className="flex items-center gap-2 font-medium flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#c85a32]" />
+            <span>Expression {currentIndex + 1} sur {totalCount}</span>
+          </div>
+          {onOpenVisualGuide && (
+            <button
+              type="button"
+              onClick={onOpenVisualGuide}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#27150c] hover:bg-[#381e11] text-[#fde047] border border-[#f59e0b]/40 text-[11px] font-bold transition"
+            >
+              <Compass className="w-3 h-3 text-[#f59e0b]" />
+              <span>Guide visuel & Objectifs</span>
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -349,7 +406,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
           {/* STEP 1: Orthography Verification */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-[#fed7aa]">
-              <span className="w-6 h-6 rounded-full bg-[#c85a32] text-white flex items-center justify-center text-xs">
+              <span className="w-6 h-6 rounded-full bg-[#c85a32] text-white flex items-center justify-center text-xs shrink-0">
                 1
               </span>
               <span>L’orthographe est-elle bien écrite en langue Myènè ?</span>
@@ -386,7 +443,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               </button>
             </div>
 
-            {/* Input if user wants to propose alternative */}
+            {/* Input if user wants to propose alternative Myènè orthography */}
             {spellingDecision === 'propose' && (
               <div className="mt-3 p-4 bg-[#1f0f08] border border-[#c85a32]/40 rounded-2xl space-y-3 animate-in fade-in duration-200">
                 <div>
@@ -438,13 +495,138 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
             )}
           </div>
 
-          {/* STEP 2: Voice Pronunciation Recording */}
+          {/* STEP 2: French Meaning, Alternative Phrasing, or Secondary Meaning (Before saying the Myènè text) */}
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#fed7aa]">
+                <span className="w-6 h-6 rounded-full bg-[#f59e0b] text-[#180d07] flex items-center justify-center text-xs font-black shrink-0">
+                  2
+                </span>
+                <span>Avant de dire le texte en Myènè : la signification en français est-elle exacte ?</span>
+              </div>
+              <span className="text-[10px] font-bold text-[#fde047] bg-[#f59e0b]/15 border border-[#f59e0b]/30 px-2 py-0.5 rounded-full self-start sm:self-center">
+                Sens • Autre tournure • Sens secondaire
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFrenchMeaningDecision('exact')}
+                className={`flex items-center justify-center gap-2.5 p-3.5 rounded-2xl border font-medium text-sm transition-all ${
+                  frenchMeaningDecision === 'exact'
+                    ? 'bg-[#15803d]/30 border-[#22c55e] text-[#86efac] shadow-lg ring-1 ring-[#22c55e]'
+                    : 'bg-[#27150c] border-[#4a2412] text-[#f5ebe6] hover:bg-[#341b10] hover:border-[#d97706]/40'
+                }`}
+              >
+                <Check className="w-4 h-4 text-[#22c55e]" />
+                <span>Oui, la signification est exacte 👍</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFrenchMeaningDecision('propose');
+                }}
+                className={`flex items-center justify-center gap-2 p-3.5 rounded-2xl border font-medium text-xs sm:text-sm transition-all ${
+                  frenchMeaningDecision === 'propose'
+                    ? 'bg-[#f59e0b]/25 border-[#f59e0b] text-[#fde047] shadow-lg ring-1 ring-[#f59e0b]'
+                    : 'bg-[#27150c] border-[#4a2412] text-[#f5ebe6] hover:bg-[#341b10] hover:border-[#d97706]/40'
+                }`}
+              >
+                <MessageSquareQuote className="w-4 h-4 text-[#f59e0b] shrink-0" />
+                <span>Proposer sa signification, autre tournure ou sens secondaire 💡</span>
+              </button>
+            </div>
+
+            {frenchMeaningDecision === 'propose' && (
+              <div className="mt-3 p-4 bg-[#1f0f08] border border-[#f59e0b]/40 rounded-2xl space-y-3.5 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-semibold text-[#fde047]">
+                    Quel type de précision souhaitez-vous apporter au sens français ?
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f59e0b]/20 text-[#fde047]">
+                    +20 XP bonus
+                  </span>
+                </div>
+
+                {/* Nuance Type Selector */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    {
+                      id: 'correction_sens' as FrenchMeaningNuanceType,
+                      label: '🎯 Signification plus exacte',
+                      desc: 'Le sens affiché est imprécis'
+                    },
+                    {
+                      id: 'autre_tournure' as FrenchMeaningNuanceType,
+                      label: '🔄 Autre tournure française',
+                      desc: 'Reformulation plus naturelle'
+                    },
+                    {
+                      id: 'sens_secondaire' as FrenchMeaningNuanceType,
+                      label: '🌿 Sens secondaire / figuré',
+                      desc: 'Sens caché, littéral ou proverbe'
+                    }
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setFrenchMeaningType(option.id)}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        frenchMeaningType === option.id
+                          ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white shadow'
+                          : 'bg-[#140a05] border-[#522915] text-[#d4af94] hover:border-[#f59e0b]/50'
+                      }`}
+                    >
+                      <div className="text-xs font-bold text-[#fde047]">{option.label}</div>
+                      <div className="text-[10px] text-[#a8826d] mt-0.5">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Proposed French Meaning or Alternative Phrasing */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
+                    {frenchMeaningType === 'autre_tournure'
+                      ? 'Votre autre tournure en français :'
+                      : frenchMeaningType === 'sens_secondaire'
+                      ? 'Signification principale (ou autre tournure) en français :'
+                      : 'Votre signification exacte en français :'}
+                  </label>
+                  <input
+                    type="text"
+                    value={proposedFrenchMeaning}
+                    onChange={(e) => setProposedFrenchMeaning(e.target.value)}
+                    placeholder={`Au lieu de « ${item.frenchText} », comment le diriez-vous en français ?`}
+                    className="w-full px-4 py-2.5 bg-[#140a05] border border-[#522915] rounded-xl text-white focus:outline-none focus:border-[#f59e0b] text-sm"
+                  />
+                </div>
+
+                {/* Secondary Meaning / Literal or Figurative Nuance */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
+                    Sens secondaire, sens littéral ou contexte d'emploi (facultatif) :
+                  </label>
+                  <input
+                    type="text"
+                    value={secondaryMeaning}
+                    onChange={(e) => setSecondaryMeaning(e.target.value)}
+                    placeholder="Ex: Sens littéral mot-à-mot, sens figuré chez les anciens, ou second sens selon le contexte..."
+                    className="w-full px-4 py-2 bg-[#140a05] border border-[#522915] rounded-xl text-xs text-white focus:outline-none focus:border-[#f59e0b]"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* STEP 3: Voice Pronunciation Recording */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-[#fed7aa]">
-              <span className="w-6 h-6 rounded-full bg-[#c85a32] text-white flex items-center justify-center text-xs">
-                2
+              <span className="w-6 h-6 rounded-full bg-[#c85a32] text-white flex items-center justify-center text-xs shrink-0">
+                3
               </span>
-              <span>Enregistrez votre prononciation orale (Voix) :</span>
+              <span>Dites le texte en Myènè (Enregistrez votre prononciation orale) :</span>
             </div>
 
             <AudioRecorder
@@ -461,7 +643,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               </div>
               <h3 className="text-lg font-bold text-white">Na vevi ! Félicitations pour votre contribution !</h3>
               <p className="text-xs text-[#bbf7d0]">
-                Votre enregistrement et votre avis enrichissent fidèlement le patrimoine linguistique Myènè.
+                Votre enregistrement, votre avis orthographique et vos précisions de sens enrichissent fidèlement le patrimoine linguistique Myènè.
               </p>
               <div className="pt-2 flex items-center justify-center gap-3">
                 <button
@@ -509,3 +691,4 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
     </div>
   );
 };
+
