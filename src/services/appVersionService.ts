@@ -178,9 +178,14 @@ export class AppVersionService {
   }
 
   /**
-   * Force clean reload by clearing cache and updating local build time
+   * Force clean reload by updating local build time and triggering Service Worker update when online
    */
   public async forceCleanReload() {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      // Never wipe caches or reload when the device is in Airplane Mode / offline!
+      return;
+    }
+
     try {
       if (this.latestRemoteInfo?.buildTime) {
         localStorage.setItem(LOCAL_STORAGE_KEY, String(this.latestRemoteInfo.buildTime));
@@ -188,10 +193,10 @@ export class AppVersionService {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
 
-      // Clear Service Worker CacheStorage if any
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(key => caches.delete(key)));
+      // Ask active Service Worker registrations to check for updates without wiping offline precache
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.update().catch(() => {})));
       }
     } catch {}
 
