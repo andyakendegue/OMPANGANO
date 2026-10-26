@@ -257,63 +257,102 @@ export function getOfflineAdminMutations(): OfflineAdminMutation[] {
 export function queueOfflineAdminMutation(mutation: Omit<OfflineAdminMutation, 'id' | 'timestamp'>) {
   try {
     const current = getOfflineAdminMutations();
-    // Prevent duplicate queueing of the same record ID
-    const filtered = current.filter(m => !(m.collectionPath === mutation.collectionPath && m.recordId === mutation.recordId));
+    const existingIdx = current.findIndex(
+      m => m.collectionPath === mutation.collectionPath && m.recordId === mutation.recordId
+    );
+
+    let mergedData = mutation.data;
+    if (
+      existingIdx >= 0 &&
+      current[existingIdx].type === 'save' &&
+      mutation.type === 'save' &&
+      current[existingIdx].data &&
+      typeof current[existingIdx].data === 'object' &&
+      mutation.data &&
+      typeof mutation.data === 'object'
+    ) {
+      mergedData = {
+        ...current[existingIdx].data,
+        ...mutation.data
+      };
+    }
+
+    const filtered = current.filter(
+      m => !(m.collectionPath === mutation.collectionPath && m.recordId === mutation.recordId)
+    );
     const item: OfflineAdminMutation = {
       ...mutation,
+      data: mergedData,
       id: `mut_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       timestamp: Date.now()
     };
     filtered.push(item);
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(filtered));
-    console.info(`[Offline Queue] Action administrative mise en file d'attente hors-ligne: ${mutation.type.toUpperCase()} ${mutation.collectionPath}/${mutation.recordId}`);
+    console.info(`[Offline Queue] Action mise en file d'attente hors-ligne: ${mutation.type.toUpperCase()} ${mutation.collectionPath}/${mutation.recordId}`);
   } catch (err) {
     console.warn('Notice file d attente hors-ligne:', err);
   }
 }
 
-export async function replayPendingOfflineAdminMutations(): Promise<number> {
-  const pending = getOfflineAdminMutations();
-  if (pending.length === 0) return 0;
+let activeReplayPromise: Promise<number> | null = null;
 
-  const activeUser = await ensureFirebaseAuthSession();
-  if (!activeUser) {
-    // Cannot replay to Firestore until user is authenticated
+export async function replayPendingOfflineAdminMutations(): Promise<number> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return 0;
   }
-
-  console.info(`[Sync Replay] Synchronisation en ligne de ${pending.length} modification(s) administrative(s)...`);
-
-  let successCount = 0;
-  const remaining: OfflineAdminMutation[] = [];
-
-  for (const mut of pending) {
-    try {
-      if (mut.type === 'save' && mut.data) {
-        const clean = sanitizeDataForFirebase(mut.data);
-        await setDoc(doc(db, mut.collectionPath, mut.recordId), clean, { merge: true });
-        if (rtdb) {
-          await rtdbSet(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean).catch(() => {});
-        }
-      } else if (mut.type === 'delete') {
-        await deleteDoc(doc(db, mut.collectionPath, mut.recordId));
-        if (rtdb) {
-          await rtdbRemove(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`)).catch(() => {});
-        }
-      }
-      successCount++;
-      console.info(`✓ [Sync Replay Succès] ${mut.type} sur ${mut.collectionPath}/${mut.recordId}`);
-    } catch (replayErr) {
-      console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, conservé en attente:`, replayErr);
-      remaining.push(mut);
-    }
+  if (activeReplayPromise) {
+    return activeReplayPromise;
   }
 
-  try {
-    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining));
-  } catch {}
+  activeReplayPromise = (async () => {
+    try {
+      const pending = getOfflineAdminMutations();
+      if (pending.length === 0) return 0;
 
-  return successCount;
+      const activeUser = await ensureFirebaseAuthSession();
+      if (!activeUser) {
+        // Cannot replay to Firestore until user is authenticated
+        return 0;
+      }
+
+      console.info(`[Sync Replay] Synchronisation en ligne de ${pending.length} modification(s) en attente...`);
+
+      let successCount = 0;
+      const remaining: OfflineAdminMutation[] = [];
+
+      for (const mut of pending) {
+        try {
+          if (mut.type === 'save' && mut.data) {
+            const clean = sanitizeDataForFirebase(mut.data);
+            await setDoc(doc(db, mut.collectionPath, mut.recordId), clean, { merge: true });
+            if (rtdb) {
+              await rtdbSet(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean).catch(() => {});
+            }
+          } else if (mut.type === 'delete') {
+            await deleteDoc(doc(db, mut.collectionPath, mut.recordId));
+            if (rtdb) {
+              await rtdbRemove(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`)).catch(() => {});
+            }
+          }
+          successCount++;
+          console.info(`✓ [Sync Replay Succès] ${mut.type} sur ${mut.collectionPath}/${mut.recordId}`);
+        } catch (replayErr) {
+          console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, conservé en attente:`, replayErr);
+          remaining.push(mut);
+        }
+      }
+
+      try {
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining));
+      } catch {}
+
+      return successCount;
+    } finally {
+      activeReplayPromise = null;
+    }
+  })();
+
+  return activeReplayPromise;
 }
 
 // Dual write helper: persists to both Firestore AND Realtime Database with automatic sanitization & offline queueing
@@ -365,6 +404,7 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
  * High-speed chunked batch writer for large CSV imports (1,000 to 10,000+ items).
  * Commits in chunks of 250 documents per Firestore `writeBatch` (well below the 500-op hard limit)
  * and multi-key updates in Realtime Database, reporting live progress after each chunk.
+ * If offline or if any record fails to write, queues it in the offline mutation queue for automatic replay.
  */
 export async function dualBatchSaveRecords(
   collectionPath: string,
@@ -377,7 +417,8 @@ export async function dualBatchSaveRecords(
     return { savedCount: 0, totalCount: 0 };
   }
 
-  const activeUser = await ensureFirebaseAuthSession();
+  const isCurrentlyOnline = typeof navigator === 'undefined' || navigator.onLine;
+  const activeUser = isCurrentlyOnline ? await ensureFirebaseAuthSession() : null;
   const CHUNK_SIZE = 250;
   let savedCount = 0;
 
@@ -385,7 +426,7 @@ export async function dualBatchSaveRecords(
     const chunk = records.slice(start, start + CHUNK_SIZE);
     const rtdbChunkPayload: Record<string, any> = {};
 
-    if (activeUser && (typeof navigator === 'undefined' || navigator.onLine)) {
+    if (activeUser && isCurrentlyOnline) {
       try {
         const batch = writeBatch(db);
         for (const entry of chunk) {
@@ -406,7 +447,8 @@ export async function dualBatchSaveRecords(
           try {
             await setDoc(doc(db, collectionPath, safeId), sanitized, { merge: true });
           } catch (singleErr) {
-            console.warn(`[Batch Import] Erreur sur ${collectionPath}/${safeId}:`, singleErr);
+            console.warn(`[Batch Import] Mise en file d'attente hors-ligne pour ${collectionPath}/${safeId}:`, singleErr);
+            queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: safeId, data: sanitized });
           }
         }
       }
@@ -417,6 +459,14 @@ export async function dualBatchSaveRecords(
         } catch (rtdbErr) {
           console.warn(`[Batch Import] Notice RTDB sur le lot ${start}-${start + chunk.length}:`, rtdbErr);
         }
+      }
+    } else {
+      // Offline or unauthenticated during batch import: queue each record for automatic online sync
+      for (const entry of chunk) {
+        const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
+        if (!safeId) continue;
+        const sanitized = sanitizeDataForFirebase(entry.data);
+        queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: safeId, data: sanitized });
       }
     }
 

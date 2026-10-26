@@ -27,6 +27,7 @@ import {
   ensureFirebaseAuthSession,
   convertBlobToBase64,
   replayPendingOfflineAdminMutations,
+  getOfflineAdminMutations,
   checkIsAdminEmail,
   isRealtimeDatabaseEmpty
 } from './firebase';
@@ -65,7 +66,17 @@ import {
   cacheClansLocally,
   getCachedClansLocally,
   cacheVillagesLocally,
-  getCachedVillagesLocally
+  getCachedVillagesLocally,
+  cacheContributionsLocally,
+  getCachedContributionsLocally,
+  cacheChallengesLocally,
+  getCachedChallengesLocally,
+  cacheThemesLocally,
+  getCachedThemesLocally,
+  cacheBadgesLocally,
+  getCachedBadgesLocally,
+  cacheUsersLocally,
+  getCachedUsersLocally
 } from './services/offlineStorage';
 import { NotificationService } from './services/notificationService';
 
@@ -88,6 +99,24 @@ import { TermsConsentModal, TermsConsentPayload } from './components/TermsConsen
 import { VisualGuideModal, VISUAL_GUIDE_SEEN_KEY } from './components/VisualGuideModal';
 
 const DELETED_RECORDS_STORAGE_KEY = 'nkala_deleted_records_v1';
+const FAVORITE_VOCAB_STORAGE_KEY = 'nkala_favorite_vocab_ids_v1';
+
+function getSavedFavoriteIds(): string[] {
+  try {
+    const raw = localStorage.getItem(FAVORITE_VOCAB_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFavoriteIdsToStorage(ids: string[]): void {
+  try {
+    localStorage.setItem(FAVORITE_VOCAB_STORAGE_KEY, JSON.stringify(ids));
+  } catch {}
+}
 
 function getDeletedIds(collectionName: string): Set<string> {
   try {
@@ -149,12 +178,16 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<AppTab>('crowdsource');
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
-  // Data states (filtered against any locally deleted IDs)
+  // Data states (filtered against any locally deleted IDs and hydrated from local offline cache)
   const [items, setItems] = useState<QuestionnaireItem[]>(() =>
     INITIAL_ENENGA_ITEMS.filter(i => !getDeletedIds('items').has(i.id))
   );
   const [currentItemIndex, setCurrentItemIndex] = useState<number>(0);
-  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [contributions, setContributions] = useState<Contribution[]>(() => {
+    const cached = getCachedContributionsLocally();
+    const deleted = getDeletedIds('contributions');
+    return cached.filter(c => !deleted.has(c.id));
+  });
   const [clans, setClans] = useState<ClanRegistry[]>(() =>
     INITIAL_CLANS.filter(c => !getDeletedIds('clans').has(c.id))
   );
@@ -163,20 +196,32 @@ export default function App() {
   );
 
   // Weekly Challenges states
-  const [challenges, setChallenges] = useState<WeeklyChallenge[]>(() =>
-    INITIAL_WEEKLY_CHALLENGES.filter(c => !getDeletedIds('challenges').has(c.id))
-  );
+  const [challenges, setChallenges] = useState<WeeklyChallenge[]>(() => {
+    const cached = getCachedChallengesLocally();
+    const deleted = getDeletedIds('challenges');
+    const source = cached.length > 0 ? cached : INITIAL_WEEKLY_CHALLENGES;
+    return source.filter(c => !deleted.has(c.id));
+  });
   const [activeChallengeId, setActiveChallengeId] = useState<string>('defi-peche-semaine');
   const [isChallengeFilterActive, setIsChallengeFilterActive] = useState<boolean>(false);
   const [celebrationChallenge, setCelebrationChallenge] = useState<WeeklyChallenge | null>(null);
 
   // Dynamic Themes & Dynamic Badges states
-  const [themes, setThemes] = useState<ThemeDefinition[]>(() =>
-    THEMATIC_CATEGORIES.filter(t => !getDeletedIds('themes').has(t.id))
-  );
-  const [badges, setBadges] = useState<Badge[]>(() =>
-    SYSTEM_BADGES.filter(b => !getDeletedIds('badges').has(b.id))
-  );
+  const [themes, setThemes] = useState<ThemeDefinition[]>(() => {
+    const cached = getCachedThemesLocally();
+    const deleted = getDeletedIds('themes');
+    const source = cached.length > 0 ? cached : THEMATIC_CATEGORIES;
+    return source.filter(t => !deleted.has(t.id));
+  });
+  const [badges, setBadges] = useState<Badge[]>(() => {
+    const cached = getCachedBadgesLocally();
+    const deleted = getDeletedIds('badges');
+    const source = cached.length > 0 ? cached : SYSTEM_BADGES;
+    return source.filter(b => !deleted.has(b.id));
+  });
+
+  // Favorite vocabulary item IDs (persisted in localStorage & user profile for offline + online access)
+  const [favoriteItemIds, setFavoriteItemIds] = useState<string[]>(() => getSavedFavoriteIds());
 
   const [systemMetrics, setSystemMetrics] = useState<SystemMetric>({
     id: 'summary',
@@ -190,6 +235,9 @@ export default function App() {
 
   // Offline queue state
   const [pendingOfflineSubmissions, setPendingOfflineSubmissions] = useState<OfflineSubmission[]>([]);
+  const [pendingAdminMutationsCount, setPendingAdminMutationsCount] = useState<number>(() =>
+    getOfflineAdminMutations().length
+  );
 
   // Seed status state (tracking official Firebase seed marker /metrics/seed_status)
   const [seedStatus, setSeedStatus] = useState<SeedStatus | null>(null);
@@ -197,6 +245,8 @@ export default function App() {
 
   // Auth & user state: null by default (unauthenticated users must log in on AuthGateScreen)
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const currentUserRef = useRef<UserProfile | null>(null);
+  const isSyncingOfflineRef = useRef<boolean>(false);
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [isFirebaseAuthReady, setIsFirebaseAuthReady] = useState<boolean>(false);
 
@@ -346,6 +396,151 @@ export default function App() {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(1);
   const hasShownTermsReminderRef = useRef<string | null>(null);
 
+  const refreshPendingMutationsCount = () => {
+    setPendingAdminMutationsCount(getOfflineAdminMutations().length);
+  };
+
+  // Keep currentUserRef synchronized at all times
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+    if (currentUser?.favoriteItemIds && Array.isArray(currentUser.favoriteItemIds)) {
+      setFavoriteItemIds(prev => {
+        const merged = Array.from(new Set([...prev, ...(currentUser.favoriteItemIds || [])]));
+        saveFavoriteIdsToStorage(merged);
+        return merged;
+      });
+    }
+  }, [currentUser]);
+
+  // Unified helper to update currentUser in state + ref + localStorage + optional cloud/offline-queue write
+  const updateAndPersistCurrentUser = async (
+    updater: UserProfile | ((prev: UserProfile) => UserProfile),
+    syncToCloud: boolean = true
+  ): Promise<UserProfile | null> => {
+    const base = currentUserRef.current || currentUser;
+    if (!base && typeof updater === 'function') return null;
+    const nextProfile = typeof updater === 'function' ? updater(base!) : updater;
+    currentUserRef.current = nextProfile;
+    setCurrentUser(nextProfile);
+
+    try {
+      localStorage.setItem('nkala_authenticated_user', JSON.stringify(nextProfile));
+    } catch {}
+
+    setUsersList(prev => {
+      const idx = prev.findIndex(u => u.id === nextProfile.id);
+      const updatedList = idx >= 0
+        ? prev.map((u, i) => (i === idx ? nextProfile : u))
+        : [nextProfile, ...prev];
+      cacheUsersLocally(updatedList);
+      return updatedList;
+    });
+
+    if (syncToCloud && nextProfile.id) {
+      await dualSaveRecord('users', nextProfile.id, nextProfile);
+      refreshPendingMutationsCount();
+    }
+    return nextProfile;
+  };
+
+  // Merge local cached user profile with cloud profile so offline XP, badges, terms, onboarding, or favorites are NEVER lost
+  const mergeLocalAndCloudUserProfile = (
+    localProf: UserProfile | null,
+    cloudProf: UserProfile,
+    isSuperAdmin: boolean
+  ): { merged: UserProfile; needsCloudPush: boolean } => {
+    if (!localProf || localProf.id !== cloudProf.id) {
+      const role = isSuperAdmin ? 'admin' : cloudProf.role;
+      return {
+        merged: { ...cloudProf, role },
+        needsCloudPush: isSuperAdmin && cloudProf.role !== 'admin'
+      };
+    }
+
+    const mergedXp = Math.max(localProf.xp || 0, cloudProf.xp || 0);
+    const lvl = getLevelForXp(mergedXp);
+    const mergedContribs = Math.max(localProf.contributionsCount || 0, cloudProf.contributionsCount || 0);
+    const mergedRecordings = Math.max(localProf.recordingsCount || 0, cloudProf.recordingsCount || 0);
+    const mergedValidations = Math.max(localProf.validationsCount || 0, cloudProf.validationsCount || 0);
+    const mergedStreak = Math.max(localProf.streakDays || 0, cloudProf.streakDays || 0);
+    const mergedBadges = Array.from(new Set([...(cloudProf.badges || []), ...(localProf.badges || [])]));
+    const mergedCompletedChallenges = Array.from(
+      new Set([...(cloudProf.completedChallenges || []), ...(localProf.completedChallenges || [])])
+    );
+    const mergedFavorites = Array.from(
+      new Set([...getSavedFavoriteIds(), ...(cloudProf.favoriteItemIds || []), ...(localProf.favoriteItemIds || [])])
+    );
+
+    const mergedWeeklyProgress: Record<string, number> = { ...(cloudProf.weeklyProgress || {}) };
+    if (localProf.weeklyProgress) {
+      for (const [k, v] of Object.entries(localProf.weeklyProgress)) {
+        mergedWeeklyProgress[k] = Math.max(mergedWeeklyProgress[k] || 0, v || 0);
+      }
+    }
+
+    const localNewer = (localProf.updatedAt || '') > (cloudProf.updatedAt || '');
+    const IdentitySource = localNewer ? localProf : cloudProf;
+
+    const merged: UserProfile = {
+      ...cloudProf,
+      ...IdentitySource,
+      id: cloudProf.id,
+      role: isSuperAdmin ? 'admin' : (localNewer ? localProf.role : cloudProf.role),
+      registrationCompleted: !!(cloudProf.registrationCompleted || localProf.registrationCompleted),
+      termsAccepted: !!(cloudProf.termsAccepted || localProf.termsAccepted),
+      dataUsageAccepted: !!(cloudProf.dataUsageAccepted || localProf.dataUsageAccepted),
+      consentVoiceUsage: localProf.consentVoiceUsage ?? cloudProf.consentVoiceUsage,
+      consentImageUsage: localProf.consentImageUsage ?? cloudProf.consentImageUsage,
+      termsAcceptedAt: localProf.termsAcceptedAt || cloudProf.termsAcceptedAt,
+      termsVersion: localProf.termsVersion || cloudProf.termsVersion,
+      electronicSignature: localProf.electronicSignature || cloudProf.electronicSignature,
+      xp: mergedXp,
+      level: lvl.name,
+      levelIndex: lvl.index,
+      contributionsCount: mergedContribs,
+      recordingsCount: mergedRecordings,
+      validationsCount: mergedValidations,
+      streakDays: mergedStreak,
+      badges: mergedBadges,
+      weeklyProgress: mergedWeeklyProgress,
+      completedChallenges: mergedCompletedChallenges,
+      favoriteItemIds: mergedFavorites,
+      updatedAt: localNewer ? localProf.updatedAt : cloudProf.updatedAt
+    };
+
+    const needsCloudPush =
+      localNewer ||
+      mergedXp > (cloudProf.xp || 0) ||
+      mergedContribs > (cloudProf.contributionsCount || 0) ||
+      mergedValidations > (cloudProf.validationsCount || 0) ||
+      (merged.registrationCompleted && !cloudProf.registrationCompleted) ||
+      (merged.termsAccepted && !cloudProf.termsAccepted) ||
+      mergedFavorites.length > (cloudProf.favoriteItemIds?.length || 0) ||
+      (isSuperAdmin && cloudProf.role !== 'admin');
+
+    return { merged, needsCloudPush };
+  };
+
+  // Toggle favorite vocabulary item (works 100% offline and syncs to user profile online)
+  const handleToggleFavoriteItem = async (itemId: string) => {
+    if (!itemId) return;
+    let nextFavorites: string[] = [];
+    setFavoriteItemIds(prev => {
+      const exists = prev.includes(itemId);
+      nextFavorites = exists ? prev.filter(id => id !== itemId) : [itemId, ...prev];
+      saveFavoriteIdsToStorage(nextFavorites);
+      return nextFavorites;
+    });
+
+    if (currentUserRef.current) {
+      await updateAndPersistCurrentUser(prev => ({
+        ...prev,
+        favoriteItemIds: nextFavorites,
+        updatedAt: new Date().toISOString()
+      }));
+    }
+  };
+
   // Automatic reminder for already-registered users who have not yet accepted Platform Terms & Data Usage Consent (Annexe 1)
   useEffect(() => {
     if (
@@ -366,33 +561,66 @@ export default function App() {
     isOnboardingModalOpen
   ]);
 
-  // Monitor online/offline events
+  // Monitor online/offline events & initial offline hydration
   useEffect(() => {
     const handleOnline = async () => {
       setIsOnline(true);
-      // 1. Replay queued admin modifications (items, clans, villages, challenges, themes, badges)
-      try {
-        const replayed = await replayPendingOfflineAdminMutations();
-        if (replayed > 0) {
-          NotificationService.sendLocalNotification('Connexion Rétablie ⚡', {
-            body: `${replayed} modification(s) administrative(s) synchronisée(s) avec Firebase.`
-          });
-        }
-      } catch (err) {
-        console.warn('Erreur synchronisation admin replay:', err);
-      }
-      // 2. Replay voice & text submissions
       await syncPendingOfflineData();
     };
-    const handleOffline = () => setIsOnline(false);
+    const handleOffline = () => {
+      setIsOnline(false);
+      refreshPendingMutationsCount();
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
     // Initial check of offline storage & hydrate local IndexedDB cache for Airplane Mode
+    const deletedContribsSet = getDeletedIds('contributions');
     getPendingOfflineContributions().then(pending => {
       setPendingOfflineSubmissions(pending);
+      if (pending && pending.length > 0) {
+        setContributions(prev => {
+          const existingIds = new Set(prev.map(c => c.id));
+          const offlineMapped: Contribution[] = pending
+            .filter(p => !existingIds.has(p.id) && !deletedContribsSet.has(p.id))
+            .map(p => ({
+              id: p.id,
+              itemId: p.itemId,
+              userId: currentUserRef.current?.id || 'offline_user',
+              userDisplayName: currentUserRef.current?.fullName || currentUserRef.current?.displayName || 'Contributeur Myènè',
+              userTribe: currentUserRef.current?.tribe,
+              userPaternalClan: currentUserRef.current?.paternalClan,
+              userMaternalClan: currentUserRef.current?.maternalClan,
+              frenchText: p.frenchText,
+              originalMyeneText: p.originalMyeneText,
+              isSpellingCorrect: p.isSpellingCorrect,
+              proposedSpelling: p.proposedSpelling,
+              isFrenchMeaningExact: p.isFrenchMeaningExact ?? true,
+              frenchMeaningType: p.frenchMeaningType || 'exact',
+              proposedFrenchMeaning: p.proposedFrenchMeaning,
+              secondaryMeaning: p.secondaryMeaning,
+              dialectVariant: p.dialectVariant || 'enenga',
+              comment: p.comment,
+              audioUrl: p.audioDataUrl,
+              audioDuration: p.audioDuration || 3,
+              status: 'pending' as ContributionStatus,
+              offlineQueued: true,
+              createdAt: new Date(p.timestamp).toISOString()
+            }));
+          if (offlineMapped.length === 0) return prev;
+          const merged = [...offlineMapped, ...prev];
+          cacheContributionsLocally(merged);
+          return merged;
+        });
+      }
     });
+
+    const cachedUsers = getCachedUsersLocally();
+    if (cachedUsers.length > 0) {
+      setUsersList(cachedUsers);
+    }
+
     const deletedItemsSet = getDeletedIds('items');
     getCachedItemsLocally().then(cached => {
       const filtered = (cached || []).filter(i => !deletedItemsSet.has(i.id));
@@ -444,6 +672,7 @@ export default function App() {
             parsedSaved.role = 'admin';
             localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsedSaved));
           }
+          currentUserRef.current = parsedSaved;
           setCurrentUser(parsedSaved);
           setIsOnboardingModalOpen(!parsedSaved.registrationCompleted);
           setIsAuthChecking(false);
@@ -451,7 +680,7 @@ export default function App() {
       }
     } catch {}
 
-    // 1. Cross-tab storage synchronization: when Tab 1 completes onboarding, Tab 2 updates immediately
+    // 1. Cross-tab storage synchronization: when Tab 1 completes onboarding or favorites, Tab 2 updates immediately
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'nkala_authenticated_user' && e.newValue) {
         try {
@@ -460,10 +689,18 @@ export default function App() {
             if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
               parsed.role = 'admin';
             }
+            currentUserRef.current = parsed;
             setCurrentUser(parsed);
             if (parsed.registrationCompleted) {
               setIsOnboardingModalOpen(false);
             }
+          }
+        } catch {}
+      } else if (e.key === FAVORITE_VOCAB_STORAGE_KEY && e.newValue) {
+        try {
+          const parsedFavs = JSON.parse(e.newValue);
+          if (Array.isArray(parsedFavs)) {
+            setFavoriteItemIds(parsedFavs);
           }
         } catch {}
       }
@@ -478,16 +715,19 @@ export default function App() {
 
         // Immediately hydrate from localStorage if matching user so UI never blocks on slow/offline networks
         let restoredFromLocal = false;
+        let cachedProfile: UserProfile | null = null;
         try {
           const cachedRaw = localStorage.getItem('nkala_authenticated_user');
           if (cachedRaw) {
-            const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
-            if (cachedProfile && cachedProfile.id === fbUser.uid) {
-              if (isSuperAdmin && cachedProfile.role !== 'admin') {
-                cachedProfile.role = 'admin';
+            const parsed = JSON.parse(cachedRaw) as UserProfile;
+            if (parsed && parsed.id === fbUser.uid) {
+              if (isSuperAdmin && parsed.role !== 'admin') {
+                parsed.role = 'admin';
               }
-              setCurrentUser(cachedProfile);
-              setIsOnboardingModalOpen(!cachedProfile.registrationCompleted);
+              cachedProfile = parsed;
+              currentUserRef.current = parsed;
+              setCurrentUser(parsed);
+              setIsOnboardingModalOpen(!parsed.registrationCompleted);
               setIsAuthChecking(false);
               restoredFromLocal = true;
             }
@@ -502,39 +742,46 @@ export default function App() {
           setIsAuthChecking(true);
         }
 
-        // Replay any pending offline admin mutations now that we have a valid Firebase Auth token
+        // CRITICAL: Replay any pending offline mutations & offline voice/text submissions FIRST
+        // before reading Firestore so offline edits are never overwritten by older cloud snapshots!
         if (typeof navigator === 'undefined' || navigator.onLine) {
-          replayPendingOfflineAdminMutations().catch(() => {});
+          try {
+            await replayPendingOfflineAdminMutations();
+            refreshPendingMutationsCount();
+            await syncPendingOfflineData();
+          } catch {}
         }
 
         // Query Firestore to see if user profile already exists with full filiation!
         try {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
-            let cloudProfile = userDoc.data() as UserProfile;
+            const cloudProfile = userDoc.data() as UserProfile;
+            const { merged, needsCloudPush } = mergeLocalAndCloudUserProfile(
+              cachedProfile || currentUserRef.current,
+              cloudProfile,
+              isSuperAdmin
+            );
 
-            // MANDATORY: Ensure andymigoumbi@gmail.com is unconditionally role 'admin'
-            // If they are not admin yet, upgrade their profile in Firestore & RTDB before granting access to UI!
-            if (isSuperAdmin && cloudProfile.role !== 'admin') {
-              cloudProfile = {
-                ...cloudProfile,
-                role: 'admin',
-                updatedAt: new Date().toISOString()
-              };
-              await dualSaveRecord('users', fbUser.uid, { role: 'admin', updatedAt: cloudProfile.updatedAt });
-              await dualSaveRecord('admins', fbUser.uid, {
-                userId: fbUser.uid,
-                email: fbUser.email,
-                role: 'admin',
-                updatedAt: new Date().toISOString()
-              });
+            if (needsCloudPush) {
+              await dualSaveRecord('users', fbUser.uid, merged);
+              if (isSuperAdmin) {
+                await dualSaveRecord('admins', fbUser.uid, {
+                  userId: fbUser.uid,
+                  email: fbUser.email,
+                  role: 'admin',
+                  updatedAt: new Date().toISOString()
+                });
+              }
+              refreshPendingMutationsCount();
             }
 
-            setCurrentUser(cloudProfile);
+            currentUserRef.current = merged;
+            setCurrentUser(merged);
             try {
-              localStorage.setItem('nkala_authenticated_user', JSON.stringify(cloudProfile));
+              localStorage.setItem('nkala_authenticated_user', JSON.stringify(merged));
             } catch {}
-            if (cloudProfile.registrationCompleted) {
+            if (merged.registrationCompleted) {
               setIsOnboardingModalOpen(false);
             } else {
               setIsOnboardingModalOpen(true);
@@ -548,6 +795,22 @@ export default function App() {
             setIsAuthChecking(false);
             return;
           }
+        }
+
+        // If user already completed registration locally while offline, push that local profile to cloud instead of resetting!
+        if (cachedProfile && cachedProfile.registrationCompleted) {
+          await dualSaveRecord('users', cachedProfile.id, cachedProfile);
+          if (cachedProfile.role === 'admin' || isSuperAdmin) {
+            await dualSaveRecord('admins', cachedProfile.id, {
+              userId: cachedProfile.id,
+              email: cachedProfile.email,
+              role: 'admin',
+              updatedAt: new Date().toISOString()
+            });
+          }
+          refreshPendingMutationsCount();
+          setIsAuthChecking(false);
+          return;
         }
 
         // 3. Create and persist user profile in Firestore & RTDB immediately upon first login!
@@ -578,11 +841,11 @@ export default function App() {
           validationsCount: 0,
           streakDays: 1,
           badges: ['badge-premiere-voix'],
+          favoriteItemIds: getSavedFavoriteIds(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
 
-        // Persist immediately to Firestore and RTDB so Google users are created in database at login!
         await dualSaveRecord('users', initialProfile.id, initialProfile);
         if (isAdmin) {
           await dualSaveRecord('admins', initialProfile.id, {
@@ -592,13 +855,19 @@ export default function App() {
             updatedAt: new Date().toISOString()
           });
         }
+        refreshPendingMutationsCount();
 
         try {
           localStorage.setItem('nkala_authenticated_user', JSON.stringify(initialProfile));
         } catch {}
 
+        currentUserRef.current = initialProfile;
         setCurrentUser(initialProfile);
-        setUsersList(prev => [initialProfile, ...prev.filter(u => u.id !== initialProfile.id)]);
+        setUsersList(prev => {
+          const next = [initialProfile, ...prev.filter(u => u.id !== initialProfile.id)];
+          cacheUsersLocally(next);
+          return next;
+        });
         setIsOnboardingModalOpen(true);
         setIsAuthChecking(false);
         return;
@@ -615,6 +884,7 @@ export default function App() {
               }
 
               // Always restore the saved profile immediately so Airplane Mode / weak network never logs the user out
+              currentUserRef.current = parsed;
               setCurrentUser(parsed);
               setIsOnboardingModalOpen(!parsed.registrationCompleted);
               setIsAuthChecking(false);
@@ -633,6 +903,7 @@ export default function App() {
           }
         } catch {}
         setIsFirebaseAuthReady(false);
+        currentUserRef.current = null;
         setCurrentUser(null);
       }
       setIsAuthChecking(false);
@@ -714,7 +985,7 @@ export default function App() {
       }
     );
 
-    // 2. Subscribe to Contributions collection
+    // 2. Subscribe to Contributions collection (preserving any unsynced offlineQueued items!)
     const contribPath = 'contributions';
     const unsubscribeContrib = onSnapshot(
       collection(db, contribPath),
@@ -727,7 +998,13 @@ export default function App() {
           }
         });
         if (!snapshot.empty || isDatabaseMarkedSeeded() || deletedSet.size > 0) {
-          setContributions(loaded);
+          setContributions(prev => {
+            const loadedIds = new Set(loaded.map(c => c.id));
+            const stillQueuedOffline = prev.filter(c => c.offlineQueued && !loadedIds.has(c.id) && !deletedSet.has(c.id));
+            const merged = [...stillQueuedOffline, ...loaded];
+            cacheContributionsLocally(merged);
+            return merged;
+          });
         } else {
           const sampleContribs: Contribution[] = [
             {
@@ -761,7 +1038,13 @@ export default function App() {
               createdAt: '2026-01-13T15:30:00Z'
             }
           ].filter(c => !deletedSet.has(c.id));
-          setContributions(sampleContribs);
+          setContributions(prev => {
+            const sampleIds = new Set(sampleContribs.map(c => c.id));
+            const stillQueuedOffline = prev.filter(c => c.offlineQueued && !sampleIds.has(c.id) && !deletedSet.has(c.id));
+            const merged = [...stillQueuedOffline, ...sampleContribs];
+            cacheContributionsLocally(merged);
+            return merged;
+          });
         }
       },
       (error) => {
@@ -797,10 +1080,14 @@ export default function App() {
             }
           });
           setChallenges(loaded);
+          cacheChallengesLocally(loaded);
         } else if (isDatabaseMarkedSeeded()) {
           setChallenges([]);
+          cacheChallengesLocally([]);
         } else {
-          setChallenges(INITIAL_WEEKLY_CHALLENGES.filter(c => !deletedSet.has(c.id)));
+          const fallback = INITIAL_WEEKLY_CHALLENGES.filter(c => !deletedSet.has(c.id));
+          setChallenges(fallback);
+          cacheChallengesLocally(fallback);
         }
       },
       (error) => {
@@ -822,10 +1109,14 @@ export default function App() {
             }
           });
           setThemes(loaded);
+          cacheThemesLocally(loaded);
         } else if (isDatabaseMarkedSeeded()) {
           setThemes([]);
+          cacheThemesLocally([]);
         } else {
-          setThemes(THEMATIC_CATEGORIES.filter(t => !deletedSet.has(t.id)));
+          const fallback = THEMATIC_CATEGORIES.filter(t => !deletedSet.has(t.id));
+          setThemes(fallback);
+          cacheThemesLocally(fallback);
         }
       },
       (error) => {
@@ -847,10 +1138,14 @@ export default function App() {
             }
           });
           setBadges(loaded);
+          cacheBadgesLocally(loaded);
         } else if (isDatabaseMarkedSeeded()) {
           setBadges([]);
+          cacheBadgesLocally([]);
         } else {
-          setBadges(SYSTEM_BADGES.filter(b => !deletedSet.has(b.id)));
+          const fallback = SYSTEM_BADGES.filter(b => !deletedSet.has(b.id));
+          setBadges(fallback);
+          cacheBadgesLocally(fallback);
         }
       },
       (error) => {
@@ -869,6 +1164,7 @@ export default function App() {
             loaded.push({ id: docSnap.id, ...docSnap.data() } as UserProfile);
           });
           setUsersList(loaded);
+          cacheUsersLocally(loaded);
         }
       },
       (error) => {
@@ -970,69 +1266,119 @@ export default function App() {
     };
   }, [currentUser?.id, isFirebaseAuthReady]);
 
-  // Sync offline queue to Firestore and Storage
+  // Unified offline-to-online synchronization (Replays both admin/profile/validation mutations AND voice/text contributions)
   const syncPendingOfflineData = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    if (isSyncingOfflineRef.current) return;
+    isSyncingOfflineRef.current = true;
+
     try {
-      const pending = await getPendingOfflineContributions();
-      if (!pending || pending.length === 0) return;
+      await ensureFirebaseAuthSession();
 
-      for (const item of pending) {
-        let uploadedAudioUrl = item.audioDataUrl;
+      // 1. Replay queued mutations (users profile updates, validations, items, clans, villages, challenges, themes, badges)
+      const replayedMutations = await replayPendingOfflineAdminMutations();
+      refreshPendingMutationsCount();
 
-        // Upload audio blob to Firebase Storage bucket if present
-        if (item.audioBlob) {
-          try {
-            const storagePath = `recordings/${item.itemId}_${Date.now()}.webm`;
-            const audioRef = ref(storage, storagePath);
-            await uploadBytes(audioRef, item.audioBlob);
-            uploadedAudioUrl = await getDownloadURL(audioRef);
-          } catch (storageErr) {
-            console.warn('Storage upload notice (falling back to dataUrl):', storageErr);
-          }
-        }
-
-        // Add to Firestore contributions
-        await setDoc(doc(db, 'contributions', item.id), {
-          id: item.id,
-          itemId: item.itemId,
-          userId: currentUser?.id || 'offline_user',
-          userDisplayName: currentUser?.fullName || currentUser?.displayName || 'Contributeur Myènè',
-          userTribe: currentUser?.tribe,
-          userPaternalClan: currentUser?.paternalClan,
-          userMaternalClan: currentUser?.maternalClan,
-          frenchText: item.frenchText,
-          originalMyeneText: item.originalMyeneText,
-          isSpellingCorrect: item.isSpellingCorrect,
-          proposedSpelling: item.proposedSpelling,
-          isFrenchMeaningExact: item.isFrenchMeaningExact ?? true,
-          frenchMeaningType: item.frenchMeaningType || 'exact',
-          proposedFrenchMeaning: item.proposedFrenchMeaning || '',
-          secondaryMeaning: item.secondaryMeaning || '',
-          dialectVariant: item.dialectVariant || 'enenga',
-          comment: item.comment || '',
-          audioUrl: uploadedAudioUrl,
-          audioDuration: item.audioDuration || 3,
-          status: 'pending',
-          createdAt: new Date(item.timestamp).toISOString(),
-          offlineQueued: false
-        });
-
-        await removeOfflineContribution(item.id);
+      // 2. Sync current user profile if present to guarantee XP, badges, terms, and favorites are up-to-date in Firebase
+      const activeProfile = currentUserRef.current;
+      if (activeProfile && activeProfile.id) {
+        await dualSaveRecord('users', activeProfile.id, activeProfile);
+        refreshPendingMutationsCount();
       }
 
-      setPendingOfflineSubmissions([]);
-      NotificationService.sendLocalNotification('Synchronisation Réussie ! ⚡', {
-        body: `${pending.length} contribution(s) enregistrée(s) hors-ligne ont été synchronisées avec succès.`
-      });
+      // 3. Replay pending voice & text contributions from IndexedDB / localStorage fallback
+      const pending = await getPendingOfflineContributions();
+      let syncedContribCount = 0;
+
+      if (pending && pending.length > 0) {
+        for (const item of pending) {
+          let uploadedAudioUrl = item.audioDataUrl;
+
+          // Upload audio blob to Firebase Storage bucket if present
+          if (item.audioBlob) {
+            try {
+              const storagePath = `recordings/${item.itemId}_${Date.now()}.webm`;
+              const audioRef = ref(storage, storagePath);
+              await uploadBytes(audioRef, item.audioBlob);
+              uploadedAudioUrl = await getDownloadURL(audioRef);
+            } catch (storageErr) {
+              console.warn('Storage upload notice (falling back to permanent Base64):', storageErr);
+            }
+
+            if (!uploadedAudioUrl || uploadedAudioUrl.startsWith('blob:')) {
+              try {
+                uploadedAudioUrl = await convertBlobToBase64(item.audioBlob);
+              } catch {}
+            }
+          }
+
+          const syncedContribution: Contribution = {
+            id: item.id,
+            itemId: item.itemId,
+            userId: activeProfile?.id || 'offline_user',
+            userDisplayName: activeProfile?.fullName || activeProfile?.displayName || 'Contributeur Myènè',
+            userTribe: activeProfile?.tribe,
+            userPaternalClan: activeProfile?.paternalClan,
+            userMaternalClan: activeProfile?.maternalClan,
+            userPhotoURL: activeProfile?.photoURL,
+            frenchText: item.frenchText || '',
+            originalMyeneText: item.originalMyeneText || '',
+            isSpellingCorrect: !!item.isSpellingCorrect,
+            proposedSpelling: item.proposedSpelling || item.originalMyeneText || '',
+            isFrenchMeaningExact: item.isFrenchMeaningExact ?? true,
+            frenchMeaningType: item.frenchMeaningType || 'exact',
+            proposedFrenchMeaning: item.proposedFrenchMeaning || '',
+            secondaryMeaning: item.secondaryMeaning || '',
+            dialectVariant: item.dialectVariant || 'enenga',
+            comment: item.comment || '',
+            audioUrl: uploadedAudioUrl,
+            audioDuration: item.audioDuration || 3,
+            status: 'pending',
+            createdAt: new Date(item.timestamp || Date.now()).toISOString(),
+            offlineQueued: false
+          };
+
+          // Use dualSaveRecord (which sanitizes undefined values and writes to both Firestore & RTDB)
+          const writeResult = await dualSaveRecord('contributions', item.id, syncedContribution);
+          if (writeResult.firestore || writeResult.rtdb) {
+            await removeOfflineContribution(item.id);
+            syncedContribCount++;
+            setContributions(prev => {
+              const exists = prev.some(c => c.id === item.id);
+              const next = exists
+                ? prev.map(c => (c.id === item.id ? syncedContribution : c))
+                : [syncedContribution, ...prev];
+              cacheContributionsLocally(next);
+              return next;
+            });
+          }
+        }
+      }
+
+      const remainingPending = await getPendingOfflineContributions();
+      setPendingOfflineSubmissions(remainingPending);
+      refreshPendingMutationsCount();
+
+      if (syncedContribCount > 0 || replayedMutations > 0) {
+        NotificationService.sendLocalNotification('Synchronisation En Ligne Réussie ! ⚡', {
+          body: `${syncedContribCount > 0 ? `${syncedContribCount} contribution(s) ` : ''}${
+            replayedMutations > 0 ? `et ${replayedMutations} mise(s) à jour ` : ''
+          }synchronisée(s) avec Firebase.`
+        });
+      }
     } catch (err) {
       console.warn('Erreur synchronisation offline:', err);
+    } finally {
+      isSyncingOfflineRef.current = false;
     }
   };
 
-  // Submit contribution handler
+  // Submit contribution handler (Unified for both Online & Offline / Airplane Mode)
   const handleSaveContribution = async (data: Partial<Contribution>, audioBlob?: Blob): Promise<boolean> => {
+    const activeUser = currentUserRef.current || currentUser;
+
     // Chaque contributeur individuel doit valider électroniquement les conditions et l'utilisation de ses données avant toute contribution.
-    if (currentUser && (!currentUser.termsAccepted || !currentUser.dataUsageAccepted)) {
+    if (activeUser && (!activeUser.termsAccepted || !activeUser.dataUsageAccepted)) {
       setIsTermsConsentModalOpen(true);
       NotificationService.sendLocalNotification('Validation des Conditions Requise 📜', {
         body: "Veuillez accepter les conditions de la plateforme et valider l'utilisation de vos données avant de soumettre votre contribution."
@@ -1040,20 +1386,23 @@ export default function App() {
       return false;
     }
 
-    const contributionId = 'contrib-' + Date.now();
+    const currentlyOnline = typeof navigator === 'undefined' ? isOnline : navigator.onLine;
+    const contributionId = (currentlyOnline ? 'contrib-' : 'off-') + Date.now();
     let finalAudioUrl = data.audioUrl;
 
     if (audioBlob) {
-      try {
-        const storagePath = `recordings/${data.itemId}_${Date.now()}.webm`;
-        const audioRef = ref(storage, storagePath);
-        await uploadBytes(audioRef, audioBlob);
-        finalAudioUrl = await getDownloadURL(audioRef);
-      } catch (err) {
-        console.warn('Storage direct upload notice, convertissant en audio permanent:', err);
+      if (currentlyOnline) {
+        try {
+          const storagePath = `recordings/${data.itemId}_${Date.now()}.webm`;
+          const audioRef = ref(storage, storagePath);
+          await uploadBytes(audioRef, audioBlob);
+          finalAudioUrl = await getDownloadURL(audioRef);
+        } catch (err) {
+          console.warn('Storage direct upload notice, convertissant en audio permanent Base64:', err);
+        }
       }
 
-      // Fallback: If Firebase Storage upload did not produce a remote URL, convert blob to permanent Base64
+      // Always ensure we have a permanent Base64 dataUrl if offline or if Storage upload didn't return an https URL
       if (!finalAudioUrl || finalAudioUrl.startsWith('blob:')) {
         try {
           finalAudioUrl = await convertBlobToBase64(audioBlob);
@@ -1066,16 +1415,16 @@ export default function App() {
     const payload: Contribution = {
       id: contributionId,
       itemId: data.itemId || '',
-      userId: currentUser?.id || 'guest-user',
-      userDisplayName: currentUser?.fullName || currentUser?.displayName || 'Contributeur Myènè',
-      userTribe: currentUser?.tribe,
-      userPaternalClan: currentUser?.paternalClan,
-      userMaternalClan: currentUser?.maternalClan,
-      userPhotoURL: currentUser?.photoURL,
+      userId: activeUser?.id || 'guest-user',
+      userDisplayName: activeUser?.fullName || activeUser?.displayName || 'Contributeur Myènè',
+      userTribe: activeUser?.tribe,
+      userPaternalClan: activeUser?.paternalClan,
+      userMaternalClan: activeUser?.maternalClan,
+      userPhotoURL: activeUser?.photoURL,
       frenchText: data.frenchText || '',
       originalMyeneText: data.originalMyeneText || '',
       isSpellingCorrect: !!data.isSpellingCorrect,
-      proposedSpelling: data.proposedSpelling || data.originalMyeneText,
+      proposedSpelling: data.proposedSpelling || data.originalMyeneText || '',
       isFrenchMeaningExact: data.isFrenchMeaningExact ?? true,
       frenchMeaningType: data.frenchMeaningType || 'exact',
       proposedFrenchMeaning: data.proposedFrenchMeaning,
@@ -1083,19 +1432,74 @@ export default function App() {
       dialectVariant: data.dialectVariant || 'enenga',
       comment: data.comment,
       audioUrl: finalAudioUrl,
-      audioDuration: data.audioDuration,
+      audioDuration: data.audioDuration || 3,
       status: 'pending',
+      offlineQueued: !currentlyOnline,
       createdAt: new Date().toISOString()
     };
 
     try {
-      await dualSaveRecord('contributions', contributionId, payload);
-      setContributions(prev => [payload, ...prev]);
+      if (!currentlyOnline) {
+        // Save to offline IndexedDB + localStorage fallback
+        const offlineSub: OfflineSubmission = {
+          id: contributionId,
+          itemId: payload.itemId,
+          frenchText: payload.frenchText,
+          originalMyeneText: payload.originalMyeneText,
+          isSpellingCorrect: payload.isSpellingCorrect,
+          proposedSpelling: payload.proposedSpelling,
+          isFrenchMeaningExact: payload.isFrenchMeaningExact,
+          frenchMeaningType: payload.frenchMeaningType,
+          proposedFrenchMeaning: payload.proposedFrenchMeaning,
+          secondaryMeaning: payload.secondaryMeaning,
+          dialectVariant: payload.dialectVariant,
+          comment: payload.comment,
+          audioBlob: audioBlob || undefined,
+          audioDataUrl: finalAudioUrl,
+          audioDuration: payload.audioDuration,
+          timestamp: Date.now()
+        };
+        await saveOfflineContribution(offlineSub);
+        const updatedPending = await getPendingOfflineContributions();
+        setPendingOfflineSubmissions(updatedPending);
+      } else {
+        const writeRes = await dualSaveRecord('contributions', contributionId, payload);
+        if (!writeRes.firestore && !writeRes.rtdb) {
+          payload.offlineQueued = true;
+        }
+        refreshPendingMutationsCount();
+      }
+
+      setContributions(prev => {
+        const next = [payload, ...prev.filter(c => c.id !== payload.id)];
+        cacheContributionsLocally(next);
+        return next;
+      });
+
+      // Increment item contribution/recording counters locally & in Firebase
+      if (payload.itemId) {
+        setItems(prev => {
+          const next = prev.map(it => {
+            if (it.id !== payload.itemId) return it;
+            const updatedItem: QuestionnaireItem = {
+              ...it,
+              contributionsCount: (it.contributionsCount || 0) + 1,
+              recordingsCount: (it.recordingsCount || 0) + (finalAudioUrl ? 1 : 0),
+              updatedAt: new Date().toISOString()
+            };
+            dualSaveRecord('items', updatedItem.id, updatedItem).then(refreshPendingMutationsCount).catch(() => {});
+            return updatedItem;
+          });
+          cacheItemsLocally(next);
+          return next;
+        });
+      }
 
       // Track Weekly Challenge progression
       const activeChallenge = challenges.find(c => c.id === activeChallengeId);
       const currentItemForContrib = items.find(i => i.id === data.itemId);
-      if (currentUser && activeChallenge && activeChallenge.isActive) {
+      const latestUser = currentUserRef.current;
+      if (latestUser && activeChallenge && activeChallenge.isActive) {
         const itemTheme = currentItemForContrib?.category || currentItemForContrib?.theme;
         const isThemeMatch = activeChallenge.theme === 'all' || itemTheme === activeChallenge.theme;
         const isTypeMatch = activeChallenge.challengeType === 'all' ||
@@ -1103,17 +1507,17 @@ export default function App() {
           (activeChallenge.challengeType === 'recordings' && !!(audioBlob || data.audioUrl));
 
         if (isThemeMatch && isTypeMatch) {
-          const currentCount = currentUser.weeklyProgress?.[activeChallenge.id] || 0;
+          const currentCount = latestUser.weeklyProgress?.[activeChallenge.id] || 0;
           const newCount = currentCount + 1;
-          const wasCompleted = currentUser.completedChallenges?.includes(activeChallenge.id);
+          const wasCompleted = latestUser.completedChallenges?.includes(activeChallenge.id);
 
           const updatedWeeklyProgress = {
-            ...(currentUser.weeklyProgress || {}),
+            ...(latestUser.weeklyProgress || {}),
             [activeChallenge.id]: newCount
           };
 
-          let updatedCompleted = currentUser.completedChallenges || [];
-          let updatedBadges = [...currentUser.badges];
+          let updatedCompleted = latestUser.completedChallenges || [];
+          let updatedBadges = [...(latestUser.badges || [])];
           let bonusXp = 0;
 
           if (newCount >= activeChallenge.targetCount && !wasCompleted) {
@@ -1129,57 +1533,55 @@ export default function App() {
             });
           }
 
-          const updatedUser: UserProfile = {
-            ...currentUser,
-            xp: (currentUser.xp || 0) + bonusXp,
+          const newXpTotal = (latestUser.xp || 0) + bonusXp;
+          const newLvl = getLevelForXp(newXpTotal);
+
+          await updateAndPersistCurrentUser(prev => ({
+            ...prev,
+            xp: newXpTotal,
+            level: newLvl.name,
+            levelIndex: newLvl.index,
             badges: updatedBadges,
             weeklyProgress: updatedWeeklyProgress,
             completedChallenges: updatedCompleted,
             updatedAt: new Date().toISOString()
-          };
-
-          setCurrentUser(updatedUser);
-          try {
-            setDoc(doc(db, 'users', currentUser.id), updatedUser, { merge: true }).catch(() => {});
-          } catch {}
+          }));
         }
       }
 
       return true;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'contributions/' + contributionId);
-      // Fallback: save to local memory
-      setContributions(prev => [payload, ...prev]);
+      setContributions(prev => {
+        const next = [payload, ...prev.filter(c => c.id !== payload.id)];
+        cacheContributionsLocally(next);
+        return next;
+      });
       return true;
     }
   };
 
-  // Gamification rewards handler
+  // Gamification rewards handler (persists to localStorage + dualSaveRecord offline queue & cloud)
   const handleRewardEarned = (xpGained: number, newBadges: string[]) => {
-    if (!currentUser) return;
-    const newXp = (currentUser.xp || 0) + xpGained;
+    const latestUser = currentUserRef.current || currentUser;
+    if (!latestUser) return;
+
+    const newXp = (latestUser.xp || 0) + xpGained;
     const newLvl = getLevelForXp(newXp);
-    const updatedBadges = Array.from(new Set([...(currentUser.badges || []), ...newBadges]));
+    const updatedBadges = Array.from(new Set([...(latestUser.badges || []), ...newBadges]));
 
     const updatedProfile: UserProfile = {
-      ...currentUser,
+      ...latestUser,
       xp: newXp,
       level: newLvl.name,
       levelIndex: newLvl.index,
-      contributionsCount: (currentUser.contributionsCount || 0) + 1,
-      recordingsCount: (currentUser.recordingsCount || 0) + (newBadges.includes('badge-premiere-voix') ? 1 : 0),
+      contributionsCount: (latestUser.contributionsCount || 0) + 1,
+      recordingsCount: (latestUser.recordingsCount || 0) + (newBadges.includes('badge-premiere-voix') ? 1 : 0),
       badges: updatedBadges,
       updatedAt: new Date().toISOString()
     };
 
-    setCurrentUser(updatedProfile);
-
-    // Save user update to Firestore
-    try {
-      setDoc(doc(db, 'users', currentUser.id), updatedProfile, { merge: true }).catch(() => {});
-    } catch {
-      // offline fallback
-    }
+    updateAndPersistCurrentUser(updatedProfile).catch(() => {});
   };
 
   // Dynamic additions and administration of Clans and Villages
@@ -1206,6 +1608,7 @@ export default function App() {
       return updated;
     });
     await dualSaveRecord('clans', id, newClan);
+    refreshPendingMutationsCount();
     return newClan;
   };
 
@@ -1217,6 +1620,9 @@ export default function App() {
       name: clanData.name || 'Nouveau Clan',
       tribe: clanData.tribe || 'Enenga',
       description: clanData.description,
+      historicalMeaning: clanData.historicalMeaning,
+      geographicalOrigins: clanData.geographicalOrigins,
+      mottoOrSymbol: clanData.mottoOrSymbol,
       createdAt: clanData.createdAt || new Date().toISOString()
     };
     setClans(prev => {
@@ -1232,6 +1638,7 @@ export default function App() {
       return updated;
     });
     await dualSaveRecord('clans', id, fullClan);
+    refreshPendingMutationsCount();
   };
 
   const handleDeleteClan = async (clanId: string) => {
@@ -1242,6 +1649,7 @@ export default function App() {
       return next;
     });
     await dualDeleteRecord('clans', clanId);
+    refreshPendingMutationsCount();
   };
 
   const handleAddNewVillage = async (name: string, clan: string, tribe: string, region?: string): Promise<VillageRegistry> => {
@@ -1269,6 +1677,7 @@ export default function App() {
       return updated;
     });
     await dualSaveRecord('villages', id, newVillage);
+    refreshPendingMutationsCount();
     return newVillage;
   };
 
@@ -1296,6 +1705,7 @@ export default function App() {
       return updated;
     });
     await dualSaveRecord('villages', id, fullVillage);
+    refreshPendingMutationsCount();
   };
 
   const handleDeleteVillage = async (villageId: string) => {
@@ -1306,44 +1716,35 @@ export default function App() {
       return next;
     });
     await dualDeleteRecord('villages', villageId);
+    refreshPendingMutationsCount();
   };
 
-  // Complete onboarding with guaranteed Firebase Auth session & dual write
+  // Complete onboarding with guaranteed offline/online persistence & dual write
   const handleCompleteOnboarding = async (profileData: Partial<UserProfile>) => {
-    if (!currentUser) return;
-    await ensureFirebaseAuthSession();
+    const baseUser = currentUserRef.current || currentUser;
+    if (!baseUser) return;
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      await ensureFirebaseAuthSession();
+    }
 
-    const isSuperAdmin = checkIsAdminEmail(currentUser.email) || checkIsAdminEmail(profileData.email);
+    const isSuperAdmin = checkIsAdminEmail(baseUser.email) || checkIsAdminEmail(profileData.email);
     const updated: UserProfile = {
-      ...currentUser,
+      ...baseUser,
       ...profileData,
-      role: isSuperAdmin ? 'admin' : (profileData.role || currentUser.role),
+      role: isSuperAdmin ? 'admin' : (profileData.role || baseUser.role),
       registrationCompleted: true,
       updatedAt: new Date().toISOString()
     };
-    setCurrentUser(updated);
-    setUsersList(prev => {
-      const idx = prev.findIndex(u => u.id === updated.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = updated;
-        return copy;
-      }
-      return [updated, ...prev];
-    });
 
-    try {
-      localStorage.setItem('nkala_authenticated_user', JSON.stringify(updated));
-    } catch {}
+    await updateAndPersistCurrentUser(updated, true);
 
-    // Persist user directly to Firestore and Realtime Database
-    await dualSaveRecord('users', updated.id, updated);
     if (updated.role === 'admin') {
       await dualSaveRecord('admins', updated.id, {
         userId: updated.id,
         role: 'admin',
         updatedAt: new Date().toISOString()
       });
+      refreshPendingMutationsCount();
     }
 
     setIsOnboardingModalOpen(false);
@@ -1358,31 +1759,19 @@ export default function App() {
 
   // Accept Platform Terms & Data Usage Consent (Annexe 1 - for already registered or updating users)
   const handleAcceptTermsConsent = async (consentData: TermsConsentPayload) => {
-    if (!currentUser) return;
-    await ensureFirebaseAuthSession();
+    const baseUser = currentUserRef.current || currentUser;
+    if (!baseUser) return;
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      await ensureFirebaseAuthSession();
+    }
 
     const updated: UserProfile = {
-      ...currentUser,
+      ...baseUser,
       ...consentData,
       updatedAt: new Date().toISOString()
     };
 
-    setCurrentUser(updated);
-    setUsersList(prev => {
-      const idx = prev.findIndex(u => u.id === updated.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = updated;
-        return copy;
-      }
-      return [updated, ...prev];
-    });
-
-    try {
-      localStorage.setItem('nkala_authenticated_user', JSON.stringify(updated));
-    } catch {}
-
-    await dualSaveRecord('users', updated.id, updated);
+    await updateAndPersistCurrentUser(updated, true);
     setIsTermsConsentModalOpen(false);
 
     // If the user has not seen the visual guide yet, display it after terms validation
@@ -1398,42 +1787,53 @@ export default function App() {
     });
   };
 
-  // Admin validation handler
+  // Admin validation handler (works offline & syncs online via dualSaveRecord)
   const handleValidateContribution = async (
     contributionId: string, 
     status: 'approved' | 'rejected' | 'needs_revision',
     notes?: string
   ) => {
-    try {
-      await updateDoc(doc(db, 'contributions', contributionId), {
-        status,
-        validatorId: currentUser?.id || 'admin',
-        validatorDisplayName: currentUser?.fullName || 'Andy AKENDENGUE',
-        validatorNotes: notes || '',
-        validatedAt: new Date().toISOString()
+    const activeUser = currentUserRef.current || currentUser;
+    const validationFields: Partial<Contribution> = {
+      status,
+      validatorId: activeUser?.id || 'admin',
+      validatorDisplayName: activeUser?.fullName || 'Andy AKENDENGUE',
+      validatorNotes: notes || '',
+      validatedAt: new Date().toISOString()
+    };
+
+    let targetUpdatedContrib: Contribution | null = null;
+    setContributions(prev => {
+      const next = prev.map(c => {
+        if (c.id === contributionId) {
+          targetUpdatedContrib = { ...c, ...validationFields };
+          return targetUpdatedContrib;
+        }
+        return c;
       });
-    } catch {}
+      cacheContributionsLocally(next);
+      return next;
+    });
 
-    setContributions(prev =>
-      prev.map(c => c.id === contributionId ? { ...c, status, validatorNotes: notes } : c)
-    );
+    await dualSaveRecord('contributions', contributionId, targetUpdatedContrib || { id: contributionId, ...validationFields });
+    refreshPendingMutationsCount();
 
-    if (currentUser) {
-      const updatedValids = (currentUser.validationsCount || 0) + 1;
-      const extraBadges = [...currentUser.badges];
+    if (activeUser) {
+      const updatedValids = (activeUser.validationsCount || 0) + 1;
+      const extraBadges = [...(activeUser.badges || [])];
       if (updatedValids >= 5 && !extraBadges.includes('badge-cinq-validations')) {
         extraBadges.push('badge-cinq-validations');
       }
-      setCurrentUser({
-        ...currentUser,
+      await updateAndPersistCurrentUser(prev => ({
+        ...prev,
         validationsCount: updatedValids,
-        badges: extraBadges
-      });
+        badges: extraBadges,
+        updatedAt: new Date().toISOString()
+      }));
     }
   };
 
-  // Dedicated Validator Workspace handler with explicit oral vs written nuance
-  // "l'écrit peut être bon mais pas la prononciation, la prononciation est bonne mais il a mal écrit"
+  // Dedicated Validator Workspace handler with explicit oral vs written nuance (works offline & syncs online)
   const handleValidateGranular = async (
     contributionId: string,
     payload: {
@@ -1443,39 +1843,47 @@ export default function App() {
       notes?: string;
     }
   ) => {
+    const activeUser = currentUserRef.current || currentUser;
     const updatePayload: Partial<Contribution> = {
       status: payload.status,
       spellingVerdict: payload.spellingVerdict,
       pronunciationVerdict: payload.pronunciationVerdict,
       isSpellingCorrect: payload.spellingVerdict === 'correct',
       isPronunciationCorrect: payload.pronunciationVerdict === 'correct',
-      validatorId: currentUser?.id || 'validator',
-      validatorDisplayName: currentUser?.fullName || currentUser?.displayName || 'Validateur',
+      validatorId: activeUser?.id || 'validator',
+      validatorDisplayName: activeUser?.fullName || activeUser?.displayName || 'Validateur',
       validatorNotes: payload.notes || '',
       validatedAt: new Date().toISOString()
     };
 
-    try {
-      await updateDoc(doc(db, 'contributions', contributionId), updatePayload);
-    } catch (e) {
-      console.warn('Notice saving granular validation to Firestore:', e);
-    }
+    let targetUpdatedContrib: Contribution | null = null;
+    setContributions(prev => {
+      const next = prev.map(c => {
+        if (c.id === contributionId) {
+          targetUpdatedContrib = { ...c, ...updatePayload };
+          return targetUpdatedContrib;
+        }
+        return c;
+      });
+      cacheContributionsLocally(next);
+      return next;
+    });
 
-    setContributions(prev =>
-      prev.map(c => c.id === contributionId ? { ...c, ...updatePayload } : c)
-    );
+    await dualSaveRecord('contributions', contributionId, targetUpdatedContrib || { id: contributionId, ...updatePayload });
+    refreshPendingMutationsCount();
 
-    if (currentUser) {
-      const updatedValids = (currentUser.validationsCount || 0) + 1;
-      const extraBadges = [...currentUser.badges];
+    if (activeUser) {
+      const updatedValids = (activeUser.validationsCount || 0) + 1;
+      const extraBadges = [...(activeUser.badges || [])];
       if (updatedValids >= 5 && !extraBadges.includes('badge-cinq-validations')) {
         extraBadges.push('badge-cinq-validations');
       }
-      setCurrentUser({
-        ...currentUser,
+      await updateAndPersistCurrentUser(prev => ({
+        ...prev,
         validationsCount: updatedValids,
-        badges: extraBadges
-      });
+        badges: extraBadges,
+        updatedAt: new Date().toISOString()
+      }));
     }
 
     NotificationService.sendLocalNotification('Évaluation Enregistrée 🎯', {
@@ -1483,94 +1891,118 @@ export default function App() {
     });
   };
 
-  // Admin User level & badge manual manager
+  // Admin User level & badge manual manager (persists to Firestore + RTDB + offline queue)
   const handleUpdateUserLevelAndBadges = async (
     userId: string,
     newLevelIndex: number,
-    badges: string[],
+    badgesList: string[],
     newXp?: number
   ) => {
     const lvl = USER_LEVELS.find(l => l.index === newLevelIndex) || USER_LEVELS[0];
-    setUsersList(prev => prev.map(u => {
-      if (u.id === userId) {
-        return {
-          ...u,
-          levelIndex: newLevelIndex,
-          level: lvl.name,
-          badges,
-          xp: newXp !== undefined ? newXp : u.xp
-        };
-      }
-      return u;
-    }));
+    const nowIso = new Date().toISOString();
+    let updatedTargetUser: UserProfile | null = null;
 
-    if (currentUser?.id === userId) {
-      setCurrentUser(prev => prev ? {
+    setUsersList(prev => {
+      const next = prev.map(u => {
+        if (u.id === userId) {
+          updatedTargetUser = {
+            ...u,
+            levelIndex: newLevelIndex,
+            level: lvl.name,
+            badges: badgesList,
+            xp: newXp !== undefined ? newXp : u.xp,
+            updatedAt: nowIso
+          };
+          return updatedTargetUser;
+        }
+        return u;
+      });
+      cacheUsersLocally(next);
+      return next;
+    });
+
+    if (currentUserRef.current?.id === userId) {
+      await updateAndPersistCurrentUser(prev => ({
         ...prev,
         levelIndex: newLevelIndex,
         level: lvl.name,
-        badges,
-        xp: newXp !== undefined ? newXp : prev.xp
-      } : null);
+        badges: badgesList,
+        xp: newXp !== undefined ? newXp : prev.xp,
+        updatedAt: nowIso
+      }));
+    } else {
+      await dualSaveRecord(
+        'users',
+        userId,
+        updatedTargetUser || {
+          id: userId,
+          levelIndex: newLevelIndex,
+          level: lvl.name,
+          badges: badgesList,
+          ...(newXp !== undefined ? { xp: newXp } : {}),
+          updatedAt: nowIso
+        }
+      );
+      refreshPendingMutationsCount();
     }
   };
 
-  // Authentication Gate handler - PRESERVES FIRESTORE DATA ON RECONNECT
+  // Authentication Gate handler - PRESERVES FIRESTORE & OFFLINE DATA ON RECONNECT
   const handleLoginSuccess = async (profileData: Partial<UserProfile>) => {
     if (!profileData.id) return;
 
     setIsAuthChecking(true);
     try {
-      await ensureFirebaseAuthSession();
-      if (auth.currentUser) {
-        setIsFirebaseAuthReady(true);
+      if (typeof navigator === 'undefined' || navigator.onLine) {
+        await ensureFirebaseAuthSession();
+        if (auth.currentUser) {
+          setIsFirebaseAuthReady(true);
+        }
+        await replayPendingOfflineAdminMutations();
+        refreshPendingMutationsCount();
       }
 
       // 1. FIRST: Check if the user already exists in Firestore to NEVER wipe out their data or console edits!
       let existingProfile: UserProfile | null = null;
-      try {
-        const snap = await getDoc(doc(db, 'users', profileData.id));
-        if (snap.exists()) {
-          existingProfile = snap.data() as UserProfile;
+      if (typeof navigator === 'undefined' || navigator.onLine) {
+        try {
+          const snap = await getDoc(doc(db, 'users', profileData.id));
+          if (snap.exists()) {
+            existingProfile = snap.data() as UserProfile;
+          }
+        } catch (err) {
+          console.warn('Notice checking existing user in Firestore:', err);
         }
-      } catch (err) {
-        console.warn('Notice checking existing user in Firestore:', err);
       }
 
       const isSuperAdmin = checkIsAdminEmail(profileData.email) || checkIsAdminEmail(existingProfile?.email);
 
       if (existingProfile) {
-        // PRESERVE ALL VALUES FROM FIRESTORE (including manual edits in Firebase Console)
-        const merged: UserProfile = {
-          ...existingProfile,
-          photoURL: profileData.photoURL || existingProfile.photoURL,
-          email: profileData.email || existingProfile.email,
-          role: isSuperAdmin ? 'admin' : existingProfile.role
-        };
+        const { merged, needsCloudPush } = mergeLocalAndCloudUserProfile(
+          currentUserRef.current,
+          {
+            ...existingProfile,
+            photoURL: profileData.photoURL || existingProfile.photoURL,
+            email: profileData.email || existingProfile.email
+          },
+          isSuperAdmin
+        );
 
-        // If user is super-admin and was previously stored as user, upgrade them immediately in Firestore & RTDB
-        if (isSuperAdmin && existingProfile.role !== 'admin') {
-          try {
-            await dualSaveRecord('users', merged.id, { role: 'admin', updatedAt: new Date().toISOString() });
+        if (needsCloudPush) {
+          await dualSaveRecord('users', merged.id, merged);
+          if (isSuperAdmin) {
             await dualSaveRecord('admins', merged.id, {
               userId: merged.id,
               email: merged.email,
               role: 'admin',
               updatedAt: new Date().toISOString()
             });
-          } catch (upgradeErr) {
-            console.warn('Notice upgrading super-admin in database:', upgradeErr);
           }
+          refreshPendingMutationsCount();
         }
 
-        try {
-          localStorage.setItem('nkala_authenticated_user', JSON.stringify(merged));
-        } catch {}
+        await updateAndPersistCurrentUser(merged, false);
 
-        setCurrentUser(merged);
-        setUsersList(prev => [merged, ...prev.filter(u => u.id !== merged.id)]);
-
-        // If registration was already completed, DO NOT reopen onboarding modal!
         if (merged.registrationCompleted) {
           setIsOnboardingModalOpen(false);
         } else {
@@ -1607,29 +2039,20 @@ export default function App() {
         validationsCount: 0,
         streakDays: 1,
         badges: ['badge-premiere-voix'],
+        favoriteItemIds: getSavedFavoriteIds(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      try {
-        localStorage.setItem('nkala_authenticated_user', JSON.stringify(fullProfile));
-      } catch {}
-      setCurrentUser(fullProfile);
-      setUsersList(prev => [fullProfile, ...prev.filter(u => u.id !== fullProfile.id)]);
-
-      try {
-        await ensureFirebaseAuthSession();
-        await dualSaveRecord('users', fullProfile.id, fullProfile);
-        if (fullProfile.role === 'admin') {
-          await dualSaveRecord('admins', fullProfile.id, { 
-            userId: fullProfile.id,
-            email: fullProfile.email,
-            role: 'admin', 
-            updatedAt: new Date().toISOString() 
-          });
-        }
-      } catch (err) {
-        console.warn('Notice syncing profile to database:', err);
+      await updateAndPersistCurrentUser(fullProfile, true);
+      if (fullProfile.role === 'admin') {
+        await dualSaveRecord('admins', fullProfile.id, { 
+          userId: fullProfile.id,
+          email: fullProfile.email,
+          role: 'admin', 
+          updatedAt: new Date().toISOString() 
+        });
+        refreshPendingMutationsCount();
       }
 
       setIsOnboardingModalOpen(true);
@@ -1679,18 +2102,21 @@ export default function App() {
         await dualSaveRecord('themes', theme.id, theme);
       }
       setThemes(THEMATIC_CATEGORIES);
+      cacheThemesLocally(THEMATIC_CATEGORIES);
 
       // 5. Seed Badges
       for (const badge of SYSTEM_BADGES) {
         await dualSaveRecord('badges', badge.id, badge);
       }
       setBadges(SYSTEM_BADGES);
+      cacheBadgesLocally(SYSTEM_BADGES);
 
       // 6. Seed Weekly Challenges
       for (const challenge of INITIAL_WEEKLY_CHALLENGES) {
         await dualSaveRecord('challenges', challenge.id, challenge);
       }
       setChallenges(INITIAL_WEEKLY_CHALLENGES);
+      cacheChallengesLocally(INITIAL_WEEKLY_CHALLENGES);
 
       // 7. Write the official permanent Seed Marker in Firestore & RTDB
       const markerPayload: SeedStatus = {
@@ -1721,6 +2147,7 @@ export default function App() {
       };
       await dualSaveRecord('metrics', 'summary', metricsPayload);
       setSystemMetrics(metricsPayload);
+      refreshPendingMutationsCount();
 
       NotificationService.sendLocalNotification('Premier Seed Firebase Réussi 🌱', {
         body: `Base de données initialisée : ${INITIAL_ENENGA_ITEMS.length} questions et ${INITIAL_CLANS.length} clans propagés.`
@@ -1738,44 +2165,60 @@ export default function App() {
     }
   };
 
-  // Admin User Role Management (DECIDER QUI EST ADMIN)
+  // Admin User Role Management (DECIDER QUI EST ADMIN - works offline & syncs online)
   const handleUpdateUserRole = async (userId: string, newRole: UserRole) => {
-    try {
-      await setDoc(doc(db, 'users', userId), { role: newRole, updatedAt: new Date().toISOString() }, { merge: true });
-      if (newRole === 'admin') {
-        await setDoc(doc(db, 'admins', userId), { role: 'admin', updatedAt: new Date().toISOString() }, { merge: true });
-      } else {
-        await deleteDoc(doc(db, 'admins', userId)).catch(() => {});
-      }
-    } catch (e) {
-      console.warn('Notice updating user role in Firestore:', e);
+    const nowIso = new Date().toISOString();
+    setUsersList(prev => {
+      const next = prev.map(u => (u.id === userId ? { ...u, role: newRole, updatedAt: nowIso } : u));
+      cacheUsersLocally(next);
+      return next;
+    });
+
+    if (currentUserRef.current?.id === userId) {
+      await updateAndPersistCurrentUser(prev => ({ ...prev, role: newRole, updatedAt: nowIso }), true);
+    } else {
+      await dualSaveRecord('users', userId, { role: newRole, updatedAt: nowIso });
     }
 
-    setUsersList(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    if (currentUser?.id === userId) {
-      setCurrentUser(prev => prev ? { ...prev, role: newRole } : null);
+    if (newRole === 'admin') {
+      await dualSaveRecord('admins', userId, { userId, role: 'admin', updatedAt: nowIso });
+    } else {
+      await dualDeleteRecord('admins', userId);
     }
+    refreshPendingMutationsCount();
+
     alert(`Rôle mis à jour : l'utilisateur est désormais ${newRole === 'admin' ? 'ADMINISTRATEUR 👑' : newRole === 'validator' ? 'VALIDATEUR 🔍' : 'CONTRIBUTEUR'}.`);
   };
 
   // Delete Contribution / Response
   const handleDeleteContribution = async (contributionId: string) => {
     markIdAsDeleted('contributions', contributionId);
-    setContributions(prev => prev.filter(c => c.id !== contributionId));
+    await removeOfflineContribution(contributionId);
+    setContributions(prev => {
+      const next = prev.filter(c => c.id !== contributionId);
+      cacheContributionsLocally(next);
+      return next;
+    });
     await dualDeleteRecord('contributions', contributionId);
+    refreshPendingMutationsCount();
   };
 
-  // Admin Anti-Fraud account status update
+  // Admin Anti-Fraud account status update (works offline & syncs online)
   const handleUpdateUserAccountStatus = async (userId: string, status: 'active' | 'flagged' | 'suspended') => {
-    try {
-      await setDoc(doc(db, 'users', userId), { status, updatedAt: new Date().toISOString() }, { merge: true });
-    } catch (e) {
-      console.warn('Notice updating account status in Firestore:', e);
+    const nowIso = new Date().toISOString();
+    setUsersList(prev => {
+      const next = prev.map(u => (u.id === userId ? { ...u, status, updatedAt: nowIso } : u));
+      cacheUsersLocally(next);
+      return next;
+    });
+
+    if (currentUserRef.current?.id === userId) {
+      await updateAndPersistCurrentUser(prev => ({ ...prev, status, updatedAt: nowIso }), true);
+    } else {
+      await dualSaveRecord('users', userId, { status, updatedAt: nowIso });
+      refreshPendingMutationsCount();
     }
-    setUsersList(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
-    if (currentUser?.id === userId) {
-      setCurrentUser(prev => prev ? { ...prev, status } : null);
-    }
+
     alert(`Le statut du profil a été mis à jour : ${status.toUpperCase()}`);
   };
 
@@ -1788,7 +2231,10 @@ export default function App() {
       frenchText: itemData.frenchText || '',
       myeneText: itemData.myeneText || '',
       dialect: itemData.dialect || 'enenga',
+      clan: itemData.clan,
+      clans: itemData.clans,
       category: itemData.category || 'vie_quotidienne',
+      theme: itemData.theme || itemData.category || 'vie_quotidienne',
       contextNotes: itemData.contextNotes || '',
       imageUrl: itemData.imageUrl || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
       difficulty: itemData.difficulty || 'intermediaire',
@@ -1814,6 +2260,7 @@ export default function App() {
     });
 
     await dualSaveRecord('items', id, fullItem);
+    refreshPendingMutationsCount();
   };
 
   const handleDeleteQuestionnaireItem = async (itemId: string) => {
@@ -1824,6 +2271,7 @@ export default function App() {
       return remaining;
     });
     await dualDeleteRecord('items', itemId);
+    refreshPendingMutationsCount();
   };
 
   // Weekly Challenge Admin Handlers
@@ -1848,15 +2296,15 @@ export default function App() {
 
     setChallenges(prev => {
       const idx = prev.findIndex(c => c.id === id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = fullChallenge;
-        return copy;
-      }
-      return [fullChallenge, ...prev];
+      const next = idx >= 0
+        ? prev.map((c, i) => (i === idx ? fullChallenge : c))
+        : [fullChallenge, ...prev];
+      cacheChallengesLocally(next);
+      return next;
     });
 
     await dualSaveRecord('challenges', id, fullChallenge);
+    refreshPendingMutationsCount();
 
     setActiveChallengeId(id);
     NotificationService.sendLocalNotification('Nouveau Défi Hebdomadaire ! 🎯', {
@@ -1866,20 +2314,30 @@ export default function App() {
 
   const handleDeleteChallenge = async (challengeId: string) => {
     markIdAsDeleted('challenges', challengeId);
-    setChallenges(prev => prev.filter(c => c.id !== challengeId));
+    setChallenges(prev => {
+      const next = prev.filter(c => c.id !== challengeId);
+      cacheChallengesLocally(next);
+      return next;
+    });
     await dualDeleteRecord('challenges', challengeId);
+    refreshPendingMutationsCount();
   };
 
   const handleToggleActiveChallenge = async (challengeId: string, currentStatus: boolean) => {
     const newStatus = !currentStatus;
     const target = challenges.find(c => c.id === challengeId);
-    setChallenges(prev => prev.map(c => c.id === challengeId ? { ...c, isActive: newStatus } : c));
+    setChallenges(prev => {
+      const next = prev.map(c => (c.id === challengeId ? { ...c, isActive: newStatus } : c));
+      cacheChallengesLocally(next);
+      return next;
+    });
     if (target) {
       await dualSaveRecord('challenges', challengeId, { ...target, isActive: newStatus });
+      refreshPendingMutationsCount();
     }
   };
 
-  // Batch import phrases handler (CSV Import - Resumable, Deduplicated & Production-Safe)
+  // Batch import phrases handler (CSV Import - Resumable, Deduplicated & Offline-Resilient)
   const handleBatchImportItems = async (
     incomingItems: QuestionnaireItem[],
     onProgress?: (savedCount: number, totalCount: number) => void
@@ -1887,7 +2345,6 @@ export default function App() {
     if (!incomingItems || incomingItems.length === 0) return;
 
     // 1. Deduplicate against all currently existing items so re-uploading the same file NEVER creates duplicates
-    // and NEVER overwrites live items or their contributions!
     const { newItemsToImport } = deduplicateParsedCsvItems(incomingItems, items);
     if (newItemsToImport.length === 0) {
       onProgress?.(0, 0);
@@ -1902,7 +2359,7 @@ export default function App() {
     setItems(updatedItemsList);
     cacheItemsLocally(updatedItemsList);
 
-    // 2. Commit in fast, safe chunks of 250 documents per Firestore writeBatch + RTDB update
+    // 2. Commit in fast, safe chunks of 250 documents per Firestore writeBatch + RTDB update (or queue offline)
     await dualBatchSaveRecords(
       'items',
       newItemsToImport.map(it => ({ id: it.id, data: it })),
@@ -1918,9 +2375,10 @@ export default function App() {
     };
     setSystemMetrics(nextMetrics);
     await dualSaveRecord('metrics', 'summary', nextMetrics);
+    refreshPendingMutationsCount();
 
     NotificationService.sendLocalNotification('Importation Réussie ! 📚', {
-      body: `${newItemsToImport.length} nouvelles phrases ont été importées sans aucun doublon dans Firebase.`
+      body: `${newItemsToImport.length} nouvelles phrases ont été importées sans aucun doublon.`
     });
   };
 
@@ -1942,21 +2400,26 @@ export default function App() {
 
     setThemes(prev => {
       const idx = prev.findIndex(t => t.id === themeId);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = fullTheme;
-        return updated;
-      }
-      return [...prev, fullTheme];
+      const next = idx >= 0
+        ? prev.map((t, i) => (i === idx ? fullTheme : t))
+        : [...prev, fullTheme];
+      cacheThemesLocally(next);
+      return next;
     });
 
     await dualSaveRecord('themes', themeId, fullTheme);
+    refreshPendingMutationsCount();
   };
 
   const handleDeleteTheme = async (themeId: string) => {
     markIdAsDeleted('themes', themeId);
-    setThemes(prev => prev.filter(t => t.id !== themeId));
+    setThemes(prev => {
+      const next = prev.filter(t => t.id !== themeId);
+      cacheThemesLocally(next);
+      return next;
+    });
     await dualDeleteRecord('themes', themeId);
+    refreshPendingMutationsCount();
   };
 
   const handleBatchRegisterThemes = async (newThemes: ThemeDefinition[]) => {
@@ -1966,11 +2429,14 @@ export default function App() {
     setThemes(prev => {
       const existingIds = new Set(prev.map(p => p.id));
       const toAdd = newThemes.filter(nt => !existingIds.has(nt.id));
-      return [...prev, ...toAdd];
+      const next = [...prev, ...toAdd];
+      cacheThemesLocally(next);
+      return next;
     });
     for (const th of newThemes) {
       await dualSaveRecord('themes', th.id, th);
     }
+    refreshPendingMutationsCount();
   };
 
   // Dynamic Badges Handlers
@@ -1993,26 +2459,32 @@ export default function App() {
 
     setBadges(prev => {
       const idx = prev.findIndex(b => b.id === badgeId);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = fullBadge;
-        return updated;
-      }
-      return [...prev, fullBadge];
+      const next = idx >= 0
+        ? prev.map((b, i) => (i === idx ? fullBadge : b))
+        : [...prev, fullBadge];
+      cacheBadgesLocally(next);
+      return next;
     });
 
     await dualSaveRecord('badges', badgeId, fullBadge);
+    refreshPendingMutationsCount();
   };
 
   const handleDeleteBadge = async (badgeId: string) => {
     markIdAsDeleted('badges', badgeId);
-    setBadges(prev => prev.filter(b => b.id !== badgeId));
+    setBadges(prev => {
+      const next = prev.filter(b => b.id !== badgeId);
+      cacheBadgesLocally(next);
+      return next;
+    });
     await dualDeleteRecord('badges', badgeId);
+    refreshPendingMutationsCount();
   };
 
-  // Full bidirectional Database Sync (Items, Clans, Villages, Users, Metrics)
+  // Full bidirectional Database Sync (Items, Clans, Villages, Users, Contributions, Metrics)
   const handleTriggerCloudSync = async () => {
     await ensureFirebaseAuthSession();
+    await syncPendingOfflineData();
 
     // 1. Sync all Items in fast 250-doc batches (supports 10,000+ items cleanly)
     await dualBatchSaveRecords(
@@ -2075,6 +2547,7 @@ export default function App() {
     };
     await dualSaveRecord('metrics', 'seed_status', markerPayload);
     setSeedStatus(markerPayload);
+    refreshPendingMutationsCount();
 
     NotificationService.sendLocalNotification('Base de données synchronisée ☁️', {
       body: `${items.length} questions, ${clans.length} clans et ${villages.length} villages synchronisés avec Firebase.`
@@ -2133,10 +2606,9 @@ export default function App() {
   }, [currentUser?.role, currentTab]);
 
   const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || null;
+  const totalPendingOfflineCount = pendingOfflineSubmissions.length + pendingAdminMutationsCount;
 
-  // SESSION RESTORATION / AUTOMATIC RECONNECTION LOADING SCREEN:
-  // Displayed while Firebase Auth & Firestore check if the user is already authenticated in the background,
-  // preventing the user from seeing the login screen and clicking "Se connecter" unnecessarily.
+  // SESSION RESTORATION / AUTOMATIC RECONNECTION LOADING SCREEN
   if (isAuthChecking && !currentUser) {
     let cachedUserPreview: Partial<UserProfile> | null = null;
     try {
@@ -2190,7 +2662,6 @@ export default function App() {
   }
 
   // MANDATORY AUTHENTICATION GATE:
-  // "Tant qu'on n'est pas connecté on ne peut pas accéder à l'app et on reste sur l'écran de connexion."
   if (!currentUser) {
     return (
       <>
@@ -2211,7 +2682,7 @@ export default function App() {
       <Navbar
         currentUser={currentUser}
         isOnline={isOnline}
-        pendingOfflineCount={pendingOfflineSubmissions.length}
+        pendingOfflineCount={totalPendingOfflineCount}
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onOpenNotifications={() => {
@@ -2229,6 +2700,7 @@ export default function App() {
             localStorage.removeItem('nkala_authenticated_user');
           } catch {}
           fbSignOut(auth).catch(() => {});
+          currentUserRef.current = null;
           setCurrentUser(null);
         }}
         currentTab={currentTab}
@@ -2321,9 +2793,12 @@ export default function App() {
             items={items}
             themes={themes}
             clans={clans}
+            villages={villages}
             currentUser={currentUser}
             contributions={contributions}
             usersList={usersList}
+            favoriteItemIds={favoriteItemIds}
+            onToggleFavorite={handleToggleFavoriteItem}
             onSelectExpression={(index) => {
               setIsChallengeFilterActive(false);
               setCurrentItemIndex(index);
@@ -2393,6 +2868,15 @@ export default function App() {
           <UserProfileView
             currentUser={currentUser}
             contributions={contributions}
+            items={items}
+            favoriteItemIds={favoriteItemIds}
+            onToggleFavorite={handleToggleFavoriteItem}
+            onSelectExpression={(index) => {
+              setIsChallengeFilterActive(false);
+              setCurrentItemIndex(index);
+              setCurrentTab('crowdsource');
+            }}
+            onNavigateToExplorer={() => setCurrentTab('explore')}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             onOpenOnboarding={() => setIsOnboardingModalOpen(true)}
             onOpenTermsConsent={() => setIsTermsConsentModalOpen(true)}
@@ -2406,6 +2890,7 @@ export default function App() {
                 localStorage.removeItem('nkala_authenticated_user');
               } catch {}
               fbSignOut(auth).catch(() => {});
+              currentUserRef.current = null;
               setCurrentUser(null);
             }}
             onClearOfflineCache={() => {

@@ -22,7 +22,11 @@ import {
   Check,
   TrendingUp,
   BarChart3,
-  Compass
+  Compass,
+  Star,
+  Volume2,
+  Mic,
+  BookOpen
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -36,12 +40,17 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-import { UserProfile, Contribution } from '../types';
+import { UserProfile, Contribution, QuestionnaireItem } from '../types';
 import { getLevelForXp } from '../services/seedData';
 
 interface UserProfileViewProps {
   currentUser: UserProfile | null;
   contributions: Contribution[];
+  items?: QuestionnaireItem[];
+  favoriteItemIds?: string[];
+  onToggleFavorite?: (itemId: string) => void;
+  onSelectExpression?: (index: number) => void;
+  onNavigateToExplorer?: () => void;
   onOpenAuth: () => void;
   onOpenOnboarding: () => void;
   onOpenTermsConsent?: () => void;
@@ -58,6 +67,11 @@ type ChartMode = 'cumulative' | 'daily';
 export const UserProfileView: React.FC<UserProfileViewProps> = ({
   currentUser,
   contributions,
+  items = [],
+  favoriteItemIds = [],
+  onToggleFavorite,
+  onSelectExpression,
+  onNavigateToExplorer,
   onOpenAuth,
   onOpenOnboarding,
   onOpenTermsConsent,
@@ -69,6 +83,24 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 }) => {
   const [chartRange, setChartRange] = useState<ChartRange>('30d');
   const [chartMode, setChartMode] = useState<ChartMode>('cumulative');
+  const [playingFavId, setPlayingFavId] = useState<string | null>(null);
+
+  const favoriteItems = useMemo(() => {
+    const idSet = new Set(favoriteItemIds);
+    return items.filter(it => idSet.has(it.id));
+  }, [items, favoriteItemIds]);
+
+  const handleSpeakFav = (text: string, id: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.85;
+      utterance.onend = () => setPlayingFavId(null);
+      setPlayingFavId(id);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const currentLevel = getLevelForXp(currentUser?.xp || 0);
   const myContributions = useMemo(
@@ -619,6 +651,115 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               )}
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* Dedicated Favorite Vocabulary Section */}
+        <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-[#f59e0b] fill-[#f59e0b]" />
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#f59e0b]">
+                  Mon Vocabulaire Myènè Favori
+                </h3>
+                <p className="text-[11px] text-[#a8826d]">
+                  Vos expressions sauvegardées depuis l'onglet Explorer (disponibles hors-ligne)
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#24130a] text-[#fde047] border border-[#f59e0b]/40">
+                {favoriteItems.length} favori{favoriteItems.length > 1 ? 's' : ''}
+              </span>
+              {onNavigateToExplorer && (
+                <button
+                  type="button"
+                  onClick={onNavigateToExplorer}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fed7aa] text-[11px] font-semibold border border-[#4a2412] transition-colors"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#f59e0b]" />
+                  <span>Explorer</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {favoriteItems.length === 0 ? (
+            <div className="p-4 rounded-xl bg-[#24130a]/60 border border-[#3b1d10] text-center space-y-2">
+              <p className="text-xs text-[#d4af94]">
+                Vous n'avez pas encore ajouté de vocabulaire Myènè à vos favoris. Cliquez sur le bouton <strong>⭐ Favori</strong> sur n'importe quelle fiche de l'onglet <strong>Explorer</strong> pour la retrouver ici à tout moment.
+              </p>
+              {onNavigateToExplorer && (
+                <button
+                  type="button"
+                  onClick={onNavigateToExplorer}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl terracotta-gradient text-white text-xs font-bold shadow"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Parcourir le Vocabulaire Myènè</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto pr-1">
+              {favoriteItems.map((favItem) => {
+                const itemIdx = items.findIndex(i => i.id === favItem.id);
+                return (
+                  <div
+                    key={favItem.id}
+                    className="p-3 rounded-xl bg-[#24130a] border border-[#4a2412] hover:border-[#f59e0b]/50 transition-all flex flex-col justify-between gap-2"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#f59e0b]">
+                          {favItem.dialect || 'enenga'} {favItem.clan ? `• Clan ${favItem.clan}` : ''}
+                        </span>
+                        {onToggleFavorite && (
+                          <button
+                            type="button"
+                            onClick={() => onToggleFavorite(favItem.id)}
+                            title="Retirer des favoris"
+                            className="p-1 rounded-lg bg-[#180d07] text-[#f59e0b] hover:text-amber-300 border border-[#3b1d10]"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-current" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-sm font-bold font-serif text-white mt-0.5">
+                        {favItem.myeneText}
+                      </div>
+                      <div className="text-xs text-[#fed7aa] truncate">
+                        « {favItem.frenchText} »
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1.5 border-t border-[#3b1d10]">
+                      <button
+                        type="button"
+                        onClick={() => handleSpeakFav(favItem.myeneText, favItem.id)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#180d07] hover:bg-[#341b10] text-[#f59e0b] text-[11px] font-semibold border border-[#3b1d10]"
+                        title="Écouter la prononciation"
+                      >
+                        <Volume2 className={`w-3.5 h-3.5 ${playingFavId === favItem.id ? 'animate-bounce' : ''}`} />
+                        <span>Écouter</span>
+                      </button>
+
+                      {onSelectExpression && (
+                        <button
+                          type="button"
+                          onClick={() => onSelectExpression(itemIdx >= 0 ? itemIdx : 0)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg terracotta-gradient text-white text-[11px] font-bold shadow"
+                        >
+                          <Mic className="w-3 h-3" />
+                          <span>Pratiquer</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Role Badge & Status */}
