@@ -4,7 +4,7 @@ import {
   Check,
   AlertCircle,
   Scale,
-  Coins,
+  Trophy,
   Sparkles,
   X,
   UserCheck,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
-export const CURRENT_TERMS_VERSION = '2.0-contributeur-individuel-2026';
+export const CURRENT_TERMS_VERSION = '2.1-contributeur-badges-xp-2026';
 
 export interface TermsConsentPayload {
   termsAccepted: boolean;
@@ -44,7 +44,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
   onAcceptConsent,
   onClose
 }) => {
-  const [activeTab, setActiveTab] = useState<'consentement' | 'conditions' | 'revenus_uc'>('consentement');
+  const [activeTab, setActiveTab] = useState<'consentement' | 'conditions' | 'recompenses_badges'>('consentement');
 
   const [termsAccepted, setTermsAccepted] = useState<boolean>(currentUser?.termsAccepted ?? false);
   const [dataUsageAccepted, setDataUsageAccepted] = useState<boolean>(currentUser?.dataUsageAccepted ?? false);
@@ -152,7 +152,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
               <span>
                 {isReminderForExistingUser
                   ? 'Rappel Important • Contributeur Déjà Enregistré'
-                  : 'Contrat de Contribution Individuelle • Essaka Engineering'}
+                  : 'Charte de Contribution Individuelle • Essaka Engineering'}
               </span>
             </div>
 
@@ -174,13 +174,13 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 <strong className="text-[#f59e0b]">OMPAGANO / NKALA</strong>. Avant de poursuivre vos contributions vocales et
                 linguistiques, veuillez prendre connaissance et valider électroniquement les{' '}
                 <strong>Conditions Générales de Contribution Individuelle</strong> ainsi que l'autorisation d'utilisation de vos
-                données auprès d'<strong>Essaka Engineering</strong>.
+                données et le fonctionnement du <strong>système de points, badges et récompenses d'accomplissement</strong>.
               </>
             ) : (
               <>
-                Charte de contribution individuelle et de partage des revenus du programme{' '}
-                <strong className="text-[#f59e0b]">OMPAGANO – Application NKALA</strong>, établie selon le droit gabonais
-                (Loi n° 001/2011 & CNPDCP, Accord de Bangui OAPI Annexe VII) entre{' '}
+                Charte de contribution individuelle, de protection des données et de valorisation des accomplissements (Badges,
+                Points XP & Récompenses) du programme <strong className="text-[#f59e0b]">OMPAGANO – Application NKALA</strong>,
+                établie selon le droit gabonais (Loi n° 001/2011 & CNPDCP, Accord de Bangui OAPI Annexe VII) entre{' '}
                 <strong className="text-white">ESSAKA ENGINEERING</strong> et chaque contributeur individuel.
               </>
             )}
@@ -217,15 +217,15 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
 
           <button
             type="button"
-            onClick={() => setActiveTab('revenus_uc')}
+            onClick={() => setActiveTab('recompenses_badges')}
             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'revenus_uc'
+              activeTab === 'recompenses_badges'
                 ? 'terracotta-gradient text-white shadow-md ring-1 ring-[#f59e0b]/50'
                 : 'text-[#a8826d] hover:text-[#fed7aa] hover:bg-[#24130a]'
             }`}
           >
-            <Coins className="w-4 h-4 shrink-0" />
-            <span>3. Revenus IA & Unités (UC)</span>
+            <Trophy className="w-4 h-4 shrink-0" />
+            <span>3. Badges, Points & Récompenses</span>
           </button>
         </div>
 
@@ -289,8 +289,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                     3
                   </span>
                   <p className="text-xs text-[#fed7aa] leading-relaxed">
-                    Ma participation individuelle donne droit à un <strong className="text-white">partage des revenus (Revenus Nets IA)</strong>, calculé au prorata
-                    de mes <strong className="text-white">Unités de Contribution (UC)</strong> validées et versé en FCFA (XAF) par Mobile Money (Airtel Money, Moov Money) ou virement bancaire.
+                    Ma participation individuelle est valorisée par un <strong className="text-white">système de Points d'Expérience (XP), de Rangs culturels, de Badges honorifiques et de Défis hebdomadaires</strong>, pouvant donner lieu à des <strong className="text-[#fde047]">récompenses et distinctions</strong> en fonction de mes accomplissements validés.
                   </p>
                 </div>
 
@@ -347,7 +346,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 />
                 <span className="text-xs text-white leading-relaxed">
                   <strong className="text-[#fde047]">J'accepte les Conditions Générales de la plateforme OMPAGANO / NKALA</strong> applicables aux
-                  contributeurs individuels (Droits, engagements de qualité, propriété intellectuelle et partage des revenus).{' '}
+                  contributeurs individuels (Droits, engagements de qualité, propriété intellectuelle et système de points, badges et récompenses).{' '}
                   <span className="text-[#ef4444] font-bold">* (Obligatoire)</span>
                 </span>
               </label>
@@ -455,7 +454,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
             <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-3 max-h-[55vh] overflow-y-auto pr-2">
               <div className="border-b border-[#3b1d10] pb-3">
                 <div className="text-[11px] font-bold text-[#f59e0b] uppercase tracking-wider">
-                  Contrat de Contribution Individuelle & Partage de Revenus • OMPAGANO / NKALA
+                  Charte de Contribution Individuelle & Système de Récompenses • OMPAGANO / NKALA
                 </div>
                 <h3 className="text-base font-black text-white mt-0.5">
                   Entre Essaka Engineering et le Contributeur Individuel
@@ -471,15 +470,15 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
               <div className="space-y-2">
                 <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Article 1 – Préambule & Définitions</h4>
                 <p>
-                  Essaka Engineering développe des modèles d'intelligence artificielle adaptés aux réalités gabonaises, notamment aux langues et cultures locales. Pour entraîner ces modèles, Essaka a conçu <strong>OMPAGANO</strong>, une plateforme participative collectant des textes, traductions, images et enregistrements vocaux auprès de contributeurs individuels. Essaka exploite par ailleurs l'application <strong>NKALA</strong>, dans laquelle les modèles entraînés sont utilisés à titre commercial et éducatif.
+                  Essaka Engineering développe des modèles d'intelligence artificielle adaptés aux réalités gabonaises, notamment aux langues et cultures locales. Pour entraîner ces modèles, Essaka a conçu <strong>OMPAGANO</strong>, une plateforme participative collectant des textes, traductions, images et enregistrements vocaux auprès de contributeurs individuels. Essaka exploite par ailleurs l'application <strong>NKALA</strong>, dans laquelle les modèles entraînés sont utilisés.
                 </p>
                 <ul className="list-disc pl-5 space-y-1 text-[#d4af94]">
                   <li><strong>OMPAGANO :</strong> plateforme de crowdsourcing d'Essaka destinée à la collecte et à la validation de données linguistiques et culturelles.</li>
-                  <li><strong>NKALA :</strong> application d'Essaka dans laquelle les Modèles IA sont exploités commercialement.</li>
+                  <li><strong>NKALA :</strong> application d'Essaka dans laquelle les Modèles IA sont exploités.</li>
                   <li><strong>Modèles IA :</strong> modèles d'apprentissage automatique d'Essaka, entraînés en tout ou partie grâce aux Données des Contributeurs.</li>
                   <li><strong>Contributeur :</strong> toute personne physique inscrite sur OMPAGANO fournissant ou validant des Données à titre individuel.</li>
                   <li><strong>Données :</strong> textes, traductions, enregistrements vocaux, images et métadonnées associées fournis par le Contributeur.</li>
-                  <li><strong>Unité de Contribution (UC) :</strong> unité de mesure d'une Donnée validée servant au calcul du partage des revenus.</li>
+                  <li><strong>Points d'Expérience (XP), Rangs & Badges :</strong> système de valorisation mesurant les accomplissements validés du Contributeur et donnant accès à des distinctions et récompenses.</li>
                 </ul>
               </div>
 
@@ -489,7 +488,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   <strong>Engagements du Contributeur :</strong> Le Contributeur s'engage à fournir des contributions sincères et de qualité (clarté des enregistrements vocaux, exactitude des textes et dialectes Myènè, respect des consignes) et garantit ne transmettre aucun contenu illicite, diffamatoire ou portant atteinte aux droits de tiers.
                 </p>
                 <p>
-                  <strong>Engagements d'Essaka Engineering :</strong> Essaka s'engage à fournir un accès sécurisé à OMPAGANO, à utiliser les Données uniquement dans le cadre défini aux présentes conditions, à chiffrer et protéger les Données, à tenir un registre transparent des Unités de Contribution (UC) de chaque Contributeur et à verser la part de revenus lui revenant.
+                  <strong>Engagements d'Essaka Engineering :</strong> Essaka s'engage à fournir un accès sécurisé à OMPAGANO, à utiliser les Données uniquement dans le cadre défini aux présentes conditions, à chiffrer et protéger les Données, et à comptabiliser de manière transparente les Points d'Expérience (XP), les badges et les accomplissements de chaque Contributeur pouvant donner lieu à des récompenses.
                 </p>
               </div>
 
@@ -521,19 +520,19 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Articles 7 & 8 – Partage des Revenus Nets IA & Paiement</h4>
+                <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Articles 7 & 8 – Système de Points (XP), Badges, Rangs et Récompenses d'Accomplissement</h4>
                 <p>
-                  La participation du Contributeur donne droit à une part de l'Enveloppe de Partage issue des <strong>Revenus Nets IA</strong> générés par l'exploitation commerciale des Modèles IA dans NKALA (après déduction des taxes indirectes, frais de paiement et coûts d'hébergement directs).
+                  La participation individuelle sur OMPAGANO est bénévole et repose sur un système de reconnaissance et de gamification culturelle : chaque action validée (enregistrement vocal, traduction ou variante orthographique, note contextuelle, validation de pairs ou défi thématique) rapporte des <strong>Points d'Expérience (XP)</strong>.
                 </p>
                 <p>
-                  La part revenant à chaque Contributeur Individuel est calculée proportionnellement au <strong>poids d'utilisation</strong> de ses Unités de Contribution (UC) validées. Les versements sont effectués en <strong>Francs CFA (XAF)</strong> par <strong>Mobile Money (Airtel Money, Moov Money)</strong> ou par virement bancaire, accompagnés d'un relevé détaillant les UC validées et le montant correspondant.
+                  Ces Points XP permettent de gravir les <strong>5 Rangs Culturels</strong> (de <em>« Initié Curieux »</em> à <em>« Sage Ancien »</em>) et de débloquer des <strong>Badges honorifiques</strong> attestant de l'expertise et de l'assiduité du Contributeur. En fonction des accomplissements réalisés, des paliers atteints et du classement communautaire, Essaka Engineering peut attribuer des <strong>récompenses, distinctions, accès privilégiés ou dotations spéciales</strong> aux contributeurs les plus méritants.
                 </p>
               </div>
 
               <div className="space-y-1.5">
                 <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Articles 9 à 12 – Éthique, Anti-Fraude et Droit Applicable</h4>
                 <p>
-                  <strong>Éthique et Anti-Fraude :</strong> Toute contribution frauduleuse (données falsifiées, enregistrements générés artificiellement et présentés comme humains, ou créations de comptes multiples sous fausse identité) entraîne l'annulation des UC correspondantes et la suspension du compte après notification.
+                  <strong>Éthique et Anti-Fraude :</strong> Toute contribution frauduleuse (données falsifiées, enregistrements générés artificiellement et présentés comme humains, ou créations de comptes multiples sous fausse identité) entraîne l'annulation des Points (XP), badges et récompenses correspondants ainsi que la suspension du compte après notification.
                 </p>
                 <p>
                   <strong>Droit applicable :</strong> Les présentes conditions sont régies par le <strong>droit gabonais</strong>. En cas de différend, une solution amiable est recherchée en priorité dans un délai de 30 jours avant toute saisine des juridictions compétentes de Port-Gentil (Gabon).
@@ -554,18 +553,18 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
         )}
 
         {/* =============================================================== */}
-        {/* TAB 3 : UNITÉS DE CONTRIBUTION (UC) & CLÉ DE RÉPARTITION        */}
+        {/* TAB 3 : SYSTÈME DE BADGES, POINTS (XP) & RÉCOMPENSES            */}
         {/* =============================================================== */}
-        {activeTab === 'revenus_uc' && (
+        {activeTab === 'recompenses_badges' && (
           <div className="space-y-4 text-xs text-[#fed7aa]">
-            <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-4">
+            <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-4 max-h-[55vh] overflow-y-auto pr-2">
               <div>
                 <h4 className="font-bold text-white text-sm flex items-center gap-2 text-[#fde047]">
-                  <Award className="w-4 h-4 text-[#f59e0b]" />
-                  <span>Barème des Unités de Contribution Individuelle (UC)</span>
+                  <Trophy className="w-4 h-4 text-[#f59e0b]" />
+                  <span>1. Barème des Points d'Expérience (XP) par Accomplissement</span>
                 </h4>
                 <p className="text-[11px] text-[#a8826d] mt-1">
-                  Une contribution est comptabilisée en Unités de Contribution (UC) dès sa validation selon les critères de qualité d'OMPAGANO. Les dialectes ou variantes rares peuvent bénéficier d'un coefficient majorateur.
+                  Chaque contribution sur OMPAGANO vous fait gagner des Points d'Expérience (XP). Vos points s'accumulent pour faire progresser votre rang et débloquer des badges et récompenses.
                 </p>
               </div>
 
@@ -573,56 +572,96 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-[#27150c] text-[#fde047] border-b border-[#4a2412]">
-                      <th className="p-2.5 font-bold">Type de Contribution Individuelle</th>
-                      <th className="p-2.5 font-bold">Unité de mesure</th>
-                      <th className="p-2.5 font-bold">Condition de validation</th>
+                      <th className="p-2.5 font-bold">Type d'Accomplissement</th>
+                      <th className="p-2.5 font-bold">Gain en Points (XP)</th>
+                      <th className="p-2.5 font-bold">Impact & Valorisation</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#3b1d10] bg-[#1c0f08]">
                     <tr>
-                      <td className="p-2.5 font-semibold text-white">🎙️ Enregistrement vocal validé</td>
-                      <td className="p-2.5 text-[#fed7aa]">Par minute / segment audio</td>
-                      <td className="p-2.5 text-emerald-400">Prononciation claire & validée</td>
+                      <td className="p-2.5 font-semibold text-white">🎙️ Enregistrement vocal en langue Myènè</td>
+                      <td className="p-2.5 text-[#fde047] font-bold">+30 à +50 XP</td>
+                      <td className="p-2.5 text-emerald-400">Enrichit le corpus sonore & débloque les badges vocaux</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-semibold text-white">✍️ Texte validé (phrase, traduction, variante)</td>
-                      <td className="p-2.5 text-[#fed7aa]">Par phrase ou expression</td>
-                      <td className="p-2.5 text-emerald-400">Orthographe & sens certifiés</td>
+                      <td className="p-2.5 font-semibold text-white">✍️ Proposition de traduction ou variante écrite</td>
+                      <td className="p-2.5 text-[#fde047] font-bold">+20 à +35 XP</td>
+                      <td className="p-2.5 text-emerald-400">Préserve l'orthographe et les nuances dialectales</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-semibold text-white">🖼️ Image annotée et validée</td>
-                      <td className="p-2.5 text-[#fed7aa]">Par image</td>
-                      <td className="p-2.5 text-emerald-400">Annotation culturelle conforme</td>
+                      <td className="p-2.5 font-semibold text-white">🔍 Validation / revue d'une contribution tierce</td>
+                      <td className="p-2.5 text-[#fde047] font-bold">+15 à +25 XP</td>
+                      <td className="p-2.5 text-emerald-400">Garantit la fiabilité linguistique du corpus IA</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-semibold text-white">🔍 Validation / vérification linguistique</td>
-                      <td className="p-2.5 text-[#fed7aa]">Par tâche de revue</td>
-                      <td className="p-2.5 text-emerald-400">Revue par Validateur Certifié</td>
+                      <td className="p-2.5 font-semibold text-white">📜 Filiation & Généalogie complète vérifiée</td>
+                      <td className="p-2.5 text-[#fde047] font-bold">+50 XP + Badge</td>
+                      <td className="p-2.5 text-emerald-400">Ancre vos contributions dans votre tribu, clan et village</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2.5 font-semibold text-white">🏆 Défi Hebdomadaire complété</td>
+                      <td className="p-2.5 text-[#fde047] font-bold">+200 à +300 XP</td>
+                      <td className="p-2.5 text-emerald-400">Bonus majeur d'XP + Badge exclusif de Défi</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
+              {/* Les 5 Rangs Culturels */}
               <div className="pt-2 border-t border-[#3b1d10] space-y-2">
                 <h4 className="font-bold text-white text-sm flex items-center gap-2 text-[#fde047]">
-                  <Coins className="w-4 h-4 text-[#f59e0b]" />
-                  <span>Méthode de Mesure de l'Utilisation et Clé de Répartition Individuelle</span>
+                  <Award className="w-4 h-4 text-[#f59e0b]" />
+                  <span>2. Les 5 Niveaux & Rangs Culturels d'OMPAGANO</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#3b1d10]">
+                    <div className="font-bold text-amber-400">Niveau 1 • Initié Curieux (0 – 150 XP)</div>
+                    <p className="text-[11px] text-[#d4af94]">Découvre les sonorités et les premiers mots du patrimoine.</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#3b1d10]">
+                    <div className="font-bold text-[#f59e0b]">Niveau 2 • Conteur des Lagunes (150 – 450 XP)</div>
+                    <p className="text-[11px] text-[#d4af94]">Reconnaît la finesse des accents et du vocabulaire des lacs et fleuves.</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#3b1d10]">
+                    <div className="font-bold text-orange-400">Niveau 3 • Gardien du Verbe (450 – 1 000 XP)</div>
+                    <p className="text-[11px] text-[#d4af94]">Enregistre avec justesse et apporte des variantes orthographiques précises.</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#3b1d10]">
+                    <div className="font-bold text-rose-400">Niveau 4 • Maître de la Parole (1 000 – 2 500 XP)</div>
+                    <p className="text-[11px] text-[#d4af94]">Pilier de la transmission orale respecté par toute la communauté.</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#f59e0b]/40 sm:col-span-2">
+                    <div className="font-bold text-[#fde047]">👑 Niveau 5 • Sage Ancien (2 500+ XP)</div>
+                    <p className="text-[11px] text-[#fed7aa]">Autorité vivante sur la langue et les traditions orales Omyènè.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Badges et Récompenses d'Accomplissement */}
+              <div className="pt-2 border-t border-[#3b1d10] space-y-2">
+                <h4 className="font-bold text-white text-sm flex items-center gap-2 text-[#fde047]">
+                  <Sparkles className="w-4 h-4 text-[#f59e0b]" />
+                  <span>3. Badges Honorifiques & Récompenses liées aux Accomplissements</span>
                 </h4>
                 <ul className="list-disc pl-5 space-y-1.5 text-[#d4af94]">
                   <li>
-                    <strong className="text-white">Indicateur d'utilisation :</strong> Nombre de requêtes, minutes de traitement ou abonnements actifs aux fonctionnalités IA de l'application <strong>NKALA</strong>.
+                    <strong className="text-white">Badges de Maîtrise Permanente :</strong> Débloquez des distinctions telles que{' '}
+                    <span className="text-[#fde047]">📜 Filiation OMPAGANO</span>,{' '}
+                    <span className="text-[#fde047]">🎙️ Première Voix</span>,{' '}
+                    <span className="text-[#fde047]">🪶 Passeur de 10 Mots</span>,{' '}
+                    <span className="text-[#fde047]">👂 Oreille de l’Aîné</span>,{' '}
+                    <span className="text-[#fde047]">🌊 Gardien des Lacs</span> (assiduité) et{' '}
+                    <span className="text-[#fde047]">👑 Maître du Verbe</span>.
                   </li>
                   <li>
-                    <strong className="text-white">Rattachement aux Données :</strong> Par langue/dialecte et par type de modèle utilisé, selon la proportion d'UC validées de chaque Contributeur Individuel dans le jeu d'entraînement du modèle concerné.
+                    <strong className="text-white">Badges de Défis Hebdomadaires :</strong> Triomphez des missions thématiques pour obtenir{' '}
+                    <span className="text-[#fde047]">🎣 Maître des Eaux & Pêche</span>,{' '}
+                    <span className="text-[#fde047]">👑 Mémoire des Rois & Clans</span>,{' '}
+                    <span className="text-[#fde047]">🎙️ Écho d’Or Ancestral</span> ou{' '}
+                    <span className="text-[#fde047]">🐆 Pisteur de la Savane</span>.
                   </li>
                   <li>
-                    <strong className="text-white">Formule de calcul :</strong>{' '}
-                    <code className="px-2 py-0.5 rounded bg-[#27150c] text-[#fde047] font-mono">
-                      Poids du Contributeur = Σ (utilisation du modèle m × part des UC du Contributeur dans m) ÷ Σ (utilisation de tous les modèles)
-                    </code>
-                  </li>
-                  <li>
-                    <strong className="text-white">Versement direct :</strong> Paiement direct au Contributeur Individuel par Mobile Money (<strong>Airtel Money, Moov Money</strong>) ou virement bancaire en Francs CFA (XAF), avec relevé individuel transparent.
+                    <strong className="text-white">Récompenses selon vos Accomplissements :</strong> Vos points (XP), votre rang dans le classement des Gardiens, vos badges débloqués et la qualité de vos contributions validées peuvent donner lieu à des <strong className="text-[#fde047]">récompenses spéciales, distinctions honorifiques, accès privilégiés aux fonctionnalités NKALA, promotions au rôle de Validateur Certifié ou dotations communautaires</strong> lors des événements et campagnes organisés par Essaka Engineering.
                   </li>
                 </ul>
               </div>

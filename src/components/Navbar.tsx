@@ -10,7 +10,8 @@ import {
   DownloadCloud,
   Globe2,
   HardDrive,
-  CheckCircle2
+  CheckCircle2,
+  Compass
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -24,6 +25,7 @@ interface NavbarProps {
   onOpenAuth: () => void;
   onOpenNotifications: () => void;
   onOpenOfflinePack: () => void;
+  onOpenVisualGuide?: () => void;
   onSyncOffline: () => void;
   onSignOut: () => void;
   currentTab: string;
@@ -38,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onOpenNotifications,
   onOpenOfflinePack,
+  onOpenVisualGuide,
   onSyncOffline,
   onSignOut,
   currentTab,
@@ -81,6 +84,19 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* PWA Install Button (Android/Desktop & iOS Safari Guide) */}
           <PWAInstallButton />
+
+          {/* Visual Guide & Objectives Button */}
+          {onOpenVisualGuide && (
+            <button
+              type="button"
+              onClick={onOpenVisualGuide}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fde047] border border-[#f59e0b]/40 text-xs font-semibold active:scale-95 transition-all"
+              title="Voir le guide visuel d'utilisation et les objectifs de l'application"
+            >
+              <Compass className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span className="hidden lg:inline">Guide & Objectifs</span>
+            </button>
+          )}
 
           {/* Offline Pack Button */}
           <button

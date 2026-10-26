@@ -85,6 +85,7 @@ import { OfflinePackModal } from './components/OfflinePackModal';
 import { ChallengeCelebrationModal } from './components/ChallengeCelebrationModal';
 import { AppUpdateBanner } from './components/AppUpdateBanner';
 import { TermsConsentModal, TermsConsentPayload } from './components/TermsConsentModal';
+import { VisualGuideModal, VISUAL_GUIDE_SEEN_KEY } from './components/VisualGuideModal';
 
 const DELETED_RECORDS_STORAGE_KEY = 'nkala_deleted_records_v1';
 
@@ -338,6 +339,8 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
   const [isTermsConsentModalOpen, setIsTermsConsentModalOpen] = useState(false);
+  const [isVisualGuideOpen, setIsVisualGuideOpen] = useState(false);
+  const [isPostOnboardingGuide, setIsPostOnboardingGuide] = useState(false);
   const [isOfflinePackModalOpen, setIsOfflinePackModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(1);
@@ -748,6 +751,10 @@ export default function App() {
               originalMyeneText: 'Irende si bendi go nongo y’omvwa',
               isSpellingCorrect: false,
               proposedSpelling: 'Irende si bendi go nongo y’omvua',
+              isFrenchMeaningExact: false,
+              frenchMeaningType: 'autre_tournure' as const,
+              proposedFrenchMeaning: 'L’embarcation avance paisiblement sur le lac tranquille',
+              secondaryMeaning: 'Sens figuré : le voyage se déroule en paix sous la bénédiction des ancêtres',
               dialectVariant: 'galwa',
               comment: 'Prononciation avec "u" doux vers Lambaréné.',
               status: 'pending' as ContributionStatus,
@@ -990,10 +997,17 @@ export default function App() {
           itemId: item.itemId,
           userId: currentUser?.id || 'offline_user',
           userDisplayName: currentUser?.fullName || currentUser?.displayName || 'Contributeur Myènè',
+          userTribe: currentUser?.tribe,
+          userPaternalClan: currentUser?.paternalClan,
+          userMaternalClan: currentUser?.maternalClan,
           frenchText: item.frenchText,
           originalMyeneText: item.originalMyeneText,
           isSpellingCorrect: item.isSpellingCorrect,
           proposedSpelling: item.proposedSpelling,
+          isFrenchMeaningExact: item.isFrenchMeaningExact ?? true,
+          frenchMeaningType: item.frenchMeaningType || 'exact',
+          proposedFrenchMeaning: item.proposedFrenchMeaning || '',
+          secondaryMeaning: item.secondaryMeaning || '',
           dialectVariant: item.dialectVariant || 'enenga',
           comment: item.comment || '',
           audioUrl: uploadedAudioUrl,
@@ -1054,11 +1068,18 @@ export default function App() {
       itemId: data.itemId || '',
       userId: currentUser?.id || 'guest-user',
       userDisplayName: currentUser?.fullName || currentUser?.displayName || 'Contributeur Myènè',
+      userTribe: currentUser?.tribe,
+      userPaternalClan: currentUser?.paternalClan,
+      userMaternalClan: currentUser?.maternalClan,
       userPhotoURL: currentUser?.photoURL,
       frenchText: data.frenchText || '',
       originalMyeneText: data.originalMyeneText || '',
       isSpellingCorrect: !!data.isSpellingCorrect,
       proposedSpelling: data.proposedSpelling || data.originalMyeneText,
+      isFrenchMeaningExact: data.isFrenchMeaningExact ?? true,
+      frenchMeaningType: data.frenchMeaningType || 'exact',
+      proposedFrenchMeaning: data.proposedFrenchMeaning,
+      secondaryMeaning: data.secondaryMeaning,
       dialectVariant: data.dialectVariant || 'enenga',
       comment: data.comment,
       audioUrl: finalAudioUrl,
@@ -1326,6 +1347,10 @@ export default function App() {
     }
 
     setIsOnboardingModalOpen(false);
+    // Open the post-onboarding visual guide & objectives automatically right after onboarding!
+    setIsPostOnboardingGuide(true);
+    setIsVisualGuideOpen(true);
+
     NotificationService.sendLocalNotification('Filiation OMPAGANO Validée 📜', {
       body: `Bienvenue dans le programme ${updated.fullName} de la tribu ${updated.tribe} !`
     });
@@ -1359,6 +1384,14 @@ export default function App() {
 
     await dualSaveRecord('users', updated.id, updated);
     setIsTermsConsentModalOpen(false);
+
+    // If the user has not seen the visual guide yet, display it after terms validation
+    try {
+      if (localStorage.getItem(VISUAL_GUIDE_SEEN_KEY) !== 'true') {
+        setIsPostOnboardingGuide(true);
+        setIsVisualGuideOpen(true);
+      }
+    } catch {}
 
     NotificationService.sendLocalNotification('Consentement Individuel Enregistré ✅', {
       body: `Merci ${updated.fullName} ! Votre validation des conditions et de l'utilisation des données est certifiée.`
@@ -2186,6 +2219,10 @@ export default function App() {
           setUnreadNotificationsCount(0);
         }}
         onOpenOfflinePack={() => setIsOfflinePackModalOpen(true)}
+        onOpenVisualGuide={() => {
+          setIsPostOnboardingGuide(false);
+          setIsVisualGuideOpen(true);
+        }}
         onSyncOffline={syncPendingOfflineData}
         onSignOut={() => {
           try {
@@ -2211,7 +2248,7 @@ export default function App() {
                   Rappel Contributeur Enregistré :
                 </span>
                 <span className="text-white font-medium">
-                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (OMPAGANO / NKALA – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et participer au partage des revenus.
+                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (OMPAGANO / NKALA – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et débloquer vos points, badges et récompenses d'accomplissement.
                 </span>
               </div>
             </div>
@@ -2256,6 +2293,10 @@ export default function App() {
                 setCurrentItemIndex(0);
               }}
               filteredChallengeItemsCount={items.filter(i => i.category === activeChallenge?.theme || i.theme === activeChallenge?.theme).length}
+              onOpenVisualGuide={() => {
+                setIsPostOnboardingGuide(false);
+                setIsVisualGuideOpen(true);
+              }}
             />
           ) : (
             <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
@@ -2279,7 +2320,12 @@ export default function App() {
           <VocabularyExplorer
             items={items}
             themes={themes}
+            clans={clans}
+            currentUser={currentUser}
+            contributions={contributions}
+            usersList={usersList}
             onSelectExpression={(index) => {
+              setIsChallengeFilterActive(false);
               setCurrentItemIndex(index);
               setCurrentTab('crowdsource');
             }}
@@ -2351,6 +2397,10 @@ export default function App() {
             onOpenOnboarding={() => setIsOnboardingModalOpen(true)}
             onOpenTermsConsent={() => setIsTermsConsentModalOpen(true)}
             onOpenOfflinePack={() => setIsOfflinePackModalOpen(true)}
+            onOpenVisualGuide={() => {
+              setIsPostOnboardingGuide(false);
+              setIsVisualGuideOpen(true);
+            }}
             onSignOut={() => {
               try {
                 localStorage.removeItem('nkala_authenticated_user');
@@ -2385,6 +2435,15 @@ export default function App() {
         onAddNewClan={handleAddNewClan}
         onAddNewVillage={handleAddNewVillage}
         onOpenFullContractModal={() => setIsTermsConsentModalOpen(true)}
+      />
+
+      {/* Post-Onboarding Visual Guide & Application Objectives Modal */}
+      <VisualGuideModal
+        isOpen={isVisualGuideOpen && !isOnboardingModalOpen && !isTermsConsentModalOpen}
+        currentUser={currentUser}
+        isPostOnboarding={isPostOnboardingGuide}
+        onClose={() => setIsVisualGuideOpen(false)}
+        onNavigateTab={(tab) => handleTabNavigation(tab)}
       />
 
       {/* Platform Terms & Data Usage Consent Modal (Annexe 1 + Partnership Contract + Reminder for Existing Users) */}

@@ -164,6 +164,8 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
       const match = (c.frenchText || '').toLowerCase().includes(q) ||
         (c.originalMyeneText || '').toLowerCase().includes(q) ||
         (c.proposedSpelling || '').toLowerCase().includes(q) ||
+        (c.proposedFrenchMeaning || '').toLowerCase().includes(q) ||
+        (c.secondaryMeaning || '').toLowerCase().includes(q) ||
         (c.userDisplayName || '').toLowerCase().includes(q) ||
         (c.comment || '').toLowerCase().includes(q);
       if (!match) return false;
@@ -200,7 +202,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
                 Validation Linguistique Myènè
               </h1>
               <p className="text-xs sm:text-sm text-[#d4af94] mt-0.5">
-                Évaluez avec nuance la justesse de l'écrit et l'authenticité de la prononciation orale.
+                Évaluez avec nuance la justesse de l'écrit, du sens français et l'authenticité de la prononciation orale.
               </p>
             </div>
           </div>
@@ -289,7 +291,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher par expression française, mot Myènè, locuteur..."
+            placeholder="Rechercher par expression française, mot Myènè, sens proposé, locuteur..."
             className="w-full pl-9 pr-3 py-2 bg-[#180d07] border border-[#4a2412] rounded-xl text-xs text-white focus:outline-none focus:border-[#f59e0b]"
           />
         </div>
@@ -382,7 +384,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-[#fed7aa] flex items-center gap-1.5">
                         <FileText className="w-4 h-4 text-[#f59e0b]" />
-                        <span>1. Évaluation de l'Écrit</span>
+                        <span>1. Évaluation de l'Écrit & du Sens</span>
                       </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         currentEval.spelling === 'correct' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
@@ -392,14 +394,39 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
                     </div>
 
                     <div className="text-xs space-y-1.5">
-                      <div className="p-2.5 rounded-xl bg-[#27150c] border border-[#4a2412]">
-                        <span className="text-[10px] text-[#a8826d] block uppercase font-bold">Proposition du contributeur :</span>
-                        <div className="text-sm font-bold font-serif text-amber-200 mt-0.5">
-                          {c.proposedSpelling || c.originalMyeneText}
+                      <div className="p-2.5 rounded-xl bg-[#27150c] border border-[#4a2412] space-y-1">
+                        <div>
+                          <span className="text-[10px] text-[#a8826d] block uppercase font-bold">Proposition orthographique Myènè :</span>
+                          <div className="text-sm font-bold font-serif text-amber-200 mt-0.5">
+                            {c.proposedSpelling || c.originalMyeneText}
+                          </div>
                         </div>
                         {c.dialectVariant && (
-                          <div className="text-[10px] text-[#a8826d] mt-0.5">
+                          <div className="text-[10px] text-[#a8826d]">
                             Variante dialectale signalée : <em>{c.dialectVariant}</em>
+                          </div>
+                        )}
+                        {(c.proposedFrenchMeaning || c.secondaryMeaning) && (
+                          <div className="mt-1.5 pt-1.5 border-t border-[#3b1d10] space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#fde047] block">
+                              💡 Précision sur la signification en français ({
+                                c.frenchMeaningType === 'autre_tournure'
+                                  ? 'Autre tournure'
+                                  : c.frenchMeaningType === 'sens_secondaire'
+                                  ? 'Sens secondaire'
+                                  : 'Signification corrigée'
+                              }) :
+                            </span>
+                            {c.proposedFrenchMeaning && (
+                              <div className="text-xs text-white font-semibold">
+                                Sens / Tournure : « {c.proposedFrenchMeaning} »
+                              </div>
+                            )}
+                            {c.secondaryMeaning && (
+                              <div className="text-[11px] text-emerald-300">
+                                Sens secondaire / figuré : « {c.secondaryMeaning} »
+                              </div>
+                            )}
                           </div>
                         )}
                         {c.comment && (
