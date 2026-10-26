@@ -1,11 +1,11 @@
 /* eslint-disable no-restricted-globals */
 /**
- * OMPAGANO NKALA APP - Universal Offline-First Service Worker (v5)
+ * OMPAGANO NKALA APP - Universal Offline-First Service Worker (v6)
  * 100% compatible with Desktop Firefox (Gecko), Android Default Browser / Chrome (Blink/WebView),
- * and iOS Safari (WebKit) in Airplane Mode.
+ * and iOS Safari (WebKit) in Airplane Mode, including cold tab close & reopen.
  */
 
-const CACHE_NAME = 'ompagano-offline-v5';
+const CACHE_NAME = 'ompagano-offline-v6';
 
 // Build-time or dev-time manifest injected into `/sw.js`
 const INJECTED_MANIFEST = self.__WB_MANIFEST || [];
@@ -433,16 +433,46 @@ self.addEventListener('fetch', (event) => {
     request.destination === 'document' ||
     acceptHeader.includes('text/html');
 
-  // 1. NAVIGATION REQUESTS (Page loads, reloads, offline launch on Firefox, Android & iOS Safari)
+  // 1. NAVIGATION REQUESTS (Page loads, reloads, and cold tab reopen in Airplane Mode on Firefox, Android & iOS Safari)
   if (isNavigation) {
     event.respondWith(
       (async () => {
-        // Check if we already have the offline HTML shell cached
+        // Check if we already have the offline HTML shell cached in CacheStorage
         const cachedShell = await getOfflineHtmlShellResponse(request, url);
 
+        // CRITICAL FOR TAB CLOSE & REOPEN IN AIRPLANE MODE:
+        // If cachedShell is already in CacheStorage, return it IMMEDIATELY (0ms latency)
+        // so the browser never aborts or hangs waiting on a dead network interface when opening a new tab offline.
+        // Meanwhile, refresh the HTML shell in the background if online.
+        if (cachedShell) {
+          if (self.navigator && self.navigator.onLine !== false) {
+            event.waitUntil(
+              (async () => {
+                try {
+                  const controller = new AbortController();
+                  const timeoutId = setTimeout(() => controller.abort(), 2500);
+                  const networkResponse = await fetch('/index.html', {
+                    signal: controller.signal,
+                    cache: 'no-cache',
+                    credentials: 'same-origin'
+                  });
+                  clearTimeout(timeoutId);
+                  if (networkResponse && networkResponse.ok) {
+                    const cache = await caches.open(CACHE_NAME);
+                    await cache.put('/', await createCleanResponse(networkResponse, '/index.html'));
+                    await cache.put('/index.html', await createCleanResponse(networkResponse, '/index.html'));
+                  }
+                } catch (_) {}
+              })()
+            );
+          }
+          return cachedShell;
+        }
+
+        // First visit ever (no cached shell yet): fetch from network and store in CacheStorage
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 1800);
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
 
           const networkResponse = await fetch(request, {
             signal: controller.signal,
@@ -457,11 +487,7 @@ self.addEventListener('fetch', (event) => {
             return await createCleanResponse(networkResponse, '/index.html');
           }
         } catch (_) {
-          // Network offline or timed out -> immediately serve cached shell
-        }
-
-        if (cachedShell) {
-          return cachedShell;
+          // Network offline or timed out
         }
 
         // Emergency offline fallback if cache was manually cleared while offline

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Upload, 
   Download, 
@@ -8,21 +8,25 @@ import {
   Layers, 
   Database, 
   Sparkles,
-  Info,
-  ChevronRight,
   Filter,
-  Check
+  Check,
+  ShieldCheck
 } from 'lucide-react';
 import { QuestionnaireItem, ThemeDefinition } from '../types';
 import { 
   THEMATIC_CATEGORIES, 
   parsePhrasesAndDiscoverThemes, 
-  generateCsvTemplate 
+  generateCsvTemplate,
+  deduplicateParsedCsvItems
 } from '../services/seedData';
 
 interface CsvImportSectionProps {
-  onImportItems: (items: QuestionnaireItem[]) => Promise<void>;
+  onImportItems: (
+    items: QuestionnaireItem[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => Promise<void>;
   currentItemsCount: number;
+  existingItems?: QuestionnaireItem[];
   themes?: ThemeDefinition[];
   onRegisterNewThemes?: (newThemes: ThemeDefinition[]) => Promise<void>;
 }
@@ -30,6 +34,7 @@ interface CsvImportSectionProps {
 export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
   onImportItems,
   currentItemsCount,
+  existingItems = [],
   themes = THEMATIC_CATEGORIES,
   onRegisterNewThemes
 }) => {
@@ -38,12 +43,23 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
   const [parsedItems, setParsedItems] = useState<QuestionnaireItem[]>([]);
   const [discoveredThemes, setDiscoveredThemes] = useState<ThemeDefinition[]>([]);
   const [selectedThemeFilter, setSelectedThemeFilter] = useState<string>('all');
+  const [showOnlyNewInPreview, setShowOnlyNewInPreview] = useState<boolean>(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [importProgress, setImportProgress] = useState<{ saved: number; total: number } | null>(null);
   const [importSuccessMessage, setImportSuccessMessage] = useState<string | null>(null);
   const [importErrorMessage, setImportErrorMessage] = useState<string | null>(null);
 
   // Quick corpus import status
   const [isLoadingBuiltInCorpus, setIsLoadingBuiltInCorpus] = useState(false);
+
+  // Live deduplication analysis against existing items in the database
+  const deduplicationReport = useMemo(() => {
+    return deduplicateParsedCsvItems(parsedItems, existingItems);
+  }, [parsedItems, existingItems]);
+
+  const newItemsSet = useMemo(() => {
+    return new Set(deduplicationReport.newItemsToImport.map(i => i.id));
+  }, [deduplicationReport.newItemsToImport]);
 
   // Handle local CSV file upload
   const handleFile = (file: File) => {
@@ -51,6 +67,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
     setImportSuccessMessage(null);
     setImportErrorMessage(null);
     setDiscoveredThemes([]);
+    setImportProgress(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -67,12 +84,18 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
           return;
         }
 
+        const dedup = deduplicateParsedCsvItems(items, existingItems);
+
         setParsedItems(items);
         setDiscoveredThemes(newDiscoveredThemes);
 
-        let msg = `${items.length} phrase(s) extraite(s) avec succès !`;
+        let msg = `Analyse terminée : ${items.length} phrase(s) lue(s) dans le fichier. `;
+        if (dedup.alreadyExistingItems.length > 0) {
+          msg += `🛡️ ${dedup.alreadyExistingItems.length} fiche(s) déjà présentes dans la base seront ignorées automatiquement (0 doublon). `;
+        }
+        msg += `🚀 ${dedup.newItemsToImport.length} nouvelle(s) fiche(s) prête(s) à être importée(s).`;
         if (newDiscoveredThemes.length > 0) {
-          msg += ` ✨ ${newDiscoveredThemes.length} nouveau(x) thème(s) extrait(s) du fichier (${newDiscoveredThemes.map(t => t.name).join(', ')}).`;
+          msg += ` ✨ ${newDiscoveredThemes.length} nouveau(x) thème(s) détecté(s) (${newDiscoveredThemes.map(t => t.name).join(', ')}).`;
         }
         setImportSuccessMessage(msg);
       } catch (err) {
@@ -121,6 +144,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
     setImportErrorMessage(null);
     setImportSuccessMessage(null);
     setDiscoveredThemes([]);
+    setImportProgress(null);
 
     try {
       const response = await fetch('/assets/aistudio/corpus_tts_orungu_5h_2200_phrases_89d15d12.csv');
@@ -139,11 +163,17 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
         allItems = allItems.slice(0, limitCount);
       }
 
+      const dedup = deduplicateParsedCsvItems(allItems, existingItems);
+
       setParsedItems(allItems);
       setDiscoveredThemes(newDiscoveredThemes);
       setSelectedFileName(`Corpus TTS Ôrungu (${allItems.length} phrases sélectionnées)`);
 
-      let msg = `${allItems.length} phrase(s) du corpus Ôrungu prêtes à être injectées dans la base de données.`;
+      let msg = `Analyse du corpus : ${allItems.length} phrase(s) analysée(s). `;
+      if (dedup.alreadyExistingItems.length > 0) {
+        msg += `🛡️ ${dedup.alreadyExistingItems.length} fiche(s) déjà présentes en base sont ignorées (aucun doublon). `;
+      }
+      msg += `🚀 ${dedup.newItemsToImport.length} nouvelle(s) fiche(s) restante(s) à importer.`;
       if (newDiscoveredThemes.length > 0) {
         msg += ` ✨ ${newDiscoveredThemes.length} nouveau(x) module(s) thématique(s) découvert(s).`;
       }
@@ -156,11 +186,19 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
     }
   };
 
-  // Execute Import
+  // Items that will actually be imported (respecting both deduplication AND optional theme filter)
+  const itemsReadyToImport = useMemo(() => {
+    const baseNew = deduplicationReport.newItemsToImport;
+    if (selectedThemeFilter === 'all') return baseNew;
+    return baseNew.filter(item => item.category === selectedThemeFilter || item.theme === selectedThemeFilter);
+  }, [deduplicationReport.newItemsToImport, selectedThemeFilter]);
+
+  // Execute Resumable, Deduplicated Import
   const handleExecuteImport = async () => {
-    if (parsedItems.length === 0) return;
+    if (itemsReadyToImport.length === 0) return;
     setIsProcessing(true);
     setImportErrorMessage(null);
+    setImportProgress({ saved: 0, total: itemsReadyToImport.length });
 
     try {
       // If new themes were discovered from CSV, register them first!
@@ -168,24 +206,37 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
         await onRegisterNewThemes(discoveredThemes);
       }
 
-      await onImportItems(parsedItems);
-      setImportSuccessMessage(`🎉 Succès ! ${parsedItems.length} phrases ${discoveredThemes.length > 0 ? `et ${discoveredThemes.length} nouveaux thèmes ` : ''}ont été ajoutés à la base de données OMPAGANO.`);
+      const countToImport = itemsReadyToImport.length;
+      const skippedCount = deduplicationReport.alreadyExistingItems.length;
+
+      await onImportItems(itemsReadyToImport, (saved, total) => {
+        setImportProgress({ saved, total });
+      });
+
+      setImportSuccessMessage(
+        `🎉 Importation terminée avec succès ! ${countToImport} nouvelle(s) fiche(s) ajoutée(s) sans aucun doublon` +
+        (skippedCount > 0 ? ` (${skippedCount} fiche(s) déjà existantes ont été préservées intactes).` : '.')
+      );
       setParsedItems([]);
       setDiscoveredThemes([]);
       setSelectedFileName(null);
+      setImportProgress(null);
     } catch (err) {
       console.error("Erreur import base:", err);
-      setImportErrorMessage("Une erreur est survenue lors de l'enregistrement dans Firestore. Les données ont été stockées localement.");
+      setImportErrorMessage("Une erreur est survenue lors de l'enregistrement. Vous pouvez relancer le même fichier : la reprise reprendra exactement là où elle s'est arrêtée sans doublon.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Filter parsed items preview by theme
-  const filteredPreviewItems = parsedItems.filter(item => {
-    if (selectedThemeFilter === 'all') return true;
-    return item.category === selectedThemeFilter;
-  });
+  // Filter parsed items preview by theme & new-only toggle
+  const filteredPreviewItems = useMemo(() => {
+    const sourceList = showOnlyNewInPreview ? deduplicationReport.newItemsToImport : parsedItems;
+    return sourceList.filter(item => {
+      if (selectedThemeFilter === 'all') return true;
+      return item.category === selectedThemeFilter || item.theme === selectedThemeFilter;
+    });
+  }, [parsedItems, deduplicationReport.newItemsToImport, showOnlyNewInPreview, selectedThemeFilter]);
 
   return (
     <div className="space-y-6">
@@ -416,35 +467,124 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
         </div>
       )}
 
-      {/* PARSED ITEMS PREVIEW TABLE & CONFIRMATION BUTTON */}
+      {/* PARSED ITEMS PREVIEW TABLE, DEDUPLICATION REPORT & CONFIRMATION BUTTON */}
       {parsedItems.length > 0 && (
         <div className="space-y-4 pt-2">
+          {/* Bilan de Reprise Intelligente & Protection Anti-Doublons */}
+          <div className="p-4 sm:p-5 bg-gradient-to-br from-[#1f130c] via-[#180e08] to-[#122219] border border-emerald-500/40 rounded-2xl shadow-xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs sm:text-sm">
+                <ShieldCheck className="w-5 h-5 shrink-0" />
+                <span>Reprise Intelligente & Protection Anti-Doublons Active (Production)</span>
+              </div>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold self-start sm:self-auto">
+                Base actuelle : {currentItemsCount} fiches
+              </span>
+            </div>
+
+            <p className="text-xs text-[#d4af94] leading-relaxed">
+              Vous pouvez réimporter le même fichier CSV autant de fois que nécessaire : les fiches déjà présentes dans la base sont automatiquement reconnues (par identifiant ou texte Myènè/Français) et <strong>ignorées sans créer de doublon ni écraser les contributions existantes</strong>.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="p-3 rounded-xl bg-[#140a05] border border-[#3b1f11]">
+                <div className="text-[10px] text-[#a8826d] uppercase font-bold">Total Fichier CSV</div>
+                <div className="text-lg font-black text-white mt-0.5">{deduplicationReport.totalParsedCount}</div>
+                <div className="text-[10px] text-[#d4af94]">Lignes valides lues</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#140a05] border border-amber-500/30">
+                <div className="text-[10px] text-amber-400 uppercase font-bold">Déjà en Base (Ignorées)</div>
+                <div className="text-lg font-black text-amber-300 mt-0.5">{deduplicationReport.alreadyExistingItems.length}</div>
+                <div className="text-[10px] text-[#d4af94]">0 doublon créé</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#140a05] border border-emerald-500/40">
+                <div className="text-[10px] text-emerald-400 uppercase font-bold">Nouvelles à Importer</div>
+                <div className="text-lg font-black text-emerald-300 mt-0.5">{deduplicationReport.newItemsToImport.length}</div>
+                <div className="text-[10px] text-emerald-200/80">Suite de l'import</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#140a05] border border-[#3b1f11]">
+                <div className="text-[10px] text-[#a8826d] uppercase font-bold">Doublons Internes CSV</div>
+                <div className="text-lg font-black text-stone-300 mt-0.5">{deduplicationReport.internalDuplicatesCount}</div>
+                <div className="text-[10px] text-[#a8826d]">Épurés automatiquement</div>
+              </div>
+            </div>
+
+            {/* Live Batch Progress Bar during import */}
+            {isProcessing && importProgress && (
+              <div className="pt-2 space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-emerald-300">
+                  <span className="flex items-center gap-2">
+                    <Database className="w-4 h-4 animate-spin text-[#f59e0b]" />
+                    <span>Enregistrement par lots sécurisés (250 fiches/lot)...</span>
+                  </span>
+                  <span>
+                    {importProgress.saved} / {importProgress.total} ({Math.round((importProgress.saved / Math.max(1, importProgress.total)) * 100)}%)
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-[#140a05] rounded-full overflow-hidden border border-emerald-500/30">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#f59e0b] to-emerald-500 transition-all duration-300"
+                    style={{ width: `${Math.min(100, Math.round((importProgress.saved / Math.max(1, importProgress.total)) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-3 bg-[#1e130c] p-4 rounded-2xl border border-[#4a2e1d]">
             <div>
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <span>Aperçu des phrases prêtes à l'importation</span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30">
-                  {parsedItems.length} phrases
+                <span>Aperçu des phrases</span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {itemsReadyToImport.length} nouvelle(s) à importer
                 </span>
               </h4>
-              <p className="text-xs text-[#d4af94]">
-                Vérifiez la correspondance thématique et validez l'injection.
-              </p>
+              <div className="flex items-center gap-3 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowOnlyNewInPreview(true)}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold transition ${
+                    showOnlyNewInPreview
+                      ? 'bg-[#c85a32] text-white'
+                      : 'bg-[#140a05] text-[#a8826d] hover:text-white'
+                  }`}
+                >
+                  Nouvelles uniquement ({deduplicationReport.newItemsToImport.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowOnlyNewInPreview(false)}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold transition ${
+                    !showOnlyNewInPreview
+                      ? 'bg-[#c85a32] text-white'
+                      : 'bg-[#140a05] text-[#a8826d] hover:text-white'
+                  }`}
+                >
+                  Toutes les lignes du CSV ({parsedItems.length})
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* Category preview filter */}
               <select
                 value={selectedThemeFilter}
                 onChange={(e) => setSelectedThemeFilter(e.target.value)}
-                className="px-3 py-1.5 bg-[#140a05] border border-[#4a2e1d] rounded-xl text-xs text-[#fed7aa] focus:outline-none"
+                className="px-3 py-2 bg-[#140a05] border border-[#4a2e1d] rounded-xl text-xs text-[#fed7aa] focus:outline-none"
               >
-                <option value="all">Tous les thèmes ({parsedItems.length})</option>
+                <option value="all">
+                  Tous les thèmes ({deduplicationReport.newItemsToImport.length} nouvelles / {parsedItems.length} total)
+                </option>
                 {themes.concat(discoveredThemes.filter(dt => !themes.some(t => t.id === dt.id))).map(th => {
-                  const count = parsedItems.filter(p => p.category === th.id || p.theme === th.id).length;
+                  const newCount = deduplicationReport.newItemsToImport.filter(p => p.category === th.id || p.theme === th.id).length;
+                  const totalCount = parsedItems.filter(p => p.category === th.id || p.theme === th.id).length;
+                  if (totalCount === 0) return null;
                   return (
                     <option key={th.id} value={th.id}>
-                      {th.shortName || th.name} ({count})
+                      {th.shortName || th.name} ({newCount} nouv. / {totalCount})
                     </option>
                   );
                 })}
@@ -452,18 +592,27 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
 
               <button
                 onClick={handleExecuteImport}
-                disabled={isProcessing}
+                disabled={isProcessing || itemsReadyToImport.length === 0}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {isProcessing ? (
                   <>
                     <Database className="w-4 h-4 animate-spin" />
-                    <span>Importation en cours...</span>
+                    <span>
+                      {importProgress
+                        ? `Importation (${importProgress.saved}/${importProgress.total})...`
+                        : 'Importation en cours...'}
+                    </span>
+                  </>
+                ) : itemsReadyToImport.length === 0 ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Toutes ces fiches sont déjà en base (0 à importer)</span>
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>Confirmer l'importation ({parsedItems.length})</span>
+                    <span>Importer les {itemsReadyToImport.length} nouvelles fiches</span>
                   </>
                 )}
               </button>
@@ -475,16 +624,28 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
             {filteredPreviewItems.slice(0, 50).map((item, index) => {
               const allThemesList = themes.concat(discoveredThemes);
               const th = allThemesList.find(t => t.id === item.category || t.id === item.theme);
+              const isNew = newItemsSet.has(item.id);
               return (
                 <div
                   key={index}
-                  className="p-3 bg-[#1e130c] border border-[#3b1f11] rounded-xl flex items-start justify-between gap-3 text-xs hover:border-[#d97706]/40 transition-colors"
+                  className={`p-3 bg-[#1e130c] border rounded-xl flex items-start justify-between gap-3 text-xs transition-colors ${
+                    isNew ? 'border-[#3b1f11] hover:border-[#d97706]/40' : 'border-stone-800 opacity-60'
+                  }`}
                 >
                   <div className="space-y-1 overflow-hidden">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#2a170d] text-[#f59e0b] border border-[#4a2e1d] flex items-center gap-1">
                         <span>{th?.icon || '🏷️'}</span>
                         <span>{th?.shortName || item.category}</span>
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          isNew
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-stone-800 text-stone-400 border border-stone-700'
+                        }`}
+                      >
+                        {isNew ? '✨ Nouvelle à importer' : '✓ Déjà en base (Ignorée)'}
                       </span>
                       {item.dialect && (
                         <span className="text-[10px] uppercase font-bold text-[#fed7aa]/60">
@@ -514,7 +675,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
 
           {filteredPreviewItems.length > 50 && (
             <p className="text-center text-xs text-[#a8826d] italic">
-              + {filteredPreviewItems.length - 50} autres phrases prêtes pour l'importation...
+              + {filteredPreviewItems.length - 50} autres phrases dans cet aperçu...
             </p>
           )}
         </div>

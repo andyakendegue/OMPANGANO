@@ -613,6 +613,133 @@ export function parseCSVRows(csvText: string): string[][] {
   return rows;
 }
 
+/**
+ * Normalizes a Myènè or French phrase for reliable duplicate detection across imports
+ * without altering the stored display text.
+ */
+export function normalizePhraseComparisonKey(text: string = ''): string {
+  return String(text || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/^["'«»\s]+|["'«»\s]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Builds a unique content signature combining normalized Myènè and French texts.
+ */
+export function buildItemDeduplicationSignature(myeneText: string = '', frenchText: string = ''): string {
+  return `${normalizePhraseComparisonKey(myeneText)}||${normalizePhraseComparisonKey(frenchText)}`;
+}
+
+/**
+ * Ensures any CSV or generated record ID is 100% valid for both Firestore document paths
+ * and Firebase Realtime Database keys (cannot contain '.', '$', '#', '[', ']', or '/').
+ */
+export function sanitizeFirebaseRecordId(rawId: string = ''): string {
+  const cleaned = String(rawId || '')
+    .trim()
+    .replace(/[.$#[\]/\\]+/g, '_')
+    .replace(/\s+/g, '_');
+  return cleaned || `item_${Date.now()}`;
+}
+
+/**
+ * Generates a deterministic ID from the phrase content when a CSV row has no explicit ID column,
+ * so re-importing the same CSV file always maps to the exact same ID instead of generating random Date.now() IDs.
+ */
+export function generateDeterministicCsvItemId(
+  myeneText: string,
+  frenchText: string,
+  dialect: string = 'orungu'
+): string {
+  const signature = `${normalizePhraseComparisonKey(dialect)}|${buildItemDeduplicationSignature(myeneText, frenchText)}`;
+  let h1 = 0xdeadbeef ^ signature.length;
+  let h2 = 0x41c6ce57 ^ signature.length;
+  for (let i = 0; i < signature.length; i++) {
+    const ch = signature.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const hashHex = (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  return `item_csv_${hashHex}`;
+}
+
+export interface CsvDeduplicationResult {
+  newItemsToImport: QuestionnaireItem[];
+  alreadyExistingItems: QuestionnaireItem[];
+  internalDuplicatesCount: number;
+  totalParsedCount: number;
+}
+
+/**
+ * Deduplicates parsed CSV items against:
+ * 1. All existing items already present in the live production database (matched by ID OR by normalized Myènè+French text),
+ *    preserving existing production IDs and contributions.
+ * 2. Internal duplicate rows within the CSV file itself.
+ */
+export function deduplicateParsedCsvItems(
+  parsedItems: QuestionnaireItem[],
+  existingItems: QuestionnaireItem[]
+): CsvDeduplicationResult {
+  const existingIds = new Set<string>();
+  const existingSignatures = new Set<string>();
+
+  for (const existing of existingItems || []) {
+    if (!existing) continue;
+    if (existing.id) {
+      existingIds.add(existing.id.trim().toLowerCase());
+      existingIds.add(sanitizeFirebaseRecordId(existing.id).toLowerCase());
+    }
+    if (existing.myeneText || existing.frenchText) {
+      existingSignatures.add(buildItemDeduplicationSignature(existing.myeneText, existing.frenchText));
+    }
+  }
+
+  const seenInCsvIds = new Set<string>();
+  const seenInCsvSignatures = new Set<string>();
+
+  const newItemsToImport: QuestionnaireItem[] = [];
+  const alreadyExistingItems: QuestionnaireItem[] = [];
+  let internalDuplicatesCount = 0;
+
+  for (const candidate of parsedItems || []) {
+    if (!candidate) continue;
+    const safeId = sanitizeFirebaseRecordId(candidate.id);
+    const lowerId = safeId.toLowerCase();
+    const sig = buildItemDeduplicationSignature(candidate.myeneText, candidate.frenchText);
+
+    // 1. Check if already in production database (by ID or by normalized Myènè + French text)
+    if (existingIds.has(lowerId) || existingSignatures.has(sig)) {
+      alreadyExistingItems.push(candidate);
+      continue;
+    }
+
+    // 2. Check if duplicated earlier within the same CSV file
+    if (seenInCsvIds.has(lowerId) || seenInCsvSignatures.has(sig)) {
+      internalDuplicatesCount++;
+      continue;
+    }
+
+    seenInCsvIds.add(lowerId);
+    seenInCsvSignatures.add(sig);
+    newItemsToImport.push({
+      ...candidate,
+      id: safeId
+    });
+  }
+
+  return {
+    newItemsToImport,
+    alreadyExistingItems,
+    internalDuplicatesCount,
+    totalParsedCount: (parsedItems || []).length
+  };
+}
+
 // Convertit le contenu d'un CSV en QuestionnaireItem[] et extrait dynamiquement les nouveaux thèmes
 export function parsePhrasesAndDiscoverThemes(
   csvText: string, 
@@ -651,6 +778,7 @@ export function parsePhrasesAndDiscoverThemes(
   existingThemes.forEach(th => dynamicThemesMap.set(th.id.toLowerCase(), th));
 
   const newDiscoveredThemes: ThemeDefinition[] = [];
+  const targetDialect = isTtsCorpus ? 'orungu' : defaultDialect;
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
@@ -661,7 +789,10 @@ export function parsePhrasesAndDiscoverThemes(
     if (!myeneText || !frenchText) continue;
 
     const rawModule = (moduleIdx >= 0 ? row[moduleIdx] : '') || '';
-    const rawId = (idIdx >= 0 ? row[idIdx] : '') || `item-csv-${Date.now()}-${i}`;
+    const explicitCsvId = idIdx >= 0 && row[idIdx] ? row[idIdx].trim() : '';
+    const rawId = explicitCsvId
+      ? sanitizeFirebaseRecordId(explicitCsvId)
+      : generateDeterministicCsvItemId(myeneText, frenchText, targetDialect);
     const phonetic = apiIdx >= 0 ? row[apiIdx] : undefined;
     const target = targetIdx >= 0 ? row[targetIdx] : undefined;
     const duration = durationIdx >= 0 ? parseFloat(row[durationIdx]) || 8.2 : 8.2;
@@ -716,7 +847,7 @@ export function parsePhrasesAndDiscoverThemes(
       id: rawId,
       frenchText,
       myeneText,
-      dialect: isTtsCorpus ? 'orungu' : defaultDialect,
+      dialect: targetDialect,
       category: themeId,
       theme: themeId,
       moduleThematique: rawModule,
