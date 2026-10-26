@@ -15,7 +15,25 @@
     ],
     "headers": [
       {
-        "source": "**",
+        "source": "/index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/sw.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/registerSW.js",
         "headers": [
           {
             "key": "Cache-Control",
@@ -33,7 +51,7 @@
         ]
       },
       {
-        "source": "**/*.@(js|css|png|jpg|jpeg|gif|svg|webp|webm|mp3|wav|csv)",
+        "source": "/assets/**",
         "headers": [
           {
             "key": "Cache-Control",

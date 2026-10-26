@@ -361,9 +361,36 @@ export default function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initial check of offline storage
+    // Initial check of offline storage & hydrate local IndexedDB cache for Airplane Mode
     getPendingOfflineContributions().then(pending => {
       setPendingOfflineSubmissions(pending);
+    });
+    const deletedItemsSet = getDeletedIds('items');
+    getCachedItemsLocally().then(cached => {
+      const filtered = (cached || []).filter(i => !deletedItemsSet.has(i.id));
+      if (filtered.length > 0) {
+        setItems(filtered);
+      } else if (!isDatabaseMarkedSeeded()) {
+        cacheItemsLocally(INITIAL_ENENGA_ITEMS.filter(i => !deletedItemsSet.has(i.id)));
+      }
+    });
+    const deletedClansSet = getDeletedIds('clans');
+    getCachedClansLocally().then(cached => {
+      const filtered = (cached || []).filter(c => !deletedClansSet.has(c.id));
+      if (filtered.length > 0) {
+        setClans(filtered);
+      } else if (!isDatabaseMarkedSeeded()) {
+        cacheClansLocally(INITIAL_CLANS.filter(c => !deletedClansSet.has(c.id)));
+      }
+    });
+    const deletedVillagesSet = getDeletedIds('villages');
+    getCachedVillagesLocally().then(cached => {
+      const filtered = (cached || []).filter(v => !deletedVillagesSet.has(v.id));
+      if (filtered.length > 0) {
+        setVillages(filtered);
+      } else if (!isDatabaseMarkedSeeded()) {
+        cacheVillagesLocally(INITIAL_VILLAGES.filter(v => !deletedVillagesSet.has(v.id)));
+      }
     });
 
     return () => {
@@ -374,7 +401,28 @@ export default function App() {
 
   // Firebase auth state subscription & Cross-tab synchronization
   useEffect(() => {
-    testFirestoreConnection();
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      testFirestoreConnection();
+    }
+
+    // 0. Instant Airplane Mode / Offline session restoration:
+    // When the phone is in Airplane Mode, immediately restore the saved user profile from localStorage
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const rawOfflineUser = localStorage.getItem('nkala_authenticated_user');
+        if (rawOfflineUser) {
+          const parsedOffline = JSON.parse(rawOfflineUser) as UserProfile;
+          if (parsedOffline && parsedOffline.id) {
+            if (checkIsAdminEmail(parsedOffline.email) && parsedOffline.role !== 'admin') {
+              parsedOffline.role = 'admin';
+            }
+            setCurrentUser(parsedOffline);
+            setIsOnboardingModalOpen(!parsedOffline.registrationCompleted);
+            setIsAuthChecking(false);
+          }
+        }
+      } catch {}
+    }
 
     // 1. Cross-tab storage synchronization: when Tab 1 completes onboarding, Tab 2 updates immediately
     const handleStorageChange = (e: StorageEvent) => {
@@ -398,12 +446,34 @@ export default function App() {
     // 2. Listen to Firebase Auth state (single source of truth for Firestore authentication)
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
-        setIsAuthChecking(true);
         setIsFirebaseAuthReady(true);
         const isSuperAdmin = checkIsAdminEmail(fbUser.email);
 
+        // If device is in Airplane Mode (!navigator.onLine) and we have the cached profile, restore it immediately without waiting for network timeout
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          try {
+            const cachedRaw = localStorage.getItem('nkala_authenticated_user');
+            if (cachedRaw) {
+              const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
+              if (cachedProfile && cachedProfile.id === fbUser.uid) {
+                if (isSuperAdmin && cachedProfile.role !== 'admin') {
+                  cachedProfile.role = 'admin';
+                }
+                setCurrentUser(cachedProfile);
+                setIsOnboardingModalOpen(!cachedProfile.registrationCompleted);
+                setIsAuthChecking(false);
+                return;
+              }
+            }
+          } catch {}
+        }
+
+        setIsAuthChecking(true);
+
         // Replay any pending offline admin mutations now that we have a valid Firebase Auth token
-        replayPendingOfflineAdminMutations().catch(() => {});
+        if (typeof navigator === 'undefined' || navigator.onLine) {
+          replayPendingOfflineAdminMutations().catch(() => {});
+        }
 
         // Query Firestore to see if user profile already exists with full filiation!
         try {
@@ -513,18 +583,27 @@ export default function App() {
         setIsAuthChecking(false);
         return;
       } else {
-        // Firebase Auth returned null: verify if an anonymous/bridge session can be established for a stored profile
+        // Firebase Auth returned null: verify if a stored profile exists (especially in Airplane Mode!)
         try {
           const activeLocal = localStorage.getItem('nkala_authenticated_user');
           if (activeLocal) {
             const parsed = JSON.parse(activeLocal);
             if (parsed && parsed.id) {
+              if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
+                parsed.role = 'admin';
+                localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
+              }
+
+              // In Airplane Mode (!navigator.onLine), restore the local profile directly without requiring a network auth call
+              if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                setCurrentUser(parsed);
+                setIsOnboardingModalOpen(!parsed.registrationCompleted);
+                setIsAuthChecking(false);
+                return;
+              }
+
               const fallbackAuth = await ensureFirebaseAuthSession();
               if (fallbackAuth) {
-                if (checkIsAdminEmail(parsed.email) && parsed.role !== 'admin') {
-                  parsed.role = 'admin';
-                  localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
-                }
                 setIsFirebaseAuthReady(true);
                 setCurrentUser(parsed);
                 if (parsed.registrationCompleted) {
@@ -532,9 +611,6 @@ export default function App() {
                 }
                 setIsAuthChecking(false);
                 return;
-              } else {
-                // No valid Firebase Auth session exists: clear stale localStorage so user signs in properly
-                localStorage.removeItem('nkala_authenticated_user');
               }
             }
           }

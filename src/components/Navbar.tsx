@@ -12,6 +12,7 @@ import {
   HardDrive
 } from 'lucide-react';
 import { UserProfile } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   currentUser: UserProfile | null;
@@ -74,6 +75,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls & User Info */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* PWA Install Button (Android/Desktop & iOS Safari Guide) */}
+          <PWAInstallButton />
+
           {/* Offline Pack Button */}
           <button
             onClick={onOpenOfflinePack}
