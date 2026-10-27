@@ -98,6 +98,7 @@ interface AdminDashboardProps {
   onUpdateUserAccountStatus: (userId: string, status: 'active' | 'flagged' | 'suspended') => Promise<void>;
   onUpdateUserRole?: (userId: string, newRole: UserRole) => Promise<void>;
   onTriggerCloudSync: () => Promise<void>;
+  onSanitizeDatabase?: () => Promise<string>;
   currentUser: UserProfile | null;
   seedStatus?: SeedStatus | null;
   onExecuteInitialSeed?: () => Promise<void>;
@@ -137,6 +138,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateUserAccountStatus,
   onUpdateUserRole,
   onTriggerCloudSync,
+  onSanitizeDatabase,
   currentUser,
   seedStatus,
   onExecuteInitialSeed,
@@ -147,6 +149,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   >('stats');
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSanitizing, setIsSanitizing] = useState(false);
   const [syncStatusMessage, setSyncStatusMessage] = useState<string | null>(null);
 
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
@@ -567,7 +570,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0 flex-wrap justify-end">
+          {onSanitizeDatabase && (
+            <button
+              type="button"
+              onClick={async () => {
+                setIsSanitizing(true);
+                setSyncStatusMessage(null);
+                try {
+                  const report = await onSanitizeDatabase();
+                  setSyncStatusMessage(report);
+                  setTimeout(() => setSyncStatusMessage(null), 7000);
+                } catch (e: any) {
+                  setSyncStatusMessage("Erreur d'assainissement : " + (e?.message || 'Vérifiez la connexion'));
+                } finally {
+                  setIsSanitizing(false);
+                }
+              }}
+              disabled={isSanitizing || isSyncing}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-500/40 font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50"
+              title="Purge les anciens clans/villages supprimés, élimine les doublons et nettoie les profils fictifs de démo dans Firebase et le cache local"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isSanitizing ? 'animate-spin' : ''}`} />
+              <span>{isSanitizing ? 'Assainissement...' : '🧹 Assainir & Purger les Doublons'}</span>
+            </button>
+          )}
           <button
             onClick={async () => {
               setIsSyncing(true);
@@ -582,14 +609,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsSyncing(false);
               }
             }}
-            disabled={isSyncing}
+            disabled={isSyncing || isSanitizing}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl terracotta-gradient hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
             <span>{isSyncing ? 'Synchronisation...' : 'Synchroniser avec la Base de Données'}</span>
           </button>
           {syncStatusMessage && (
-            <div className="text-[11px] font-semibold text-[#fde047] bg-[#27150c] px-3 py-1 rounded-lg border border-[#f59e0b]/40">
+            <div className="text-[11px] font-semibold text-[#fde047] bg-[#27150c] px-3 py-1 rounded-lg border border-[#f59e0b]/40 max-w-md text-right">
               {syncStatusMessage}
             </div>
           )}
