@@ -170,7 +170,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         setErrorMessage('Veuillez saisir le nom du nouveau village d’origine.');
         return;
       }
-      const targetClanName = customVillageClan || finalPaternalClan || clans[0]?.name || 'Avandji';
+      const targetClanName = customVillageClan || finalPaternalClan || 'Non rattaché';
       const targetClanObj = clans.find(c => c.name === targetClanName);
       const targetTribe = targetClanObj?.tribe || tribe;
 
@@ -182,7 +182,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       );
       finalVillage = created.name;
     } else if (!finalVillage) {
-      setErrorMessage('Veuillez sélectionner ou ajouter votre village d’origine.');
+      setErrorMessage('Veuillez sélectionner ou saisir votre village d’origine.');
       return;
     }
 
@@ -406,7 +406,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                           Clan {c.name} (Tribu: {c.tribe})
                         </option>
                       ))}
+                      <option value="Non précisé">Non précisé / À définir ({paternalTribe})</option>
                     </select>
+                    {paternalClansList.length === 0 && (
+                      <p className="text-[10px] text-[#fde047] mt-1">
+                        Les clans {paternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau clan ».
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -484,7 +490,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                           Clan {c.name} (Tribu: {c.tribe})
                         </option>
                       ))}
+                      <option value="Non précisé">Non précisé / À définir ({maternalTribe})</option>
                     </select>
+                    {maternalClansList.length === 0 && (
+                      <p className="text-[10px] text-[#fde047] mt-1">
+                        Les clans {maternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau clan ».
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -542,13 +554,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     <option value="">-- Sélectionnez votre village d’origine --</option>
                     {filteredVillages.map((v) => (
                       <option key={v.id} value={v.name}>
-                        {v.name} (Clan: {v.clan || 'Enenga'}, Tribu: {v.tribe})
+                        {v.name} (Clan: {v.clan || 'Non rattaché'}, Tribu: {v.tribe})
                       </option>
                     ))}
-                    {filteredVillages.length === 0 && (
-                      <option disabled value="">Aucun village enregistré pour ce clan, vous pouvez le créer.</option>
-                    )}
+                    <option value="Non précisé">Non précisé / À définir</option>
                   </select>
+                  {filteredVillages.length === 0 && (
+                    <p className="text-[10px] text-[#fde047] mt-1">
+                      Aucun village n'est encore enregistré pour cette sélection. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau village ».
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2 pt-1">
@@ -559,17 +574,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         type="text"
                         value={customVillage}
                         onChange={(e) => setCustomVillage(e.target.value)}
-                        placeholder="Ex: Lac Onangué, Ozouri, Glass..."
+                        placeholder="Ex: Ozouri, Alumbè..."
                         className="w-full px-3 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] text-[#a8826d] mb-0.5">Clan de rattachement :</label>
                       <select
-                        value={customVillageClan || paternalClan || clans[0]?.name}
+                        value={customVillageClan || paternalClan || 'Non rattaché'}
                         onChange={(e) => setCustomVillageClan(e.target.value)}
                         className="w-full px-3 py-2 bg-[#180d07] border border-[#c85a32] rounded-lg text-white text-xs focus:outline-none"
                       >
+                        <option value="Non rattaché">Non rattaché / À définir</option>
+                        {paternalClan && paternalClan !== 'Non précisé' && !clans.some(c => c.name === paternalClan) && (
+                          <option value={paternalClan}>Clan {paternalClan} ({paternalTribe})</option>
+                        )}
                         {clans.map(c => (
                           <option key={c.id} value={c.name}>Clan {c.name} ({c.tribe})</option>
                         ))}

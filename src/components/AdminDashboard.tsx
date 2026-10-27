@@ -86,6 +86,14 @@ interface AdminDashboardProps {
   onDeleteClan: (clanId: string) => Promise<void>;
   onSaveVillage: (village: Partial<VillageRegistry>) => Promise<void>;
   onDeleteVillage: (villageId: string) => Promise<void>;
+  onBatchImportClans?: (
+    clansToImport: ClanRegistry[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => Promise<void>;
+  onBatchImportVillages?: (
+    villagesToImport: VillageRegistry[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => Promise<void>;
   onUpdateUserLevelAndBadges: (userId: string, newLevelIndex: number, badges: string[], bonusXp?: number) => Promise<void>;
   onUpdateUserAccountStatus: (userId: string, status: 'active' | 'flagged' | 'suspended') => Promise<void>;
   onUpdateUserRole?: (userId: string, newRole: UserRole) => Promise<void>;
@@ -123,6 +131,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteClan,
   onSaveVillage,
   onDeleteVillage,
+  onBatchImportClans,
+  onBatchImportVillages,
   onUpdateUserLevelAndBadges,
   onUpdateUserAccountStatus,
   onUpdateUserRole,
@@ -794,6 +804,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           onDeleteClan={onDeleteClan}
           onSaveVillage={onSaveVillage}
           onDeleteVillage={onDeleteVillage}
+          onBatchImportClans={onBatchImportClans}
+          onBatchImportVillages={onBatchImportVillages}
         />
       )}
 
