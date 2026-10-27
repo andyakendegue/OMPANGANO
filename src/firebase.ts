@@ -6,9 +6,6 @@ import {
   signOut as fbSignOut,
   onAuthStateChanged, 
   signInAnonymously, 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber, 
-  ConfirmationResult,
   User as FirebaseUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
@@ -213,30 +210,22 @@ export function convertBlobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-// Connect user with phone number using real Firebase Auth account (guaranteeing genuine Firebase session)
-export async function signInWithPhoneBridge(phoneNumber: string): Promise<FirebaseUser> {
-  const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
-  const internalEmail = `tel_${cleanDigits}@ompagano.ga`;
-  const internalPassword = `ompa_${cleanDigits}_gab_2026!`;
-
+// Connect or register user with Email & Password using Firebase Auth
+export async function signInOrRegisterWithEmail(email: string, password: string): Promise<FirebaseUser> {
+  const cleanEmail = email.trim().toLowerCase();
   try {
-    const cred = await signInWithEmailAndPassword(auth, internalEmail, internalPassword);
+    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
     return cred.user;
   } catch (err: any) {
-    if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-login-credentials') {
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, internalEmail, internalPassword);
-        return cred.user;
-      } catch (createErr: any) {
-        console.warn('Notice creating phone bridge account:', createErr);
-        // Fallback to anonymous if email creation fails
-        const anonCred = await signInAnonymously(auth);
-        return anonCred.user;
-      }
+    if (
+      err.code === 'auth/user-not-found' ||
+      err.code === 'auth/invalid-credential' ||
+      err.code === 'auth/invalid-login-credentials'
+    ) {
+      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      return cred.user;
     }
-    // Attempt anonymous fallback
-    const anonCred = await signInAnonymously(auth);
-    return anonCred.user;
+    throw err;
   }
 }
 
@@ -250,7 +239,7 @@ export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> 
     const cred = await signInAnonymously(auth);
     return cred.user;
   } catch {
-    // Anonymous auth might be disabled in Firebase Console; user must sign in via Google/Phone
+    // Anonymous auth might be disabled in Firebase Console; user must sign in via Google or Email
     return null;
   }
 }
@@ -925,9 +914,7 @@ export {
   fbSignOut, 
   onAuthStateChanged, 
   signInAnonymously, 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 };
-export type { ConfirmationResult };
+

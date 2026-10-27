@@ -101,7 +101,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
             {[
               { idx: 0, label: '1. Objectifs' },
               { idx: 1, label: '2. Contribuer (3 étapes)' },
-              { idx: 2, label: '3. Clans & Hors-ligne' },
+              { idx: 2, label: '3. Tribus & Hors-ligne' },
               { idx: 3, label: '4. Badges & Défis' }
             ].map((tab) => (
               <button
@@ -142,11 +142,11 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#f59e0b] block">Objectif 1</span>
-                    <h3 className="text-sm font-bold text-white">Préserver les 6 Dialectes & Lignées Claniques</h3>
+                    <h3 className="text-sm font-bold text-white">Préserver les 6 Tribus (Dialectes) Myènè</h3>
                   </div>
                 </div>
                 <p className="text-xs text-[#d4af94] leading-relaxed">
-                  Documenter fidèlement les expressions et variantes des 6 tribus Myènè (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu</strong>) ainsi que le vocabulaire propre à chaque clan paternel et maternel.
+                  Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 tribus Myènè (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu</strong>) tout en honorant la mémoire généalogique des clans.
                 </p>
               </div>
 
@@ -233,7 +233,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-[#d4af94] leading-relaxed">
-                    Lisez la phrase affichée en Myènè. Cliquez sur <strong className="text-emerald-300">« Oui, c'est bien écrit 👍 »</strong> ou sur <strong className="text-amber-300">« Je propose ma version ✍️ »</strong> pour corriger l'orthographe selon votre tribu ou clan.
+                    Lisez la phrase affichée en Myènè. Cliquez sur <strong className="text-emerald-300">« Oui, c'est bien écrit 👍 »</strong> ou sur <strong className="text-amber-300">« Je propose ma version ✍️ »</strong> pour corriger l'orthographe selon votre <strong>Tribu</strong> (les différences orthographiques et tonales dépendent des tribus, jamais des clans).
                   </p>
                 </div>
               </div>
@@ -301,33 +301,33 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
         {activeSlide === 2 && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Explorer par Clan & Thème */}
+              {/* Explorer par Tribu & Thème */}
               <div className="p-4 rounded-2xl bg-[#180d07] border border-[#4a2412] space-y-3">
                 <div className="flex items-center gap-2.5">
                   <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[#f59e0b]">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-[#f59e0b] block">Onglet « Explorer »</span>
-                    <h3 className="text-base font-bold text-white">Filtrer le Vocabulaire par Clan</h3>
+                    <span className="text-[10px] uppercase font-bold text-[#f59e0b] block">Filtrage Linguistique</span>
+                    <h3 className="text-base font-bold text-white">Filtrer les Questions par Tribu</h3>
                   </div>
                 </div>
 
                 <p className="text-xs text-[#d4af94] leading-relaxed">
-                  Dans l'onglet <strong>Explorer</strong>, utilisez le menu déroulant des clans ou les boutons d'accès rapide pour parcourir les expressions rattachées à :
+                  En Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Tribus</strong> et jamais les clans :
                 </p>
 
                 <div className="space-y-2 text-xs">
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-amber-500/30 flex items-center gap-2">
-                    <span>🏛️</span>
+                    <span>🌍</span>
                     <span>
-                      <strong>Votre Clan Paternel</strong> {currentUser?.paternalClan ? `(${currentUser.paternalClan})` : ''}
+                      <strong>Votre Tribu</strong> {currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-emerald-500/30 flex items-center gap-2">
-                    <span>🌺</span>
+                    <span>❓</span>
                     <span>
-                      <strong>Votre Clan Maternel</strong> {currentUser?.maternalClan ? `(${currentUser.maternalClan})` : ''}
+                      <strong>FAQ Interactive</strong> sur la page principale avec recherche en temps réel des règles Myènè.
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#4a2412] flex items-center gap-2">
@@ -423,7 +423,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   onClick={() => handleFinish('explore')}
                   className="px-3.5 py-2 rounded-xl bg-[#180d07] hover:bg-[#24130a] text-[#fed7aa] border border-[#f59e0b]/40 text-xs font-bold transition"
                 >
-                  🏛️ Explorer mon Clan
+                  🌍 Explorer par Tribu
                 </button>
                 <button
                   type="button"
