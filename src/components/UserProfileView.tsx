@@ -712,7 +712,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     <div>
                       <div className="flex items-start justify-between gap-1.5">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#f59e0b]">
-                          {favItem.dialect || 'enenga'} {favItem.clan ? `• Clan ${favItem.clan}` : ''}
+                          🌍 Tribu {favItem.dialect || 'orungu'}
                         </span>
                         {onToggleFavorite && (
                           <button
@@ -819,7 +819,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               onClick={onOpenAuth}
               className="w-full py-3 rounded-2xl terracotta-gradient text-white font-bold text-sm shadow-md"
             >
-              Se connecter (Gmail / Téléphone)
+              Se connecter (Google / Email)
             </button>
           )}
         </div>

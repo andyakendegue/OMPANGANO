@@ -65,7 +65,9 @@ import {
   cleanObsoleteSeedVillages,
   sanitizeAndDeduplicateItems,
   auditAndSanitizeDatabaseState,
-  DEMO_MOCK_USER_IDS
+  DEMO_MOCK_USER_IDS,
+  MYENE_TRIBES,
+  mapDialectToTribeName
 } from './services/seedData';
 import { 
   getPendingOfflineContributions, 
@@ -107,6 +109,7 @@ import { ChallengeCelebrationModal } from './components/ChallengeCelebrationModa
 import { AppUpdateBanner } from './components/AppUpdateBanner';
 import { TermsConsentModal, TermsConsentPayload } from './components/TermsConsentModal';
 import { VisualGuideModal, VISUAL_GUIDE_SEEN_KEY } from './components/VisualGuideModal';
+import { ContributionFaqSection } from './components/ContributionFaqSection';
 
 const DELETED_RECORDS_STORAGE_KEY = 'nkala_deleted_records_v1';
 const FAVORITE_VOCAB_STORAGE_KEY = 'nkala_favorite_vocab_ids_v1';
@@ -214,6 +217,7 @@ export default function App() {
   });
   const [activeChallengeId, setActiveChallengeId] = useState<string>('defi-peche-semaine');
   const [isChallengeFilterActive, setIsChallengeFilterActive] = useState<boolean>(false);
+  const [selectedQuestionTribe, setSelectedQuestionTribe] = useState<string>('all');
   const [celebrationChallenge, setCelebrationChallenge] = useState<WeeklyChallenge | null>(null);
 
   // Dynamic Themes & Dynamic Badges states
@@ -723,7 +727,7 @@ export default function App() {
           id: fbUser.uid,
           displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Contributeur OMPAGANO',
           fullName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Locuteur Myènè',
-          contact: fbUser.email || fbUser.phoneNumber || '',
+          contact: fbUser.email || '',
           birthDate: '',
           birthPlace: '',
           tribe: 'Enenga',
@@ -732,7 +736,7 @@ export default function App() {
           villageOfOrigin: '',
           registrationCompleted: false,
           email: fbUser.email || '',
-          phoneNumber: fbUser.phoneNumber || '',
+          phoneNumber: '',
           photoURL: fbUser.photoURL || '',
           role: isAdmin ? 'admin' : 'user',
           status: 'active',
@@ -2429,18 +2433,41 @@ export default function App() {
     });
   };
 
-  // Active challenge selection & filter
+  // Active challenge selection & Tribe filter for questions
   const activeChallenge = challenges.find(c => c.id === activeChallengeId) || challenges[0];
 
-  const displayedItems = React.useMemo(() => {
-    if (!isChallengeFilterActive || !activeChallenge || activeChallenge.theme === 'all') {
-      return items;
+  const tribeItemCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of MYENE_TRIBES) {
+      counts[t] = 0;
     }
-    const filtered = items.filter(
-      item => item.category === activeChallenge.theme || item.theme === activeChallenge.theme
-    );
-    return filtered.length > 0 ? filtered : items;
-  }, [items, isChallengeFilterActive, activeChallenge]);
+    for (const it of items) {
+      const tName = mapDialectToTribeName(it.dialect);
+      counts[tName] = (counts[tName] || 0) + 1;
+    }
+    return counts;
+  }, [items]);
+
+  const displayedItems = React.useMemo(() => {
+    let base = items;
+    if (selectedQuestionTribe !== 'all') {
+      const byTribe = base.filter(
+        item => mapDialectToTribeName(item.dialect) === selectedQuestionTribe
+      );
+      if (byTribe.length > 0) {
+        base = byTribe;
+      }
+    }
+    if (isChallengeFilterActive && activeChallenge && activeChallenge.theme !== 'all') {
+      const byChallenge = base.filter(
+        item => item.category === activeChallenge.theme || item.theme === activeChallenge.theme
+      );
+      if (byChallenge.length > 0) {
+        base = byChallenge;
+      }
+    }
+    return base;
+  }, [items, selectedQuestionTribe, isChallengeFilterActive, activeChallenge]);
 
   // Navigation handlers
   const handleNextExpression = () => {
@@ -2616,51 +2643,71 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6">
         {currentTab === 'crowdsource' && (
-          currentItem ? (
-            <CrowdsourceCard
-              item={currentItem}
-              currentUser={currentUser}
-              isOnline={isOnline}
-              onNext={handleNextExpression}
-              onPrev={handlePrevExpression}
-              hasPrev={currentItemIndex > 0}
-              hasNext={currentItemIndex < displayedItems.length - 1}
-              currentIndex={currentItemIndex}
-              totalCount={displayedItems.length}
-              onSubmitContribution={handleSaveContribution}
-              onRewardEarned={handleRewardEarned}
-              challenges={challenges.filter(c => c.isActive)}
-              activeChallengeId={activeChallengeId}
-              onSelectChallenge={setActiveChallengeId}
-              userChallengeProgress={currentUser?.weeklyProgress?.[activeChallengeId] || 0}
-              isChallengeCompleted={currentUser?.completedChallenges?.includes(activeChallengeId) || false}
-              isChallengeFilterActive={isChallengeFilterActive}
-              onToggleChallengeFilter={() => {
-                setIsChallengeFilterActive(prev => !prev);
+          <>
+            {currentItem ? (
+              <CrowdsourceCard
+                item={currentItem}
+                currentUser={currentUser}
+                isOnline={isOnline}
+                onNext={handleNextExpression}
+                onPrev={handlePrevExpression}
+                hasPrev={currentItemIndex > 0}
+                hasNext={currentItemIndex < displayedItems.length - 1}
+                currentIndex={currentItemIndex}
+                totalCount={displayedItems.length}
+                onSubmitContribution={handleSaveContribution}
+                onRewardEarned={handleRewardEarned}
+                challenges={challenges.filter(c => c.isActive)}
+                activeChallengeId={activeChallengeId}
+                onSelectChallenge={setActiveChallengeId}
+                userChallengeProgress={currentUser?.weeklyProgress?.[activeChallengeId] || 0}
+                isChallengeCompleted={currentUser?.completedChallenges?.includes(activeChallengeId) || false}
+                isChallengeFilterActive={isChallengeFilterActive}
+                onToggleChallengeFilter={() => {
+                  setIsChallengeFilterActive(prev => !prev);
+                  setCurrentItemIndex(0);
+                }}
+                filteredChallengeItemsCount={items.filter(i => i.category === activeChallenge?.theme || i.theme === activeChallenge?.theme).length}
+                onOpenVisualGuide={() => {
+                  setIsPostOnboardingGuide(false);
+                  setIsVisualGuideOpen(true);
+                }}
+                selectedQuestionTribe={selectedQuestionTribe}
+                onSelectQuestionTribe={(tribe) => {
+                  setSelectedQuestionTribe(tribe);
+                  setCurrentItemIndex(0);
+                }}
+                tribeItemCounts={tribeItemCounts}
+                totalCorpusCount={items.length}
+              />
+            ) : (
+              <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
+                <p className="text-lg font-semibold text-[#f5efe6] mb-2">Aucune fiche disponible pour le moment</p>
+                <p className="text-sm text-[#c2a896] mb-4">
+                  Toutes les fiches ont été supprimées ou aucune fiche n'est encore publiée dans la base de données.
+                </p>
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={() => setCurrentTab('admin')}
+                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition"
+                  >
+                    Ouvrir l'Administration pour ajouter des fiches
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Interactive FAQ Section on the Main Page with Real-Time Text Search */}
+            <ContributionFaqSection
+              userTribe={currentUser?.tribe}
+              selectedTribeFilter={selectedQuestionTribe}
+              onSelectTribeFilter={(tribe) => {
+                setSelectedQuestionTribe(tribe);
                 setCurrentItemIndex(0);
-              }}
-              filteredChallengeItemsCount={items.filter(i => i.category === activeChallenge?.theme || i.theme === activeChallenge?.theme).length}
-              onOpenVisualGuide={() => {
-                setIsPostOnboardingGuide(false);
-                setIsVisualGuideOpen(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             />
-          ) : (
-            <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
-              <p className="text-lg font-semibold text-[#f5efe6] mb-2">Aucune fiche disponible pour le moment</p>
-              <p className="text-sm text-[#c2a896] mb-4">
-                Toutes les fiches ont été supprimées ou aucune fiche n'est encore publiée dans la base de données.
-              </p>
-              {currentUser?.role === 'admin' && (
-                <button
-                  onClick={() => setCurrentTab('admin')}
-                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition"
-                >
-                  Ouvrir l'Administration pour ajouter des fiches
-                </button>
-              )}
-            </div>
-          )
+          </>
         )}
 
         {currentTab === 'explore' && (

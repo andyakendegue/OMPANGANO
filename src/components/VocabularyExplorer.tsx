@@ -1,27 +1,34 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Search, 
-  Volume2, 
-  Mic, 
+import {
+  Search,
+  Volume2,
+  Mic,
   BookOpen,
-  Shield,
-  Users,
+  Globe,
   X,
-  Sparkles,
   Star,
   MapPin,
   ScrollText,
-  Compass
+  Compass,
+  ShieldCheck
 } from 'lucide-react';
-import { 
-  QuestionnaireItem, 
-  ThemeDefinition, 
-  ClanRegistry, 
+import {
+  QuestionnaireItem,
+  ThemeDefinition,
+  ClanRegistry,
   VillageRegistry,
-  UserProfile, 
-  Contribution 
+  UserProfile,
+  Contribution,
+  TribeName
 } from '../types';
-import { THEMATIC_CATEGORIES, INITIAL_CLANS, INITIAL_VILLAGES, getClanHistoricalAndGeoInfo } from '../services/seedData';
+import {
+  THEMATIC_CATEGORIES,
+  INITIAL_CLANS,
+  INITIAL_VILLAGES,
+  MYENE_TRIBES,
+  TRIBAL_DIALECT_INFO,
+  mapDialectToTribeName
+} from '../services/seedData';
 
 interface VocabularyExplorerProps {
   items: QuestionnaireItem[];
@@ -36,7 +43,7 @@ interface VocabularyExplorerProps {
   onSelectExpression: (index: number) => void;
 }
 
-function normalizeClanKey(name: string = ''): string {
+function normalizeTribeKey(name: string = ''): string {
   return name
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -44,30 +51,10 @@ function normalizeClanKey(name: string = ''): string {
     .trim();
 }
 
-function mapDialectToTribeLabel(dialect: string = ''): string {
-  const d = dialect.toLowerCase().trim();
-  if (d.includes('mpong')) return 'Mpongwè';
-  if (d.includes('eneng')) return 'Enenga';
-  if (d.includes('galo') || d.includes('galw')) return 'Galoa';
-  if (d.includes('nkom')) return 'Nkomi';
-  if (d.includes('adyum')) return 'Adyumba';
-  if (d.includes('orung') || d.includes('ôrung')) return 'Ôrungu';
-  return 'Enenga';
-}
-
-function deterministicHash(str: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return Math.abs(h >>> 0);
-}
-
 export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
   items,
   themes = THEMATIC_CATEGORIES,
-  clans = INITIAL_CLANS,
+  clans: _clans = INITIAL_CLANS,
   villages = INITIAL_VILLAGES,
   currentUser = null,
   contributions = [],
@@ -78,7 +65,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedClan, setSelectedClan] = useState<string>('all');
+  const [selectedTribe, setSelectedTribe] = useState<string>('all');
   const [onlyFavorites, setOnlyFavorites] = useState<boolean>(false);
   const [playingItemId, setPlayingItemId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -86,57 +73,6 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
 
   const favoriteSet = useMemo(() => new Set(favoriteItemIds), [favoriteItemIds]);
 
-  // Consolidate all known clans (from registry + currentUser + usersList + items)
-  const allClansRegistry = useMemo<ClanRegistry[]>(() => {
-    const map = new Map<string, ClanRegistry>();
-
-    for (const c of INITIAL_CLANS) {
-      map.set(normalizeClanKey(c.name), c);
-    }
-    for (const c of clans) {
-      if (c && c.name && c.name.toLowerCase() !== 'inconnu') {
-        const key = normalizeClanKey(c.name);
-        const existing = map.get(key);
-        map.set(key, existing ? { ...existing, ...c } : c);
-      }
-    }
-
-    const ensureClan = (clanName?: string, tribeFallback?: string) => {
-      if (!clanName) return;
-      const trimmed = clanName.trim();
-      if (!trimmed || trimmed.toLowerCase() === 'inconnu' || trimmed.toLowerCase() === 'non spécifié') return;
-      const key = normalizeClanKey(trimmed);
-      if (!map.has(key)) {
-        map.set(key, {
-          id: `clan-${key.replace(/[^a-z0-9]+/g, '-')}`,
-          name: trimmed,
-          tribe: tribeFallback || 'Ôrungu',
-          createdAt: '2026-01-01T00:00:00Z'
-        });
-      }
-    };
-
-    if (currentUser) {
-      ensureClan(currentUser.paternalClan, currentUser.tribe);
-      ensureClan(currentUser.maternalClan, currentUser.tribe);
-    }
-
-    for (const u of usersList) {
-      ensureClan(u.paternalClan, u.tribe);
-      ensureClan(u.maternalClan, u.tribe);
-    }
-
-    for (const it of items) {
-      if (it.clan) ensureClan(it.clan, mapDialectToTribeLabel(it.dialect));
-      if (it.clans) {
-        it.clans.forEach(c => ensureClan(c, mapDialectToTribeLabel(it.dialect)));
-      }
-    }
-
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-  }, [clans, currentUser, usersList, items]);
-
-  // Build user lookup map for contribution clan attribution
   const userByIdMap = useMemo(() => {
     const m = new Map<string, UserProfile>();
     for (const u of usersList) {
@@ -148,12 +84,11 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     return m;
   }, [usersList, currentUser]);
 
-  // Compute associated clans and clan-specific contributions for each vocabulary item
-  const itemClanMetadata = useMemo(() => {
-    const itemToClans = new Map<string, string[]>();
-    const itemToClanVariant = new Map<string, Map<string, string>>();
+  // Compute associated tribes and tribe-specific orthographic/tonal variants for each item
+  const itemTribeMetadata = useMemo(() => {
+    const itemToTribes = new Map<string, TribeName[]>();
+    const itemToTribeVariant = new Map<string, Map<string, string>>();
 
-    // Index contributions by itemId
     const contribsByItem = new Map<string, Contribution[]>();
     for (const c of contributions) {
       if (!c.itemId) continue;
@@ -162,208 +97,104 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       contribsByItem.set(c.itemId, list);
     }
 
-    const clanNamesList = allClansRegistry.map(c => c.name);
-
     for (const item of items) {
-      const matchedMap = new Map<string, string>(); // normalizedKey -> display clan name
-      const variantsForClans = new Map<string, string>();
+      const matchedMap = new Map<string, TribeName>();
+      const variantsForTribes = new Map<string, string>();
 
-      const addClan = (rawName?: string) => {
-        if (!rawName) return;
-        const norm = normalizeClanKey(rawName);
-        if (!norm || norm === 'inconnu') return;
-        const regMatch = allClansRegistry.find(c => normalizeClanKey(c.name) === norm);
-        matchedMap.set(norm, regMatch ? regMatch.name : rawName.trim());
+      const addTribe = (rawDialectOrTribe?: string) => {
+        if (!rawDialectOrTribe) return;
+        const tName = mapDialectToTribeName(rawDialectOrTribe);
+        matchedMap.set(normalizeTribeKey(tName), tName);
       };
 
-      // 1. Explicit clan fields on item
-      if (item.clan) addClan(item.clan);
-      if (Array.isArray(item.clans)) {
-        item.clans.forEach(c => addClan(c));
-      }
+      // 1. Primary dialect/tribe of the question
+      addTribe(item.dialect || 'orungu');
 
-      // 2. Textual mention in contextNotes, myeneText, frenchText, or moduleThematique
-      const combinedText = `${item.contextNotes || ''} ${item.myeneText || ''} ${item.frenchText || ''} ${item.moduleThematique || ''}`.toLowerCase();
-      for (const cObj of allClansRegistry) {
-        const lowerClan = cObj.name.toLowerCase();
-        if (lowerClan.length >= 4 && combinedText.includes(lowerClan)) {
-          addClan(cObj.name);
-        }
-      }
-
-      // 3. Clans of users who contributed to this item
+      // 2. Tribes of contributors who proposed variants or recordings on this question
       const itemContribs = contribsByItem.get(item.id) || [];
       for (const contrib of itemContribs) {
         const u = userByIdMap.get(contrib.userId);
-        const pat = contrib.userPaternalClan || u?.paternalClan;
-        const mat = contrib.userMaternalClan || u?.maternalClan;
-        if (pat) {
-          addClan(pat);
-          if (contrib.proposedSpelling) {
-            variantsForClans.set(normalizeClanKey(pat), contrib.proposedSpelling);
-          }
-        }
-        if (mat) {
-          addClan(mat);
-          if (contrib.proposedSpelling) {
-            variantsForClans.set(normalizeClanKey(mat), contrib.proposedSpelling);
+        const contribTribeRaw = contrib.dialectVariant || contrib.userTribe || u?.tribe;
+        if (contribTribeRaw) {
+          const tribeLabel = mapDialectToTribeName(contribTribeRaw);
+          addTribe(tribeLabel);
+          if (contrib.proposedSpelling && contrib.proposedSpelling.trim()) {
+            variantsForTribes.set(normalizeTribeKey(tribeLabel), contrib.proposedSpelling.trim());
           }
         }
       }
 
-      // 4. Deterministic heritage assignment for corpus items without explicit clan tags
-      if (matchedMap.size === 0 && clanNamesList.length > 0) {
-        const itemTribe = mapDialectToTribeLabel(item.dialect);
-        const sameTribeClans = allClansRegistry.filter(
-          c => normalizeClanKey(c.tribe) === normalizeClanKey(itemTribe)
-        );
-        const h = deterministicHash(item.id || item.myeneText);
-
-        if (sameTribeClans.length > 0) {
-          addClan(sameTribeClans[h % sameTribeClans.length].name);
-        }
-        // Also link a cross-clan oral transmission share so every clan in the registry can explore corpus expressions
-        addClan(clanNamesList[h % clanNamesList.length]);
-        addClan(clanNamesList[(h * 7 + 3) % clanNamesList.length]);
-      }
-
-      itemToClans.set(item.id, Array.from(matchedMap.values()));
-      itemToClanVariant.set(item.id, variantsForClans);
+      itemToTribes.set(item.id, Array.from(matchedMap.values()));
+      itemToTribeVariant.set(item.id, variantsForTribes);
     }
 
-    return { itemToClans, itemToClanVariant };
-  }, [items, allClansRegistry, contributions, userByIdMap]);
+    return { itemToTribes, itemToTribeVariant };
+  }, [items, contributions, userByIdMap]);
 
-  // Identify current user's valid paternal and maternal clans
-  const userPaternalClan = useMemo(() => {
-    const raw = currentUser?.paternalClan?.trim();
-    if (!raw || raw.toLowerCase() === 'inconnu' || raw.toLowerCase() === 'non spécifié') return '';
-    return raw;
-  }, [currentUser?.paternalClan]);
+  const userTribe = useMemo<TribeName | ''>(() => {
+    if (!currentUser?.tribe) return '';
+    return mapDialectToTribeName(currentUser.tribe);
+  }, [currentUser?.tribe]);
 
-  const userMaternalClan = useMemo(() => {
-    const raw = currentUser?.maternalClan?.trim();
-    if (!raw || raw.toLowerCase() === 'inconnu' || raw.toLowerCase() === 'non spécifié') return '';
-    return raw;
-  }, [currentUser?.maternalClan]);
-
-  // Helper to check if an item matches a clan filter value
-  const doesItemMatchClan = (item: QuestionnaireItem, clanFilter: string): boolean => {
-    if (clanFilter === 'all') return true;
-    const itemClans = itemClanMetadata.itemToClans.get(item.id) || [];
-    const normalizedItemClans = itemClans.map(normalizeClanKey);
-
-    if (clanFilter === '__my_clans__') {
-      const targets = [userPaternalClan, userMaternalClan]
-        .filter(Boolean)
-        .map(normalizeClanKey);
-      if (targets.length === 0) return true;
-      return targets.some(t => normalizedItemClans.includes(t));
-    }
-
-    const targetNorm = normalizeClanKey(clanFilter);
-    return normalizedItemClans.includes(targetNorm);
+  // Helper to check if an item matches the selected Tribe filter
+  const doesItemMatchTribe = (item: QuestionnaireItem, tribeFilter: string): boolean => {
+    if (tribeFilter === 'all') return true;
+    const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [
+      mapDialectToTribeName(item.dialect)
+    ];
+    const targetKey = normalizeTribeKey(tribeFilter);
+    return itemTribes.some(t => normalizeTribeKey(t) === targetKey);
   };
 
-  // Count items per clan (respecting current theme & search or total)
-  const clanCounts = useMemo(() => {
+  // Count questions per tribe
+  const tribeCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    let myBothCount = 0;
-
-    for (const c of allClansRegistry) {
-      counts.set(normalizeClanKey(c.name), 0);
+    for (const t of MYENE_TRIBES) {
+      counts.set(normalizeTribeKey(t), 0);
     }
 
-    const patNorm = normalizeClanKey(userPaternalClan);
-    const matNorm = normalizeClanKey(userMaternalClan);
-
     for (const item of items) {
-      const itemClans = itemClanMetadata.itemToClans.get(item.id) || [];
-      const normSet = new Set(itemClans.map(normalizeClanKey));
+      const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [
+        mapDialectToTribeName(item.dialect)
+      ];
+      const normSet = new Set(itemTribes.map(normalizeTribeKey));
       for (const nKey of normSet) {
         counts.set(nKey, (counts.get(nKey) || 0) + 1);
       }
-      if ((patNorm && normSet.has(patNorm)) || (matNorm && normSet.has(matNorm))) {
-        myBothCount++;
-      }
     }
 
-    return { counts, myBothCount };
-  }, [items, allClansRegistry, itemClanMetadata, userPaternalClan, userMaternalClan]);
+    return counts;
+  }, [items, itemTribeMetadata]);
 
-  // Group clans by tribe for the <select> dropdown optgroups
-  const clansGroupedByTribe = useMemo(() => {
-    const groups = new Map<string, ClanRegistry[]>();
-    for (const clan of allClansRegistry) {
-      const tribe = clan.tribe || 'Autres';
-      const list = groups.get(tribe) || [];
-      list.push(clan);
-      groups.set(tribe, list);
-    }
-    return Array.from(groups.entries());
-  }, [allClansRegistry]);
+  // Dynamic Linguistic, Historical & Geographical Info for the Selected Tribe
+  const activeTribeInfo = useMemo(() => {
+    if (selectedTribe === 'all') return null;
+    const tribeName = mapDialectToTribeName(selectedTribe);
+    const meta = TRIBAL_DIALECT_INFO[tribeName];
+    const tribeVillages = villages
+      .filter(v => normalizeTribeKey(v.tribe) === normalizeTribeKey(tribeName))
+      .map(v => v.name);
 
-  // Selected clan details (including historical meaning & geographical origins) for the dynamic callout
-  const activeClanInfo = useMemo(() => {
-    if (selectedClan === 'all') return null;
-
-    if (selectedClan === '__my_clans__') {
-      const patObj = allClansRegistry.find(c => normalizeClanKey(c.name) === normalizeClanKey(userPaternalClan)) || {
-        name: userPaternalClan || 'Paternel',
-        tribe: currentUser?.tribe || 'Myènè'
-      };
-      const matObj = allClansRegistry.find(c => normalizeClanKey(c.name) === normalizeClanKey(userMaternalClan)) || {
-        name: userMaternalClan || 'Maternel',
-        tribe: currentUser?.tribe || 'Myènè'
-      };
-      const patMeta = getClanHistoricalAndGeoInfo(patObj, villages);
-      const matMeta = getClanHistoricalAndGeoInfo(matObj, villages);
-
-      return {
-        name: [userPaternalClan, userMaternalClan].filter(Boolean).join(' & '),
-        tribe: currentUser?.tribe || 'Myènè',
-        description: 'Alliance généalogique de vos lignées claniques paternelle et maternelle.',
-        historicalMeaning: `Lignée paternelle (${patObj.name}) : ${patMeta.historicalMeaning} • Lignée maternelle (${matObj.name}) : ${matMeta.historicalMeaning}`,
-        geographicalOrigins: `${patObj.name} : ${patMeta.geographicalOrigins} | ${matObj.name} : ${matMeta.geographicalOrigins}`,
-        mottoOrSymbol: 'Double ancrage lignager OMPAGANO (paternel & maternel).',
-        associatedVillages: Array.from(new Set([...patMeta.associatedVillages, ...matMeta.associatedVillages]))
-      };
-    }
-
-    const found = allClansRegistry.find(
-      c => normalizeClanKey(c.name) === normalizeClanKey(selectedClan)
-    ) || {
-      id: `clan-${normalizeClanKey(selectedClan)}`,
-      name: selectedClan,
-      tribe: currentUser?.tribe || 'Myènè',
-      description: `Expressions et mémoire lexicale associées au clan ${selectedClan}.`,
-      createdAt: '2026-01-01T00:00:00Z'
-    };
-
-    const enriched = getClanHistoricalAndGeoInfo(found, villages);
     return {
-      ...found,
-      historicalMeaning: enriched.historicalMeaning,
-      geographicalOrigins: enriched.geographicalOrigins,
-      mottoOrSymbol: enriched.mottoOrSymbol,
-      associatedVillages: enriched.associatedVillages
+      ...meta,
+      associatedVillages: tribeVillages
     };
-  }, [selectedClan, allClansRegistry, userPaternalClan, userMaternalClan, currentUser?.tribe, villages]);
+  }, [selectedTribe, villages]);
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
-    let totalMatchingClan = 0;
+    let totalMatchingTribe = 0;
 
     for (const it of items) {
-      if (!doesItemMatchClan(it, selectedClan)) continue;
+      if (!doesItemMatchTribe(it, selectedTribe)) continue;
       if (onlyFavorites && !favoriteSet.has(it.id)) continue;
-      totalMatchingClan++;
+      totalMatchingTribe++;
       const cat = it.category || it.theme || 'vie_quotidienne_famille';
       counts.set(cat, (counts.get(cat) || 0) + 1);
     }
 
     const list: Array<{ id: string; label: string; count: number }> = [
-      { id: 'all', label: `Tous les thèmes (${totalMatchingClan})`, count: totalMatchingClan }
+      { id: 'all', label: `Tous les thèmes (${totalMatchingTribe})`, count: totalMatchingTribe }
     ];
 
     const seen = new Set<string>(['all']);
@@ -397,28 +228,28 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     }
 
     return list;
-  }, [items, themes, selectedClan, itemClanMetadata, onlyFavorites, favoriteSet]);
+  }, [items, themes, selectedTribe, itemTribeMetadata, onlyFavorites, favoriteSet]);
 
   const filteredItems = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return items.filter(item => {
       if (onlyFavorites && !favoriteSet.has(item.id)) return false;
-      if (!doesItemMatchClan(item, selectedClan)) return false;
+      if (!doesItemMatchTribe(item, selectedTribe)) return false;
 
       const itemCat = item.category || item.theme || '';
       const matchesCat = selectedCategory === 'all' || itemCat === selectedCategory;
       if (!matchesCat) return false;
 
       if (!q) return true;
-      const itemClans = itemClanMetadata.itemToClans.get(item.id) || [];
+      const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [];
       return (
         (item.frenchText || '').toLowerCase().includes(q) ||
         (item.myeneText || '').toLowerCase().includes(q) ||
         (item.contextNotes && item.contextNotes.toLowerCase().includes(q)) ||
-        itemClans.some(c => c.toLowerCase().includes(q))
+        itemTribes.some(t => t.toLowerCase().includes(q))
       );
     });
-  }, [items, selectedClan, selectedCategory, searchQuery, itemClanMetadata, onlyFavorites, favoriteSet]);
+  }, [items, selectedTribe, selectedCategory, searchQuery, itemTribeMetadata, onlyFavorites, favoriteSet]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -441,7 +272,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-5 pb-20">
-      {/* Search and Filters */}
+      {/* Search and Tribe Filters */}
       <div className="warm-card-gradient rounded-3xl p-5 border border-[#4a2412] shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -449,7 +280,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             <div>
               <h2 className="text-xl font-bold text-white">Mémoire & Vocabulaire Myènè</h2>
               <p className="text-xs text-[#d4af94]">
-                Consultez les {items.length} trésors lexicaux recueillis par NKALA APP selon votre clan ou lignée
+                Explorez les {items.length} expressions du corpus classées par <strong>Tribu Myènè</strong> et par <strong>Thème culturel</strong>
               </p>
             </div>
           </div>
@@ -467,7 +298,11 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
               }`}
               title="Filtrer uniquement votre vocabulaire favori"
             >
-              <Star className={`w-3.5 h-3.5 ${onlyFavorites || favoriteItemIds.length > 0 ? 'fill-current' : ''}`} />
+              <Star
+                className={`w-3.5 h-3.5 ${
+                  onlyFavorites || favoriteItemIds.length > 0 ? 'fill-current' : ''
+                }`}
+              />
               <span>Mes Favoris ({favoriteItemIds.length})</span>
             </button>
 
@@ -477,7 +312,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
           </div>
         </div>
 
-        {/* Search Bar + Clan Dropdown Filter Row */}
+        {/* Search Bar + Tribe Dropdown Filter Row */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           {/* Search Input */}
           <div className="relative md:col-span-7">
@@ -485,171 +320,129 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => {
+              onChange={e => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Rechercher en français, en Myènè ou par clan (ex: pirogue, Mbolo, Avandji...)"
+              placeholder="Rechercher en français, en Myènè ou par tribu (ex: pirogue, Mbolo, Ôrungu, Enenga...)"
               className="w-full pl-10 pr-4 py-3 bg-[#180d07] border border-[#4a2412] rounded-2xl text-xs sm:text-sm text-white focus:outline-none focus:border-[#f59e0b]"
             />
           </div>
 
-          {/* Clan Dropdown Filter */}
+          {/* Tribe Dropdown Filter */}
           <div className="relative md:col-span-5">
-            <Shield className="w-4 h-4 text-[#f59e0b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Globe className="w-4 h-4 text-[#f59e0b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
-              aria-label="Filtrer le vocabulaire par clan"
-              value={selectedClan}
-              onChange={(e) => {
-                setSelectedClan(e.target.value);
+              aria-label="Filtrer les questions par tribu Myènè"
+              value={selectedTribe}
+              onChange={e => {
+                setSelectedTribe(e.target.value);
                 setCurrentPage(1);
               }}
               className="w-full pl-10 pr-8 py-3 bg-[#180d07] border border-[#4a2412] hover:border-[#d97706]/60 rounded-2xl text-xs sm:text-sm text-[#fed7aa] font-semibold focus:outline-none focus:border-[#f59e0b] transition-colors cursor-pointer"
             >
               <option value="all">
-                🏛️ Tous les clans ({items.length} fiches)
+                🌍 Toutes les 6 tribus Myènè ({items.length} fiches)
               </option>
 
-              {(userPaternalClan || userMaternalClan) && (
-                <optgroup label="⭐ Mes Clans de Filiation">
-                  {userPaternalClan && userMaternalClan && normalizeClanKey(userPaternalClan) !== normalizeClanKey(userMaternalClan) && (
-                    <option value="__my_clans__">
-                      ⭐ Mes 2 clans ({userPaternalClan} & {userMaternalClan}) ({clanCounts.myBothCount})
-                    </option>
-                  )}
-                  {userPaternalClan && (
-                    <option value={userPaternalClan}>
-                      🏛️ Mon clan paternel : {userPaternalClan} ({clanCounts.counts.get(normalizeClanKey(userPaternalClan)) || 0})
-                    </option>
-                  )}
-                  {userMaternalClan && normalizeClanKey(userMaternalClan) !== normalizeClanKey(userPaternalClan) && (
-                    <option value={userMaternalClan}>
-                      🌺 Mon clan maternel : {userMaternalClan} ({clanCounts.counts.get(normalizeClanKey(userMaternalClan)) || 0})
-                    </option>
-                  )}
+              {userTribe && (
+                <optgroup label="⭐ Ma Tribu de Filiation">
+                  <option value={userTribe}>
+                    ⭐ Ma tribu : {userTribe} ({tribeCounts.get(normalizeTribeKey(userTribe)) || 0} fiches)
+                  </option>
                 </optgroup>
               )}
 
-              {clansGroupedByTribe.map(([tribeName, tribeClans]) => (
-                <optgroup key={tribeName} label={`Tribu ${tribeName}`}>
-                  {tribeClans.map(clan => {
-                    const count = clanCounts.counts.get(normalizeClanKey(clan.name)) || 0;
-                    const isUserClan =
-                      normalizeClanKey(clan.name) === normalizeClanKey(userPaternalClan) ||
-                      normalizeClanKey(clan.name) === normalizeClanKey(userMaternalClan);
-                    return (
-                      <option key={clan.id} value={clan.name}>
-                        {isUserClan ? '⭐ ' : ''}Clan {clan.name} — {clan.tribe} ({count})
-                      </option>
-                    );
-                  })}
-                </optgroup>
-              ))}
+              <optgroup label="🌍 Les 6 Tribus (Variétés Dialectales Myènè)">
+                {MYENE_TRIBES.map(tName => {
+                  const count = tribeCounts.get(normalizeTribeKey(tName)) || 0;
+                  const isMine = normalizeTribeKey(tName) === normalizeTribeKey(userTribe);
+                  return (
+                    <option key={tName} value={tName}>
+                      {isMine ? '⭐ ' : ''}Tribu {tName} ({count})
+                    </option>
+                  );
+                })}
+              </optgroup>
             </select>
           </div>
         </div>
 
-        {/* Quick Access Buttons for User's Own Clans */}
-        {(userPaternalClan || userMaternalClan || selectedClan !== 'all') && (
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <span className="text-[11px] font-semibold text-[#a8826d] flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-[#f59e0b]" />
-              Accès rapide par clan :
-            </span>
+        {/* Quick Access Buttons for the 6 Myènè Tribes */}
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          <span className="text-[11px] font-semibold text-[#a8826d] flex items-center gap-1">
+            <Globe className="w-3.5 h-3.5 text-[#f59e0b]" />
+            Filtrer par Tribu :
+          </span>
 
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedClan('all');
-                setCurrentPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all ${
-                selectedClan === 'all'
-                  ? 'bg-[#f59e0b] text-[#180d07] font-bold shadow'
-                  : 'bg-[#24130a] text-[#d4af94] border border-[#4a2412] hover:border-[#f59e0b]/50'
-              }`}
-            >
-              Tous les clans
-            </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedTribe('all');
+              setCurrentPage(1);
+            }}
+            className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all ${
+              selectedTribe === 'all'
+                ? 'bg-[#f59e0b] text-[#180d07] font-bold shadow'
+                : 'bg-[#24130a] text-[#d4af94] border border-[#4a2412] hover:border-[#f59e0b]/50'
+            }`}
+          >
+            Toutes les tribus
+          </button>
 
-            {userPaternalClan && (
+          {MYENE_TRIBES.map(tName => {
+            const isSelected = normalizeTribeKey(selectedTribe) === normalizeTribeKey(tName);
+            const isUserTribe = normalizeTribeKey(userTribe) === normalizeTribeKey(tName);
+            const count = tribeCounts.get(normalizeTribeKey(tName)) || 0;
+            return (
               <button
+                key={tName}
                 type="button"
                 onClick={() => {
-                  setSelectedClan(userPaternalClan);
+                  setSelectedTribe(tName);
                   setCurrentPage(1);
                 }}
                 className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all flex items-center gap-1 ${
-                  normalizeClanKey(selectedClan) === normalizeClanKey(userPaternalClan)
+                  isSelected
                     ? 'bg-amber-500 text-[#180d07] font-bold shadow'
-                    : 'bg-[#24130a] text-[#fde047] border border-amber-500/40 hover:bg-[#341b10]'
+                    : isUserTribe
+                    ? 'bg-[#24130a] text-[#fde047] border border-amber-500/40 hover:bg-[#341b10]'
+                    : 'bg-[#24130a] text-[#d4af94] border border-[#4a2412] hover:border-[#f59e0b]/40'
                 }`}
               >
-                <span>🏛️ Clan paternel : {userPaternalClan}</span>
+                <span>
+                  {isUserTribe ? '⭐ ' : '🌍 '}
+                  {tName} ({count})
+                </span>
               </button>
-            )}
+            );
+          })}
+        </div>
 
-            {userMaternalClan && normalizeClanKey(userMaternalClan) !== normalizeClanKey(userPaternalClan) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedClan(userMaternalClan);
-                  setCurrentPage(1);
-                }}
-                className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all flex items-center gap-1 ${
-                  normalizeClanKey(selectedClan) === normalizeClanKey(userMaternalClan)
-                    ? 'bg-emerald-500 text-[#180d07] font-bold shadow'
-                    : 'bg-[#24130a] text-emerald-300 border border-emerald-500/40 hover:bg-[#341b10]'
-                }`}
-              >
-                <span>🌺 Clan maternel : {userMaternalClan}</span>
-              </button>
-            )}
-
-            {userPaternalClan && userMaternalClan && normalizeClanKey(userPaternalClan) !== normalizeClanKey(userMaternalClan) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedClan('__my_clans__');
-                  setCurrentPage(1);
-                }}
-                className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all flex items-center gap-1 ${
-                  selectedClan === '__my_clans__'
-                    ? 'terracotta-gradient text-white font-bold shadow'
-                    : 'bg-[#24130a] text-[#fed7aa] border border-[#4a2412] hover:bg-[#341b10]'
-                }`}
-              >
-                <Sparkles className="w-3 h-3 text-[#f59e0b]" />
-                <span>Mes 2 clans réunis</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Dynamic Clan Historical Meaning & Geographical Origins Info Card */}
-        {activeClanInfo ? (
+        {/* Dynamic Tribe Historical, Geographical & Linguistic/Tonal Info Card */}
+        {activeTribeInfo ? (
           <div className="p-4 rounded-2xl bg-gradient-to-br from-[#180d07] via-[#221209] to-[#2c160b] border border-[#f59e0b]/50 shadow-lg space-y-3 animate-in fade-in duration-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[#4a2412]/80 pb-2.5">
               <div className="flex items-start sm:items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/40 flex items-center justify-center text-lg shrink-0 shadow-inner">
-                  🏛️
+                  🌍
                 </div>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-black text-[#fde047] uppercase tracking-wider">
-                      Clan {activeClanInfo.name}
+                      Tribu {activeTribeInfo.tribe}
                     </span>
                     <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#2b160c] text-[#f59e0b] border border-[#f59e0b]/40">
-                      Tribu {activeClanInfo.tribe}
+                      Variété dialectale : {activeTribeInfo.dialectCode}
                     </span>
                     <span className="text-[10px] text-emerald-300 font-semibold">
-                      • {filteredItems.length} expression(s) associée(s)
+                      • {filteredItems.length} question(s) associée(s)
                     </span>
                   </div>
-                  {activeClanInfo.mottoOrSymbol && (
+                  {activeTribeInfo.mottoOrSymbol && (
                     <p className="text-[11px] text-[#fed7aa] italic mt-0.5 flex items-center gap-1">
                       <Compass className="w-3 h-3 text-[#f59e0b] shrink-0" />
-                      <span>{activeClanInfo.mottoOrSymbol}</span>
+                      <span>{activeTribeInfo.mottoOrSymbol}</span>
                     </p>
                   )}
                 </div>
@@ -657,40 +450,49 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedClan('all');
+                  setSelectedTribe('all');
                   setCurrentPage(1);
                 }}
                 className="self-end sm:self-center inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] text-[11px] font-semibold border border-[#4a2412] shrink-0 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Tous les clans</span>
+                <span>Toutes les tribus</span>
               </button>
             </div>
 
-            {/* Historical Meaning & Geographical Origins Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-[#180d07]/90 border border-[#3b1d10] space-y-1">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#f59e0b]">
                   <ScrollText className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
-                  <span>Signification Historique & Lignage</span>
+                  <span>Spécificités Orthographiques & Tonales</span>
                 </div>
                 <p className="text-[11px] text-[#e5cbb8] leading-relaxed">
-                  {activeClanInfo.historicalMeaning}
+                  {activeTribeInfo.orthographicAndTonalTraits}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#180d07]/90 border border-[#3b1d10] space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <span>Histoire & Tradition Orale</span>
+                </div>
+                <p className="text-[11px] text-[#e5cbb8] leading-relaxed">
+                  {activeTribeInfo.historicalOrigins}
                 </p>
               </div>
 
               <div className="p-3 rounded-xl bg-[#180d07]/90 border border-[#3b1d10] space-y-1">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
                   <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Origines Géographiques & Terroirs</span>
+                  <span>Aire Géographique</span>
                 </div>
                 <p className="text-[11px] text-[#e5cbb8] leading-relaxed">
-                  {activeClanInfo.geographicalOrigins}
+                  {activeTribeInfo.geographicalZone}
                 </p>
-                {activeClanInfo.associatedVillages && activeClanInfo.associatedVillages.length > 0 && (
+                {activeTribeInfo.associatedVillages && activeTribeInfo.associatedVillages.length > 0 && (
                   <div className="pt-1 flex flex-wrap items-center gap-1">
-                    <span className="text-[10px] font-semibold text-[#a8826d]">Villages rattachés :</span>
-                    {activeClanInfo.associatedVillages.map(vName => (
+                    <span className="text-[10px] font-semibold text-[#a8826d]">Villages enregistrés :</span>
+                    {activeTribeInfo.associatedVillages.map(vName => (
                       <span
                         key={vName}
                         className="text-[10px] px-2 py-0.5 rounded-md bg-[#24130a] text-emerald-300 border border-emerald-500/30 font-medium"
@@ -706,9 +508,9 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
         ) : (
           <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-[#180d07]/75 border border-[#3b1d10] text-[11px] text-[#d4af94]">
             <div className="flex items-center gap-2">
-              <ScrollText className="w-4 h-4 text-[#f59e0b] shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-[#f59e0b] shrink-0" />
               <span>
-                Sélectionnez un <strong>clan Myènè</strong> dans le menu déroulant (ou cliquez sur un badge de clan) pour découvrir sa <strong>signification historique</strong> et ses <strong>origines géographiques</strong>.
+                En langue Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Tribus</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et non les clans. Sélectionnez une tribu pour explorer ses expressions et ses particularités linguistiques.
               </span>
             </div>
           </div>
@@ -739,7 +541,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       {filteredItems.length === 0 && (
         <div className="warm-card-gradient rounded-3xl p-8 border border-[#4a2412] text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#180d07] border border-[#4a2412] flex items-center justify-center mx-auto text-xl">
-            {onlyFavorites ? '⭐' : '🏛️'}
+            {onlyFavorites ? '⭐' : '🌍'}
           </div>
           <h3 className="text-base font-bold text-white">
             {onlyFavorites
@@ -749,14 +551,16 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
           <p className="text-xs text-[#d4af94] max-w-md mx-auto">
             {onlyFavorites
               ? "Cliquez sur l'étoile « Favori » sur les cartes du vocabulaire pour sauvegarder vos expressions Myènè préférées et les retrouver ici ainsi que dans votre Profil."
-              : `Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés (${selectedClan !== 'all' ? `Clan ${activeClanInfo?.name}` : 'Tous les clans'}).`}
+              : `Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés (${
+                  selectedTribe !== 'all' ? `Tribu ${selectedTribe}` : 'Toutes les tribus'
+                }).`}
           </p>
           <div className="flex items-center justify-center gap-2 pt-1">
             <button
               type="button"
               onClick={() => {
                 setOnlyFavorites(false);
-                setSelectedClan('all');
+                setSelectedTribe('all');
                 setSelectedCategory('all');
                 setSearchQuery('');
                 setCurrentPage(1);
@@ -771,13 +575,15 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
 
       {/* Grid of vocabulary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {paginatedItems.map((item) => {
+        {paginatedItems.map(item => {
           const originalIndex = items.findIndex(i => i.id === item.id);
-          const itemClans = itemClanMetadata.itemToClans.get(item.id) || [];
-          const clanVariantsMap = itemClanMetadata.itemToClanVariant.get(item.id);
-          const specificClanVariant =
-            selectedClan !== 'all' && selectedClan !== '__my_clans__'
-              ? clanVariantsMap?.get(normalizeClanKey(selectedClan))
+          const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [
+            mapDialectToTribeName(item.dialect)
+          ];
+          const tribeVariantsMap = itemTribeMetadata.itemToTribeVariant.get(item.id);
+          const specificTribeVariant =
+            selectedTribe !== 'all'
+              ? tribeVariantsMap?.get(normalizeTribeKey(selectedTribe))
               : undefined;
           const itemNuanceContrib = contributions.find(
             c => c.itemId === item.id && (c.proposedFrenchMeaning || c.secondaryMeaning)
@@ -808,12 +614,16 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                   {onToggleFavorite && (
                     <button
                       type="button"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         onToggleFavorite(item.id);
                       }}
                       aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                      title={isFavorite ? 'Retirer de mon vocabulaire favori' : 'Sauvegarder dans mes favoris'}
+                      title={
+                        isFavorite
+                          ? 'Retirer de mon vocabulaire favori'
+                          : 'Sauvegarder dans mes favoris'
+                      }
                       className={`p-1.5 rounded-full border transition-all active:scale-90 ${
                         isFavorite
                           ? 'bg-[#f59e0b] text-[#180d07] border-[#fde047] shadow-md'
@@ -824,39 +634,35 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                     </button>
                   )}
                 </div>
-                {itemClans.length > 0 && (
-                  <div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[65%]">
-                    {itemClans.slice(0, 2).map(clanName => {
-                      const isHighlighted =
-                        (selectedClan !== 'all' && normalizeClanKey(selectedClan) === normalizeClanKey(clanName)) ||
-                        normalizeClanKey(clanName) === normalizeClanKey(userPaternalClan) ||
-                        normalizeClanKey(clanName) === normalizeClanKey(userMaternalClan);
-                      return (
-                        <span
-                          key={clanName}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedClan(clanName);
-                            setCurrentPage(1);
-                          }}
-                          title={`Filtrer et voir l'histoire du clan ${clanName}`}
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
-                            isHighlighted
-                              ? 'bg-[#f59e0b] text-[#180d07] shadow'
-                              : 'bg-[#180d07]/85 text-[#fed7aa] border border-[#4a2412] hover:border-[#f59e0b]'
-                          }`}
-                        >
-                          🏛️ {clanName}
-                        </span>
-                      );
-                    })}
-                    {itemClans.length > 2 && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-[#180d07]/80 text-[#d4af94] border border-[#4a2412]">
-                        +{itemClans.length - 2}
+
+                {/* Tribe Badges (never Clan badges) */}
+                <div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[65%]">
+                  {itemTribes.map(tribeLabel => {
+                    const isHighlighted =
+                      (selectedTribe !== 'all' &&
+                        normalizeTribeKey(selectedTribe) === normalizeTribeKey(tribeLabel)) ||
+                      normalizeTribeKey(tribeLabel) === normalizeTribeKey(userTribe);
+                    return (
+                      <span
+                        key={tribeLabel}
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedTribe(tribeLabel);
+                          setCurrentPage(1);
+                        }}
+                        title={`Filtrer par la tribu ${tribeLabel}`}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                          isHighlighted
+                            ? 'bg-[#f59e0b] text-[#180d07] shadow'
+                            : 'bg-[#180d07]/85 text-[#fed7aa] border border-[#4a2412] hover:border-[#f59e0b]'
+                        }`}
+                      >
+                        🌍 Tribu {tribeLabel}
                       </span>
-                    )}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
+
                 <span className="absolute bottom-2 left-3 text-xs font-semibold text-white drop-shadow truncate pr-2">
                   « {item.frenchText} »
                 </span>
@@ -866,7 +672,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-semibold text-[#f59e0b] tracking-wider">
-                      Langue Myènè ({item.dialect || 'enenga'})
+                      Tribu {mapDialectToTribeName(item.dialect)} ({item.dialect || 'orungu'})
                     </span>
                     <span className="text-[10px] text-[#a8826d]">
                       {item.recordingsCount || 0} voix enregistrées
@@ -875,16 +681,17 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                   <div className="text-xl font-bold font-serif text-white pt-0.5">
                     {item.myeneText}
                   </div>
-                  {specificClanVariant && specificClanVariant !== item.myeneText && (
+                  {specificTribeVariant && specificTribeVariant !== item.myeneText && (
                     <div className="mt-1 px-2.5 py-1 rounded-lg bg-[#180d07] border border-amber-500/30 text-[11px] text-[#fde047]">
-                      Variante Clan {selectedClan} : <strong>{specificClanVariant}</strong>
+                      Variante Tribu {selectedTribe} : <strong>{specificTribeVariant}</strong>
                     </div>
                   )}
                   {itemNuanceContrib && (
                     <div className="mt-1 px-2.5 py-1 rounded-lg bg-[#180d07] border border-emerald-500/30 text-[11px] text-emerald-300 space-y-0.5">
                       {itemNuanceContrib.proposedFrenchMeaning && (
                         <div>
-                          💡 Autre tournure / sens : <strong>« {itemNuanceContrib.proposedFrenchMeaning} »</strong>
+                          💡 Autre tournure / sens :{' '}
+                          <strong>« {itemNuanceContrib.proposedFrenchMeaning} »</strong>
                         </div>
                       )}
                       {itemNuanceContrib.secondaryMeaning && (
@@ -909,7 +716,11 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                       className="p-2 rounded-xl bg-[#24130a] hover:bg-[#381e11] text-[#f59e0b] border border-[#4a2412] transition-colors"
                       title="Écouter la prononciation"
                     >
-                      <Volume2 className={`w-4 h-4 ${playingItemId === item.id ? 'animate-bounce' : ''}`} />
+                      <Volume2
+                        className={`w-4 h-4 ${
+                          playingItemId === item.id ? 'animate-bounce' : ''
+                        }`}
+                      />
                     </button>
 
                     {onToggleFavorite && (
@@ -921,17 +732,25 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                             ? 'bg-[#f59e0b]/20 text-[#fde047] border-[#f59e0b]/60'
                             : 'bg-[#24130a] text-[#d4af94] border-[#4a2412] hover:text-[#fde047] hover:border-[#f59e0b]/40'
                         }`}
-                        title={isFavorite ? 'Retirer de mes favoris' : 'Ajouter à mes favoris'}
+                        title={
+                          isFavorite ? 'Retirer de mes favoris' : 'Ajouter à mes favoris'
+                        }
                       >
-                        <Star className={`w-3.5 h-3.5 ${isFavorite ? 'fill-[#f59e0b] text-[#f59e0b]' : ''}`} />
-                        <span>{isFavorite ? 'Favori' : 'Favori'}</span>
+                        <Star
+                          className={`w-3.5 h-3.5 ${
+                            isFavorite ? 'fill-[#f59e0b] text-[#f59e0b]' : ''
+                          }`}
+                        />
+                        <span>Favori</span>
                       </button>
                     )}
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => onSelectExpression(originalIndex >= 0 ? originalIndex : 0)}
+                    onClick={() =>
+                      onSelectExpression(originalIndex >= 0 ? originalIndex : 0)
+                    }
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl terracotta-gradient text-white text-xs font-semibold shadow hover:opacity-95 active:scale-95 transition-transform"
                   >
                     <Mic className="w-3.5 h-3.5" />
@@ -948,7 +767,9 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between p-4 warm-card-gradient border border-[#4a2412] rounded-2xl text-xs">
           <span className="text-[#d4af94]">
-            Page <strong className="text-white">{safePage}</strong> sur <strong className="text-white">{totalPages}</strong> ({filteredItems.length} fiches)
+            Page <strong className="text-white">{safePage}</strong> sur{' '}
+            <strong className="text-white">{totalPages}</strong> ({filteredItems.length}{' '}
+            fiches)
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -979,4 +800,3 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     </div>
   );
 };
-

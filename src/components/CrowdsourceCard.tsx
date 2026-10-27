@@ -15,7 +15,8 @@ import {
   Globe2,
   CheckCircle2,
   MessageSquareQuote,
-  Compass
+  Compass,
+  HelpCircle
 } from 'lucide-react';
 import {
   QuestionnaireItem,
@@ -28,7 +29,12 @@ import { AudioRecorder } from './AudioRecorder';
 import { saveOfflineContribution } from '../services/offlineStorage';
 import { NotificationService } from '../services/notificationService';
 import { WeeklyChallengeBanner } from './WeeklyChallengeBanner';
-import { THEMATIC_CATEGORIES } from '../services/seedData';
+import {
+  THEMATIC_CATEGORIES,
+  MYENE_TRIBES,
+  mapDialectToTribeName,
+  mapTribeNameToDialectCode
+} from '../services/seedData';
 
 interface CrowdsourceCardProps {
   item: QuestionnaireItem;
@@ -51,6 +57,10 @@ interface CrowdsourceCardProps {
   onToggleChallengeFilter?: () => void;
   filteredChallengeItemsCount?: number;
   onOpenVisualGuide?: () => void;
+  selectedQuestionTribe?: string;
+  onSelectQuestionTribe?: (tribe: string) => void;
+  tribeItemCounts?: Record<string, number>;
+  totalCorpusCount?: number;
 }
 
 export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
@@ -73,12 +83,18 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
   isChallengeFilterActive = false,
   onToggleChallengeFilter,
   filteredChallengeItemsCount,
-  onOpenVisualGuide
+  onOpenVisualGuide,
+  selectedQuestionTribe = 'all',
+  onSelectQuestionTribe,
+  tribeItemCounts = {},
+  totalCorpusCount
 }) => {
   // Step 1: Orthography state
   const [spellingDecision, setSpellingDecision] = useState<'correct' | 'propose' | null>(null);
   const [proposedText, setProposedText] = useState('');
-  const [dialectVariant, setDialectVariant] = useState('enenga');
+  const [dialectVariant, setDialectVariant] = useState(() =>
+    mapTribeNameToDialectCode(currentUser?.tribe || item.dialect)
+  );
   const [contributorNotes, setContributorNotes] = useState('');
 
   // Step 2 (Before speaking Myènè): French meaning, alternative phrasing, or secondary sense
@@ -259,6 +275,68 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         />
       )}
 
+      {/* Tribe Filter Bar for Questions (Linguistic Rule: Filter by Tribe, never by Clan) */}
+      {onSelectQuestionTribe && (
+        <div className="mb-3 p-3 rounded-2xl bg-[#180d07]/90 border border-[#3d2618] space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#fde047]">
+              <Globe2 className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span>Filtrer les questions par Tribu Myènè (Orthographe & Tons) :</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const faqEl = document.getElementById('faq-contribution-myene');
+                if (faqEl) {
+                  faqEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#27150c] hover:bg-[#381e11] text-[#f39c12] border border-[#f59e0b]/40 text-[11px] font-bold transition"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span>FAQ & Règles de contribution</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              type="button"
+              onClick={() => onSelectQuestionTribe('all')}
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition border ${
+                selectedQuestionTribe === 'all'
+                  ? 'bg-[#f59e0b] text-[#180d07] border-[#fde047] shadow'
+                  : 'bg-[#24130a] text-[#d4af94] border-[#3b1d10] hover:border-[#f59e0b]/40'
+              }`}
+            >
+              🌍 Toutes les tribus ({totalCorpusCount ?? totalCount})
+            </button>
+
+            {MYENE_TRIBES.map(tName => {
+              const isSelected = selectedQuestionTribe === tName;
+              const isMine = currentUser?.tribe === tName;
+              const count = tribeItemCounts[tName] ?? 0;
+              return (
+                <button
+                  key={tName}
+                  type="button"
+                  onClick={() => onSelectQuestionTribe(tName)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold whitespace-nowrap transition border ${
+                    isSelected
+                      ? 'bg-[#c85a32] text-white border-[#f59e0b] font-bold shadow'
+                      : isMine
+                      ? 'bg-[#24130a] text-[#fde047] border-amber-500/40 hover:bg-[#341b10]'
+                      : 'bg-[#24130a] text-[#d4af94] border-[#3b1d10] hover:border-[#f59e0b]/40'
+                  }`}
+                >
+                  {isMine ? '⭐ ' : ''}
+                  {tName} ({count})
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation Pager & Visual Guide Trigger */}
       <div className="flex items-center justify-between mb-3 px-1 text-xs text-[#d4af94]">
         <div className="flex items-center gap-2 font-medium flex-wrap">
@@ -309,12 +387,12 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1c100a] via-[#1c100a]/40 to-transparent" />
 
-          {/* Badges on top of image */}
+          {/* Badges on top of image (Tribe + Theme, never Clan) */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#1c100a]/80 backdrop-blur-md text-[#fed7aa] border border-[#d97706]/40 flex items-center gap-1.5">
                 <Globe2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-                {item.dialect || 'Myènè'}
+                Tribu {mapDialectToTribeName(item.dialect)}
               </span>
               {themeInfo && (
                 <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#1c100a]/90 backdrop-blur-md text-amber-200 border border-amber-600/40 flex items-center gap-1">

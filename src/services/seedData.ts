@@ -396,14 +396,100 @@ export function cleanObsoleteSeedVillages(
   return { cleaned, removedObsoleteVillageIds };
 }
 
+export interface TribalDialectMetadata {
+  tribe: TribeName;
+  dialectCode: string;
+  geographicalZone: string;
+  historicalOrigins: string;
+  orthographicAndTonalTraits: string;
+  mottoOrSymbol: string;
+}
+
+export const TRIBAL_DIALECT_INFO: Record<TribeName, TribalDialectMetadata> = {
+  'Ôrungu': {
+    tribe: 'Ôrungu',
+    dialectCode: 'orungu',
+    geographicalZone: 'Delta maritime de l’Ogooué, île Mandji (Port-Gentil), Cap Lopez et lagune d’Ozouri (Ogooué-Maritime).',
+    historicalOrigins:
+      'Royauté maritime et fluviale fondée autour du delta de l’Ogooué et du Cap Lopez, structurée autour des souverains (Agamwinboni, Rogombé, Ndombi) et des 21 clans historiques.',
+    orthographicAndTonalTraits:
+      'Cadence maritime régulière, maintien net des groupes pré-nasalisés (mb, nd, ng, mp, nt, nk), élisions vocaliques fluides à la jonction des mots et distinction tonale marquée sur les voyelles ouvertes (è, ô).',
+    mottoOrSymbol: 'Royauté maritime du Delta, gardienne des passes et de l’estuaire de l’Ogooué.'
+  },
+  'Enenga': {
+    tribe: 'Enenga',
+    dialectCode: 'enenga',
+    geographicalZone: 'Moyen-Ogooué, région des grands lacs (Zilé, Onangué, Évaro) et rives de Lambaréné.',
+    historicalOrigins:
+      'Peuple de maîtres-piroguiers et gardiens des lacs intérieurs du Moyen-Ogooué, intimement liés aux Galoa et aux Adyumba dans l’histoire fluviale.',
+    orthographicAndTonalTraits:
+      'Inflexion tonale fluviale chantante, conservation de certaines consonnes intervocaliques et richesse lexicale particulière pour la navigation lacustre, les courants et la faune d’eau douce.',
+    mottoOrSymbol: 'Maîtres des eaux calmes des lacs et des rapides du Moyen-Ogooué.'
+  },
+  'Mpongwè': {
+    tribe: 'Mpongwè',
+    dialectCode: 'mpongwe',
+    geographicalZone: 'Rives nord et sud de l’Estuaire du Komo (Libreville, Glass, Louis, Quaben, Pointe-Denis).',
+    historicalOrigins:
+      'Première variété Omyènè documentée à l’écrit dès le XIXe siècle sur les rives de l’Estuaire du Gabon par les anciens et les linguistes.',
+    orthographicAndTonalTraits:
+      'Allongement vocalique expressif en finale de phrase, diction urbaine et côtière posée, et variantes consonantiques propres au parler de l’Estuaire.',
+    mottoOrSymbol: 'Berceau historique de l’Estuaire du Komo et mémoire diplomatique côtière.'
+  },
+  'Galoa': {
+    tribe: 'Galoa',
+    dialectCode: 'galoa',
+    geographicalZone: 'Bassin du Moyen-Ogooué, Lambaréné, Adolinanongo et grands lacs du Sud-Ogooué.',
+    historicalOrigins:
+      'Communauté riveraine majeure du Moyen-Ogooué partageant l’espace lacustre et fluvial avec les Enenga.',
+    orthographicAndTonalTraits:
+      'Proximité phonologique étroite avec l’Enenga, attaque syllabique franche et mélodie tonale caractéristique des rives du Moyen-Ogooué.',
+    mottoOrSymbol: 'Sagesse des rives de l’Ogooué et fraternité des grands lacs.'
+  },
+  'Nkomi': {
+    tribe: 'Nkomi',
+    dialectCode: 'nkomi',
+    geographicalZone: 'Lagune du Fernan-Vaz (Eliwa Nkomi), Omboué et littoral sud de l’Ogooué-Maritime.',
+    historicalOrigins:
+      'Peuple lagunaire du Fernan-Vaz organisé autour de l’institution royale du Rè-Nkomi et des sanctuaires d’Omboué.',
+    orthographicAndTonalTraits:
+      'Sonorités lagunaires distinctives, nuances sur les consonnes fricatives et labiales, et vocabulaire spécialisé des lagunes et de la forêt côtière.',
+    mottoOrSymbol: 'Gardiens de la lagune d’Eliwa Nkomi et de la tradition royale du Fernan-Vaz.'
+  },
+  'Adyumba': {
+    tribe: 'Adyumba',
+    dialectCode: 'adyumba',
+    geographicalZone: 'Lac Azingo et bassin nord des lacs du Moyen-Ogooué.',
+    historicalOrigins:
+      'Lignée historique apparentée aux Mpongwè ayant migré vers le sanctuaire naturel du lac Azingo où elle a préservé des formes anciennes de l’Omyènè.',
+    orthographicAndTonalTraits:
+      'Conservation remarquable de tournures et d’inflexions tonales archaïques faisant le pont entre le parler de l’Estuaire (Mpongwè) et celui des Lacs.',
+    mottoOrSymbol: 'Sanctuaire du lac Azingo et conservatoire de la parole ancienne.'
+  }
+};
+
+export function mapDialectToTribeName(dialect?: string): TribeName {
+  const clean = (dialect || '').trim().toLowerCase();
+  if (clean.includes('orungu') || clean.includes('ôrungu')) return 'Ôrungu';
+  if (clean.includes('mpong')) return 'Mpongwè';
+  if (clean.includes('galoa') || clean.includes('galwa')) return 'Galoa';
+  if (clean.includes('nkomi')) return 'Nkomi';
+  if (clean.includes('adyumba') || clean.includes('ajumba')) return 'Adyumba';
+  if (clean.includes('enenga')) return 'Enenga';
+  return 'Ôrungu';
+}
+
+export function mapTribeNameToDialectCode(tribe?: string): string {
+  const t = mapDialectToTribeName(tribe);
+  return TRIBAL_DIALECT_INFO[t]?.dialectCode || 'orungu';
+}
+
 export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
   {
     id: 'nkala-enenga-01',
     frenchText: 'Bonjour à tous / Salutations fraternelles',
     myeneText: 'Mbolo vana',
     dialect: 'orungu',
-    clan: 'Abulya',
-    clans: ['Abulya', 'Agalikewa', 'Agenje', 'Ajena'],
     category: 'salutations',
     contextNotes: "Formule de salutation chaleureuse adressée à plusieurs personnes réunies. 'Mbolo' est la base de salutation universelle Myènè, et 'vana' désigne l'assemblée.",
     imageUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
@@ -418,9 +504,7 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-02',
     frenchText: 'Merci beaucoup / Gratitude fraternelle',
     myeneText: 'Na vevi',
-    dialect: 'orungu',
-    clan: 'Agenje',
-    clans: ['Agenje', 'Agônjô - Awenga', 'Ajiwè', 'Ananga'],
+    dialect: 'mpongwe',
     category: 'salutations',
     contextNotes: "'Na vevi' signifie merci. 'Vevi' exprime la reconnaissance et la gratitude cordiale dans la tradition Myènè.",
     imageUrl: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?auto=format&fit=crop&w=800&q=80',
@@ -436,8 +520,6 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'La pirogue glisse sur les eaux calmes du lac',
     myeneText: 'Irende si bendi go nongo y’omvwa',
     dialect: 'enenga',
-    clan: 'Avanji',
-    clans: ['Avanji', 'Avange', 'Anômbwè', 'Anori'],
     category: 'fleuve_peche',
     contextNotes: "La sphère Myènè est intimement liée à la vie sur les lacs et le delta de l'Ogooué. 'Irende' est la pirogue monoxyle creusée dans l'okoumé, véhicule vital des pêcheurs.",
     imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80',
@@ -453,8 +535,6 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'Le crabe royal d’eau douce (Nkala)',
     myeneText: 'Nkala y’inongo',
     dialect: 'orungu',
-    clan: 'Abulya',
-    clans: ['Abulya', 'Ajena', 'Awôridèla', 'Ayamba'],
     category: 'fleuve_peche',
     contextNotes: "Nkala donne son nom au projet. Le crabe symbolise la persévérance, la vigilance et la traversée entre terre et eau dans la cosmogonie fluviale et maritime.",
     imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
@@ -469,9 +549,7 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-05',
     frenchText: 'L’hippopotame souffle au crépuscule',
     myeneText: 'Nguwu e pembi go mpyo',
-    dialect: 'enenga',
-    clan: 'Ayanji',
-    clans: ['Ayanji', 'Anuva - Azinô', 'Alèngonyangô', 'Azandi'],
+    dialect: 'galoa',
     category: 'nature_faune',
     contextNotes: "Les rives des lacs et du fleuve abritent les grands troupeaux de nguwu (hippopotames). On observe leurs souffles quand le soleil décline.",
     imageUrl: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=800&q=80',
@@ -486,11 +564,9 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-06',
     frenchText: 'Le soleil se lève sur la grande forêt',
     myeneText: 'Nkombi yi bendi go mpounga polo',
-    dialect: 'orungu',
-    clan: 'Agônjô - Awenga',
-    clans: ['Agônjô - Awenga', 'Ayege - Avèmba', 'Aziza', 'Abulya'],
+    dialect: 'nkomi',
     category: 'nature_faune',
-    contextNotes: "'Nkombi' est le soleil / le jour. 'Mpounga' désigne l'immense forêt équatoriale dense qui borde le bassin de l'Ogooué.",
+    contextNotes: "'Nkombi' est le soleil / le jour. 'Mpounga' désigne l'immense forêt équatoriale dense qui borde le bassin de l'Ogooué et la lagune du Fernan-Vaz.",
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
     difficulty: 'intermediaire',
     status: 'active',
@@ -503,9 +579,7 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-07',
     frenchText: 'Que la paix repose dans ta maison',
     myeneText: 'Oza w’omvwa go nago yâwé',
-    dialect: 'orungu',
-    clan: 'Azumè – Aka - Abèlè',
-    clans: ['Azumè – Aka - Abèlè', 'Azuwa – Akôsa - Awôridèla', 'Agenje', 'Agalikewa'],
+    dialect: 'adyumba',
     category: 'famille_communaute',
     contextNotes: "Bénédiction traditionnelle Myènè prononcée par les aînés lors des visites familiales et des cérémonies d'accueil.",
     imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80',
@@ -521,8 +595,6 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'Les enfants préparent le poisson fumé',
     myeneText: 'Wana wa tongi inyege yi dyosi',
     dialect: 'enenga',
-    clan: 'Anômbwè',
-    clans: ['Anômbwè', 'Ananga', 'Ajiwè', 'Abulya'],
     category: 'vie_quotidienne',
     contextNotes: "Le poisson fumé au bois aromatique est le pilier culinaire de la cuisine traditionnelle riveraine et côtière Myènè.",
     imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
@@ -538,8 +610,6 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'Celui qui écoute les anciens ne s’égare point sur le fleuve',
     myeneText: 'O noki w’abami a za dova go nongo',
     dialect: 'orungu',
-    clan: 'Ajena',
-    clans: ['Ajena', 'Agônjô - Awenga', 'Avanji', 'Azandi'],
     category: 'proverbes_contes',
     contextNotes: "Proverbe fondamental Myènè valorisant la transmission intergénérationnelle et la mémoire des hauts-fonds du fleuve et de l'estuaire.",
     imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
@@ -555,8 +625,6 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'Le tambour appelle à la danse rituelle',
     myeneText: 'Ngoma yi kengi vana g’ezango',
     dialect: 'orungu',
-    clan: 'Abulya',
-    clans: ['Abulya', 'Agenje', 'Ayamba', 'Awôridèla'],
     category: 'vie_quotidienne',
     contextNotes: "'Ngoma' est le tambour sacré en bois taillé. 'Ezango' est la danse communautaire célébrant les grandes joies et les rites.",
     imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
@@ -626,8 +694,8 @@ export const SYSTEM_BADGES: Badge[] = [
   },
   {
     id: 'badge-defi-orungu-clans',
-    title: 'Mémoire des Rois & Clans',
-    description: 'A complété le défi historique : 5 phrases sur les dynasties, clans et rites royaux Ôrungu/Enenga.',
+    title: 'Mémoire des Rois & Traditions',
+    description: 'A complété le défi historique : 5 phrases sur les souverains, royautés et rites traditionnels Myènè.',
     icon: '👑',
     category: 'defi'
   },
@@ -675,11 +743,11 @@ export const THEMATIC_CATEGORIES: ThemeDefinition[] = [
   },
   {
     id: 'clans_histoire_rites',
-    name: 'Histoire, Clans, Rois & Rites',
+    name: 'Histoire, Royautés, Traditions & Rites',
     shortName: 'Histoire & Rites',
     icon: '👑',
-    description: 'Souverains (Agamwinboni, Rogombé, Ndombi), ancêtre Ngwè-Myènè, clans (Abulia, Alombè, Aganga, Anaga), rites Ombwiri, danses Ivanga et Njembè, lois coutumières (ampanga).',
-    keywords: ['clan', 'roi', 'histoire', 'ancetre', 'rite', 'rituel', 'ombwiri', 'ngombi', 'ivanga', 'njembe', 'loi', 'coutume', 'agamwinboni', 'rogombe', 'ndombi', 'orungu', 'mandji', 'bulia', 'lombe', 'ganga', 'naga'],
+    description: 'Souverains (Agamwinboni, Rogombé, Ndombi), ancêtre Ngwè-Myènè, histoire des 6 tribus Myènè, rites Ombwiri, danses Ivanga et Njembè, lois coutumières (ampanga).',
+    keywords: ['roi', 'histoire', 'ancetre', 'rite', 'rituel', 'ombwiri', 'ngombi', 'ivanga', 'njembe', 'loi', 'coutume', 'agamwinboni', 'rogombe', 'ndombi', 'orungu', 'mandji'],
     color: '#B45309'
   },
   {
@@ -866,14 +934,14 @@ export const INITIAL_WEEKLY_CHALLENGES: WeeklyChallenge[] = [
   },
   {
     id: 'defi-clans-histoire',
-    title: 'Mémoire des Rois & Dynasties',
-    description: 'Vérifier ou traduire 5 phrases portant sur les clans, les rois et les rites sacrés.',
+    title: 'Mémoire des Rois & Traditions',
+    description: 'Vérifier ou traduire 5 phrases portant sur l’histoire des tribus, les rois et les rites sacrés.',
     theme: 'clans_histoire_rites',
     targetCount: 5,
     challengeType: 'contributions',
     xpReward: 300,
     badgeRewardId: 'badge-defi-orungu-clans',
-    badgeRewardName: 'Mémoire des Rois & Clans',
+    badgeRewardName: 'Mémoire des Rois & Traditions',
     badgeRewardIcon: '👑',
     startDate: '2026-10-19T00:00:00Z',
     endDate: '2026-10-26T23:59:59Z',
@@ -1552,14 +1620,13 @@ const LEGACY_UNVERIFIED_CLAN_NAMES = new Set([
  */
 export function sanitizeAndDeduplicateItems(
   existingItems: QuestionnaireItem[],
-  validClans: ClanRegistry[],
+  _validClans: ClanRegistry[],
   deletedItemIds: Set<string> = new Set()
 ): {
   cleanedItems: QuestionnaireItem[];
   updatedItemsToSave: QuestionnaireItem[];
   duplicateItemIdsToRemove: string[];
 } {
-  const validClanNamesLower = new Set(validClans.map(c => (c.name || '').trim().toLowerCase()));
   const presetMap = new Map(INITIAL_ENENGA_ITEMS.map(it => [it.id, it]));
 
   const updatedItemsToSave: QuestionnaireItem[] = [];
@@ -1572,38 +1639,20 @@ export function sanitizeAndDeduplicateItems(
     let item = { ...rawItem };
     let wasModified = false;
 
-    // Si c'est l'une des 10 fiches initiales et qu'elle contient encore un ancien clan supprimé, on la met à jour
-    const preset = presetMap.get(item.id);
-    if (preset) {
-      const currentClanLower = (item.clan || '').trim().toLowerCase();
-      const hasLegacyClan =
-        LEGACY_UNVERIFIED_CLAN_NAMES.has(currentClanLower) ||
-        (Array.isArray(item.clans) && item.clans.some(c => LEGACY_UNVERIFIED_CLAN_NAMES.has((c || '').trim().toLowerCase())));
+    // Règle linguistique stricte : les questions ne sont jamais catégorisées par clan (uniquement par Tribu/Dialecte et Thème).
+    if (item.clan !== undefined || item.clans !== undefined) {
+      delete item.clan;
+      delete item.clans;
+      wasModified = true;
+    }
 
-      if (hasLegacyClan) {
-        item = {
-          ...item,
-          dialect: preset.dialect,
-          clan: preset.clan,
-          clans: preset.clans
-        };
-        wasModified = true;
-      }
-    } else {
-      // Pour toute autre fiche, retire uniquement les références aux anciens clans de test supprimés
-      if (item.clan && LEGACY_UNVERIFIED_CLAN_NAMES.has(item.clan.trim().toLowerCase()) && !validClanNamesLower.has(item.clan.trim().toLowerCase())) {
-        item = { ...item, clan: undefined };
-        wasModified = true;
-      }
-      if (Array.isArray(item.clans)) {
-        const filteredClans = item.clans.filter(
-          c => !LEGACY_UNVERIFIED_CLAN_NAMES.has((c || '').trim().toLowerCase()) || validClanNamesLower.has((c || '').trim().toLowerCase())
-        );
-        if (filteredClans.length !== item.clans.length) {
-          item = { ...item, clans: filteredClans };
-          wasModified = true;
-        }
-      }
+    const preset = presetMap.get(item.id);
+    if (preset && item.dialect !== preset.dialect) {
+      item = {
+        ...item,
+        dialect: preset.dialect
+      };
+      wasModified = true;
     }
 
     const contentKey = `${(item.dialect || '').trim().toLowerCase()}::${(item.myeneText || '').trim().toLowerCase()}::${(item.frenchText || '').trim().toLowerCase()}`;
