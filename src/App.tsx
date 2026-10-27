@@ -29,7 +29,10 @@ import {
   replayPendingOfflineAdminMutations,
   getOfflineAdminMutations,
   checkIsAdminEmail,
-  isRealtimeDatabaseEmpty
+  isRealtimeDatabaseEmpty,
+  smartFetchCollection,
+  smartGetUserProfile,
+  subscribeToCatalogSignals
 } from './firebase';
 import { 
   QuestionnaireItem, 
@@ -55,7 +58,11 @@ import {
   INITIAL_WEEKLY_CHALLENGES,
   THEMATIC_CATEGORIES,
   getLevelForXp,
-  deduplicateParsedCsvItems
+  deduplicateParsedCsvItems,
+  deduplicateParsedCsvClans,
+  deduplicateParsedCsvVillages,
+  mergeOfficialClans,
+  cleanObsoleteSeedVillages
 } from './services/seedData';
 import { 
   getPendingOfflineContributions, 
@@ -632,21 +639,19 @@ export default function App() {
     });
     const deletedClansSet = getDeletedIds('clans');
     getCachedClansLocally().then(cached => {
-      const filtered = (cached || []).filter(c => !deletedClansSet.has(c.id));
-      if (filtered.length > 0) {
-        setClans(filtered);
+      const { merged } = mergeOfficialClans(cached || [], deletedClansSet);
+      if (merged.length > 0) {
+        setClans(merged);
+        cacheClansLocally(merged);
       } else if (!isDatabaseMarkedSeeded()) {
         cacheClansLocally(INITIAL_CLANS.filter(c => !deletedClansSet.has(c.id)));
       }
     });
     const deletedVillagesSet = getDeletedIds('villages');
     getCachedVillagesLocally().then(cached => {
-      const filtered = (cached || []).filter(v => !deletedVillagesSet.has(v.id));
-      if (filtered.length > 0) {
-        setVillages(filtered);
-      } else if (!isDatabaseMarkedSeeded()) {
-        cacheVillagesLocally(INITIAL_VILLAGES.filter(v => !deletedVillagesSet.has(v.id)));
-      }
+      const { cleaned } = cleanObsoleteSeedVillages(cached || [], deletedVillagesSet);
+      setVillages(cleaned);
+      cacheVillagesLocally(cleaned);
     });
 
     return () => {
@@ -752,11 +757,10 @@ export default function App() {
           } catch {}
         }
 
-        // Query Firestore to see if user profile already exists with full filiation!
+        // Query User Profile (RTDB first = 0 Firestore reads, then local cache, then 1 Firestore doc fallback)
         try {
-          const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
-          if (userDoc.exists()) {
-            const cloudProfile = userDoc.data() as UserProfile;
+          const cloudProfile = await smartGetUserProfile<UserProfile>(fbUser.uid);
+          if (cloudProfile) {
             const { merged, needsCloudPush } = mergeLocalAndCloudUserProfile(
               cachedProfile || currentUserRef.current,
               cloudProfile,
@@ -915,354 +919,174 @@ export default function App() {
     };
   }, []);
 
-  // Firestore Real-time subscriptions & Seed Status - Active ONLY when currentUser AND Firebase Auth are ready
+  // SPARK 50,000 READS QUOTA-SAFE SYNCHRONIZATION ENGINE
+  // Replaces 9 unbounded collection-wide `onSnapshot` listeners (which could consume 10,000+ reads per session)
+  // with:
+  // 1. RTDB-first & Local IndexedDB Cache-first loading (0 Firestore document reads!)
+  // 2. Incremental Delta Queries (`where('updatedAt', '>', lastSyncTs)`) when Firestore is queried
+  // 3. A single lightweight version signal listener (`metrics/catalog_versions`)
   useEffect(() => {
     if (!currentUser || !isFirebaseAuthReady || !auth.currentUser) return;
+    let isMounted = true;
 
-    // 0. Subscribe to Seed Status Marker (/metrics/seed_status)
-    const unsubscribeSeed = onSnapshot(
-      doc(db, 'metrics', 'seed_status'),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const status = snapshot.data() as SeedStatus;
-          setSeedStatus(status);
-          if (status?.isSeeded) {
-            markDatabaseSeeded();
-          }
-        } else if (!snapshot.metadata.fromCache) {
-          setSeedStatus(null);
-        }
-      },
-      (err) => {
-        console.warn('Notice listening to seed_status:', err);
-      }
-    );
+    const syncCollectionByName = async (colName: string) => {
+      if (!isMounted) return;
 
-    // 1. Subscribe to Items collection
-    const itemsPath = 'items';
-    const unsubscribeItems = onSnapshot(
-      collection(db, itemsPath),
-      (snapshot) => {
+      if (colName === 'items') {
         const deletedSet = getDeletedIds('items');
-        if (!snapshot.empty) {
+        const cached = (await getCachedItemsLocally()) || [];
+        const { items: loaded } = await smartFetchCollection<QuestionnaireItem>('items', cached);
+        if (!isMounted) return;
+        const filtered = loaded.filter(i => !deletedSet.has(i.id));
+        if (filtered.length > 0) {
           markDatabaseSeeded();
-          const loaded: QuestionnaireItem[] = [];
-          snapshot.forEach(docSnap => {
-            if (!deletedSet.has(docSnap.id)) {
-              loaded.push({ id: docSnap.id, ...docSnap.data() } as QuestionnaireItem);
-            }
-          });
-          setItems(loaded);
-          cacheItemsLocally(loaded);
-        } else {
-          if (isDatabaseMarkedSeeded()) {
-            setItems([]);
-            cacheItemsLocally([]);
-          } else {
-            getCachedItemsLocally().then(cached => {
-              const filteredCache = (cached || []).filter(i => !deletedSet.has(i.id));
-              if (filteredCache.length > 0 && deletedSet.size === 0) {
-                setItems(filteredCache);
-              } else {
-                const remainingInitial = INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id));
-                setItems(remainingInitial);
-                cacheItemsLocally(remainingInitial);
-              }
-            });
-          }
+          setItems(filtered);
+          cacheItemsLocally(filtered);
+        } else if (!isDatabaseMarkedSeeded() && deletedSet.size === 0) {
+          const fallback = INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id));
+          setItems(fallback);
+          cacheItemsLocally(fallback);
         }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, itemsPath);
-        const deletedSet = getDeletedIds('items');
-        getCachedItemsLocally().then(cached => {
-          const filteredCache = (cached || []).filter(i => !deletedSet.has(i.id));
-          if (filteredCache.length > 0) setItems(filteredCache);
-          else if (!isDatabaseMarkedSeeded()) {
-            setItems(INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id)));
-          }
-        });
-      }
-    );
-
-    // 2. Subscribe to Contributions collection (preserving any unsynced offlineQueued items!)
-    const contribPath = 'contributions';
-    const unsubscribeContrib = onSnapshot(
-      collection(db, contribPath),
-      (snapshot) => {
+      } else if (colName === 'contributions') {
         const deletedSet = getDeletedIds('contributions');
-        const loaded: Contribution[] = [];
-        snapshot.forEach(docSnap => {
-          if (!deletedSet.has(docSnap.id)) {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as Contribution);
-          }
-        });
-        if (!snapshot.empty || isDatabaseMarkedSeeded() || deletedSet.size > 0) {
+        const cached = getCachedContributionsLocally() || [];
+        const isStaff = currentUserRef.current?.role === 'admin' || currentUserRef.current?.role === 'validator';
+        const { items: loaded } = await smartFetchCollection<Contribution>(
+          'contributions',
+          cached,
+          { maxFirestoreFallbackDocs: isStaff ? 500 : 150 }
+        );
+        if (!isMounted) return;
+        const filtered = loaded.filter(c => !deletedSet.has(c.id));
+        if (filtered.length > 0 || isDatabaseMarkedSeeded() || deletedSet.size > 0) {
           setContributions(prev => {
-            const loadedIds = new Set(loaded.map(c => c.id));
+            const loadedIds = new Set(filtered.map(c => c.id));
             const stillQueuedOffline = prev.filter(c => c.offlineQueued && !loadedIds.has(c.id) && !deletedSet.has(c.id));
-            const merged = [...stillQueuedOffline, ...loaded];
-            cacheContributionsLocally(merged);
-            return merged;
-          });
-        } else {
-          const sampleContribs: Contribution[] = [
-            {
-              id: 'c-01',
-              itemId: 'nkala-enenga-01',
-              userId: 'user-mboumba',
-              userDisplayName: 'Mboumba E.',
-              frenchText: 'Bonjour à tous / Salutations fraternelles',
-              originalMyeneText: 'Mbolo vana',
-              isSpellingCorrect: true,
-              proposedSpelling: 'Mbolo vana',
-              status: 'approved' as ContributionStatus,
-              createdAt: '2026-01-11T12:00:00Z'
-            },
-            {
-              id: 'c-02',
-              itemId: 'nkala-enenga-03',
-              userId: 'user-kombila',
-              userDisplayName: 'Kombila R.',
-              frenchText: 'La pirogue glisse sur les eaux calmes du lac',
-              originalMyeneText: 'Irende si bendi go nongo y’omvwa',
-              isSpellingCorrect: false,
-              proposedSpelling: 'Irende si bendi go nongo y’omvua',
-              isFrenchMeaningExact: false,
-              frenchMeaningType: 'autre_tournure' as const,
-              proposedFrenchMeaning: 'L’embarcation avance paisiblement sur le lac tranquille',
-              secondaryMeaning: 'Sens figuré : le voyage se déroule en paix sous la bénédiction des ancêtres',
-              dialectVariant: 'galwa',
-              comment: 'Prononciation avec "u" doux vers Lambaréné.',
-              status: 'pending' as ContributionStatus,
-              createdAt: '2026-01-13T15:30:00Z'
-            }
-          ].filter(c => !deletedSet.has(c.id));
-          setContributions(prev => {
-            const sampleIds = new Set(sampleContribs.map(c => c.id));
-            const stillQueuedOffline = prev.filter(c => c.offlineQueued && !sampleIds.has(c.id) && !deletedSet.has(c.id));
-            const merged = [...stillQueuedOffline, ...sampleContribs];
+            const merged = [...stillQueuedOffline, ...filtered];
             cacheContributionsLocally(merged);
             return merged;
           });
         }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, contribPath);
-      }
-    );
-
-    // 3. Subscribe to Metrics
-    const metricsPath = 'metrics/summary';
-    const unsubscribeMetrics = onSnapshot(
-      doc(db, 'metrics', 'summary'),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setSystemMetrics(snapshot.data() as SystemMetric);
-        }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, metricsPath);
-      }
-    );
-
-    // 4. Subscribe to Weekly Challenges
-    const challengesPath = 'challenges';
-    const unsubscribeChallenges = onSnapshot(
-      collection(db, challengesPath),
-      (snapshot) => {
+      } else if (colName === 'challenges') {
         const deletedSet = getDeletedIds('challenges');
-        if (!snapshot.empty) {
-          const loaded: WeeklyChallenge[] = [];
-          snapshot.forEach(docSnap => {
-            if (!deletedSet.has(docSnap.id)) {
-              loaded.push({ id: docSnap.id, ...docSnap.data() } as WeeklyChallenge);
-            }
-          });
-          setChallenges(loaded);
-          cacheChallengesLocally(loaded);
-        } else if (isDatabaseMarkedSeeded()) {
-          setChallenges([]);
-          cacheChallengesLocally([]);
-        } else {
-          const fallback = INITIAL_WEEKLY_CHALLENGES.filter(c => !deletedSet.has(c.id));
-          setChallenges(fallback);
-          cacheChallengesLocally(fallback);
+        const cached = getCachedChallengesLocally() || [];
+        const { items: loaded } = await smartFetchCollection<WeeklyChallenge>('challenges', cached);
+        if (!isMounted) return;
+        const filtered = loaded.filter(c => !deletedSet.has(c.id));
+        if (filtered.length > 0) {
+          setChallenges(filtered);
+          cacheChallengesLocally(filtered);
         }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, challengesPath);
-      }
-    );
-
-    // 5. Subscribe to Dynamic Themes
-    const themesPath = 'themes';
-    const unsubscribeThemes = onSnapshot(
-      collection(db, themesPath),
-      (snapshot) => {
+      } else if (colName === 'themes') {
         const deletedSet = getDeletedIds('themes');
-        if (!snapshot.empty) {
-          const loaded: ThemeDefinition[] = [];
-          snapshot.forEach(docSnap => {
-            if (!deletedSet.has(docSnap.id)) {
-              loaded.push({ id: docSnap.id, ...docSnap.data() } as ThemeDefinition);
-            }
-          });
-          setThemes(loaded);
-          cacheThemesLocally(loaded);
-        } else if (isDatabaseMarkedSeeded()) {
-          setThemes([]);
-          cacheThemesLocally([]);
-        } else {
-          const fallback = THEMATIC_CATEGORIES.filter(t => !deletedSet.has(t.id));
-          setThemes(fallback);
-          cacheThemesLocally(fallback);
+        const cached = getCachedThemesLocally() || [];
+        const { items: loaded } = await smartFetchCollection<ThemeDefinition>('themes', cached);
+        if (!isMounted) return;
+        const filtered = loaded.filter(t => !deletedSet.has(t.id));
+        if (filtered.length > 0) {
+          setThemes(filtered);
+          cacheThemesLocally(filtered);
         }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, themesPath);
-      }
-    );
-
-    // 6. Subscribe to Dynamic Badges
-    const badgesPath = 'badges';
-    const unsubscribeBadges = onSnapshot(
-      collection(db, badgesPath),
-      (snapshot) => {
+      } else if (colName === 'badges') {
         const deletedSet = getDeletedIds('badges');
-        if (!snapshot.empty) {
-          const loaded: Badge[] = [];
-          snapshot.forEach(docSnap => {
-            if (!deletedSet.has(docSnap.id)) {
-              loaded.push({ id: docSnap.id, ...docSnap.data() } as Badge);
-            }
-          });
-          setBadges(loaded);
-          cacheBadgesLocally(loaded);
-        } else if (isDatabaseMarkedSeeded()) {
-          setBadges([]);
-          cacheBadgesLocally([]);
-        } else {
-          const fallback = SYSTEM_BADGES.filter(b => !deletedSet.has(b.id));
-          setBadges(fallback);
-          cacheBadgesLocally(fallback);
+        const cached = getCachedBadgesLocally() || [];
+        const { items: loaded } = await smartFetchCollection<Badge>('badges', cached);
+        if (!isMounted) return;
+        const filtered = loaded.filter(b => !deletedSet.has(b.id));
+        if (filtered.length > 0) {
+          setBadges(filtered);
+          cacheBadgesLocally(filtered);
         }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, badgesPath);
-      }
-    );
-
-    // 7. Subscribe to Users collection
-    const usersPath = 'users';
-    const unsubscribeUsers = onSnapshot(
-      collection(db, usersPath),
-      (snapshot) => {
-        if (!snapshot.empty) {
-          const loaded: UserProfile[] = [];
-          snapshot.forEach(docSnap => {
-            loaded.push({ id: docSnap.id, ...docSnap.data() } as UserProfile);
-          });
+      } else if (colName === 'users') {
+        const cached = getCachedUsersLocally() || [];
+        const isStaff = currentUserRef.current?.role === 'admin' || currentUserRef.current?.role === 'validator';
+        const { items: loaded } = await smartFetchCollection<UserProfile>(
+          'users',
+          cached,
+          { maxFirestoreFallbackDocs: isStaff ? 500 : 100 }
+        );
+        if (!isMounted) return;
+        if (loaded.length > 0) {
           setUsersList(loaded);
           cacheUsersLocally(loaded);
         }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, usersPath);
-      }
-    );
-
-    // 8. Subscribe to Clans collection
-    const clansPath = 'clans';
-    const unsubscribeClans = onSnapshot(
-      collection(db, clansPath),
-      (snapshot) => {
+      } else if (colName === 'clans') {
         const deletedSet = getDeletedIds('clans');
-        if (!snapshot.empty) {
-          const loaded: ClanRegistry[] = [];
-          snapshot.forEach(docSnap => {
-            if (!deletedSet.has(docSnap.id)) {
-              loaded.push({ id: docSnap.id, ...docSnap.data() } as ClanRegistry);
-            }
-          });
-          setClans(loaded);
-          cacheClansLocally(loaded);
-        } else if (isDatabaseMarkedSeeded()) {
-          setClans([]);
-          cacheClansLocally([]);
-        } else {
-          getCachedClansLocally().then(cached => {
-            const filtered = (cached || []).filter(c => !deletedSet.has(c.id));
-            if (filtered.length > 0 && deletedSet.size === 0) setClans(filtered);
-            else {
-              const rem = INITIAL_CLANS.filter(c => !deletedSet.has(c.id));
-              setClans(rem);
-              cacheClansLocally(rem);
-            }
-          });
+        const cached = (await getCachedClansLocally()) || [];
+        const { items: loaded } = await smartFetchCollection<ClanRegistry>('clans', cached);
+        if (!isMounted) return;
+        const { merged, newlyAddedOrUpdated, removedObsoleteIds } = mergeOfficialClans(loaded, deletedSet);
+        if (merged.length > 0) {
+          setClans(merged);
+          cacheClansLocally(merged);
+        }
+        // Automatically propagate new official Ôrungu clans to Firebase if missing from existing database
+        if (newlyAddedOrUpdated.length > 0) {
+          dualBatchSaveRecords(
+            'clans',
+            newlyAddedOrUpdated.map(cl => ({ id: cl.id, data: cl }))
+          ).then(refreshPendingMutationsCount).catch(() => {});
+        }
+        if (removedObsoleteIds.length > 0) {
+          for (const obsId of removedObsoleteIds) {
+            dualDeleteRecord('clans', obsId).catch(() => {});
+          }
+        }
+      } else if (colName === 'villages') {
+        const deletedSet = getDeletedIds('villages');
+        const cached = (await getCachedVillagesLocally()) || [];
+        const { items: loaded } = await smartFetchCollection<VillageRegistry>('villages', cached);
+        if (!isMounted) return;
+        const { cleaned, removedObsoleteVillageIds } = cleanObsoleteSeedVillages(loaded, deletedSet);
+        setVillages(cleaned);
+        cacheVillagesLocally(cleaned);
+        if (removedObsoleteVillageIds.length > 0) {
+          for (const obsVid of removedObsoleteVillageIds) {
+            dualDeleteRecord('villages', obsVid).catch(() => {});
+          }
+        }
+      }
+    };
+
+    // Initial smart sync (uses RTDB & Local Cache first -> 0 Firestore document reads!)
+    const collectionsToHydrate = [
+      'items',
+      'clans',
+      'villages',
+      'challenges',
+      'themes',
+      'badges',
+      'contributions',
+      'users'
+    ];
+    collectionsToHydrate.forEach(col => {
+      syncCollectionByName(col).catch(() => {});
+    });
+
+    // Listen to lightweight catalog version signals (0 Firestore reads via RTDB + 1-doc Firestore fallback)
+    const unsubscribeSignals = subscribeToCatalogSignals({
+      onSeedStatus: (status) => {
+        if (!isMounted) return;
+        if (status) {
+          setSeedStatus(status as SeedStatus);
+          if (status.isSeeded) {
+            markDatabaseSeeded();
+          }
         }
       },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, clansPath);
-        const deletedSet = getDeletedIds('clans');
-        getCachedClansLocally().then(cached => {
-          const filtered = (cached || []).filter(c => !deletedSet.has(c.id));
-          if (filtered.length > 0) setClans(filtered);
-        });
-      }
-    );
-
-    // 9. Subscribe to Villages collection
-    const villagesPath = 'villages';
-    const unsubscribeVillages = onSnapshot(
-      collection(db, villagesPath),
-      (snapshot) => {
-        const deletedSet = getDeletedIds('villages');
-        if (!snapshot.empty) {
-          const loaded: VillageRegistry[] = [];
-          snapshot.forEach(docSnap => {
-            if (!deletedSet.has(docSnap.id)) {
-              loaded.push({ id: docSnap.id, ...docSnap.data() } as VillageRegistry);
-            }
-          });
-          setVillages(loaded);
-          cacheVillagesLocally(loaded);
-        } else if (isDatabaseMarkedSeeded()) {
-          setVillages([]);
-          cacheVillagesLocally([]);
-        } else {
-          getCachedVillagesLocally().then(cached => {
-            const filtered = (cached || []).filter(v => !deletedSet.has(v.id));
-            if (filtered.length > 0 && deletedSet.size === 0) setVillages(filtered);
-            else {
-              const rem = INITIAL_VILLAGES.filter(v => !deletedSet.has(v.id));
-              setVillages(rem);
-              cacheVillagesLocally(rem);
-            }
-          });
-        }
+      onSystemMetrics: (metrics) => {
+        if (!isMounted || !metrics) return;
+        setSystemMetrics(metrics as SystemMetric);
       },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, villagesPath);
-        const deletedSet = getDeletedIds('villages');
-        getCachedVillagesLocally().then(cached => {
-          const filtered = (cached || []).filter(v => !deletedSet.has(v.id));
-          if (filtered.length > 0) setVillages(filtered);
-        });
+      onCollectionVersionChanged: (changedCollection) => {
+        if (!isMounted) return;
+        syncCollectionByName(changedCollection).catch(() => {});
       }
-    );
+    });
 
     return () => {
-      unsubscribeSeed();
-      unsubscribeItems();
-      unsubscribeContrib();
-      unsubscribeMetrics();
-      unsubscribeChallenges();
-      unsubscribeThemes();
-      unsubscribeBadges();
-      unsubscribeUsers();
-      unsubscribeClans();
-      unsubscribeVillages();
+      isMounted = false;
+      unsubscribeSignals();
     };
   }, [currentUser?.id, isFirebaseAuthReady]);
 
@@ -1476,19 +1300,16 @@ export default function App() {
         return next;
       });
 
-      // Increment item contribution/recording counters locally & in Firebase
+      // Increment item contribution/recording counters locally in IndexedDB without mutating the 10,000-item catalog on Firestore on every contribution
       if (payload.itemId) {
         setItems(prev => {
           const next = prev.map(it => {
             if (it.id !== payload.itemId) return it;
-            const updatedItem: QuestionnaireItem = {
+            return {
               ...it,
               contributionsCount: (it.contributionsCount || 0) + 1,
-              recordingsCount: (it.recordingsCount || 0) + (finalAudioUrl ? 1 : 0),
-              updatedAt: new Date().toISOString()
+              recordingsCount: (it.recordingsCount || 0) + (finalAudioUrl ? 1 : 0)
             };
-            dualSaveRecord('items', updatedItem.id, updatedItem).then(refreshPendingMutationsCount).catch(() => {});
-            return updatedItem;
           });
           cacheItemsLocally(next);
           return next;
@@ -1687,8 +1508,8 @@ export default function App() {
     const fullVillage: VillageRegistry = {
       id,
       name: villageData.name || 'Nouveau Village',
-      clan: villageData.clan || clans[0]?.name || 'Avandji',
-      tribe: villageData.tribe || 'Enenga',
+      clan: villageData.clan || 'Non rattaché',
+      tribe: villageData.tribe || 'Ôrungu',
       region: villageData.region,
       createdAt: villageData.createdAt || new Date().toISOString()
     };
@@ -1716,6 +1537,56 @@ export default function App() {
       return next;
     });
     await dualDeleteRecord('villages', villageId);
+    refreshPendingMutationsCount();
+  };
+
+  const handleBatchImportClans = async (
+    incomingClans: ClanRegistry[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => {
+    if (!incomingClans || incomingClans.length === 0) return;
+    const { newClansToImport } = deduplicateParsedCsvClans(incomingClans, clans);
+    if (newClansToImport.length === 0) {
+      onProgress?.(0, 0);
+      return;
+    }
+    for (const cl of newClansToImport) {
+      unmarkIdAsDeleted('clans', cl.id);
+    }
+    const updatedClansList = [...clans, ...newClansToImport];
+    setClans(updatedClansList);
+    cacheClansLocally(updatedClansList);
+
+    await dualBatchSaveRecords(
+      'clans',
+      newClansToImport.map(cl => ({ id: cl.id, data: cl })),
+      onProgress
+    );
+    refreshPendingMutationsCount();
+  };
+
+  const handleBatchImportVillages = async (
+    incomingVillages: VillageRegistry[],
+    onProgress?: (savedCount: number, totalCount: number) => void
+  ) => {
+    if (!incomingVillages || incomingVillages.length === 0) return;
+    const { newVillagesToImport } = deduplicateParsedCsvVillages(incomingVillages, villages);
+    if (newVillagesToImport.length === 0) {
+      onProgress?.(0, 0);
+      return;
+    }
+    for (const vi of newVillagesToImport) {
+      unmarkIdAsDeleted('villages', vi.id);
+    }
+    const updatedVillagesList = [...villages, ...newVillagesToImport];
+    setVillages(updatedVillagesList);
+    cacheVillagesLocally(updatedVillagesList);
+
+    await dualBatchSaveRecords(
+      'villages',
+      newVillagesToImport.map(vi => ({ id: vi.id, data: vi })),
+      onProgress
+    );
     refreshPendingMutationsCount();
   };
 
@@ -1962,16 +1833,13 @@ export default function App() {
         refreshPendingMutationsCount();
       }
 
-      // 1. FIRST: Check if the user already exists in Firestore to NEVER wipe out their data or console edits!
+      // 1. FIRST: Check if the user already exists (RTDB first = 0 Firestore reads, then local cache, then 1 Firestore doc fallback)
       let existingProfile: UserProfile | null = null;
       if (typeof navigator === 'undefined' || navigator.onLine) {
         try {
-          const snap = await getDoc(doc(db, 'users', profileData.id));
-          if (snap.exists()) {
-            existingProfile = snap.data() as UserProfile;
-          }
+          existingProfile = await smartGetUserProfile<UserProfile>(profileData.id);
         } catch (err) {
-          console.warn('Notice checking existing user in Firestore:', err);
+          console.warn('Notice checking existing user profile:', err);
         }
       }
 
@@ -2853,6 +2721,8 @@ export default function App() {
             onDeleteClan={handleDeleteClan}
             onSaveVillage={handleSaveVillage}
             onDeleteVillage={handleDeleteVillage}
+            onBatchImportClans={handleBatchImportClans}
+            onBatchImportVillages={handleBatchImportVillages}
             onUpdateUserLevelAndBadges={handleUpdateUserLevelAndBadges}
             onUpdateUserAccountStatus={handleUpdateUserAccountStatus}
             onUpdateUserRole={handleUpdateUserRole}

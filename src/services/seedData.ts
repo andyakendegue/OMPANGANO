@@ -20,147 +20,298 @@ export const MYENE_TRIBES: TribeName[] = [
 ];
 
 export const INITIAL_CLANS: ClanRegistry[] = [
+  // --- LISTE OFFICIELLE DES 21 CLANS ÔRUNGU ---
+  // (Les clans des autres tribus ne sont pas pré-remplis par défaut et s'ajoutent via l'Administration ou l'Import CSV)
   {
-    id: 'clan-agwesono',
-    name: 'Agwesono',
-    tribe: 'Mpongwè',
-    description: 'Clan historique Mpongwè de la rive gauche de l’Estuaire (Pointe-Denis).',
-    historicalMeaning: 'Lignée princière et gardienne des traités coutumiers de l’Estuaire, associée au roi Denis Rapontchombo (Ntoko) et à la diplomatie maritime Mpongwè.',
-    geographicalOrigins: 'Rive gauche de l’Estuaire du Komo, Pointe-Denis (Ndzomoé) et littoral atlantique de la province de l’Estuaire.',
-    mottoOrSymbol: 'Hospitalité royale, maîtrise des passes maritimes et sagesse diplomatique.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-avandji',
-    name: 'Avandji',
-    tribe: 'Enenga',
-    description: 'Grand clan Enenga des rives de l’Ogooué et du Lac Zilé (Lambaréné).',
-    historicalMeaning: 'Piliers historiques de la confédération Enenga, maîtres des eaux fluviales et détenteurs de la mémoire des anciens comptoirs et passages de l’Ogooué.',
-    geographicalOrigins: 'Île et rives de Lambaréné, Lac Zilé et bief moyen du fleuve Ogooué (province du Moyen-Ogooué).',
-    mottoOrSymbol: 'Gardiens du fleuve et de l’alliance fraternelle des lacs.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-agulamba',
-    name: 'Agulamba',
-    tribe: 'Galoa',
-    description: 'Clan Galoa établi dans le Bas-Ogooué et autour d’Adolinanongo.',
-    historicalMeaning: 'Clan d’orateurs, de chefs coutumiers et de grands navigateurs Galoa ayant joué un rôle central dans les échanges entre Lambaréné et les grands lacs du Sud.',
-    geographicalOrigins: 'Adolinanongo, Bas-Ogooué, rives du Lac Azingo et chenaux fluviaux du Moyen-Ogooué.',
-    mottoOrSymbol: 'Éloquence du verbe (Ompangano) et maîtrise des courants.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-asiga',
-    name: 'Asiga',
-    tribe: 'Nkomi',
-    description: 'Clan Nkomi de la lagune du Fernan Vaz (Eliwa Nkomi).',
-    historicalMeaning: 'Lignée ancestrale Nkomi liée à l’autorité spirituelle et coutumière autour du Rengo (souverain Nkomi) et à la préservation des lois sacrées de la lagune.',
-    geographicalOrigins: 'Lagune du Fernan Vaz (Eliwa Nkomi), Sainte-Anne du Fernan Vaz et littoral sud de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Gardien des sanctuaires lagunaires et de la parole des anciens.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-azowa',
-    name: 'Azowa',
-    tribe: 'Adyumba',
-    description: 'Clan Adyumba gardien des traditions du Lac Azingo.',
-    historicalMeaning: 'Clan historique issu de la migration ancienne depuis l’Estuaire vers les lacs intérieurs, dépositaire des chants rituels et des savoirs halieutiques Adyumba.',
-    geographicalOrigins: 'Bassin du Lac Azingo et rives septentrionales du Moyen-Ogooué.',
-    mottoOrSymbol: 'Fidélité aux ancêtres et paix des eaux profondes.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-ndiwa',
-    name: 'Ndiwa',
-    tribe: 'Mpongwè',
-    description: 'Clan Mpongwè de Glass et Baraka (Estuaire du Komo).',
-    historicalMeaning: 'Illustre lignée Mpongwè des rives droites de l’Estuaire, reconnue pour ses lettrés, ses commerçants historiques et la conservation des proverbes classiques.',
-    geographicalOrigins: 'Quartiers historiques de Glass, Baraka et Oloumi sur la rive nord de l’Estuaire du Komo (Libreville).',
-    mottoOrSymbol: 'Mémoire lettrée et rayonnement culturel Mpongwè.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-imvona',
-    name: 'Imvona',
-    tribe: 'Enenga',
-    description: 'Clan Enenga établi vers Ashouka et le Moyen-Ogooué.',
-    historicalMeaning: 'Lignée de maîtres-piroguiers et de sages coutumiers Enenga veillant sur la confluence des voies d’eau et les alliances inter-claniques.',
-    geographicalOrigins: 'Ashouka, bief fluvial de l’Ogooué et lacs environnants de Lambaréné (Moyen-Ogooué).',
-    mottoOrSymbol: 'Vigilance sur les berges et solidarité du lignage.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-agwempolo',
-    name: 'Agwempolo',
-    tribe: 'Nkomi',
-    description: 'Clan royal et lignager Nkomi d’Omboué et du Fernan Vaz.',
-    historicalMeaning: 'Signifie littéralement « la grande lignée / le grand clan » ; lignée noble Nkomi détentrice des prérogatives royales et des conseils d’aînés d’Omboué.',
-    geographicalOrigins: 'Omboué, rives orientales de la lagune du Fernan Vaz et terres du département d’Étimboué (Ogooué-Maritime).',
-    mottoOrSymbol: 'Noblesse coutumière et justice du conseil des anciens.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-alamba',
-    name: 'Alamba',
+    id: 'clan-orungu-abulya',
+    name: 'Abulya',
     tribe: 'Ôrungu',
-    description: 'Clan Ôrungu du delta de l’Ogooué et d’Ozouri.',
-    historicalMeaning: 'Clan historique du royaume Ôrungu, gardien des embouchures du delta de l’Ogooué et des rites maritimes transmis depuis les souverains Agamwinboni.',
-    geographicalOrigins: 'Delta maritime de l’Ogooué, Ozouri, Cap Lopez et chenaux côtiers de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Souveraineté du delta et maîtrise de l’océan (Ntchuwa).',
+    description: 'Clan officiel Ôrungu de l’Île Mandji (Port-Gentil) et du delta maritime de l’Ogooué.',
+    historicalMeaning: 'Grande lignée souveraine et historique du royaume Ôrungu (liée aux traditions royales du Re-Nkombe et des grands dignitaires côtiers), dépositaire de l’autorité coutumière sur le littoral Mandji.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez, Sangatanga et delta maritime de l’Ogooué (province de l’Ogooué-Maritime).',
+    mottoOrSymbol: 'Noblesse du littoral Mandji et gardien de la mémoire royale Ôrungu.',
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
-    id: 'clan-ogula',
-    name: 'Ogula',
-    tribe: 'Galoa',
-    description: 'Clan Galoa des lacs et rives du Moyen-Ogooué.',
-    historicalMeaning: 'Clan ancien de la sphère Galoa dont le nom évoque la force tranquille des eaux et la continuité généalogique à travers les villages lacustres.',
-    geographicalOrigins: 'Lacs du Sud de Lambaréné (Onangué, Ezanga) et rives du Moyen-Ogooué.',
-    mottoOrSymbol: 'Harmonie entre la grande forêt et les lacs.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-ininga',
-    name: 'Ininga',
-    tribe: 'Enenga',
-    description: 'Clan Enenga des Lacs du Nord et du Lac Onangué.',
-    historicalMeaning: 'Lignée fondatrice intimement liée à l’ethnonyme même des Enenga, gardienne des sanctuaires insulaires et de la tradition orale pure du Lac Onangué.',
-    geographicalOrigins: 'Lac Onangué, Lacs du Nord et îles fluviales de la région de Lambaréné (Moyen-Ogooué).',
-    mottoOrSymbol: 'Pureté de la langue des îles et mémoire des origines.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-amwiri',
-    name: 'Amwiri',
+    id: 'clan-orungu-agalikewa',
+    name: 'Agalikewa',
     tribe: 'Ôrungu',
-    description: 'Clan Ôrungu de l’Île Mandji (Port-Gentil) et du littoral.',
-    historicalMeaning: 'Clan rattaché à la tradition spirituelle des génies tutélaires des eaux (Ombwiri / Imbwiri) et aux lignées fondatrices de l’Île Mandji.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez et baies côtières de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Sagesse sacrée des eaux et protection du terroir Mandji.',
+    description: 'Clan officiel Ôrungu des rives du delta et des chenaux maritimes.',
+    historicalMeaning: 'Lignée ancienne Ôrungu garante des alliances claniques, de la jurisprudence coutumière et de la transmission du parler Ôrungu authentique.',
+    geographicalOrigins: 'Delta de l’Ogooué, Île Mandji (Port-Gentil) et villages côtiers de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Fidélité aux lois ancestrales et solidarité des rives.',
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
-    id: 'clan-ilongo-n-adjena',
-    name: "Ilongo n'Adjena",
+    id: 'clan-orungu-agenje',
+    name: 'Agenje',
     tribe: 'Ôrungu',
-    description: 'Clan traditionnel Ôrungu de l’Ogooué-Maritime (Alumbè & Mandji).',
-    historicalMeaning: 'Grande lignée Ôrungu dont la tradition orale préserve la généalogie des anciens chefs de terre et des alliances claniques entre fleuve et océan.',
-    geographicalOrigins: 'Alumbè, Île Mandji (Port-Gentil) et bas-delta de l’Ogooué (province de l’Ogooué-Maritime).',
-    mottoOrSymbol: 'Transmission intergénérationnelle et honneur du sang.',
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'clan-agenje',
-    name: 'Agenjé',
-    tribe: 'Ôrungu',
-    description: 'Clan lignager Ôrungu du delta maritime et des lagunes.',
-    historicalMeaning: 'Clan côtier Ôrungu réputé pour sa connaissance des marées, de la navigation hauturière et des chants rituels d’accueil et de bénédiction.',
-    geographicalOrigins: 'Delta maritime de l’Ogooué, lagunes côtières et Île Mandji (Ogooué-Maritime).',
+    description: 'Clan officiel Ôrungu du delta maritime de l’Ogooué, d’Ozouri et des lagunes côtières.',
+    historicalMeaning: 'Clan côtier Ôrungu réputé pour sa maîtrise des marées, de la navigation entre fleuve et océan et des chants rituels d’accueil et de bénédiction.',
+    geographicalOrigins: 'Delta maritime de l’Ogooué, Ozouri, lagunes côtières et Île Mandji (Ogooué-Maritime).',
     mottoOrSymbol: 'Fraternité des rives et mémoire des ancêtres navigateurs.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-agonjo-awenga',
+    name: 'Agônjô - Awenga',
+    tribe: 'Ôrungu',
+    description: 'Clan double allié officiel Ôrungu (Agônjô - Awenga) du terroir maritime et fluvial.',
+    historicalMeaning: 'Lignée confédérée unissant les branches Agônjô et Awenga dans une alliance historique de sang et d’entraide coutumière au sein de la nation Ôrungu.',
+    geographicalOrigins: 'Cap Lopez, Île Mandji (Port-Gentil) et embouchures du Bas-Ogooué (Ogooué-Maritime).',
+    mottoOrSymbol: 'Union indéfectible des lignées jumelles et force du conseil.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-ajena',
+    name: 'Ajena',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu d’Alumbè, de l’Île Mandji et du bas-delta de l’Ogooué.',
+    historicalMeaning: 'Illustre lignée Ôrungu dont la tradition orale préserve la généalogie des anciens chefs de terre et des alliances entre les bras du fleuve et l’océan Atlantique.',
+    geographicalOrigins: 'Alumbè, Île Mandji (Port-Gentil) et bas-delta de l’Ogooué (province de l’Ogooué-Maritime).',
+    mottoOrSymbol: 'Transmission intergénérationnelle et honneur du lignage.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-ajiwe',
+    name: 'Ajiwè',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu des terres côtières et insulaires de l’Ogooué-Maritime.',
+    historicalMeaning: 'Lignée traditionnelle Ôrungu dépositaire des savoirs rituels, des récits de fondation des campements côtiers et de la sagesse des anciens.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), baies de l’Ogooué-Maritime et chenaux du delta.',
+    mottoOrSymbol: 'Constance de l’esprit et respect de la parole donnée.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-alengonyango',
+    name: 'Alèngonyangô',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu du littoral et des rivières de l’Ogooué-Maritime.',
+    historicalMeaning: 'Lignée matrilinéaire et patrilinéaire prestigieuse de l’espace Ôrungu, gardienne des chants de lignage et des généalogies familiales (Ompangano).',
+    geographicalOrigins: 'Littoral de Port-Gentil (Île Mandji), delta de l’Ogooué et rives maritimes.',
+    mottoOrSymbol: 'Rayonnement de la maison maternelle et mémoire des anciens.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-ananga',
+    name: 'Ananga',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu des rives maritimes et fluviales du Bas-Ogooué.',
+    historicalMeaning: 'Clan d’observateurs et de guides coutumiers dont le nom évoque la clairvoyance, la veille sur le terroir et la rectitude morale.',
+    geographicalOrigins: 'Delta de l’Ogooué, Île Mandji et côtes de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Clairvoyance des anciens et vigilance sur la communauté.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-anombwe',
+    name: 'Anômbwè',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu du delta de l’Ogooué et de l’Île Mandji.',
+    historicalMeaning: 'Lignée historique Ôrungu attachée à la préservation des coutumes ancestrales, des alliances matrimoniales et du patrimoine linguistique côtier.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez et villages du delta de l’Ogooué.',
+    mottoOrSymbol: 'Enracinement coutumier et concorde entre les familles.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-anori',
+    name: 'Anori',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu des passes maritimes et du delta de l’Ogooué.',
+    historicalMeaning: 'Lignée traditionnelle Ôrungu reconnue pour la maîtrise des eaux côtières, le sens de l’hospitalité et la conservation des proverbes anciens.',
+    geographicalOrigins: 'Littoral de l’Ogooué-Maritime, Île Mandji et embouchures de l’Ogooué.',
+    mottoOrSymbol: 'Sagesse tranquille et droiture du verbe.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-anuva-azino',
+    name: 'Anuva - Azinô',
+    tribe: 'Ôrungu',
+    description: 'Clan double officiel Ôrungu (Anuva - Azinô) de l’Ogooué-Maritime.',
+    historicalMeaning: 'Lignée jumelée scellant l’alliance historique des maisons Anuva et Azinô dans la garde des traditions orales et des terres claniques Ôrungu.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), rives du delta de l’Ogooué et littoral atlantique.',
+    mottoOrSymbol: 'Fraternité des deux maisons et pérennité du sang.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-avange',
+    name: 'Avange',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu du delta et de la côte de l’Ogooué-Maritime.',
+    historicalMeaning: 'Clan historique Ôrungu porteur d’une riche tradition d’éloquence lors des grands palabres coutumiers et des cérémonies de filiation.',
+    geographicalOrigins: 'Port-Gentil (Île Mandji), Cap Lopez et bras maritimes de l’Ogooué.',
+    mottoOrSymbol: 'Maîtrise de la parole juste et équilibre communautaire.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-avanji',
+    name: 'Avanji',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu apparenté aux grandes lignées fluvio-maritimes Myènè.',
+    historicalMeaning: 'Branche Ôrungu de la grande famille clanique Avanji, témoignant des liens séculaires entre le delta maritime de l’Ogooué et les rives fluviales intérieures.',
+    geographicalOrigins: 'Delta maritime de l’Ogooué, Alumbè, Ozouri et Île Mandji (Ogooué-Maritime).',
+    mottoOrSymbol: 'Pont vivant entre le fleuve Ogooué et l’océan.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-aworidela',
+    name: 'Awôridèla',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu des terres ancestrales de l’Ogooué-Maritime.',
+    historicalMeaning: 'Lignée majeure du monde Ôrungu, gardienne des récits généalogiques anciens et des alliances coutumières sur le littoral.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), Sangatanga, Cap Lopez et delta de l’Ogooué.',
+    mottoOrSymbol: 'Dignité ancestrale et sauvegarde des racines.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-ayamba',
+    name: 'Ayamba',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu du littoral et des chenaux du Bas-Ogooué.',
+    historicalMeaning: 'Clan traditionnel Ôrungu dépositaire des savoirs liés à la mer, à la pêche côtière et aux rites de protection de la communauté.',
+    geographicalOrigins: 'Delta de l’Ogooué, Île Mandji et côtes de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Harmonie avec l’océan et générosité du terroir.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-ayanji',
+    name: 'Ayanji',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu établi dans le bassin maritime de l’Ogooué.',
+    historicalMeaning: 'Lignée ancienne Ôrungu reconnue pour la fidélité à la mémoire des aïeux et la transmission rigoureuse des alliances claniques.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), bas-delta de l’Ogooué et lagunes côtières.',
+    mottoOrSymbol: 'Honneur des anciens et cohésion de la lignée.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-ayege-avemba',
+    name: 'Ayege - Avèmba',
+    tribe: 'Ôrungu',
+    description: 'Clan double officiel Ôrungu (Ayege - Avèmba) de l’Ogooué-Maritime.',
+    historicalMeaning: 'Alliance clanique historique réunissant les lignées Ayege et Avèmba autour d’un même héritage coutumier et spirituel dans le delta de l’Ogooué.',
+    geographicalOrigins: 'Cap Lopez, Île Mandji (Port-Gentil) et villages côtiers de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Double racine, même parole et solidarité éternelle.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-azandi',
+    name: 'Azandi',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu des rives maritimes et estuariennes de l’Ogooué.',
+    historicalMeaning: 'Lignée traditionnelle Ôrungu garante de la paix sociale, des médiations coutumières et de la pureté du vocabulaire cérémoniel.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), delta de l’Ogooué et littoral de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Justice coutumière et paix des foyers.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-aziza',
+    name: 'Aziza',
+    tribe: 'Ôrungu',
+    description: 'Clan officiel Ôrungu du littoral atlantique et du delta de l’Ogooué.',
+    historicalMeaning: 'Clan historique Ôrungu célébré pour la préservation des arts oraux, des proverbes marins et de l’histoire des fondateurs de la côte.',
+    geographicalOrigins: 'Port-Gentil (Île Mandji), Cap Lopez et delta maritime de l’Ogooué.',
+    mottoOrSymbol: 'Mémoire vive et noblesse du cœur.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-azume-aka-abele',
+    name: 'Azumè – Aka - Abèlè',
+    tribe: 'Ôrungu',
+    description: 'Confédération clanique triple officielle Ôrungu (Azumè – Aka - Abèlè).',
+    historicalMeaning: 'Grande triade lignagère Ôrungu unissant les branches Azumè, Aka et Abèlè par un pacte coutumier ancestral de fraternité et de partage territorial.',
+    geographicalOrigins: 'Delta maritime de l’Ogooué, Île Mandji (Port-Gentil) et terroirs côtiers de l’Ogooué-Maritime.',
+    mottoOrSymbol: 'Trois foyers unis dans une seule flamme ancestrale.',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'clan-orungu-azuwa-akosa-aworidela',
+    name: 'Azuwa – Akôsa - Awôridèla',
+    tribe: 'Ôrungu',
+    description: 'Confédération clanique triple officielle Ôrungu (Azuwa – Akôsa - Awôridèla).',
+    historicalMeaning: 'Illustre alliance tripartite Ôrungu rassemblant les maisons Azuwa, Akôsa et Awôridèla, gardiennes des généalogies royales et des sanctuaires côtiers.',
+    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez, Sangatanga et delta de l’Ogooué (Ogooué-Maritime).',
+    mottoOrSymbol: 'Force du trépied ancestral et unité sacrée du clan.',
     createdAt: '2026-01-01T00:00:00Z'
   }
 ];
+
+// IDs of obsolete pre-seeded clans (unverified non-Ôrungu seed entries & old Ôrungu placeholders) to purge automatically
+const OBSOLETE_SEED_CLAN_IDS = new Set([
+  'clan-alamba',
+  'clan-amwiri',
+  'clan-ilongo-n-adjena',
+  'clan-agenje',
+  'clan-agwesono',
+  'clan-ndiwa',
+  'clan-avandji',
+  'clan-imvona',
+  'clan-ininga',
+  'clan-agulamba',
+  'clan-ogula',
+  'clan-asiga',
+  'clan-agwempolo',
+  'clan-azowa'
+]);
+
+const OBSOLETE_ORUNGU_SEED_NAMES = new Set([
+  'alamba',
+  'amwiri',
+  "ilongo n'adjena",
+  'agenjé'
+]);
+
+/**
+ * Merges the 21 official Ôrungu INITIAL_CLANS into an existing cached or cloud-loaded clan list
+ * while purging old unverified pre-seeded clans and preserving any custom/CSV-imported clans.
+ */
+export function mergeOfficialClans(
+  existingClans: ClanRegistry[],
+  deletedIds: Set<string> = new Set()
+): { merged: ClanRegistry[]; newlyAddedOrUpdated: ClanRegistry[]; removedObsoleteIds: string[] } {
+  const removedObsoleteIds: string[] = [];
+  const cleanedExisting = existingClans.filter(c => {
+    if (deletedIds.has(c.id)) return false;
+    const normName = (c.name || '').trim().toLowerCase();
+    if (OBSOLETE_SEED_CLAN_IDS.has(c.id) || (c.tribe === 'Ôrungu' && OBSOLETE_ORUNGU_SEED_NAMES.has(normName))) {
+      removedObsoleteIds.push(c.id);
+      return false;
+    }
+    return true;
+  });
+
+  const byNormName = new Map<string, ClanRegistry>();
+  for (const cl of cleanedExisting) {
+    const key = `${(cl.tribe || '').trim().toLowerCase()}::${(cl.name || '').trim().toLowerCase()}`;
+    byNormName.set(key, cl);
+  }
+
+  const newlyAddedOrUpdated: ClanRegistry[] = [];
+  for (const official of INITIAL_CLANS) {
+    if (deletedIds.has(official.id)) continue;
+    const key = `${official.tribe.trim().toLowerCase()}::${official.name.trim().toLowerCase()}`;
+    const existing = byNormName.get(key);
+    if (!existing) {
+      byNormName.set(key, official);
+      newlyAddedOrUpdated.push(official);
+    } else if (!existing.historicalMeaning || !existing.geographicalOrigins) {
+      const enriched: ClanRegistry = {
+        ...official,
+        ...existing,
+        historicalMeaning: existing.historicalMeaning || official.historicalMeaning,
+        geographicalOrigins: existing.geographicalOrigins || official.geographicalOrigins,
+        mottoOrSymbol: existing.mottoOrSymbol || official.mottoOrSymbol,
+        description: existing.description || official.description
+      };
+      byNormName.set(key, enriched);
+      newlyAddedOrUpdated.push(enriched);
+    }
+  }
+
+  return {
+    merged: Array.from(byNormName.values()),
+    newlyAddedOrUpdated,
+    removedObsoleteIds
+  };
+}
 
 export function getClanHistoricalAndGeoInfo(
   clan: Partial<ClanRegistry> & { name: string; tribe?: string },
@@ -206,29 +357,53 @@ export function getClanHistoricalAndGeoInfo(
   };
 }
 
-export const INITIAL_VILLAGES: VillageRegistry[] = [
-  { id: 'vil-lambarene', name: 'Lambaréné (Moyen-Ogooué)', clan: 'Avandji', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-lac-zile', name: 'Lac Zilé', clan: 'Avandji', tribe: 'Enenga', region: 'Lacs du Sud', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-lac-onangue', name: 'Lac Onangué', clan: 'Ininga', tribe: 'Enenga', region: 'Lacs du Nord', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-ashouka', name: 'Ashouka', clan: 'Imvona', tribe: 'Enenga', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-adolinanongo', name: 'Adolinanongo', clan: 'Agulamba', tribe: 'Galoa', region: 'Bas-Ogooué', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-sainte-anne', name: 'Sainte-Anne du Fernan Vaz', clan: 'Asiga', tribe: 'Nkomi', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-omboue', name: 'Omboué', clan: 'Agwempolo', tribe: 'Nkomi', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-pointe-denis', name: 'Pointe-Denis', clan: 'Agwesono', tribe: 'Mpongwè', region: 'Estuaire', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-glass', name: 'Glass (Baraka)', clan: 'Ndiwa', tribe: 'Mpongwè', region: 'Estuaire', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-ozouri', name: 'Ozouri', clan: 'Alamba', tribe: 'Ôrungu', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-mandji', name: 'Île Mandji (Port-Gentil)', clan: 'Amwiri', tribe: 'Ôrungu', region: 'Ogooué-Maritime', createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'vil-lac-azingo', name: 'Lac Azingo', clan: 'Azowa', tribe: 'Adyumba', region: 'Moyen-Ogooué', createdAt: '2026-01-01T00:00:00Z' }
-];
+// Aucun village pré-rempli par défaut tant que l'orthographe exacte n'est pas validée par l'Administration / CSV
+export const INITIAL_VILLAGES: VillageRegistry[] = [];
+
+const OBSOLETE_SEED_VILLAGE_IDS = new Set([
+  'vil-lambarene',
+  'vil-lac-zile',
+  'vil-lac-onangue',
+  'vil-ashouka',
+  'vil-adolinanongo',
+  'vil-sainte-anne',
+  'vil-omboue',
+  'vil-pointe-denis',
+  'vil-glass',
+  'vil-ozouri',
+  'vil-mandji',
+  'vil-alumbe',
+  'vil-cap-lopez',
+  'vil-lac-azingo'
+]);
+
+/**
+ * Purges old pre-seeded villages from cache/cloud while keeping all villages manually created or imported via CSV.
+ */
+export function cleanObsoleteSeedVillages(
+  existingVillages: VillageRegistry[],
+  deletedIds: Set<string> = new Set()
+): { cleaned: VillageRegistry[]; removedObsoleteVillageIds: string[] } {
+  const removedObsoleteVillageIds: string[] = [];
+  const cleaned = existingVillages.filter(v => {
+    if (deletedIds.has(v.id)) return false;
+    if (OBSOLETE_SEED_VILLAGE_IDS.has(v.id)) {
+      removedObsoleteVillageIds.push(v.id);
+      return false;
+    }
+    return true;
+  });
+  return { cleaned, removedObsoleteVillageIds };
+}
 
 export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
   {
     id: 'nkala-enenga-01',
     frenchText: 'Bonjour à tous / Salutations fraternelles',
     myeneText: 'Mbolo vana',
-    dialect: 'enenga',
-    clan: 'Avandji',
-    clans: ['Avandji', 'Agwesono', 'Alamba', "Ilongo n'Adjena"],
+    dialect: 'orungu',
+    clan: 'Abulya',
+    clans: ['Abulya', 'Agalikewa', 'Agenje', 'Ajena'],
     category: 'salutations',
     contextNotes: "Formule de salutation chaleureuse adressée à plusieurs personnes réunies. 'Mbolo' est la base de salutation universelle Myènè, et 'vana' désigne l'assemblée.",
     imageUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
@@ -243,9 +418,9 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-02',
     frenchText: 'Merci beaucoup / Gratitude fraternelle',
     myeneText: 'Na vevi',
-    dialect: 'enenga',
-    clan: 'Ininga',
-    clans: ['Ininga', 'Ndiwa', 'Agenjé', 'Asiga'],
+    dialect: 'orungu',
+    clan: 'Agenje',
+    clans: ['Agenje', 'Agônjô - Awenga', 'Ajiwè', 'Ananga'],
     category: 'salutations',
     contextNotes: "'Na vevi' signifie merci. 'Vevi' exprime la reconnaissance et la gratitude cordiale dans la tradition Myènè.",
     imageUrl: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?auto=format&fit=crop&w=800&q=80',
@@ -261,10 +436,10 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'La pirogue glisse sur les eaux calmes du lac',
     myeneText: 'Irende si bendi go nongo y’omvwa',
     dialect: 'enenga',
-    clan: 'Ininga',
-    clans: ['Ininga', 'Avandji', 'Azowa', 'Ogula'],
+    clan: 'Avanji',
+    clans: ['Avanji', 'Avange', 'Anômbwè', 'Anori'],
     category: 'fleuve_peche',
-    contextNotes: "La tribu Enenga est intimement liée à la vie sur les lacs d'Onangué et de Lambaréné. 'Irende' est la pirogue monoxyle creusée dans l'okoumé, véhicule vital des pêcheurs.",
+    contextNotes: "La sphère Myènè est intimement liée à la vie sur les lacs et le delta de l'Ogooué. 'Irende' est la pirogue monoxyle creusée dans l'okoumé, véhicule vital des pêcheurs.",
     imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80',
     difficulty: 'intermediaire',
     status: 'active',
@@ -277,11 +452,11 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-04',
     frenchText: 'Le crabe royal d’eau douce (Nkala)',
     myeneText: 'Nkala y’inongo',
-    dialect: 'enenga',
-    clan: 'Avandji',
-    clans: ['Avandji', 'Amwiri', 'Agwempolo', "Ilongo n'Adjena"],
+    dialect: 'orungu',
+    clan: 'Abulya',
+    clans: ['Abulya', 'Ajena', 'Awôridèla', 'Ayamba'],
     category: 'fleuve_peche',
-    contextNotes: "Nkala donne son nom au projet. Le crabe symbolise la persévérance, la vigilance et la traversée entre terre et eau dans la cosmogonie fluviale.",
+    contextNotes: "Nkala donne son nom au projet. Le crabe symbolise la persévérance, la vigilance et la traversée entre terre et eau dans la cosmogonie fluviale et maritime.",
     imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
     difficulty: 'debutant',
     status: 'active',
@@ -295,10 +470,10 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'L’hippopotame souffle au crépuscule',
     myeneText: 'Nguwu e pembi go mpyo',
     dialect: 'enenga',
-    clan: 'Imvona',
-    clans: ['Imvona', 'Agulamba', 'Asiga', 'Azowa'],
+    clan: 'Ayanji',
+    clans: ['Ayanji', 'Anuva - Azinô', 'Alèngonyangô', 'Azandi'],
     category: 'nature_faune',
-    contextNotes: "Les rives des lacs autour de Lambaréné abritent les grands troupeaux de nguwu (hippopotames). On observe leurs souffles quand le soleil décline.",
+    contextNotes: "Les rives des lacs et du fleuve abritent les grands troupeaux de nguwu (hippopotames). On observe leurs souffles quand le soleil décline.",
     imageUrl: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=800&q=80',
     difficulty: 'avance',
     status: 'active',
@@ -311,9 +486,9 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-06',
     frenchText: 'Le soleil se lève sur la grande forêt',
     myeneText: 'Nkombi yi bendi go mpounga polo',
-    dialect: 'enenga',
-    clan: 'Agulamba',
-    clans: ['Agulamba', 'Imvona', 'Ogula', 'Alamba'],
+    dialect: 'orungu',
+    clan: 'Agônjô - Awenga',
+    clans: ['Agônjô - Awenga', 'Ayege - Avèmba', 'Aziza', 'Abulya'],
     category: 'nature_faune',
     contextNotes: "'Nkombi' est le soleil / le jour. 'Mpounga' désigne l'immense forêt équatoriale dense qui borde le bassin de l'Ogooué.",
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
@@ -328,9 +503,9 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-07',
     frenchText: 'Que la paix repose dans ta maison',
     myeneText: 'Oza w’omvwa go nago yâwé',
-    dialect: 'enenga',
-    clan: 'Agwesono',
-    clans: ['Agwesono', 'Ndiwa', 'Avandji', 'Agenjé'],
+    dialect: 'orungu',
+    clan: 'Azumè – Aka - Abèlè',
+    clans: ['Azumè – Aka - Abèlè', 'Azuwa – Akôsa - Awôridèla', 'Agenje', 'Agalikewa'],
     category: 'famille_communaute',
     contextNotes: "Bénédiction traditionnelle Myènè prononcée par les aînés lors des visites familiales et des cérémonies d'accueil.",
     imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80',
@@ -346,10 +521,10 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     frenchText: 'Les enfants préparent le poisson fumé',
     myeneText: 'Wana wa tongi inyege yi dyosi',
     dialect: 'enenga',
-    clan: 'Asiga',
-    clans: ['Asiga', 'Agwempolo', 'Ininga', 'Amwiri'],
+    clan: 'Anômbwè',
+    clans: ['Anômbwè', 'Ananga', 'Ajiwè', 'Abulya'],
     category: 'vie_quotidienne',
-    contextNotes: "Le poisson d'eau douce (carpes, capitaines, mâchoirons) fumé au bois aromatique est le pilier culinaire de la cuisine traditionnelle de la tribu Enenga.",
+    contextNotes: "Le poisson fumé au bois aromatique est le pilier culinaire de la cuisine traditionnelle riveraine et côtière Myènè.",
     imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
     difficulty: 'intermediaire',
     status: 'active',
@@ -362,11 +537,11 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-09',
     frenchText: 'Celui qui écoute les anciens ne s’égare point sur le fleuve',
     myeneText: 'O noki w’abami a za dova go nongo',
-    dialect: 'enenga',
-    clan: "Ilongo n'Adjena",
-    clans: ["Ilongo n'Adjena", 'Alamba', 'Avandji', 'Agulamba'],
+    dialect: 'orungu',
+    clan: 'Ajena',
+    clans: ['Ajena', 'Agônjô - Awenga', 'Avanji', 'Azandi'],
     category: 'proverbes_contes',
-    contextNotes: "Proverbe fondamental de la tribu Enenga valorisant la transmission intergénérationnelle et la mémoire des hauts-fonds du fleuve.",
+    contextNotes: "Proverbe fondamental Myènè valorisant la transmission intergénérationnelle et la mémoire des hauts-fonds du fleuve et de l'estuaire.",
     imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
     difficulty: 'avance',
     status: 'active',
@@ -379,9 +554,9 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     id: 'nkala-enenga-10',
     frenchText: 'Le tambour appelle à la danse rituelle',
     myeneText: 'Ngoma yi kengi vana g’ezango',
-    dialect: 'enenga',
-    clan: 'Amwiri',
-    clans: ['Amwiri', 'Agenjé', 'Imvona', 'Ndiwa'],
+    dialect: 'orungu',
+    clan: 'Abulya',
+    clans: ['Abulya', 'Agenje', 'Ayamba', 'Awôridèla'],
     category: 'vie_quotidienne',
     contextNotes: "'Ngoma' est le tambour sacré en bois taillé. 'Ezango' est la danse communautaire célébrant les grandes joies et les rites.",
     imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
@@ -1076,4 +1251,269 @@ ORU_0001,M1_Oralite_Salutations,"Mbolo ! A wé ré vôvô ?","[m̩bólò ‖ à 
 ORU_0002,M1_Oralite_Salutations,"Owaro-mfélo, ré nyènyo ngôri.","[òwáɾò m̩félò | ɾé ɲɛ́ɲò ŋ̩ɡɔ́ɾì]","Dans la pirogue d'autrui, ne prends pas tes aises.","Proverbe de navigation",8.2
 ORU_0003,M2_Quotidien_Alternances_Sandhi,"Omwanto é kol'otondo wami go nkala.","[òmwántò é kólòtóndò wàmì ɣò ŋ̩kálà]","La femme achète mon panier au village.","Élision & Sandhi",8.2
 ORU_0004,M5_Histoire_Clans_Rites_Orungu,"Agamwinboni wa bonga ambwaro mpolo go nugo go ntchuwa.","[àɣámwímbónì wá bóŋɡà àmbwàɾò m̩pólò ɣò núɣò ɣò n̩tʃúwà]","Le souverain Agamwinboni prit les grandes pirogues en haute mer.","Navigation & Dynastie",8.2`;
+}
+
+// =========================================================================
+// IMPORTATION CSV & DÉDUPLICATION POUR LES CLANS ET LES VILLAGES
+// =========================================================================
+
+function normalizeTribeName(raw: string, fallback: string = 'Enenga'): string {
+  const s = (raw || '').trim().toLowerCase();
+  if (!s) return fallback;
+  if (s.includes('orungu') || s.includes('ôrungu')) return 'Ôrungu';
+  if (s.includes('mpongw')) return 'Mpongwè';
+  if (s.includes('enenga') || s.includes('eninga')) return 'Enenga';
+  if (s.includes('galoa') || s.includes('galwa')) return 'Galoa';
+  if (s.includes('nkomi')) return 'Nkomi';
+  if (s.includes('adyumba') || s.includes('ajumba')) return 'Adyumba';
+  // Match exact from MYENE_TRIBES or return trimmed string
+  const found = MYENE_TRIBES.find(t => t.toLowerCase() === s);
+  return found || raw.trim();
+}
+
+function makeClanDeterministicId(tribe: string, name: string): string {
+  const slugTribe = (tribe || 'myene')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  const slugName = (name || 'clan')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  return `clan-${slugTribe}-${slugName}`;
+}
+
+function makeVillageDeterministicId(tribe: string, name: string): string {
+  const slugTribe = (tribe || 'myene')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  const slugName = (name || 'village')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  return `vil-${slugTribe}-${slugName}`;
+}
+
+/**
+ * Parse un fichier CSV ou texte tabulé de Clans.
+ * Colonnes supportées (avec ou sans en-tête) :
+ * Nom_Clan (ou Clan / Name), Tribu (ou Tribe), Description, Signification_Historique, Origines_Geographiques, Devise_Symbole
+ */
+export function parseClansFromCsv(csvText: string, defaultTribe: string = 'Enenga'): ClanRegistry[] {
+  const rows = parseCSVRows(csvText);
+  if (rows.length === 0) return [];
+
+  const firstRowLower = rows[0].map(c => c.toLowerCase().trim());
+  const hasHeader = firstRowLower.some(h =>
+    h.includes('clan') ||
+    h.includes('nom') ||
+    h.includes('name') ||
+    h.includes('tribu') ||
+    h.includes('tribe') ||
+    h.includes('signification') ||
+    h.includes('origine')
+  );
+
+  let idxName = 0;
+  let idxTribe = 1;
+  let idxDesc = 2;
+  let idxHist = 3;
+  let idxGeo = 4;
+  let idxMotto = 5;
+
+  if (hasHeader) {
+    idxName = firstRowLower.findIndex(h => h.includes('nom') || h === 'clan' || h.includes('clan_name') || h === 'name');
+    idxTribe = firstRowLower.findIndex(h => h.includes('tribu') || h.includes('tribe') || h.includes('dialect'));
+    idxDesc = firstRowLower.findIndex(h => h.includes('desc'));
+    idxHist = firstRowLower.findIndex(h => h.includes('hist') || h.includes('signification') || h.includes('sens'));
+    idxGeo = firstRowLower.findIndex(h => h.includes('geo') || h.includes('origine') || h.includes('terroir') || h.includes('region'));
+    idxMotto = firstRowLower.findIndex(h => h.includes('devise') || h.includes('symbole') || h.includes('motto'));
+    if (idxName === -1) idxName = 0;
+  }
+
+  const startIdx = hasHeader ? 1 : 0;
+  const results: ClanRegistry[] = [];
+  const seenKeys = new Set<string>();
+
+  for (let i = startIdx; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length === 0) continue;
+
+    // Support 1-column list of clan names
+    const rawName = (row[idxName] || row[0] || '').replace(/^[•\-*]\s*/, '').trim();
+    if (!rawName) continue;
+
+    const rawTribe = idxTribe >= 0 && row[idxTribe] ? row[idxTribe] : defaultTribe;
+    const tribe = normalizeTribeName(rawTribe, defaultTribe);
+    const key = `${tribe.toLowerCase()}::${rawName.toLowerCase()}`;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+
+    const description = idxDesc >= 0 && row[idxDesc] ? row[idxDesc].trim() : undefined;
+    const historicalMeaning = idxHist >= 0 && row[idxHist] ? row[idxHist].trim() : undefined;
+    const geographicalOrigins = idxGeo >= 0 && row[idxGeo] ? row[idxGeo].trim() : undefined;
+    const mottoOrSymbol = idxMotto >= 0 && row[idxMotto] ? row[idxMotto].trim() : undefined;
+
+    results.push({
+      id: makeClanDeterministicId(tribe, rawName),
+      name: rawName,
+      tribe,
+      description,
+      historicalMeaning,
+      geographicalOrigins,
+      mottoOrSymbol,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  return results;
+}
+
+export function deduplicateParsedCsvClans(
+  parsedClans: ClanRegistry[],
+  existingClans: ClanRegistry[]
+): { newClansToImport: ClanRegistry[]; skippedCount: number } {
+  const existingKeys = new Set<string>();
+  const existingIds = new Set<string>();
+
+  for (const cl of existingClans) {
+    existingIds.add(cl.id.toLowerCase());
+    existingKeys.add(`${(cl.tribe || '').trim().toLowerCase()}::${(cl.name || '').trim().toLowerCase()}`);
+  }
+
+  const newClansToImport: ClanRegistry[] = [];
+  let skippedCount = 0;
+
+  for (const item of parsedClans) {
+    const key = `${(item.tribe || '').trim().toLowerCase()}::${(item.name || '').trim().toLowerCase()}`;
+    if (existingIds.has(item.id.toLowerCase()) || existingKeys.has(key)) {
+      skippedCount++;
+      continue;
+    }
+    existingIds.add(item.id.toLowerCase());
+    existingKeys.add(key);
+    newClansToImport.push(item);
+  }
+
+  return { newClansToImport, skippedCount };
+}
+
+export function generateClansCsvTemplate(): string {
+  return `Nom_Clan,Tribu,Description,Signification_Historique,Origines_Geographiques,Devise_Symbole
+"NomDuClan1","Enenga","Clan traditionnel Enenga","Lignée historique des rives de l'Ogooué","Lambaréné et Moyen-Ogooué","Gardiens du fleuve"
+"NomDuClan2","Galoa","Clan traditionnel Galoa","Orateurs et gardiens des traditions lacustres","Lacs du Sud et Moyen-Ogooué","Maîtrise du verbe"
+"NomDuClan3","Mpongwè","Clan traditionnel Mpongwè","Lignée côtière de l'Estuaire","Estuaire du Komo","Hospitalité et sagesse"`;
+}
+
+/**
+ * Parse un fichier CSV ou texte tabulé de Villages.
+ * Colonnes supportées (avec ou sans en-tête) :
+ * Nom_Village (ou Village / Name), Tribu (ou Tribe), Clan_Rattachement (ou Clan, optionnel), Region_Province (ou Region)
+ */
+export function parseVillagesFromCsv(csvText: string, defaultTribe: string = 'Ôrungu'): VillageRegistry[] {
+  const rows = parseCSVRows(csvText);
+  if (rows.length === 0) return [];
+
+  const firstRowLower = rows[0].map(c => c.toLowerCase().trim());
+  const hasHeader = firstRowLower.some(h =>
+    h.includes('village') ||
+    h.includes('nom') ||
+    h.includes('name') ||
+    h.includes('tribu') ||
+    h.includes('tribe') ||
+    h.includes('clan') ||
+    h.includes('region') ||
+    h.includes('province')
+  );
+
+  let idxName = 0;
+  let idxTribe = 1;
+  let idxClan = 2;
+  let idxRegion = 3;
+
+  if (hasHeader) {
+    idxName = firstRowLower.findIndex(h => h.includes('village') || h.includes('nom') || h === 'name');
+    idxTribe = firstRowLower.findIndex(h => h.includes('tribu') || h.includes('tribe'));
+    idxClan = firstRowLower.findIndex(h => h.includes('clan'));
+    idxRegion = firstRowLower.findIndex(h => h.includes('region') || h.includes('province') || h.includes('zone') || h.includes('localisation'));
+    if (idxName === -1) idxName = 0;
+  }
+
+  const startIdx = hasHeader ? 1 : 0;
+  const results: VillageRegistry[] = [];
+  const seenKeys = new Set<string>();
+
+  for (let i = startIdx; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length === 0) continue;
+
+    const rawName = (row[idxName] || row[0] || '').replace(/^[•\-*]\s*/, '').trim();
+    if (!rawName) continue;
+
+    const rawTribe = idxTribe >= 0 && row[idxTribe] ? row[idxTribe] : defaultTribe;
+    const tribe = normalizeTribeName(rawTribe, defaultTribe);
+
+    const key = `${tribe.toLowerCase()}::${rawName.toLowerCase()}`;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+
+    const rawClan = idxClan >= 0 && row[idxClan] ? row[idxClan].trim() : '';
+    const rawRegion = idxRegion >= 0 && row[idxRegion] ? row[idxRegion].trim() : '';
+
+    results.push({
+      id: makeVillageDeterministicId(tribe, rawName),
+      name: rawName,
+      tribe,
+      clan: rawClan || 'Non rattaché',
+      region: rawRegion || undefined,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  return results;
+}
+
+export function deduplicateParsedCsvVillages(
+  parsedVillages: VillageRegistry[],
+  existingVillages: VillageRegistry[]
+): { newVillagesToImport: VillageRegistry[]; skippedCount: number } {
+  const existingKeys = new Set<string>();
+  const existingIds = new Set<string>();
+
+  for (const v of existingVillages) {
+    existingIds.add(v.id.toLowerCase());
+    existingKeys.add(`${(v.tribe || '').trim().toLowerCase()}::${(v.name || '').trim().toLowerCase()}`);
+  }
+
+  const newVillagesToImport: VillageRegistry[] = [];
+  let skippedCount = 0;
+
+  for (const item of parsedVillages) {
+    const key = `${(item.tribe || '').trim().toLowerCase()}::${(item.name || '').trim().toLowerCase()}`;
+    if (existingIds.has(item.id.toLowerCase()) || existingKeys.has(key)) {
+      skippedCount++;
+      continue;
+    }
+    existingIds.add(item.id.toLowerCase());
+    existingKeys.add(key);
+    newVillagesToImport.push(item);
+  }
+
+  return { newVillagesToImport, skippedCount };
+}
+
+export function generateVillagesCsvTemplate(): string {
+  return `Nom_Village,Tribu,Clan_Rattachement,Region_Province
+"Ozouri","Ôrungu","Agenje","Ogooué-Maritime"
+"Alumbè","Ôrungu","Ajena","Ogooué-Maritime"
+"NomDuVillageEnenga","Enenga","","Moyen-Ogooué"`;
 }
