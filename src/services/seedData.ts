@@ -1517,3 +1517,214 @@ export function generateVillagesCsvTemplate(): string {
 "Alumbè","Ôrungu","Ajena","Ogooué-Maritime"
 "NomDuVillageEnenga","Enenga","","Moyen-Ogooué"`;
 }
+
+// =========================================================================
+// ASSAINISSEMENT & ANTI-POLLUTION DE LA BASE DE DONNÉES (AUDIT & NETTOYAGE)
+// =========================================================================
+
+export const DEMO_MOCK_USER_IDS = new Set([
+  'u-mboumba',
+  'u-kombila',
+  'u-suspect-1',
+  'u-suspect-2'
+]);
+
+const LEGACY_UNVERIFIED_CLAN_NAMES = new Set([
+  'agwesono',
+  'ndiwa',
+  'avandji',
+  'imvona',
+  'ininga',
+  'agulamba',
+  'ogula',
+  'asiga',
+  'agwempolo',
+  'azowa',
+  'alamba',
+  'amwiri',
+  "ilongo n'adjena",
+  'agenjé'
+]);
+
+/**
+ * Nettoie les références aux anciens clans non vérifiés sur les fiches initiales
+ * et déduplique les fiches par contenu (dialecte + texte Myènè + traduction française).
+ */
+export function sanitizeAndDeduplicateItems(
+  existingItems: QuestionnaireItem[],
+  validClans: ClanRegistry[],
+  deletedItemIds: Set<string> = new Set()
+): {
+  cleanedItems: QuestionnaireItem[];
+  updatedItemsToSave: QuestionnaireItem[];
+  duplicateItemIdsToRemove: string[];
+} {
+  const validClanNamesLower = new Set(validClans.map(c => (c.name || '').trim().toLowerCase()));
+  const presetMap = new Map(INITIAL_ENENGA_ITEMS.map(it => [it.id, it]));
+
+  const updatedItemsToSave: QuestionnaireItem[] = [];
+  const duplicateItemIdsToRemove: string[] = [];
+  const byContentKey = new Map<string, QuestionnaireItem>();
+
+  for (const rawItem of existingItems) {
+    if (!rawItem || !rawItem.id || deletedItemIds.has(rawItem.id)) continue;
+
+    let item = { ...rawItem };
+    let wasModified = false;
+
+    // Si c'est l'une des 10 fiches initiales et qu'elle contient encore un ancien clan supprimé, on la met à jour
+    const preset = presetMap.get(item.id);
+    if (preset) {
+      const currentClanLower = (item.clan || '').trim().toLowerCase();
+      const hasLegacyClan =
+        LEGACY_UNVERIFIED_CLAN_NAMES.has(currentClanLower) ||
+        (Array.isArray(item.clans) && item.clans.some(c => LEGACY_UNVERIFIED_CLAN_NAMES.has((c || '').trim().toLowerCase())));
+
+      if (hasLegacyClan) {
+        item = {
+          ...item,
+          dialect: preset.dialect,
+          clan: preset.clan,
+          clans: preset.clans
+        };
+        wasModified = true;
+      }
+    } else {
+      // Pour toute autre fiche, retire uniquement les références aux anciens clans de test supprimés
+      if (item.clan && LEGACY_UNVERIFIED_CLAN_NAMES.has(item.clan.trim().toLowerCase()) && !validClanNamesLower.has(item.clan.trim().toLowerCase())) {
+        item = { ...item, clan: undefined };
+        wasModified = true;
+      }
+      if (Array.isArray(item.clans)) {
+        const filteredClans = item.clans.filter(
+          c => !LEGACY_UNVERIFIED_CLAN_NAMES.has((c || '').trim().toLowerCase()) || validClanNamesLower.has((c || '').trim().toLowerCase())
+        );
+        if (filteredClans.length !== item.clans.length) {
+          item = { ...item, clans: filteredClans };
+          wasModified = true;
+        }
+      }
+    }
+
+    const contentKey = `${(item.dialect || '').trim().toLowerCase()}::${(item.myeneText || '').trim().toLowerCase()}::${(item.frenchText || '').trim().toLowerCase()}`;
+    const alreadySeen = byContentKey.get(contentKey);
+
+    if (!alreadySeen) {
+      byContentKey.set(contentKey, item);
+      if (wasModified) {
+        updatedItemsToSave.push(item);
+      }
+    } else {
+      // Garde la fiche ayant le plus de contributions ou l'ID canonique
+      const keepNew = (item.contributionsCount || 0) > (alreadySeen.contributionsCount || 0);
+      if (keepNew) {
+        duplicateItemIdsToRemove.push(alreadySeen.id);
+        byContentKey.set(contentKey, item);
+        if (wasModified) {
+          updatedItemsToSave.push(item);
+        }
+      } else {
+        if (item.id !== alreadySeen.id) {
+          duplicateItemIdsToRemove.push(item.id);
+        }
+      }
+    }
+  }
+
+  return {
+    cleanedItems: Array.from(byContentKey.values()),
+    updatedItemsToSave,
+    duplicateItemIdsToRemove
+  };
+}
+
+/**
+ * Audit complet et nettoyage anti-pollution des Clans, Villages, Fiches et Utilisateurs fictifs.
+ */
+export function auditAndSanitizeDatabaseState(params: {
+  items: QuestionnaireItem[];
+  clans: ClanRegistry[];
+  villages: VillageRegistry[];
+  usersList: UserProfile[];
+  deletedItemIds?: Set<string>;
+  deletedClanIds?: Set<string>;
+  deletedVillageIds?: Set<string>;
+}): {
+  cleanedClans: ClanRegistry[];
+  clansToSave: ClanRegistry[];
+  clanIdsToRemove: string[];
+  cleanedVillages: VillageRegistry[];
+  villageIdsToRemove: string[];
+  cleanedItems: QuestionnaireItem[];
+  itemsToSave: QuestionnaireItem[];
+  itemIdsToRemove: string[];
+  cleanedUsers: UserProfile[];
+  demoUserIdsToRemove: string[];
+} {
+  const deletedClanIds = params.deletedClanIds || new Set<string>();
+  const deletedVillageIds = params.deletedVillageIds || new Set<string>();
+  const deletedItemIds = params.deletedItemIds || new Set<string>();
+
+  // 1. Clans : purge les anciens clans de seed + déduplique par (tribu + nom)
+  const { merged: mergedClans, newlyAddedOrUpdated: clansToSave, removedObsoleteIds } = mergeOfficialClans(
+    params.clans,
+    deletedClanIds
+  );
+  const keptClanIds = new Set(mergedClans.map(c => c.id));
+  const duplicateClanIds = params.clans
+    .filter(c => !keptClanIds.has(c.id))
+    .map(c => c.id);
+  const clanIdsToRemove = Array.from(new Set([...removedObsoleteIds, ...duplicateClanIds]));
+
+  // 2. Villages : purge les 14 anciens villages de seed + déduplique par (tribu + nom)
+  const { cleaned: nonObsoleteVillages, removedObsoleteVillageIds } = cleanObsoleteSeedVillages(
+    params.villages,
+    deletedVillageIds
+  );
+  const villageByNormKey = new Map<string, VillageRegistry>();
+  const duplicateVillageIds: string[] = [];
+  for (const v of nonObsoleteVillages) {
+    const key = `${(v.tribe || '').trim().toLowerCase()}::${(v.name || '').trim().toLowerCase()}`;
+    if (!villageByNormKey.has(key)) {
+      villageByNormKey.set(key, v);
+    } else {
+      const existing = villageByNormKey.get(key)!;
+      if (existing.id !== v.id) {
+        duplicateVillageIds.push(v.id);
+      }
+    }
+  }
+  const cleanedVillages = Array.from(villageByNormKey.values());
+  const villageIdsToRemove = Array.from(new Set([...removedObsoleteVillageIds, ...duplicateVillageIds]));
+
+  // 3. Items : nettoie les références d'anciens clans et déduplique
+  const {
+    cleanedItems,
+    updatedItemsToSave: itemsToSave,
+    duplicateItemIdsToRemove: itemIdsToRemove
+  } = sanitizeAndDeduplicateItems(params.items, mergedClans, deletedItemIds);
+
+  // 4. Utilisateurs : retire les 4 profils fictifs de démo s'ils sont présents
+  const demoUserIdsToRemove: string[] = [];
+  const cleanedUsers = params.usersList.filter(u => {
+    if (DEMO_MOCK_USER_IDS.has(u.id)) {
+      demoUserIdsToRemove.push(u.id);
+      return false;
+    }
+    return true;
+  });
+
+  return {
+    cleanedClans: mergedClans,
+    clansToSave,
+    clanIdsToRemove,
+    cleanedVillages,
+    villageIdsToRemove,
+    cleanedItems,
+    itemsToSave,
+    itemIdsToRemove,
+    cleanedUsers,
+    demoUserIdsToRemove
+  };
+}
+

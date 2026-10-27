@@ -62,7 +62,10 @@ import {
   deduplicateParsedCsvClans,
   deduplicateParsedCsvVillages,
   mergeOfficialClans,
-  cleanObsoleteSeedVillages
+  cleanObsoleteSeedVillages,
+  sanitizeAndDeduplicateItems,
+  auditAndSanitizeDatabaseState,
+  DEMO_MOCK_USER_IDS
 } from './services/seedData';
 import { 
   getPendingOfflineContributions, 
@@ -257,7 +260,7 @@ export default function App() {
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [isFirebaseAuthReady, setIsFirebaseAuthReady] = useState<boolean>(false);
 
-  // Registered users for admin management and fraud detection
+  // Registered users for admin management and fraud detection (no fake demo users polluting the database)
   const [usersList, setUsersList] = useState<UserProfile[]>([
     {
       id: 'admin-andy',
@@ -268,9 +271,9 @@ export default function App() {
       birthDate: '1986-09-14',
       birthPlace: 'Libreville',
       tribe: 'Ôrungu',
-      paternalClan: 'Ilongo n\'Adjena',
-      maternalClan: 'Agenjé',
-      villageOfOrigin: 'Alumbè (Ogooué-Maritime)',
+      paternalClan: 'Ajena',
+      maternalClan: 'Agenje',
+      villageOfOrigin: 'Non précisé',
       registrationCompleted: true,
       role: 'admin',
       status: 'active',
@@ -285,110 +288,6 @@ export default function App() {
       badges: ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'],
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z'
-    },
-    {
-      id: 'u-mboumba',
-      displayName: 'Mboumba Éric',
-      fullName: 'Mboumba Éric Daniel',
-      contact: '+241 077 12 34 56',
-      birthDate: '1988-11-20',
-      birthPlace: 'Port-Gentil',
-      tribe: 'Galoa',
-      paternalClan: 'Agulamba',
-      maternalClan: 'Ogula',
-      villageOfOrigin: 'Adolinanongo',
-      registrationCompleted: true,
-      role: 'user',
-      status: 'active',
-      suspicionScore: 5,
-      xp: 1420,
-      level: 'Maître de la Parole',
-      levelIndex: 4,
-      contributionsCount: 21,
-      recordingsCount: 16,
-      validationsCount: 8,
-      streakDays: 4,
-      badges: ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions'],
-      createdAt: '2026-01-05T00:00:00Z',
-      updatedAt: '2026-01-05T00:00:00Z'
-    },
-    {
-      id: 'u-kombila',
-      displayName: 'Kombila Rose',
-      fullName: 'Kombila Rose Marie',
-      contact: '+241 066 98 76 54',
-      birthDate: '1995-03-08',
-      birthPlace: 'Fernan Vaz',
-      tribe: 'Nkomi',
-      paternalClan: 'Asiga',
-      maternalClan: 'Agwempolo',
-      villageOfOrigin: 'Sainte-Anne du Fernan Vaz',
-      registrationCompleted: true,
-      role: 'validator',
-      status: 'active',
-      suspicionScore: 0,
-      xp: 980,
-      level: 'Gardien du Verbe',
-      levelIndex: 3,
-      contributionsCount: 15,
-      recordingsCount: 12,
-      validationsCount: 10,
-      streakDays: 3,
-      badges: ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-cinq-validations'],
-      createdAt: '2026-01-08T00:00:00Z',
-      updatedAt: '2026-01-08T00:00:00Z'
-    },
-    {
-      id: 'u-suspect-1',
-      displayName: 'Inconnu-77',
-      fullName: 'John Unknown',
-      contact: 'test999@tempmail.com',
-      birthDate: '2000-01-01',
-      birthPlace: 'Inconnu',
-      tribe: 'Mpongwè',
-      paternalClan: 'Avandji',
-      maternalClan: 'Avandji',
-      villageOfOrigin: 'Non spécifié',
-      registrationCompleted: true,
-      role: 'user',
-      status: 'flagged',
-      suspicionScore: 85,
-      xp: 0,
-      level: 'Initié Curieux',
-      levelIndex: 1,
-      contributionsCount: 0,
-      recordingsCount: 0,
-      validationsCount: 0,
-      streakDays: 0,
-      badges: [],
-      createdAt: '2026-01-14T00:00:00Z',
-      updatedAt: '2026-01-14T00:00:00Z'
-    },
-    {
-      id: 'u-suspect-2',
-      displayName: 'Observer_Gbn',
-      fullName: 'Pierre Observateur',
-      contact: '+33 6 00 00 00 00',
-      birthDate: '1999-05-12',
-      birthPlace: 'Paris',
-      tribe: 'Ôrungu',
-      paternalClan: 'Inconnu',
-      maternalClan: 'Inconnu',
-      villageOfOrigin: '',
-      registrationCompleted: true,
-      role: 'user',
-      status: 'flagged',
-      suspicionScore: 70,
-      xp: 0,
-      level: 'Initié Curieux',
-      levelIndex: 1,
-      contributionsCount: 0,
-      recordingsCount: 0,
-      validationsCount: 0,
-      streakDays: 0,
-      badges: [],
-      createdAt: '2026-01-16T00:00:00Z',
-      updatedAt: '2026-01-16T00:00:00Z'
     }
   ]);
 
@@ -623,16 +522,17 @@ export default function App() {
       }
     });
 
-    const cachedUsers = getCachedUsersLocally();
+    const cachedUsers = getCachedUsersLocally().filter(u => !DEMO_MOCK_USER_IDS.has(u.id));
     if (cachedUsers.length > 0) {
       setUsersList(cachedUsers);
     }
 
     const deletedItemsSet = getDeletedIds('items');
     getCachedItemsLocally().then(cached => {
-      const filtered = (cached || []).filter(i => !deletedItemsSet.has(i.id));
-      if (filtered.length > 0) {
-        setItems(filtered);
+      const { cleanedItems } = sanitizeAndDeduplicateItems(cached || [], INITIAL_CLANS, deletedItemsSet);
+      if (cleanedItems.length > 0) {
+        setItems(cleanedItems);
+        cacheItemsLocally(cleanedItems);
       } else if (!isDatabaseMarkedSeeded()) {
         cacheItemsLocally(INITIAL_ENENGA_ITEMS.filter(i => !deletedItemsSet.has(i.id)));
       }
@@ -937,11 +837,26 @@ export default function App() {
         const cached = (await getCachedItemsLocally()) || [];
         const { items: loaded } = await smartFetchCollection<QuestionnaireItem>('items', cached);
         if (!isMounted) return;
-        const filtered = loaded.filter(i => !deletedSet.has(i.id));
-        if (filtered.length > 0) {
+        const { cleanedItems, updatedItemsToSave, duplicateItemIdsToRemove } = sanitizeAndDeduplicateItems(
+          loaded,
+          clans,
+          deletedSet
+        );
+        if (cleanedItems.length > 0) {
           markDatabaseSeeded();
-          setItems(filtered);
-          cacheItemsLocally(filtered);
+          setItems(cleanedItems);
+          cacheItemsLocally(cleanedItems);
+          if (updatedItemsToSave.length > 0) {
+            dualBatchSaveRecords(
+              'items',
+              updatedItemsToSave.map(it => ({ id: it.id, data: it }))
+            ).then(refreshPendingMutationsCount).catch(() => {});
+          }
+          if (duplicateItemIdsToRemove.length > 0) {
+            for (const dupId of duplicateItemIdsToRemove) {
+              dualDeleteRecord('items', dupId).catch(() => {});
+            }
+          }
         } else if (!isDatabaseMarkedSeeded() && deletedSet.size === 0) {
           const fallback = INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id));
           setItems(fallback);
@@ -1006,9 +921,10 @@ export default function App() {
           { maxFirestoreFallbackDocs: isStaff ? 500 : 100 }
         );
         if (!isMounted) return;
-        if (loaded.length > 0) {
-          setUsersList(loaded);
-          cacheUsersLocally(loaded);
+        const cleanedLoaded = loaded.filter(u => !DEMO_MOCK_USER_IDS.has(u.id));
+        if (cleanedLoaded.length > 0) {
+          setUsersList(cleanedLoaded);
+          cacheUsersLocally(cleanedLoaded);
         }
       } else if (colName === 'clans') {
         const deletedSet = getDeletedIds('clans');
@@ -2349,6 +2265,97 @@ export default function App() {
     refreshPendingMutationsCount();
   };
 
+  // Assainissement & Nettoyage complet Anti-Pollution (Clans, Villages, Fiches, Doublons & Profils fictifs)
+  const handleSanitizeAndCleanDatabase = async (): Promise<string> => {
+    await ensureFirebaseAuthSession();
+
+    const audit = auditAndSanitizeDatabaseState({
+      items,
+      clans,
+      villages,
+      usersList,
+      deletedItemIds: getDeletedIds('items'),
+      deletedClanIds: getDeletedIds('clans'),
+      deletedVillageIds: getDeletedIds('villages')
+    });
+
+    // 1. Mise à jour locale et cache IndexedDB
+    setClans(audit.cleanedClans);
+    cacheClansLocally(audit.cleanedClans);
+
+    setVillages(audit.cleanedVillages);
+    cacheVillagesLocally(audit.cleanedVillages);
+
+    setItems(audit.cleanedItems);
+    cacheItemsLocally(audit.cleanedItems);
+
+    setUsersList(audit.cleanedUsers);
+    cacheUsersLocally(audit.cleanedUsers);
+
+    // 2. Suppression dans Firestore & Realtime Database des IDs obsolètes ou doublons
+    for (const cid of audit.clanIdsToRemove) {
+      await dualDeleteRecord('clans', cid);
+    }
+    for (const vid of audit.villageIdsToRemove) {
+      await dualDeleteRecord('villages', vid);
+    }
+    for (const iid of audit.itemIdsToRemove) {
+      await dualDeleteRecord('items', iid);
+    }
+    for (const uid of audit.demoUserIdsToRemove) {
+      await dualDeleteRecord('users', uid);
+    }
+
+    // 3. Sauvegarde des clans officiels Ôrungu et des fiches corrigées
+    if (audit.clansToSave.length > 0) {
+      await dualBatchSaveRecords(
+        'clans',
+        audit.clansToSave.map(cl => ({ id: cl.id, data: cl }))
+      );
+    }
+    if (audit.itemsToSave.length > 0) {
+      await dualBatchSaveRecords(
+        'items',
+        audit.itemsToSave.map(it => ({ id: it.id, data: it }))
+      );
+    }
+
+    // 4. Mise à jour des compteurs officiels (seed_status & summary)
+    const updatedSeedStatus: SeedStatus = {
+      isSeeded: true,
+      seededAt: seedStatus?.seededAt || new Date().toISOString(),
+      seededBy: currentUser?.id || 'admin',
+      seededByName: currentUser?.fullName || currentUser?.displayName || 'Admin',
+      itemsCount: audit.cleanedItems.length,
+      clansCount: audit.cleanedClans.length,
+      villagesCount: audit.cleanedVillages.length,
+      themesCount: themes.length,
+      badgesCount: badges.length,
+      version: '1.1.0-ompagano-clean'
+    };
+    await dualSaveRecord('metrics', 'seed_status', updatedSeedStatus);
+    setSeedStatus(updatedSeedStatus);
+
+    const updatedSummary: SystemMetric = {
+      id: 'summary',
+      totalItems: audit.cleanedItems.length,
+      totalContributions: contributions.length,
+      totalRecordings: contributions.filter(c => !!c.audioUrl).length,
+      totalValidated: contributions.filter(c => c.status === 'approved').length,
+      totalUsers: audit.cleanedUsers.length,
+      lastUpdated: new Date().toISOString()
+    };
+    await dualSaveRecord('metrics', 'summary', updatedSummary);
+    setSystemMetrics(updatedSummary);
+    refreshPendingMutationsCount();
+
+    const report = `Base assainie : ${audit.cleanedClans.length} clans valides (${audit.clanIdsToRemove.length} obsolètes/doublons purgés), ${audit.cleanedVillages.length} villages (${audit.villageIdsToRemove.length} purgés), ${audit.cleanedItems.length} fiches (${audit.itemIdsToRemove.length} doublons supprimés, ${audit.itemsToSave.length} fiches mises à jour).`;
+    NotificationService.sendLocalNotification('Base de données assainie 🧹', {
+      body: report
+    });
+    return report;
+  };
+
   // Full bidirectional Database Sync (Items, Clans, Villages, Users, Contributions, Metrics)
   const handleTriggerCloudSync = async () => {
     await ensureFirebaseAuthSession();
@@ -2727,6 +2734,7 @@ export default function App() {
             onUpdateUserAccountStatus={handleUpdateUserAccountStatus}
             onUpdateUserRole={handleUpdateUserRole}
             onTriggerCloudSync={handleTriggerCloudSync}
+            onSanitizeDatabase={handleSanitizeAndCleanDatabase}
             currentUser={currentUser}
             seedStatus={seedStatus}
             onExecuteInitialSeed={handleExecuteInitialSeed}
