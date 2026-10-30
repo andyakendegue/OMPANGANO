@@ -1,23 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  collection, 
-  doc, 
-  onSnapshot, 
-  setDoc, 
-  getDocs, 
-  getDoc,
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
-  limit 
-} from 'firebase/firestore';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { doc, runTransaction } from 'firebase/firestore';
 import { onAuthStateChanged, signOut as fbSignOut } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { 
   db, 
   auth, 
-  storage, 
   testFirestoreConnection, 
   handleFirestoreError, 
   OperationType,
@@ -25,15 +11,17 @@ import {
   dualBatchSaveRecords,
   dualDeleteRecord,
   ensureFirebaseAuthSession,
-  convertBlobToBase64,
   replayPendingOfflineAdminMutations,
   getOfflineAdminMutations,
   checkIsAdminEmail,
-  isRealtimeDatabaseEmpty,
   smartFetchCollection,
   smartGetUserProfile,
-  subscribeToCatalogSignals
+  subscribeToCatalogSignals,
+  sanitizeDataForFirebase,
+  bumpCatalogVersion,
+  rtdb
 } from './firebase';
+import { ref as rtdbRef, update as rtdbUpdate } from 'firebase/database';
 import { 
   QuestionnaireItem, 
   Contribution, 
@@ -67,8 +55,12 @@ import {
   auditAndSanitizeDatabaseState,
   DEMO_MOCK_USER_IDS,
   MYENE_TRIBES,
-  mapDialectToTribeName
+  mapDialectToTribeName,
+  mapTribeNameToDialectCode,
+  applySeedItemCorrections,
+  BADGE_TITLE_RENAMES
 } from './services/seedData';
+import { uploadRecording, dataUrlToBlob, deleteRecording } from './services/audioUpload';
 import { 
   getPendingOfflineContributions, 
   saveOfflineContribution, 
@@ -97,8 +89,12 @@ import { BottomNav, AppTab } from './components/BottomNav';
 import { CrowdsourceCard } from './components/CrowdsourceCard';
 import { VocabularyExplorer } from './components/VocabularyExplorer';
 import { LeaderboardAndRewards } from './components/LeaderboardAndRewards';
-import { ValidatorWorkspace } from './components/ValidatorWorkspace';
-import { AdminDashboard } from './components/AdminDashboard';
+// Espaces validateur et administration chargés à la demande : les contributeurs ne téléchargent pas ce code
+const ValidatorWorkspace = lazy(() => import('./components/ValidatorWorkspace').then(m => ({ default: m.ValidatorWorkspace })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const StaffLoading = () => (
+  <div className="py-16 text-center text-xs text-[#a8826d]">Chargement de l’espace…</div>
+);
 import { UserProfileView } from './components/UserProfileView';
 import { AuthModal } from './components/AuthModal';
 import { AuthGateScreen } from './components/AuthGateScreen';
@@ -110,6 +106,18 @@ import { AppUpdateBanner } from './components/AppUpdateBanner';
 import { TermsConsentModal, TermsConsentPayload } from './components/TermsConsentModal';
 import { VisualGuideModal, VISUAL_GUIDE_SEEN_KEY } from './components/VisualGuideModal';
 import { ContributionFaqSection } from './components/ContributionFaqSection';
+import { MYENE } from './services/myeneLexique';
+import {
+  stripProtectedUserFields,
+  buildLeaderboardEntry,
+  leaderboardEntryToProfile,
+  LeaderboardEntry,
+  NEW_USER_PROTECTED_DEFAULTS,
+  PROTECTED_USER_FIELDS,
+  computeValidationReward,
+  validationBadgesFor,
+  isStaffRole
+} from './services/userSecurity';
 
 const DELETED_RECORDS_STORAGE_KEY = 'nkala_deleted_records_v1';
 const FAVORITE_VOCAB_STORAGE_KEY = 'nkala_favorite_vocab_ids_v1';
@@ -227,6 +235,12 @@ export default function App() {
     const source = cached.length > 0 ? cached : THEMATIC_CATEGORIES;
     return source.filter(t => !deleted.has(t.id));
   });
+  // Référence toujours à jour des contributions (pour les gestionnaires asynchrones)
+  const contributionsRef = useRef<Contribution[]>(contributions);
+  useEffect(() => {
+    contributionsRef.current = contributions;
+  }, [contributions]);
+
   const [badges, setBadges] = useState<Badge[]>(() => {
     const cached = getCachedBadgesLocally();
     const deleted = getDeletedIds('badges');
@@ -265,35 +279,9 @@ export default function App() {
   const [isFirebaseAuthReady, setIsFirebaseAuthReady] = useState<boolean>(false);
 
   // Registered users for admin management and fraud detection (no fake demo users polluting the database)
-  const [usersList, setUsersList] = useState<UserProfile[]>([
-    {
-      id: 'admin-andy',
-      displayName: 'Andy AKENDENGUE',
-      fullName: 'Andy AKENDENGUE',
-      contact: 'andymigoumbi@gmail.com',
-      email: 'andymigoumbi@gmail.com',
-      birthDate: '1986-09-14',
-      birthPlace: 'Libreville',
-      tribe: 'Ôrungu',
-      paternalClan: 'Ajena',
-      maternalClan: 'Agenje',
-      villageOfOrigin: 'Non précisé',
-      registrationCompleted: true,
-      role: 'admin',
-      status: 'active',
-      suspicionScore: 0,
-      xp: 2850,
-      level: 'Sage Ancien',
-      levelIndex: 5,
-      contributionsCount: 28,
-      recordingsCount: 22,
-      validationsCount: 19,
-      streakDays: 7,
-      badges: ['badge-genealogie-verifiee', 'badge-premiere-voix', 'badge-dix-traductions', 'badge-cinq-validations', 'badge-maitre-verbe'],
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-01-01T00:00:00Z'
-    }
-  ]);
+  // Liste des profils (complets pour l'équipe, entrées publiques du classement pour les contributeurs).
+  // Aucun profil fictif n'est codé en dur : il serait visible de tous dans le bundle JS.
+  const [usersList, setUsersList] = useState<UserProfile[]>([]);
 
   // Modals
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -347,88 +335,133 @@ export default function App() {
     });
 
     if (syncToCloud && nextProfile.id) {
-      await dualSaveRecord('users', nextProfile.id, nextProfile);
-      refreshPendingMutationsCount();
+      await persistOwnProfileToCloud(nextProfile);
     }
     return nextProfile;
   };
 
-  // Merge local cached user profile with cloud profile so offline XP, badges, terms, onboarding, or favorites are NEVER lost
+  /**
+   * Écrit le profil de l'utilisateur connecté dans le cloud SANS les champs protégés
+   * (rôle, statut, XP, badges, compteurs) : ceux-ci ne sont jamais décidés par le navigateur.
+   * À la création du compte, on envoie les valeurs initiales vérifiées par les règles.
+   */
+  const persistOwnProfileToCloud = async (profile: UserProfile, options?: { isNew?: boolean }) => {
+    if (!profile.id) return;
+    const actorRole = checkIsAdminEmail(auth.currentUser?.email) ? 'admin' : profile.role;
+    const payload = options?.isNew
+      ? { ...profile, ...(actorRole === 'admin' ? {} : NEW_USER_PROTECTED_DEFAULTS) }
+      : stripProtectedUserFields(profile, actorRole);
+    await dualSaveRecord('users', profile.id, payload);
+    // Entrée publique du classement (les chiffres doivent correspondre au profil cloud)
+    if (profile.registrationCompleted) {
+      dualSaveRecord('leaderboard', profile.id, buildLeaderboardEntry(options?.isNew ? { ...profile, ...NEW_USER_PROTECTED_DEFAULTS } : profile)).catch(() => {});
+    }
+    refreshPendingMutationsCount();
+  };
+
+  // Nouveau profil : champs protégés à leur valeur initiale (0 XP, aucun badge, rôle contributeur).
+  // Les points et badges ne s'obtiennent qu'à la validation des contributions.
+  const createNewUserProfile = (
+    base: { id: string; displayName?: string; fullName?: string; email?: string; contact?: string; phoneNumber?: string; photoURL?: string },
+    isAdmin: boolean
+  ): UserProfile => {
+    const nowIso = new Date().toISOString();
+    return {
+      id: base.id,
+      displayName: base.displayName || 'Contributeur OMPANGANO',
+      fullName: base.fullName || base.displayName || 'Locuteur Myènè',
+      contact: base.contact || base.email || '',
+      birthDate: '',
+      birthPlace: '',
+      tribe: 'Ôrungu',
+      paternalClan: '',
+      maternalClan: '',
+      villageOfOrigin: '',
+      registrationCompleted: false,
+      email: base.email || '',
+      phoneNumber: base.phoneNumber || '',
+      photoURL: base.photoURL || '',
+      ...NEW_USER_PROTECTED_DEFAULTS,
+      role: isAdmin ? 'admin' : 'user',
+      streakDays: 0,
+      favoriteItemIds: getSavedFavoriteIds(),
+      createdAt: nowIso,
+      updatedAt: nowIso
+    };
+  };
+
+  // Fusion du profil local (cache) et du profil cloud.
+  // - Champs protégés (rôle, statut, XP, badges, compteurs) : TOUJOURS ceux du cloud.
+  // - Identité, consentement, inscription : la version la plus récente l'emporte
+  //   (un retrait de consentement est donc bien pris en compte).
+  // - Favoris : union.
   const mergeLocalAndCloudUserProfile = (
     localProf: UserProfile | null,
     cloudProf: UserProfile,
     isSuperAdmin: boolean
   ): { merged: UserProfile; needsCloudPush: boolean } => {
+    const cloudRole = isSuperAdmin ? 'admin' : (cloudProf.role || 'user');
     if (!localProf || localProf.id !== cloudProf.id) {
-      const role = isSuperAdmin ? 'admin' : cloudProf.role;
       return {
-        merged: { ...cloudProf, role },
-        needsCloudPush: isSuperAdmin && cloudProf.role !== 'admin'
+        merged: { ...cloudProf, role: cloudRole },
+        needsCloudPush: false
       };
     }
 
-    const mergedXp = Math.max(localProf.xp || 0, cloudProf.xp || 0);
-    const lvl = getLevelForXp(mergedXp);
-    const mergedContribs = Math.max(localProf.contributionsCount || 0, cloudProf.contributionsCount || 0);
-    const mergedRecordings = Math.max(localProf.recordingsCount || 0, cloudProf.recordingsCount || 0);
-    const mergedValidations = Math.max(localProf.validationsCount || 0, cloudProf.validationsCount || 0);
-    const mergedStreak = Math.max(localProf.streakDays || 0, cloudProf.streakDays || 0);
-    const mergedBadges = Array.from(new Set([...(cloudProf.badges || []), ...(localProf.badges || [])]));
-    const mergedCompletedChallenges = Array.from(
-      new Set([...(cloudProf.completedChallenges || []), ...(localProf.completedChallenges || [])])
-    );
     const mergedFavorites = Array.from(
       new Set([...getSavedFavoriteIds(), ...(cloudProf.favoriteItemIds || []), ...(localProf.favoriteItemIds || [])])
     );
 
-    const mergedWeeklyProgress: Record<string, number> = { ...(cloudProf.weeklyProgress || {}) };
-    if (localProf.weeklyProgress) {
-      for (const [k, v] of Object.entries(localProf.weeklyProgress)) {
-        mergedWeeklyProgress[k] = Math.max(mergedWeeklyProgress[k] || 0, v || 0);
-      }
-    }
-
     const localNewer = (localProf.updatedAt || '') > (cloudProf.updatedAt || '');
-    const IdentitySource = localNewer ? localProf : cloudProf;
+    const identitySource = localNewer ? localProf : cloudProf;
+
+    const protectedFromCloud: Partial<UserProfile> = {};
+    for (const key of PROTECTED_USER_FIELDS) {
+      (protectedFromCloud as Record<string, unknown>)[key] = (cloudProf as unknown as Record<string, unknown>)[key];
+    }
+    const cloudXp = cloudProf.xp || 0;
+    const lvl = getLevelForXp(cloudXp);
 
     const merged: UserProfile = {
       ...cloudProf,
-      ...IdentitySource,
+      ...identitySource,
+      ...protectedFromCloud,
       id: cloudProf.id,
-      role: isSuperAdmin ? 'admin' : (localNewer ? localProf.role : cloudProf.role),
-      registrationCompleted: !!(cloudProf.registrationCompleted || localProf.registrationCompleted),
-      termsAccepted: !!(cloudProf.termsAccepted || localProf.termsAccepted),
-      dataUsageAccepted: !!(cloudProf.dataUsageAccepted || localProf.dataUsageAccepted),
-      consentVoiceUsage: localProf.consentVoiceUsage ?? cloudProf.consentVoiceUsage,
-      consentImageUsage: localProf.consentImageUsage ?? cloudProf.consentImageUsage,
-      termsAcceptedAt: localProf.termsAcceptedAt || cloudProf.termsAcceptedAt,
-      termsVersion: localProf.termsVersion || cloudProf.termsVersion,
-      electronicSignature: localProf.electronicSignature || cloudProf.electronicSignature,
-      xp: mergedXp,
+      role: cloudRole,
+      status: cloudProf.status || 'active',
+      xp: cloudXp,
       level: lvl.name,
       levelIndex: lvl.index,
-      contributionsCount: mergedContribs,
-      recordingsCount: mergedRecordings,
-      validationsCount: mergedValidations,
-      streakDays: mergedStreak,
-      badges: mergedBadges,
-      weeklyProgress: mergedWeeklyProgress,
-      completedChallenges: mergedCompletedChallenges,
+      badges: cloudProf.badges || [],
+      registrationCompleted: !!(cloudProf.registrationCompleted || localProf.registrationCompleted),
       favoriteItemIds: mergedFavorites,
       updatedAt: localNewer ? localProf.updatedAt : cloudProf.updatedAt
     };
 
     const needsCloudPush =
       localNewer ||
-      mergedXp > (cloudProf.xp || 0) ||
-      mergedContribs > (cloudProf.contributionsCount || 0) ||
-      mergedValidations > (cloudProf.validationsCount || 0) ||
       (merged.registrationCompleted && !cloudProf.registrationCompleted) ||
-      (merged.termsAccepted && !cloudProf.termsAccepted) ||
-      mergedFavorites.length > (cloudProf.favoriteItemIds?.length || 0) ||
-      (isSuperAdmin && cloudProf.role !== 'admin');
+      mergedFavorites.length > (cloudProf.favoriteItemIds?.length || 0);
 
     return { merged, needsCloudPush };
+  };
+
+  // Les récompenses sont attribuées par les validateurs : à la reconnexion, on annonce
+  // au contributeur ce qu'il a gagné depuis sa dernière visite.
+  const announceRewardsSinceLastVisit = (previous: UserProfile | null, latest: UserProfile) => {
+    if (!previous || previous.id !== latest.id) return;
+    const gained = (latest.xp || 0) - (previous.xp || 0);
+    const before = new Set(previous.completedChallenges || []);
+    const newlyCompleted = (latest.completedChallenges || []).filter(id => !before.has(id));
+    if (newlyCompleted.length > 0) {
+      const ch = challenges.find(c => c.id === newlyCompleted[0]);
+      if (ch) setCelebrationChallenge(ch);
+    }
+    if (gained > 0) {
+      NotificationService.sendLocalNotification(`${MYENE.MBIAMBIE.mot} ! Contributions validées`, {
+        body: `+${gained} XP depuis votre dernière visite. ${MYENE.AKEWA.mot} !`
+      });
+    }
   };
 
   // Toggle favorite vocabulary item (works 100% offline and syncs to user profile online)
@@ -671,8 +704,10 @@ export default function App() {
               isSuperAdmin
             );
 
-            if (needsCloudPush) {
-              await dualSaveRecord('users', fbUser.uid, merged);
+            announceRewardsSinceLastVisit(cachedProfile || currentUserRef.current, merged);
+
+            if (needsCloudPush || isSuperAdmin) {
+              await persistOwnProfileToCloud(merged);
               if (isSuperAdmin) {
                 await dualSaveRecord('admins', fbUser.uid, {
                   userId: fbUser.uid,
@@ -707,8 +742,9 @@ export default function App() {
 
         // If user already completed registration locally while offline, push that local profile to cloud instead of resetting!
         if (cachedProfile && cachedProfile.registrationCompleted) {
-          await dualSaveRecord('users', cachedProfile.id, cachedProfile);
-          if (cachedProfile.role === 'admin' || isSuperAdmin) {
+          // Profil créé hors-ligne : création cloud avec les valeurs initiales des champs protégés
+          await persistOwnProfileToCloud(cachedProfile, { isNew: true });
+          if (isSuperAdmin) {
             await dualSaveRecord('admins', cachedProfile.id, {
               userId: cachedProfile.id,
               email: cachedProfile.email,
@@ -722,39 +758,15 @@ export default function App() {
         }
 
         // 3. Create and persist user profile in Firestore & RTDB immediately upon first login!
-        const isAdmin = isSuperAdmin || (fbUser.email && fbUser.email.toLowerCase().includes('admin')) || false;
-        const initialProfile: UserProfile = {
+        const isAdmin = isSuperAdmin;
+        const initialProfile = createNewUserProfile({
           id: fbUser.uid,
-          displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Contributeur OMPAGANO',
-          fullName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Locuteur Myènè',
-          contact: fbUser.email || '',
-          birthDate: '',
-          birthPlace: '',
-          tribe: 'Enenga',
-          paternalClan: '',
-          maternalClan: '',
-          villageOfOrigin: '',
-          registrationCompleted: false,
+          displayName: fbUser.displayName || fbUser.email?.split('@')[0] || '',
           email: fbUser.email || '',
-          phoneNumber: '',
-          photoURL: fbUser.photoURL || '',
-          role: isAdmin ? 'admin' : 'user',
-          status: 'active',
-          suspicionScore: 0,
-          xp: 150,
-          level: 'Initié Curieux',
-          levelIndex: 1,
-          contributionsCount: 0,
-          recordingsCount: 0,
-          validationsCount: 0,
-          streakDays: 1,
-          badges: ['badge-premiere-voix'],
-          favoriteItemIds: getSavedFavoriteIds(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+          photoURL: fbUser.photoURL || ''
+        }, isAdmin);
 
-        await dualSaveRecord('users', initialProfile.id, initialProfile);
+        await persistOwnProfileToCloud(initialProfile, { isNew: true });
         if (isAdmin) {
           await dualSaveRecord('admins', initialProfile.id, {
             userId: initialProfile.id,
@@ -791,7 +803,13 @@ export default function App() {
                 localStorage.setItem('nkala_authenticated_user', JSON.stringify(parsed));
               }
 
-              // Always restore the saved profile immediately so Airplane Mode / weak network never logs the user out
+              // En ligne sans session Firebase = vraiment déconnecté : on efface le profil local.
+              // Hors-ligne (mode avion) : on restaure le profil pour continuer à contribuer ;
+              // rien ne sera écrit dans le cloud sans session valide.
+              if (typeof navigator !== 'undefined' && navigator.onLine) {
+                localStorage.removeItem('nkala_authenticated_user');
+                throw new Error('signed-out');
+              }
               currentUserRef.current = parsed;
               setCurrentUser(parsed);
               setIsOnboardingModalOpen(!parsed.registrationCompleted);
@@ -839,8 +857,16 @@ export default function App() {
       if (colName === 'items') {
         const deletedSet = getDeletedIds('items');
         const cached = (await getCachedItemsLocally()) || [];
-        const { items: loaded } = await smartFetchCollection<QuestionnaireItem>('items', cached);
+        const { items: rawLoaded } = await smartFetchCollection<QuestionnaireItem>('items', cached);
         if (!isMounted) return;
+        // Corrige les anciennes phrases de départ générées par IA (affichage immédiat pour tous,
+        // réécriture en base par un administrateur)
+        const { items: loaded, corrected: correctedSeedItems } = applySeedItemCorrections(rawLoaded);
+        if (correctedSeedItems.length > 0 && currentUserRef.current?.role === 'admin') {
+          dualBatchSaveRecords('items', correctedSeedItems.map(it => ({ id: it.id, data: it })))
+            .then(refreshPendingMutationsCount)
+            .catch(() => {});
+        }
         const { cleanedItems, updatedItemsToSave, duplicateItemIdsToRemove } = sanitizeAndDeduplicateItems(
           loaded,
           clans,
@@ -850,13 +876,15 @@ export default function App() {
           markDatabaseSeeded();
           setItems(cleanedItems);
           cacheItemsLocally(cleanedItems);
-          if (updatedItemsToSave.length > 0) {
+          // Corrections automatiques du catalogue : réservées aux administrateurs (règles de sécurité)
+          const canFixCatalog = currentUserRef.current?.role === 'admin';
+          if (canFixCatalog && updatedItemsToSave.length > 0) {
             dualBatchSaveRecords(
               'items',
               updatedItemsToSave.map(it => ({ id: it.id, data: it }))
             ).then(refreshPendingMutationsCount).catch(() => {});
           }
-          if (duplicateItemIdsToRemove.length > 0) {
+          if (canFixCatalog && duplicateItemIdsToRemove.length > 0) {
             for (const dupId of duplicateItemIdsToRemove) {
               dualDeleteRecord('items', dupId).catch(() => {});
             }
@@ -909,21 +937,43 @@ export default function App() {
       } else if (colName === 'badges') {
         const deletedSet = getDeletedIds('badges');
         const cached = getCachedBadgesLocally() || [];
-        const { items: loaded } = await smartFetchCollection<Badge>('badges', cached);
+        const { items: rawBadges } = await smartFetchCollection<Badge>('badges', cached);
         if (!isMounted) return;
+        // Titres de badges avec leur nom myènè (renommage des anciens titres déjà en base)
+        const renamedBadges: Badge[] = [];
+        const loaded = rawBadges.map(b => {
+          const r = BADGE_TITLE_RENAMES[b.id];
+          if (r && b.title === r.from) {
+            const nb = { ...b, title: r.to, updatedAt: new Date().toISOString() };
+            renamedBadges.push(nb);
+            return nb;
+          }
+          return b;
+        });
+        if (renamedBadges.length > 0 && currentUserRef.current?.role === 'admin') {
+          for (const rb of renamedBadges) dualSaveRecord('badges', rb.id, rb).catch(() => {});
+        }
         const filtered = loaded.filter(b => !deletedSet.has(b.id));
         if (filtered.length > 0) {
           setBadges(filtered);
           cacheBadgesLocally(filtered);
         }
-      } else if (colName === 'users') {
+      } else if (colName === 'users' || colName === 'leaderboard') {
         const cached = getCachedUsersLocally() || [];
-        const isStaff = currentUserRef.current?.role === 'admin' || currentUserRef.current?.role === 'validator';
-        const { items: loaded } = await smartFetchCollection<UserProfile>(
-          'users',
-          cached,
-          { maxFirestoreFallbackDocs: isStaff ? 500 : 100 }
-        );
+        const isStaff = isStaffRole(currentUserRef.current?.role);
+        let loaded: UserProfile[];
+        if (isStaff) {
+          // L'équipe (validateurs, admins) a besoin des profils complets
+          ({ items: loaded } = await smartFetchCollection<UserProfile>('users', cached, { maxFirestoreFallbackDocs: 500 }));
+        } else {
+          // Les contributeurs ne voient que le classement public (pas de date de naissance, contact, clans…)
+          const { items: entries } = await smartFetchCollection<LeaderboardEntry>(
+            'leaderboard',
+            cached.map(u => buildLeaderboardEntry(u)),
+            { maxFirestoreFallbackDocs: 200 }
+          );
+          loaded = entries.map(leaderboardEntryToProfile);
+        }
         if (!isMounted) return;
         const cleanedLoaded = loaded.filter(u => !DEMO_MOCK_USER_IDS.has(u.id));
         if (cleanedLoaded.length > 0) {
@@ -941,13 +991,14 @@ export default function App() {
           cacheClansLocally(merged);
         }
         // Automatically propagate new official Ôrungu clans to Firebase if missing from existing database
-        if (newlyAddedOrUpdated.length > 0) {
+        const canFixClans = currentUserRef.current?.role === 'admin';
+        if (canFixClans && newlyAddedOrUpdated.length > 0) {
           dualBatchSaveRecords(
             'clans',
             newlyAddedOrUpdated.map(cl => ({ id: cl.id, data: cl }))
           ).then(refreshPendingMutationsCount).catch(() => {});
         }
-        if (removedObsoleteIds.length > 0) {
+        if (canFixClans && removedObsoleteIds.length > 0) {
           for (const obsId of removedObsoleteIds) {
             dualDeleteRecord('clans', obsId).catch(() => {});
           }
@@ -960,7 +1011,7 @@ export default function App() {
         const { cleaned, removedObsoleteVillageIds } = cleanObsoleteSeedVillages(loaded, deletedSet);
         setVillages(cleaned);
         cacheVillagesLocally(cleaned);
-        if (removedObsoleteVillageIds.length > 0) {
+        if (currentUserRef.current?.role === 'admin' && removedObsoleteVillageIds.length > 0) {
           for (const obsVid of removedObsoleteVillageIds) {
             dualDeleteRecord('villages', obsVid).catch(() => {});
           }
@@ -1026,8 +1077,7 @@ export default function App() {
       // 2. Sync current user profile if present to guarantee XP, badges, terms, and favorites are up-to-date in Firebase
       const activeProfile = currentUserRef.current;
       if (activeProfile && activeProfile.id) {
-        await dualSaveRecord('users', activeProfile.id, activeProfile);
-        refreshPendingMutationsCount();
+        await persistOwnProfileToCloud(activeProfile);
       }
 
       // 3. Replay pending voice & text contributions from IndexedDB / localStorage fallback
@@ -1036,35 +1086,30 @@ export default function App() {
 
       if (pending && pending.length > 0) {
         for (const item of pending) {
-          let uploadedAudioUrl = item.audioDataUrl;
+          if (!activeProfile || !activeProfile.id) break; // pas de session : on réessaiera
+          let uploadedAudioUrl: string | undefined;
+          let uploadedPath: string | undefined;
 
-          // Upload audio blob to Firebase Storage bucket if present
-          if (item.audioBlob) {
-            try {
-              const storagePath = `recordings/${item.itemId}_${Date.now()}.webm`;
-              const audioRef = ref(storage, storagePath);
-              await uploadBytes(audioRef, item.audioBlob);
-              uploadedAudioUrl = await getDownloadURL(audioRef);
-            } catch (storageErr) {
-              console.warn('Storage upload notice (falling back to permanent Base64):', storageErr);
-            }
-
-            if (!uploadedAudioUrl || uploadedAudioUrl.startsWith('blob:')) {
-              try {
-                uploadedAudioUrl = await convertBlobToBase64(item.audioBlob);
-              } catch {}
-            }
+          // Envoi de l'audio vers Storage (jamais en base64 dans la base de données)
+          let blob: Blob | null = item.audioBlob || null;
+          if (!blob && item.audioDataUrl) blob = await dataUrlToBlob(item.audioDataUrl);
+          if (blob) {
+            const uploaded = await uploadRecording(activeProfile.id, item.itemId, blob);
+            if (!uploaded) continue; // on garde la contribution sur l'appareil pour un prochain essai
+            uploadedAudioUrl = uploaded.url;
+            uploadedPath = uploaded.path;
           }
 
+          const nowIso = new Date().toISOString();
           const syncedContribution: Contribution = {
             id: item.id,
             itemId: item.itemId,
-            userId: activeProfile?.id || 'offline_user',
-            userDisplayName: activeProfile?.fullName || activeProfile?.displayName || 'Contributeur Myènè',
-            userTribe: activeProfile?.tribe,
-            userPaternalClan: activeProfile?.paternalClan,
-            userMaternalClan: activeProfile?.maternalClan,
-            userPhotoURL: activeProfile?.photoURL,
+            userId: activeProfile.id,
+            userDisplayName: activeProfile.fullName || activeProfile.displayName || 'Contributeur Myènè',
+            userTribe: activeProfile.tribe,
+            userPaternalClan: activeProfile.paternalClan,
+            userMaternalClan: activeProfile.maternalClan,
+            userPhotoURL: activeProfile.photoURL,
             frenchText: item.frenchText || '',
             originalMyeneText: item.originalMyeneText || '',
             isSpellingCorrect: !!item.isSpellingCorrect,
@@ -1073,12 +1118,15 @@ export default function App() {
             frenchMeaningType: item.frenchMeaningType || 'exact',
             proposedFrenchMeaning: item.proposedFrenchMeaning || '',
             secondaryMeaning: item.secondaryMeaning || '',
-            dialectVariant: item.dialectVariant || 'enenga',
+            dialectVariant: item.dialectVariant || mapTribeNameToDialectCode(activeProfile.tribe),
             comment: item.comment || '',
             audioUrl: uploadedAudioUrl,
-            audioDuration: item.audioDuration || 3,
+            audioStoragePath: uploadedPath,
+            audioMimeType: blob ? (blob.type || item.audioMimeType) : undefined,
+            audioDuration: blob ? item.audioDuration || 0 : 0,
             status: 'pending',
             createdAt: new Date(item.timestamp || Date.now()).toISOString(),
+            updatedAt: nowIso,
             offlineQueued: false
           };
 
@@ -1104,7 +1152,7 @@ export default function App() {
       refreshPendingMutationsCount();
 
       if (syncedContribCount > 0 || replayedMutations > 0) {
-        NotificationService.sendLocalNotification('Synchronisation En Ligne Réussie ! ⚡', {
+        NotificationService.sendLocalNotification(`${MYENE.MBIAMBIE.mot} ! Synchronisation en ligne réussie ⚡`, {
           body: `${syncedContribCount > 0 ? `${syncedContribCount} contribution(s) ` : ''}${
             replayedMutations > 0 ? `et ${replayedMutations} mise(s) à jour ` : ''
           }synchronisée(s) avec Firebase.`
@@ -1120,9 +1168,17 @@ export default function App() {
   // Submit contribution handler (Unified for both Online & Offline / Airplane Mode)
   const handleSaveContribution = async (data: Partial<Contribution>, audioBlob?: Blob): Promise<boolean> => {
     const activeUser = currentUserRef.current || currentUser;
+    if (!activeUser || !activeUser.id) {
+      alert('Veuillez vous connecter pour contribuer.');
+      return false;
+    }
+    if (activeUser.status === 'suspended') {
+      alert(`${MYENE.NYEZA_MYE.mot}… Votre compte est suspendu : les contributions sont désactivées. Contactez l'équipe OMPANGANO.`);
+      return false;
+    }
 
     // Chaque contributeur individuel doit valider électroniquement les conditions et l'utilisation de ses données avant toute contribution.
-    if (activeUser && (!activeUser.termsAccepted || !activeUser.dataUsageAccepted)) {
+    if (!activeUser.termsAccepted || !activeUser.dataUsageAccepted) {
       setIsTermsConsentModalOpen(true);
       NotificationService.sendLocalNotification('Validation des Conditions Requise 📜', {
         body: "Veuillez accepter les conditions de la plateforme et valider l'utilisation de vos données avant de soumettre votre contribution."
@@ -1130,41 +1186,26 @@ export default function App() {
       return false;
     }
 
-    const currentlyOnline = typeof navigator === 'undefined' ? isOnline : navigator.onLine;
-    const contributionId = (currentlyOnline ? 'contrib-' : 'off-') + Date.now();
-    let finalAudioUrl = data.audioUrl;
-
-    if (audioBlob) {
-      if (currentlyOnline) {
-        try {
-          const storagePath = `recordings/${data.itemId}_${Date.now()}.webm`;
-          const audioRef = ref(storage, storagePath);
-          await uploadBytes(audioRef, audioBlob);
-          finalAudioUrl = await getDownloadURL(audioRef);
-        } catch (err) {
-          console.warn('Storage direct upload notice, convertissant en audio permanent Base64:', err);
-        }
-      }
-
-      // Always ensure we have a permanent Base64 dataUrl if offline or if Storage upload didn't return an https URL
-      if (!finalAudioUrl || finalAudioUrl.startsWith('blob:')) {
-        try {
-          finalAudioUrl = await convertBlobToBase64(audioBlob);
-        } catch (b64Err) {
-          console.warn('Base64 audio fallback notice:', b64Err);
-        }
-      }
+    // L'audio arrive sous forme de Blob ; à défaut on le reconstruit depuis l'aperçu local (data URL).
+    // Il n'est JAMAIS enregistré en base64 dans Firestore / RTDB : uniquement dans Storage.
+    let recording: Blob | null = audioBlob || null;
+    if (!recording && data.audioUrl && data.audioUrl.startsWith('data:')) {
+      recording = await dataUrlToBlob(data.audioUrl);
     }
+    const audioMimeType = recording ? (recording.type || data.audioMimeType || 'audio/webm') : undefined;
+
+    const currentlyOnline = typeof navigator === 'undefined' ? isOnline : navigator.onLine;
+    const contributionId = `contrib-${activeUser.id.slice(0, 8)}-${Date.now()}`;
 
     const payload: Contribution = {
       id: contributionId,
       itemId: data.itemId || '',
-      userId: activeUser?.id || 'guest-user',
-      userDisplayName: activeUser?.fullName || activeUser?.displayName || 'Contributeur Myènè',
-      userTribe: activeUser?.tribe,
-      userPaternalClan: activeUser?.paternalClan,
-      userMaternalClan: activeUser?.maternalClan,
-      userPhotoURL: activeUser?.photoURL,
+      userId: activeUser.id,
+      userDisplayName: activeUser.fullName || activeUser.displayName || 'Contributeur Myènè',
+      userTribe: activeUser.tribe,
+      userPaternalClan: activeUser.paternalClan,
+      userMaternalClan: activeUser.maternalClan,
+      userPhotoURL: activeUser.photoURL,
       frenchText: data.frenchText || '',
       originalMyeneText: data.originalMyeneText || '',
       isSpellingCorrect: !!data.isSpellingCorrect,
@@ -1173,54 +1214,82 @@ export default function App() {
       frenchMeaningType: data.frenchMeaningType || 'exact',
       proposedFrenchMeaning: data.proposedFrenchMeaning,
       secondaryMeaning: data.secondaryMeaning,
-      dialectVariant: data.dialectVariant || 'enenga',
+      dialectVariant: data.dialectVariant || mapTribeNameToDialectCode(activeUser.tribe),
       comment: data.comment,
-      audioUrl: finalAudioUrl,
-      audioDuration: data.audioDuration || 3,
+      audioDuration: recording ? data.audioDuration || 0 : 0,
+      audioMimeType,
       status: 'pending',
-      offlineQueued: !currentlyOnline,
-      createdAt: new Date().toISOString()
+      offlineQueued: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Mise en file locale (hors-ligne, ou envoi audio impossible) : rejouée par syncPendingOfflineData
+    const queueLocally = async () => {
+      const offlineSub: OfflineSubmission = {
+        id: contributionId,
+        itemId: payload.itemId,
+        frenchText: payload.frenchText,
+        originalMyeneText: payload.originalMyeneText,
+        isSpellingCorrect: payload.isSpellingCorrect,
+        proposedSpelling: payload.proposedSpelling,
+        isFrenchMeaningExact: payload.isFrenchMeaningExact,
+        frenchMeaningType: payload.frenchMeaningType,
+        proposedFrenchMeaning: payload.proposedFrenchMeaning,
+        secondaryMeaning: payload.secondaryMeaning,
+        dialectVariant: payload.dialectVariant,
+        comment: payload.comment,
+        audioBlob: recording || undefined,
+        // copie locale uniquement (IndexedDB / localStorage de l'appareil), jamais envoyée en base
+        audioDataUrl: data.audioUrl && data.audioUrl.startsWith('data:') ? data.audioUrl : undefined,
+        audioDuration: payload.audioDuration,
+        audioMimeType,
+        timestamp: Date.now()
+      };
+      await saveOfflineContribution(offlineSub);
+      setPendingOfflineSubmissions(await getPendingOfflineContributions());
+      payload.offlineQueued = true;
     };
 
     try {
       if (!currentlyOnline) {
-        // Save to offline IndexedDB + localStorage fallback
-        const offlineSub: OfflineSubmission = {
-          id: contributionId,
-          itemId: payload.itemId,
-          frenchText: payload.frenchText,
-          originalMyeneText: payload.originalMyeneText,
-          isSpellingCorrect: payload.isSpellingCorrect,
-          proposedSpelling: payload.proposedSpelling,
-          isFrenchMeaningExact: payload.isFrenchMeaningExact,
-          frenchMeaningType: payload.frenchMeaningType,
-          proposedFrenchMeaning: payload.proposedFrenchMeaning,
-          secondaryMeaning: payload.secondaryMeaning,
-          dialectVariant: payload.dialectVariant,
-          comment: payload.comment,
-          audioBlob: audioBlob || undefined,
-          audioDataUrl: finalAudioUrl,
-          audioDuration: payload.audioDuration,
-          timestamp: Date.now()
-        };
-        await saveOfflineContribution(offlineSub);
-        const updatedPending = await getPendingOfflineContributions();
-        setPendingOfflineSubmissions(updatedPending);
+        await queueLocally();
       } else {
-        const writeRes = await dualSaveRecord('contributions', contributionId, payload);
-        if (!writeRes.firestore && !writeRes.rtdb) {
-          payload.offlineQueued = true;
+        let uploadOk = true;
+        if (recording) {
+          const uploaded = await uploadRecording(activeUser.id, payload.itemId, recording);
+          if (uploaded) {
+            payload.audioUrl = uploaded.url;
+            payload.audioStoragePath = uploaded.path;
+          } else {
+            uploadOk = false;
+          }
         }
-        refreshPendingMutationsCount();
+        if (!uploadOk) {
+          // Pas de repli base64 : on garde la contribution sur l'appareil et on réessaiera
+          await queueLocally();
+          NotificationService.sendLocalNotification('Envoi audio différé ⏳', {
+            body: "L'enregistrement n'a pas pu être envoyé. Il est gardé sur votre appareil et sera renvoyé automatiquement."
+          });
+        } else {
+          const writeRes = await dualSaveRecord('contributions', contributionId, payload);
+          if (!writeRes.firestore && !writeRes.rtdb) {
+            payload.offlineQueued = true;
+          }
+          refreshPendingMutationsCount();
+        }
       }
 
+      const localCopy: Contribution = payload.offlineQueued && !payload.audioUrl && data.audioUrl
+        ? { ...payload, audioUrl: data.audioUrl } // aperçu local uniquement
+        : payload;
       setContributions(prev => {
-        const next = [payload, ...prev.filter(c => c.id !== payload.id)];
+        const next = [localCopy, ...prev.filter(c => c.id !== payload.id)];
         cacheContributionsLocally(next);
         return next;
       });
 
-      // Increment item contribution/recording counters locally in IndexedDB without mutating the 10,000-item catalog on Firestore on every contribution
+      // Compteurs locaux du catalogue (affichage uniquement)
       if (payload.itemId) {
         setItems(prev => {
           const next = prev.map(it => {
@@ -1228,7 +1297,7 @@ export default function App() {
             return {
               ...it,
               contributionsCount: (it.contributionsCount || 0) + 1,
-              recordingsCount: (it.recordingsCount || 0) + (finalAudioUrl ? 1 : 0)
+              recordingsCount: (it.recordingsCount || 0) + (recording ? 1 : 0)
             };
           });
           cacheItemsLocally(next);
@@ -1236,60 +1305,7 @@ export default function App() {
         });
       }
 
-      // Track Weekly Challenge progression
-      const activeChallenge = challenges.find(c => c.id === activeChallengeId);
-      const currentItemForContrib = items.find(i => i.id === data.itemId);
-      const latestUser = currentUserRef.current;
-      if (latestUser && activeChallenge && activeChallenge.isActive) {
-        const itemTheme = currentItemForContrib?.category || currentItemForContrib?.theme;
-        const isThemeMatch = activeChallenge.theme === 'all' || itemTheme === activeChallenge.theme;
-        const isTypeMatch = activeChallenge.challengeType === 'all' ||
-          activeChallenge.challengeType === 'contributions' ||
-          (activeChallenge.challengeType === 'recordings' && !!(audioBlob || data.audioUrl));
-
-        if (isThemeMatch && isTypeMatch) {
-          const currentCount = latestUser.weeklyProgress?.[activeChallenge.id] || 0;
-          const newCount = currentCount + 1;
-          const wasCompleted = latestUser.completedChallenges?.includes(activeChallenge.id);
-
-          const updatedWeeklyProgress = {
-            ...(latestUser.weeklyProgress || {}),
-            [activeChallenge.id]: newCount
-          };
-
-          let updatedCompleted = latestUser.completedChallenges || [];
-          let updatedBadges = [...(latestUser.badges || [])];
-          let bonusXp = 0;
-
-          if (newCount >= activeChallenge.targetCount && !wasCompleted) {
-            updatedCompleted = [...updatedCompleted, activeChallenge.id];
-            if (!updatedBadges.includes(activeChallenge.badgeRewardId)) {
-              updatedBadges.push(activeChallenge.badgeRewardId);
-            }
-            bonusXp = activeChallenge.xpReward;
-            setCelebrationChallenge(activeChallenge);
-
-            NotificationService.sendLocalNotification('🎉 Défi Hebdomadaire Accompli !', {
-              body: `Félicitations ! Vous avez débloqué le badge "${activeChallenge.badgeRewardName}" (+${activeChallenge.xpReward} XP) !`
-            });
-          }
-
-          const newXpTotal = (latestUser.xp || 0) + bonusXp;
-          const newLvl = getLevelForXp(newXpTotal);
-
-          await updateAndPersistCurrentUser(prev => ({
-            ...prev,
-            xp: newXpTotal,
-            level: newLvl.name,
-            levelIndex: newLvl.index,
-            badges: updatedBadges,
-            weeklyProgress: updatedWeeklyProgress,
-            completedChallenges: updatedCompleted,
-            updatedAt: new Date().toISOString()
-          }));
-        }
-      }
-
+      // Les points, badges et défis sont attribués à la VALIDATION (voir applyValidationWithRewards).
       return true;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'contributions/' + contributionId);
@@ -1302,28 +1318,9 @@ export default function App() {
     }
   };
 
-  // Gamification rewards handler (persists to localStorage + dualSaveRecord offline queue & cloud)
-  const handleRewardEarned = (xpGained: number, newBadges: string[]) => {
-    const latestUser = currentUserRef.current || currentUser;
-    if (!latestUser) return;
-
-    const newXp = (latestUser.xp || 0) + xpGained;
-    const newLvl = getLevelForXp(newXp);
-    const updatedBadges = Array.from(new Set([...(latestUser.badges || []), ...newBadges]));
-
-    const updatedProfile: UserProfile = {
-      ...latestUser,
-      xp: newXp,
-      level: newLvl.name,
-      levelIndex: newLvl.index,
-      contributionsCount: (latestUser.contributionsCount || 0) + 1,
-      recordingsCount: (latestUser.recordingsCount || 0) + (newBadges.includes('badge-premiere-voix') ? 1 : 0),
-      badges: updatedBadges,
-      updatedAt: new Date().toISOString()
-    };
-
-    updateAndPersistCurrentUser(updatedProfile).catch(() => {});
-  };
+  // Les XP ne sont plus attribués à la soumission (ils l'étaient avant validation, ce qui permettait la fraude).
+  // Conservé pour la compatibilité de CrowdsourceCard : n'écrit rien.
+  const handleRewardEarned = (_xpGained: number, _newBadges: string[]) => {};
 
   // Dynamic additions and administration of Clans and Villages
   const handleAddNewClan = async (name: string, tribe: string): Promise<ClanRegistry> => {
@@ -1359,7 +1356,7 @@ export default function App() {
     const fullClan: ClanRegistry = {
       id,
       name: clanData.name || 'Nouveau Clan',
-      tribe: clanData.tribe || 'Enenga',
+      tribe: clanData.tribe || 'Ôrungu',
       description: clanData.description,
       historicalMeaning: clanData.historicalMeaning,
       geographicalOrigins: clanData.geographicalOrigins,
@@ -1522,7 +1519,8 @@ export default function App() {
     const updated: UserProfile = {
       ...baseUser,
       ...profileData,
-      role: isSuperAdmin ? 'admin' : (profileData.role || baseUser.role),
+      // le rôle ne vient jamais du formulaire d'inscription
+      role: isSuperAdmin ? 'admin' : baseUser.role,
       registrationCompleted: true,
       updatedAt: new Date().toISOString()
     };
@@ -1543,8 +1541,8 @@ export default function App() {
     setIsPostOnboardingGuide(true);
     setIsVisualGuideOpen(true);
 
-    NotificationService.sendLocalNotification('Filiation OMPAGANO Validée 📜', {
-      body: `Bienvenue dans le programme ${updated.fullName} de la tribu ${updated.tribe} !`
+    NotificationService.sendLocalNotification('Filiation OMPANGANO Validée 📜', {
+      body: `${MYENE.SALE.mot} ! Bienvenue dans le programme, ${updated.fullName}, de la tribu ${updated.tribe} !`
     });
   };
 
@@ -1574,57 +1572,138 @@ export default function App() {
     } catch {}
 
     NotificationService.sendLocalNotification('Consentement Individuel Enregistré ✅', {
-      body: `Merci ${updated.fullName} ! Votre validation des conditions et de l'utilisation des données est certifiée.`
+      body: `${MYENE.AKEWA.mot}, ${updated.fullName} ! Votre validation des conditions et de l'utilisation des données est certifiée.`
     });
   };
 
-  // Admin validation handler (works offline & syncs online via dualSaveRecord)
-  const handleValidateContribution = async (
-    contributionId: string, 
-    status: 'approved' | 'rejected' | 'needs_revision',
-    notes?: string
-  ) => {
+  /**
+   * Validation d'une contribution + attribution des récompenses au contributeur.
+   * - Calcule l'objet mis à jour à partir de l'état courant AVANT setState
+   *   (l'ancien code le lisait dans un updater React, souvent pas encore exécuté).
+   * - Les XP, compteurs, badges et défis du contributeur sont mis à jour dans une
+   *   transaction Firestore (pas de double comptage, pas de perte si deux validateurs agissent).
+   * - Un validateur ne peut pas valider ses propres contributions.
+   */
+  const applyValidationWithRewards = async (
+    contributionId: string,
+    fields: Partial<Contribution> & { status: ContributionStatus }
+  ): Promise<boolean> => {
     const activeUser = currentUserRef.current || currentUser;
+    if (!activeUser || !isStaffRole(activeUser.role)) {
+      alert('Seuls les validateurs et administrateurs peuvent évaluer une contribution.');
+      return false;
+    }
+    const existing = contributionsRef.current.find(c => c.id === contributionId);
+    if (!existing) {
+      alert('Contribution introuvable. Actualisez la liste et réessayez.');
+      return false;
+    }
+    if (existing.userId === activeUser.id) {
+      alert(`${MYENE.NYEZA_MYE.mot}… Vous ne pouvez pas valider votre propre contribution : un autre validateur doit s'en charger.`);
+      return false;
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      alert("La validation attribue des points au contributeur : elle nécessite une connexion Internet. Réessayez une fois en ligne.");
+      return false;
+    }
+
+    const nowIso = new Date().toISOString();
     const validationFields: Partial<Contribution> = {
-      status,
-      validatorId: activeUser?.id || 'admin',
-      validatorDisplayName: activeUser?.fullName || 'Andy AKENDENGUE',
-      validatorNotes: notes || '',
-      validatedAt: new Date().toISOString()
+      ...fields,
+      validatorId: activeUser.id,
+      validatorDisplayName: activeUser.fullName || activeUser.displayName || 'Validateur',
+      validatedAt: nowIso,
+      updatedAt: nowIso
     };
 
-    let targetUpdatedContrib: Contribution | null = null;
-    setContributions(prev => {
-      const next = prev.map(c => {
-        if (c.id === contributionId) {
-          targetUpdatedContrib = { ...c, ...validationFields };
-          return targetUpdatedContrib;
+    let updatedContribution: Contribution = { ...existing, ...validationFields };
+    let contributorAfter: UserProfile | null = null;
+    try {
+      await ensureFirebaseAuthSession();
+      await runTransaction(db, async (tx) => {
+        const contribRef = doc(db, 'contributions', contributionId);
+        const userRef = doc(db, 'users', existing.userId);
+        const contribSnap = await tx.get(contribRef);
+        const userSnap = await tx.get(userRef);
+        const currentContrib = contribSnap.exists()
+          ? ({ id: contributionId, ...contribSnap.data() } as Contribution)
+          : existing;
+        const reward = userSnap.exists()
+          ? computeValidationReward({
+              contributor: { id: existing.userId, ...userSnap.data() } as UserProfile,
+              contribution: currentContrib,
+              newStatus: fields.status,
+              item: items.find(i => i.id === currentContrib.itemId),
+              challenges,
+              badges
+            })
+          : { userPatch: null, contributionPatch: {}, completedChallenges: [] };
+
+        updatedContribution = { ...currentContrib, ...validationFields, ...reward.contributionPatch };
+        tx.set(contribRef, sanitizeDataForFirebase({ ...validationFields, ...reward.contributionPatch }), { merge: true });
+        if (reward.userPatch && userSnap.exists()) {
+          tx.set(userRef, sanitizeDataForFirebase(reward.userPatch), { merge: true });
+          contributorAfter = { id: existing.userId, ...userSnap.data(), ...reward.userPatch } as UserProfile;
+        } else {
+          contributorAfter = null;
         }
-        return c;
       });
+    } catch (err) {
+      console.warn('Validation refusée ou échouée :', err);
+      alert(`${MYENE.NYEZA_MYE.mot}… La validation n'a pas pu être enregistrée (${(err as Error)?.message || 'erreur inconnue'}).`);
+      return false;
+    }
+
+    // Miroir RTDB (lecture rapide) + classement public du contributeur
+    if (rtdb) {
+      rtdbUpdate(rtdbRef(rtdb, `contributions/${contributionId}`), sanitizeDataForFirebase(updatedContribution)).catch(() => {});
+    }
+    const contributor = contributorAfter as UserProfile | null;
+    if (contributor) {
+      const { id: _id, ...rewardOnly } = contributor;
+      if (rtdb) {
+        const patch: Record<string, unknown> = {};
+        for (const key of ['xp', 'level', 'levelIndex', 'badges', 'contributionsCount', 'recordingsCount', 'weeklyProgress', 'completedChallenges', 'lastContributionDate', 'updatedAt']) {
+          patch[key] = (rewardOnly as Record<string, unknown>)[key] ?? null;
+        }
+        rtdbUpdate(rtdbRef(rtdb, `users/${contributor.id}`), sanitizeDataForFirebase(patch)).catch(() => {});
+      }
+      dualSaveRecord('leaderboard', contributor.id, buildLeaderboardEntry(contributor)).catch(() => {});
+      setUsersList(prev => {
+        const next = prev.map(u => (u.id === contributor.id ? { ...u, ...contributor } : u));
+        cacheUsersLocally(next);
+        return next;
+      });
+    }
+    bumpCatalogVersion('contributions');
+
+    setContributions(prev => {
+      const next = prev.map(c => (c.id === contributionId ? updatedContribution : c));
       cacheContributionsLocally(next);
       return next;
     });
 
-    await dualSaveRecord('contributions', contributionId, targetUpdatedContrib || { id: contributionId, ...validationFields });
-    refreshPendingMutationsCount();
-
-    if (activeUser) {
-      const updatedValids = (activeUser.validationsCount || 0) + 1;
-      const extraBadges = [...(activeUser.badges || [])];
-      if (updatedValids >= 5 && !extraBadges.includes('badge-cinq-validations')) {
-        extraBadges.push('badge-cinq-validations');
-      }
-      await updateAndPersistCurrentUser(prev => ({
-        ...prev,
-        validationsCount: updatedValids,
-        badges: extraBadges,
-        updatedAt: new Date().toISOString()
-      }));
-    }
+    // Compteur de validations du validateur (et badge « 5 validations »)
+    const updatedValids = (activeUser.validationsCount || 0) + 1;
+    await updateAndPersistCurrentUser(prev => ({
+      ...prev,
+      validationsCount: updatedValids,
+      badges: validationBadgesFor(updatedValids, prev.badges || [], badges),
+      updatedAt: new Date().toISOString()
+    }));
+    return true;
   };
 
-  // Dedicated Validator Workspace handler with explicit oral vs written nuance (works offline & syncs online)
+  // Validation simple (console d'administration)
+  const handleValidateContribution = async (
+    contributionId: string,
+    status: 'approved' | 'rejected' | 'needs_revision',
+    notes?: string
+  ) => {
+    await applyValidationWithRewards(contributionId, { status, validatorNotes: notes || '' });
+  };
+
+  // Validation détaillée (espace validateur : orthographe et prononciation séparées)
   const handleValidateGranular = async (
     contributionId: string,
     payload: {
@@ -1634,52 +1713,19 @@ export default function App() {
       notes?: string;
     }
   ) => {
-    const activeUser = currentUserRef.current || currentUser;
-    const updatePayload: Partial<Contribution> = {
+    const ok = await applyValidationWithRewards(contributionId, {
       status: payload.status,
       spellingVerdict: payload.spellingVerdict,
       pronunciationVerdict: payload.pronunciationVerdict,
       isSpellingCorrect: payload.spellingVerdict === 'correct',
       isPronunciationCorrect: payload.pronunciationVerdict === 'correct',
-      validatorId: activeUser?.id || 'validator',
-      validatorDisplayName: activeUser?.fullName || activeUser?.displayName || 'Validateur',
-      validatorNotes: payload.notes || '',
-      validatedAt: new Date().toISOString()
-    };
-
-    let targetUpdatedContrib: Contribution | null = null;
-    setContributions(prev => {
-      const next = prev.map(c => {
-        if (c.id === contributionId) {
-          targetUpdatedContrib = { ...c, ...updatePayload };
-          return targetUpdatedContrib;
-        }
-        return c;
+      validatorNotes: payload.notes || ''
+    });
+    if (ok) {
+      NotificationService.sendLocalNotification('Évaluation enregistrée 🎯', {
+        body: `${MYENE.AKEWA.mot} ! La contribution a été évaluée et les points du contributeur mis à jour.`
       });
-      cacheContributionsLocally(next);
-      return next;
-    });
-
-    await dualSaveRecord('contributions', contributionId, targetUpdatedContrib || { id: contributionId, ...updatePayload });
-    refreshPendingMutationsCount();
-
-    if (activeUser) {
-      const updatedValids = (activeUser.validationsCount || 0) + 1;
-      const extraBadges = [...(activeUser.badges || [])];
-      if (updatedValids >= 5 && !extraBadges.includes('badge-cinq-validations')) {
-        extraBadges.push('badge-cinq-validations');
-      }
-      await updateAndPersistCurrentUser(prev => ({
-        ...prev,
-        validationsCount: updatedValids,
-        badges: extraBadges,
-        updatedAt: new Date().toISOString()
-      }));
     }
-
-    NotificationService.sendLocalNotification('Évaluation Enregistrée 🎯', {
-      body: `La contribution a été évaluée avec nuance.`
-    });
   };
 
   // Admin User level & badge manual manager (persists to Firestore + RTDB + offline queue)
@@ -1691,51 +1737,33 @@ export default function App() {
   ) => {
     const lvl = USER_LEVELS.find(l => l.index === newLevelIndex) || USER_LEVELS[0];
     const nowIso = new Date().toISOString();
-    let updatedTargetUser: UserProfile | null = null;
+    // Mise à jour partielle calculée AVANT setState (l'updater React n'est pas forcément exécuté tout de suite)
+    const patch: Partial<UserProfile> = {
+      levelIndex: newLevelIndex,
+      level: lvl.name,
+      badges: badgesList,
+      ...(newXp !== undefined ? { xp: newXp } : {}),
+      updatedAt: nowIso
+    };
+    const target = usersList.find(u => u.id === userId);
 
     setUsersList(prev => {
-      const next = prev.map(u => {
-        if (u.id === userId) {
-          updatedTargetUser = {
-            ...u,
-            levelIndex: newLevelIndex,
-            level: lvl.name,
-            badges: badgesList,
-            xp: newXp !== undefined ? newXp : u.xp,
-            updatedAt: nowIso
-          };
-          return updatedTargetUser;
-        }
-        return u;
-      });
+      const next = prev.map(u => (u.id === userId ? { ...u, ...patch } : u));
       cacheUsersLocally(next);
       return next;
     });
 
     if (currentUserRef.current?.id === userId) {
-      await updateAndPersistCurrentUser(prev => ({
-        ...prev,
-        levelIndex: newLevelIndex,
-        level: lvl.name,
-        badges: badgesList,
-        xp: newXp !== undefined ? newXp : prev.xp,
-        updatedAt: nowIso
-      }));
-    } else {
-      await dualSaveRecord(
-        'users',
-        userId,
-        updatedTargetUser || {
-          id: userId,
-          levelIndex: newLevelIndex,
-          level: lvl.name,
-          badges: badgesList,
-          ...(newXp !== undefined ? { xp: newXp } : {}),
-          updatedAt: nowIso
-        }
-      );
-      refreshPendingMutationsCount();
+      // Ses propres champs protégés : l'admin les écrit directement
+      const next = { ...currentUserRef.current, ...patch } as UserProfile;
+      await updateAndPersistCurrentUser(next, false);
     }
+    // Écriture partielle (fusion côté Firestore ET RTDB)
+    await dualSaveRecord('users', userId, patch);
+    if (target) {
+      dualSaveRecord('leaderboard', userId, buildLeaderboardEntry({ ...target, ...patch } as UserProfile)).catch(() => {});
+    }
+    refreshPendingMutationsCount();
   };
 
   // Authentication Gate handler - PRESERVES FIRESTORE & OFFLINE DATA ON RECONNECT
@@ -1776,8 +1804,10 @@ export default function App() {
           isSuperAdmin
         );
 
-        if (needsCloudPush) {
-          await dualSaveRecord('users', merged.id, merged);
+        announceRewardsSinceLastVisit(currentUserRef.current, merged);
+
+        if (needsCloudPush || isSuperAdmin) {
+          await persistOwnProfileToCloud(merged);
           if (isSuperAdmin) {
             await dualSaveRecord('admins', merged.id, {
               userId: merged.id,
@@ -1800,39 +1830,20 @@ export default function App() {
       }
 
       // 2. ONLY for brand-new users who have never existed in Firestore:
-      const isAdmin = isSuperAdmin || profileData.role === 'admin' || (profileData.email && profileData.email.toLowerCase().includes('admin')) || false;
-      const fullProfile: UserProfile = {
+      // Le rôle n'est JAMAIS tiré des données du formulaire : seul le super-admin (adresse exacte) est admin.
+      const isAdmin = isSuperAdmin;
+      const fullProfile = createNewUserProfile({
         id: profileData.id,
-        displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : 'Contributeur OMPAGANO'),
-        fullName: profileData.fullName || profileData.displayName || 'Locuteur Myènè',
-        contact: profileData.contact || profileData.email || profileData.phoneNumber || '',
-        birthDate: '',
-        birthPlace: '',
-        tribe: 'Enenga',
-        paternalClan: '',
-        maternalClan: '',
-        villageOfOrigin: '',
-        registrationCompleted: false,
+        displayName: profileData.displayName || (profileData.email ? profileData.email.split('@')[0] : ''),
+        fullName: profileData.fullName,
         email: profileData.email || '',
+        contact: profileData.contact || profileData.email || profileData.phoneNumber || '',
         phoneNumber: profileData.phoneNumber || '',
-        photoURL: profileData.photoURL || '',
-        role: isAdmin ? 'admin' : (profileData.role || 'user'),
-        status: 'active',
-        suspicionScore: 0,
-        xp: 150,
-        level: 'Initié Curieux',
-        levelIndex: 1,
-        contributionsCount: 0,
-        recordingsCount: 0,
-        validationsCount: 0,
-        streakDays: 1,
-        badges: ['badge-premiere-voix'],
-        favoriteItemIds: getSavedFavoriteIds(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        photoURL: profileData.photoURL || ''
+      }, isAdmin);
 
-      await updateAndPersistCurrentUser(fullProfile, true);
+      await updateAndPersistCurrentUser(fullProfile, false);
+      await persistOwnProfileToCloud(fullProfile, { isNew: true });
       if (fullProfile.role === 'admin') {
         await dualSaveRecord('admins', fullProfile.id, { 
           userId: fullProfile.id,
@@ -1979,7 +1990,46 @@ export default function App() {
   };
 
   // Delete Contribution / Response
+  /**
+   * Suppression d'une contribution.
+   * - Contributeur : uniquement ses propres contributions EN ATTENTE (pas encore validées).
+   * - Administrateur : n'importe laquelle ; si elle avait rapporté des points, ils sont
+   *   d'abord retirés au contributeur (pas de points pour une contribution supprimée).
+   * L'enregistrement audio est aussi supprimé de Storage.
+   */
   const handleDeleteContribution = async (contributionId: string) => {
+    const actor = currentUserRef.current || currentUser;
+    const target = contributionsRef.current.find(c => c.id === contributionId);
+    const isAdmin = actor?.role === 'admin';
+    const isOwnPending = !!target && !!actor && target.userId === actor.id && target.status === 'pending';
+    if (target && !isAdmin && !isOwnPending) {
+      alert(`${MYENE.NYEZA_MYE.mot}… Vous ne pouvez supprimer que vos propres contributions en attente de validation.`);
+      return;
+    }
+
+    // Retrait des points déjà attribués (admin uniquement, en ligne)
+    if (target && isAdmin && (target.rewardedXp || target.rewardedContribution || target.rewardedRecording)) {
+      try {
+        await runTransaction(db, async (tx) => {
+          const userRef = doc(db, 'users', target.userId);
+          const userSnap = await tx.get(userRef);
+          if (!userSnap.exists()) return;
+          const reward = computeValidationReward({
+            contributor: { id: target.userId, ...userSnap.data() } as UserProfile,
+            contribution: target,
+            newStatus: 'rejected',
+            item: items.find(i => i.id === target.itemId),
+            challenges,
+            badges
+          });
+          if (reward.userPatch) tx.set(userRef, sanitizeDataForFirebase(reward.userPatch), { merge: true });
+        });
+      } catch (err) {
+        console.warn('Retrait des points impossible :', err);
+        if (!window.confirm("Les points de cette contribution n'ont pas pu être retirés (connexion ?). Supprimer quand même ?")) return;
+      }
+    }
+
     markIdAsDeleted('contributions', contributionId);
     await removeOfflineContribution(contributionId);
     setContributions(prev => {
@@ -1987,7 +2037,14 @@ export default function App() {
       cacheContributionsLocally(next);
       return next;
     });
-    await dualDeleteRecord('contributions', contributionId);
+    setPendingOfflineSubmissions(await getPendingOfflineContributions());
+
+    if (!target || !target.offlineQueued) {
+      await dualDeleteRecord('contributions', contributionId);
+    }
+    if (target?.audioStoragePath) {
+      deleteRecording(target.audioStoragePath).catch(() => {});
+    }
     refreshPendingMutationsCount();
   };
 
@@ -2132,25 +2189,28 @@ export default function App() {
   ) => {
     if (!incomingItems || incomingItems.length === 0) return;
 
-    // 1. Deduplicate against all currently existing items so re-uploading the same file NEVER creates duplicates
-    const { newItemsToImport } = deduplicateParsedCsvItems(incomingItems, items);
-    if (newItemsToImport.length === 0) {
+    // 1. Comparaison avec la base : les phrases portant un numéro déjà connu (colonne ID du CSV)
+    //    sont MISES À JOUR ; les autres déjà présentes sont ignorées ; seules les vraies nouvelles sont créées.
+    const { newItemsToImport, itemsToUpdate } = deduplicateParsedCsvItems(incomingItems, items);
+    const toWrite = [...newItemsToImport, ...itemsToUpdate];
+    if (toWrite.length === 0) {
       onProgress?.(0, 0);
       return;
     }
 
-    for (const it of newItemsToImport) {
+    for (const it of toWrite) {
       unmarkIdAsDeleted('items', it.id);
     }
 
-    const updatedItemsList = [...newItemsToImport, ...items];
+    const updatedById = new Map(itemsToUpdate.map(it => [it.id, it]));
+    const updatedItemsList = [...newItemsToImport, ...items.map(it => updatedById.get(it.id) || it)];
     setItems(updatedItemsList);
     cacheItemsLocally(updatedItemsList);
 
     // 2. Commit in fast, safe chunks of 250 documents per Firestore writeBatch + RTDB update (or queue offline)
     await dualBatchSaveRecords(
       'items',
-      newItemsToImport.map(it => ({ id: it.id, data: it })),
+      toWrite.map(it => ({ id: it.id, data: it })),
       onProgress
     );
 
@@ -2166,7 +2226,7 @@ export default function App() {
     refreshPendingMutationsCount();
 
     NotificationService.sendLocalNotification('Importation Réussie ! 📚', {
-      body: `${newItemsToImport.length} nouvelles phrases ont été importées sans aucun doublon.`
+      body: `${newItemsToImport.length} nouvelle(s) phrase(s) ajoutée(s), ${itemsToUpdate.length} mise(s) à jour d'après leur numéro, sans aucun doublon.`
     });
   };
 
@@ -2381,9 +2441,12 @@ export default function App() {
       await dualSaveRecord('villages', vi.id, vi);
     }
 
-    // 4. Sync all Users
+    // 4. Profils : on ne réécrit PAS les profils depuis la copie locale (elle peut être plus ancienne
+    //    que le cloud et ferait perdre des XP). On reconstruit seulement le classement public.
     for (const u of usersList) {
-      await dualSaveRecord('users', u.id, u);
+      if (u.registrationCompleted && !DEMO_MOCK_USER_IDS.has(u.id)) {
+        await dualSaveRecord('leaderboard', u.id, buildLeaderboardEntry(u));
+      }
     }
 
     // 5. Sync Challenges, Themes, Badges
@@ -2542,7 +2605,7 @@ export default function App() {
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#fdfaf7] mb-2">
             {cachedUserPreview?.fullName || cachedUserPreview?.displayName
               ? `Bon retour, ${cachedUserPreview.fullName || cachedUserPreview.displayName} !`
-              : 'Restauration de votre session OMPAGANO...'}
+              : 'Restauration de votre session OMPANGANO...'}
           </h1>
 
           <p className="text-sm text-[#c2a896] leading-relaxed mb-6">
@@ -2580,7 +2643,7 @@ export default function App() {
       {/* Code Update Banner if new version available */}
       <AppUpdateBanner />
 
-      {/* Top Navbar with OMPAGANO Branding */}
+      {/* Top Navbar with OMPANGANO Branding */}
       <Navbar
         currentUser={currentUser}
         isOnline={isOnline}
@@ -2622,7 +2685,7 @@ export default function App() {
                   Rappel Contributeur Enregistré :
                 </span>
                 <span className="text-white font-medium">
-                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (OMPAGANO / NKALA – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et débloquer vos points, badges et récompenses d'accomplissement.
+                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (OMPANGANO / NKALA – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et débloquer vos points, badges et récompenses d'accomplissement.
                 </span>
               </div>
             </div>
@@ -2739,15 +2802,18 @@ export default function App() {
 
         {/* Dedicated Validator Workspace: Oral vs Written nuance */}
         {currentTab === 'validator' && (currentUser?.role === 'validator' || currentUser?.role === 'admin') && (
-          <ValidatorWorkspace
-            contributions={contributions}
-            currentUser={currentUser}
-            onValidateGranular={handleValidateGranular}
-          />
+          <Suspense fallback={<StaffLoading />}>
+            <ValidatorWorkspace
+              contributions={contributions}
+              currentUser={currentUser}
+              onValidateGranular={handleValidateGranular}
+            />
+          </Suspense>
         )}
 
         {/* Administration: ONLY for Admins */}
         {currentTab === 'admin' && currentUser?.role === 'admin' && (
+          <Suspense fallback={<StaffLoading />}>
           <AdminDashboard
             items={items}
             contributions={contributions}
@@ -2787,12 +2853,14 @@ export default function App() {
             onExecuteInitialSeed={handleExecuteInitialSeed}
             isSeedingDatabase={isSeedingDatabase}
           />
+          </Suspense>
         )}
 
         {currentTab === 'profile' && (
           <UserProfileView
             currentUser={currentUser}
             contributions={contributions}
+            onDeleteContribution={handleDeleteContribution}
             items={items}
             favoriteItemIds={favoriteItemIds}
             onToggleFavorite={handleToggleFavoriteItem}

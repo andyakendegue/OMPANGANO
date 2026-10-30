@@ -58,7 +58,7 @@ function collectViteOptimizedDepUrls(): string[] {
 }
 
 /**
- * Universal Offline Plugin for OMPAGANO NKALA APP:
+ * Universal Offline Plugin for OMPANGANO:
  * - In `build` mode:
  *   1. Strips `crossorigin` attributes from same-origin `<script>` and `<link>` tags in `dist/index.html`
  *      so Firefox, Android Browser, and iOS Safari match cached bundles without CORS credentials mismatches.

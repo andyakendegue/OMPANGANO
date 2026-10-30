@@ -1,7 +1,7 @@
-# 🇬🇦 OMPAGANO — NKALA APP
+# 🇬🇦 OMPANGANO — NKALA APP
 ### Plateforme Participative de Crowdsourcing & Préservation de la Langue Myènè
 
-> **OMPAGANO** (« Transmettre la parole » en langue Myènè) est une plateforme web moderne et inclusive dédiée à la collecte, l'enregistrement vocal haute fidélité, l'annotation et la sauvegarde numérique de la langue **Myènè** du Gabon et de ses six tribus (Enenga, Mpongwè, Galoa, Nkomi, Ôrungu, Adyumba).
+> **OMPANGANO** (« Transmettre la parole » en langue Myènè) est une plateforme web moderne et inclusive dédiée à la collecte, l'enregistrement vocal haute fidélité, l'annotation et la sauvegarde numérique de la langue **Myènè** du Gabon et de ses six tribus (Enenga, Mpongwè, Galoa, Nkomi, Ôrungu, Adyumba).
 
 ---
 
@@ -93,7 +93,7 @@ Le module de validation permet d'examiner chaque contribution selon deux axes in
 ## 📁 Architecture & Structure du Répertoire
 
 ```text
-├── DEPLOY_OMPAGANO.md             # Guide pas-à-pas de déploiement Firebase multi-sites
+├── DEPLOY_OMPANGANO.md             # Guide pas-à-pas de déploiement Firebase multi-sites
 ├── firebaserc.json                # Référence de configuration Firebase visible (non masquée)
 ├── .firebaserc                    # Configuration des projets et cibles Firebase CLI
 ├── firebase.json                  # Définition Hosting (cible: "ompangano", rewrites SPA)

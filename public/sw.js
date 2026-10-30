@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 /**
- * OMPAGANO NKALA APP - Universal Offline-First Service Worker (v6)
+ * OMPANGANO NKALA APP - Universal Offline-First Service Worker (v6)
  * 100% compatible with Desktop Firefox (Gecko), Android Default Browser / Chrome (Blink/WebView),
  * and iOS Safari (WebKit) in Airplane Mode, including cold tab close & reopen.
  */
@@ -492,7 +492,7 @@ self.addEventListener('fetch', (event) => {
 
         // Emergency offline fallback if cache was manually cleared while offline
         return new Response(
-          '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OMPAGANO - Mode Hors-Ligne</title></head><body style="background:#1c120c;color:#fdfaf7;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;"><div><h2>OMPAGANO NKALA APP</h2><p>Veuillez charger l\'application une première fois avec Internet pour activer le Mode Hors-Ligne.</p><button onclick="location.reload()" style="margin-top:16px;padding:10px 20px;background:#c85a32;color:#fff;border:none;border-radius:12px;font-weight:bold;">Réessayer</button></div></body></html>',
+          '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OMPANGANO - Mode Hors-Ligne</title></head><body style="background:#1c120c;color:#fdfaf7;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;"><div><h2>OMPANGANO NKALA APP</h2><p>Veuillez charger l\'application une première fois avec Internet pour activer le Mode Hors-Ligne.</p><button onclick="location.reload()" style="margin-top:16px;padding:10px 20px;background:#c85a32;color:#fff;border:none;border-radius:12px;font-weight:bold;">Réessayer</button></div></body></html>',
           {
             status: 200,
             headers: { 'Content-Type': 'text/html; charset=utf-8' }

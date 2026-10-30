@@ -205,7 +205,7 @@ export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-xl sm:text-2xl font-black text-white">
-                  {currentUser?.fullName || currentUser?.displayName || 'Contributeur OMPAGANO'}
+                  {currentUser?.fullName || currentUser?.displayName || 'Contributeur OMPANGANO'}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#c85a32]/30 text-[#fdba74] border border-[#c85a32]/40">
                   {currentLevel.name}
@@ -260,7 +260,7 @@ export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-[#f59e0b]" />
-            <h3 className="text-lg font-bold text-white">Vos Badges & Titres Honorifiques OMPAGANO</h3>
+            <h3 className="text-lg font-bold text-white">Vos Badges & Titres Honorifiques OMPANGANO</h3>
           </div>
           <span className="text-xs text-[#a8826d]">
             {userBadges.length} sur {badges.length} débloqués

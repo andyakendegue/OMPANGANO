@@ -1,0 +1,32 @@
+rules_version = '2';
+// Règles Storage OMPANGANO (bucket partagé avec le site enenga).
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Enregistrements vocaux : chacun écrit uniquement dans son dossier,
+    // fichiers audio de 15 Mo maximum, jamais modifiés après coup.
+    match /recordings/{uid}/{fileName} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*');
+      allow update: if false;
+      allow delete: if signedIn()
+        && (request.auth.uid == uid
+            || request.auth.token.email == 'andymigoumbi@gmail.com'
+            || firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid)));
+    }
+
+    // Autres dossiers (site enenga) : accès réservé aux comptes connectés,
+    // à ajuster selon les besoins réels d'enenga.
+    match /{folder}/{allPaths=**} {
+      allow read, write: if signedIn() && folder != 'recordings';
+    }
+  }
+}

@@ -1,8 +1,11 @@
 {
+  // Règles RTDB OMPANGANO.
+  // ATTENTION : cette base est partagée avec le site enenga. Les nœuds enenga connus
+  // (auteurs, categories_livres, livres, mapPoints, announcements) gardent leurs règles.
+  // Ajouter ici tout autre nœud utilisé par enenga AVANT de déployer : tout nœud non listé est fermé.
+  // Les champs protégés des profils doivent rester identiques à src/services/userSecurity.ts.
+  // Le classement public (« leaderboard ») est tenu uniquement dans Firestore.
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null",
-
     "auteurs": {
       ".read": true,
       ".write": "auth != null"
@@ -24,44 +27,95 @@
       ".write": "auth != null"
     },
     "users": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "items": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "clans": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "villages": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator'))",
+      "$uid": {
+        ".read": "(auth != null && auth.uid == $uid) || ((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator'))",
+        ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))",
+        "role": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 'user')))"
+        },
+        "status": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 'active')))"
+        },
+        "suspicionScore": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 0)))"
+        },
+        "xp": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 0)))"
+        },
+        "level": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 'Initié Curieux')))"
+        },
+        "levelIndex": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 1)))"
+        },
+        "contributionsCount": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 0)))"
+        },
+        "recordingsCount": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 0)))"
+        },
+        "validationsCount": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) || ((auth != null && auth.uid == $uid) && (newData.val() == data.val() || (!data.exists() && newData.val() == 0)))"
+        },
+        "badges": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator'))) || ((auth != null && auth.uid == $uid) && !data.exists() && !newData.exists())"
+        },
+        "weeklyProgress": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && !data.exists() && !newData.exists())"
+        },
+        "completedChallenges": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid) || ((auth != null && auth.uid == $uid) && !data.exists() && !newData.exists())"
+        },
+        "$other": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.uid == $uid) && auth != null && auth.token.firebase.sign_in_provider != 'anonymous') || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && auth.uid != $uid && ($other == 'updatedAt' || $other == 'lastContributionDate'))"
+        }
+      }
     },
     "contributions": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      "$cid": {
+        ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (((auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || (auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('users').child(auth.uid).child('role').val() == 'validator')) && data.exists() && data.child('userId').val() != auth.uid && newData.child('userId').val() == data.child('userId').val()) || ((auth != null && auth.token.firebase.sign_in_provider != 'anonymous') && newData.child('userId').val() == auth.uid && newData.child('status').val() == 'pending' && (!newData.child('rewardedXp').exists() || newData.child('rewardedXp').val() == 0) && (!data.exists() || (data.child('userId').val() == auth.uid && data.child('status').val() == 'pending'))) || (auth != null && !newData.exists() && data.child('userId').val() == auth.uid && data.child('status').val() == 'pending')"
+      }
     },
-    "metrics": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+    "items": {
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))"
     },
     "challenges": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))"
     },
     "themes": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))"
     },
     "badges": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))"
+    },
+    "clans": {
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      "$id": {
+        ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.token.firebase.sign_in_provider != 'anonymous') && !data.exists())"
+      }
+    },
+    "villages": {
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      "$id": {
+        ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists())) || ((auth != null && auth.token.firebase.sign_in_provider != 'anonymous') && !data.exists())"
+      }
+    },
+    "metrics": {
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))",
+      "catalog_versions": {
+        ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')"
+      }
     },
     "admins": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous')",
+      ".write": "(auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && ((auth.token.email == 'andymigoumbi@gmail.com' && auth.token.email_verified == true) || root.child('admins').child(auth.uid).exists()))"
     }
   }
 }

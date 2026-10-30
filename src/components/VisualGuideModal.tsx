@@ -20,6 +20,7 @@ import {
   Users
 } from 'lucide-react';
 import { UserProfile } from '../types';
+import { MYENE } from '../services/myeneLexique';
 
 interface VisualGuideModalProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
               <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5">
                 <img
                   src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                  alt="Logo OMPAGANO"
+                  alt="Logo OMPANGANO"
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -84,14 +85,14 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                 <Compass className="w-3 h-3 text-[#f59e0b]" />
                 <span>
                   {isPostOnboarding
-                    ? 'Bienvenue à bord • Guide Visuel & Objectifs'
-                    : 'Guide Visuel Interactif & Objectifs OMPAGANO'}
+                    ? `${MYENE.SALE.mot} ! Bienvenue à bord • Guide Visuel & Objectifs`
+                    : 'Guide Visuel Interactif & Objectifs OMPANGANO'}
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
                 {currentUser?.fullName
-                  ? `Mbolo, ${currentUser.fullName.split(' ')[0]} ! Voici comment utiliser OMPAGANO`
-                  : 'Objectifs & Guide Visuel de la Plateforme OMPAGANO'}
+                  ? `${MYENE.MBOLO.mot}, ${currentUser.fullName.split(' ')[0]} ! Voici comment utiliser OMPANGANO`
+                  : 'Objectifs & Guide Visuel de la Plateforme OMPANGANO'}
               </h2>
             </div>
           </div>
@@ -126,10 +127,10 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
             <div className="p-4 rounded-2xl bg-gradient-to-r from-[#27150c] via-[#1f1008] to-[#180d07] border border-[#f59e0b]/40 space-y-2">
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#fde047]">
                 <Target className="w-4 h-4 text-[#f59e0b]" />
-                <span>La Mission d'OMPAGANO & de l'Application NKALA</span>
+                <span>La Mission d'OMPANGANO & de l'Application NKALA</span>
               </div>
               <p className="text-xs sm:text-sm text-[#fed7aa] leading-relaxed">
-                Conçu par <strong className="text-white">Essaka Engineering</strong>, <strong className="text-[#f59e0b]">OMPAGANO</strong> est le programme participatif de référence dédié à la sauvegarde, la documentation et la transmission vivante de la langue <strong className="text-white">Omyènè</strong> au Gabon.
+                Conçu par <strong className="text-white">Essaka Engineering</strong>, <strong className="text-[#f59e0b]">OMPANGANO</strong> est le programme participatif de référence dédié à la sauvegarde, la documentation et la transmission vivante de la langue <strong className="text-white">Omyènè</strong> au Gabon.
               </p>
             </div>
 
@@ -430,7 +431,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   onClick={() => handleFinish('crowdsource')}
                   className="px-4 py-2 rounded-xl terracotta-gradient text-white text-xs font-black shadow-lg transition active:scale-95"
                 >
-                  🎙️ Contribuer Maintenant
+                  🎙️ {MYENE.YAGA.mot} ! Contribuer maintenant
                 </button>
               </div>
             </div>

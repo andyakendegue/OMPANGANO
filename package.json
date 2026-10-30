@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "ompangano",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,19 +10,18 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting:ompangano,firestore:rules,database"
+    "deploy:hosting": "npm run build && firebase deploy --only hosting:ompangano",
+    "deploy:rules": "firebase deploy --only firestore:rules,database,storage",
+    "test:rules": "firebase emulators:exec --only firestore,database,storage --project demo-ompangano \"node tests/rules.test.mjs\""
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "canvas-confetti": "^1.9.4",
-    "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "firebase": "^13.1.0",
     "framer-motion": "^14.7.1",
     "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "recharts": "^3.10.1",
@@ -38,6 +37,7 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2",
-    "vite-plugin-pwa": "^2.0.0"
+    "vite-plugin-pwa": "^2.0.0",
+    "@firebase/rules-unit-testing": "^5.0.0"
   }
 }

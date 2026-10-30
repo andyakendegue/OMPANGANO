@@ -7,7 +7,7 @@ import {
   KeyRound
 } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider, signInOrRegisterWithEmail, checkIsAdminEmail } from '../firebase';
+import { auth, googleProvider, signInOrRegisterWithEmail } from '../firebase';
 import { UserProfile } from '../types';
 
 interface AuthModalProps {
@@ -25,6 +25,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userName, setUserName] = useState('');
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -38,21 +39,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      const isUserAdmin = checkIsAdminEmail(user.email);
       onLoginSuccess({
         id: user.uid,
         displayName:
-          user.displayName || user.email?.split('@')[0] || 'Contributeur OMPAGANO',
+          user.displayName || user.email?.split('@')[0] || 'Contributeur OMPANGANO',
         fullName: user.displayName || '',
         email: user.email || undefined,
         photoURL: user.photoURL || undefined,
-        role: isUserAdmin ? 'admin' : 'user',
-        status: 'active',
-        xp: 150,
-        level: 'Initié Curieux',
-        levelIndex: 1,
-        tribe: 'Enenga',
-        badges: ['badge-premiere-voix']
+        // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
+        tribe: 'Ôrungu'
       });
       onClose();
     } catch (err: any) {
@@ -99,10 +94,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMessage(null);
 
     try {
-      const user = await signInOrRegisterWithEmail(cleanEmail, password);
-      const isUserAdmin = checkIsAdminEmail(cleanEmail);
+      const user = await signInOrRegisterWithEmail(cleanEmail, password, isCreatingAccount ? 'register' : 'login');
       const displayName =
-        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur OMPAGANO';
+        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur OMPANGANO';
       const fullName = userName.trim() || user.displayName || 'Locuteur Myènè';
 
       onLoginSuccess({
@@ -111,13 +105,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         contact: cleanEmail,
         displayName,
         fullName,
-        role: isUserAdmin ? 'admin' : 'user',
-        status: 'active',
-        xp: 150,
-        level: 'Initié Curieux',
-        levelIndex: 1,
-        tribe: 'Enenga',
-        badges: ['badge-premiere-voix']
+        // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
+        tribe: 'Ôrungu'
       });
       onClose();
     } catch (err: any) {
@@ -148,14 +137,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                alt="Logo OMPAGANO"
+                alt="Logo OMPANGANO"
                 className="w-full h-full object-contain"
               />
             </div>
           </div>
           <div>
             <h3 className="text-xl font-black text-white font-serif">
-              Connexion à OMPAGANO
+              Connexion à OMPANGANO
             </h3>
             <p className="text-xs text-[#d4af94]">
               Accès réservé aux contributeurs et locuteurs Myènè
@@ -236,7 +225,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
 
             <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] text-center">
-              🔒 Connexion sécurisée au compte contributeur OMPAGANO.
+              🔒 Connexion sécurisée au compte contributeur OMPANGANO.
             </div>
           </div>
         )}
@@ -295,13 +284,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             </div>
 
+            <label className="flex items-center gap-2 text-xs text-[#fed7aa] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isCreatingAccount}
+                onChange={e => setIsCreatingAccount(e.target.checked)}
+                className="accent-[#f59e0b]"
+              />
+              <span>Je crée un nouveau compte (première visite)</span>
+            </label>
+
             <button
               type="submit"
               disabled={isLoading}
               className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Mail className="w-4 h-4" />
-              <span>{isLoading ? 'Connexion...' : 'Se connecter par Email'}</span>
+              <span>{isLoading ? 'Connexion...' : isCreatingAccount ? 'Créer mon compte' : 'Se connecter par e-mail'}</span>
             </button>
           </form>
         )}

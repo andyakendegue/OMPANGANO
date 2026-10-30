@@ -231,7 +231,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'modele_import_clans_ompagano.csv');
+    link.setAttribute('download', 'modele_import_clans_ompangano.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -299,7 +299,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'modele_import_villages_ompagano.csv');
+    link.setAttribute('download', 'modele_import_villages_ompangano.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -20,6 +20,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { Contribution, ContributionStatus, UserProfile } from '../types';
+import { mapDialectToTribeName } from '../services/seedData';
 
 interface ValidatorWorkspaceProps {
   contributions: Contribution[];
@@ -151,6 +152,8 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
 
   // Filter contributions
   const filteredContributions = contributions.filter(c => {
+    // Un validateur ne valide jamais ses propres contributions (vérifié aussi par les règles)
+    if (currentUser && c.userId === currentUser.id) return false;
     if (filterStatus === 'pending' && c.status !== 'pending') return false;
     if (filterStatus === 'approved' && c.status !== 'approved') return false;
     if (filterStatus === 'nuance_audio' && c.status !== 'audio_approved_text_revision') return false;
@@ -173,7 +176,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
     return true;
   });
 
-  const pendingCount = contributions.filter(c => c.status === 'pending').length;
+  const pendingCount = contributions.filter(c => c.status === 'pending' && c.userId !== currentUser?.id).length;
   const audioApprovedCount = contributions.filter(c => c.status === 'audio_approved_text_revision').length;
   const textApprovedCount = contributions.filter(c => c.status === 'text_approved_audio_revision').length;
   const fullyApprovedCount = contributions.filter(c => c.status === 'approved').length;
@@ -188,7 +191,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
               <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
                 <img 
                   src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                  alt="Logo OMPAGANO" 
+                  alt="Logo OMPANGANO" 
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -403,7 +406,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
                         </div>
                         {c.dialectVariant && (
                           <div className="text-[10px] text-[#a8826d]">
-                            Variante dialectale signalée : <em>{c.dialectVariant}</em>
+                            Variante dialectale signalée : <em>{mapDialectToTribeName(c.dialectVariant)}</em>
                           </div>
                         )}
                         {(c.proposedFrenchMeaning || c.secondaryMeaning) && (

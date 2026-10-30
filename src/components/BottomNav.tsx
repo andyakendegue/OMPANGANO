@@ -35,7 +35,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     },
     {
       id: 'explore' as AppTab,
-      label: 'Vocabulaire',
+      label: 'Ezango', // « le livre » en myènè (onglet Vocabulaire)
       icon: BookOpen,
       visible: true
     },

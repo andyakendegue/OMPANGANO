@@ -57,6 +57,8 @@ export interface ClanRegistry {
   historicalMeaning?: string;
   geographicalOrigins?: string;
   mottoOrSymbol?: string;
+  /** Version du contenu de la fiche (corrections linguistiques / historiques). */
+  contentVersion?: number;
   createdBy?: string;
   createdAt: string;
 }
@@ -125,6 +127,8 @@ export interface QuestionnaireItem {
   category: string;
   theme?: ThematicCategory | string;
   moduleThematique?: string;
+  /** Numéro de la phrase dans le fichier CSV d'origine (ex. ORU_0001). */
+  sourceRef?: string;
   phoneticApi?: string;
   grammaticalTarget?: string;
   durationSec?: number;
@@ -185,7 +189,15 @@ export interface Contribution {
   validatorNotes?: string;
   validatedAt?: string;
   offlineQueued?: boolean;
+  /** Type MIME réel de l'enregistrement (audio/webm, audio/mp4…). */
+  audioMimeType?: string;
+  /** Suivi des récompenses déjà attribuées pour cette contribution (évite le double comptage). */
+  rewardedXp?: number;
+  rewardedContribution?: 0 | 1;
+  rewardedRecording?: 0 | 1;
+  countedChallengeIds?: string[];
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Badge {
@@ -239,6 +251,7 @@ export interface OfflineSubmission {
   audioBlob?: Blob;
   audioDataUrl?: string;
   audioDuration?: number;
+  audioMimeType?: string;
   timestamp: number;
 }
 

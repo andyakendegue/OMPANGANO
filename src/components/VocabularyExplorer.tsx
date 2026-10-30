@@ -433,7 +433,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                       Tribu {activeTribeInfo.tribe}
                     </span>
                     <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#2b160c] text-[#f59e0b] border border-[#f59e0b]/40">
-                      Variété dialectale : {activeTribeInfo.dialectCode}
+                      Variété dialectale : {activeTribeInfo.tribe}
                     </span>
                     <span className="text-[10px] text-emerald-300 font-semibold">
                       • {filteredItems.length} question(s) associée(s)
@@ -672,7 +672,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-semibold text-[#f59e0b] tracking-wider">
-                      Tribu {mapDialectToTribeName(item.dialect)} ({item.dialect || 'orungu'})
+                      Tribu {mapDialectToTribeName(item.dialect)}
                     </span>
                     <span className="text-[10px] text-[#a8826d]">
                       {item.recordingsCount || 0} voix enregistrées

@@ -19,219 +19,248 @@ export const MYENE_TRIBES: TribeName[] = [
   'Ôrungu'
 ];
 
+// Version du contenu des fiches de clans. À incrémenter après une correction :
+// les fiches déjà en base sont alors remplacées par celles-ci (voir mergeOfficialClans).
+export const CLAN_CONTENT_VERSION = 2;
+
 export const INITIAL_CLANS: ClanRegistry[] = [
   // --- LISTE OFFICIELLE DES 21 CLANS ÔRUNGU ---
-  // (Les clans des autres tribus ne sont pas pré-remplis par défaut et s'ajoutent via l'Administration ou l'Import CSV)
+  // Seules les devises (kombo) attestées sont renseignées (source : « Mbuwé ni kombo géré ng’oyènè »,
+  // corpus DONDO). Les autres champs restent vides tant qu'aucune source n'est disponible :
+  // aucune description inventée.
+
   {
     id: 'clan-orungu-abulya',
     name: 'Abulya',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu de l’Île Mandji (Port-Gentil) et du delta maritime de l’Ogooué.',
-    historicalMeaning: 'Grande lignée souveraine et historique du royaume Ôrungu (liée aux traditions royales du Re-Nkombe et des grands dignitaires côtiers), dépositaire de l’autorité coutumière sur le littoral Mandji.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez, Sangatanga et delta maritime de l’Ogooué (province de l’Ogooué-Maritime).',
-    mottoOrSymbol: 'Noblesse du littoral Mandji et gardien de la mémoire royale Ôrungu.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '« Avandji n’Abulyé, ignèmbwè imbani imo ! » — Avandji et Abulya, deux sauces à l’huile de palme pareilles : égaux en nombre et en puissance.',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-agalikewa',
     name: 'Agalikewa',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu des rives du delta et des chenaux maritimes.',
-    historicalMeaning: 'Lignée ancienne Ôrungu garante des alliances claniques, de la jurisprudence coutumière et de la transmission du parler Ôrungu authentique.',
-    geographicalOrigins: 'Delta de l’Ogooué, Île Mandji (Port-Gentil) et villages côtiers de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Fidélité aux lois ancestrales et solidarité des rives.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-agenje',
     name: 'Agenje',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu du delta maritime de l’Ogooué, d’Ozouri et des lagunes côtières.',
-    historicalMeaning: 'Clan côtier Ôrungu réputé pour sa maîtrise des marées, de la navigation entre fleuve et océan et des chants rituels d’accueil et de bénédiction.',
-    geographicalOrigins: 'Delta maritime de l’Ogooué, Ozouri, lagunes côtières et Île Mandji (Ogooué-Maritime).',
-    mottoOrSymbol: 'Fraternité des rives et mémoire des ancêtres navigateurs.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '« Agéndjé kombarè » ; « Agenjé wéré penguino » — on n’attend pas les Agenjé.',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-agonjo-awenga',
     name: 'Agônjô - Awenga',
     tribe: 'Ôrungu',
-    description: 'Clan double allié officiel Ôrungu (Agônjô - Awenga) du terroir maritime et fluvial.',
-    historicalMeaning: 'Lignée confédérée unissant les branches Agônjô et Awenga dans une alliance historique de sang et d’entraide coutumière au sein de la nation Ôrungu.',
-    geographicalOrigins: 'Cap Lopez, Île Mandji (Port-Gentil) et embouchures du Bas-Ogooué (Ogooué-Maritime).',
-    mottoOrSymbol: 'Union indéfectible des lignées jumelles et force du conseil.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-ajena',
     name: 'Ajena',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu d’Alumbè, de l’Île Mandji et du bas-delta de l’Ogooué.',
-    historicalMeaning: 'Illustre lignée Ôrungu dont la tradition orale préserve la généalogie des anciens chefs de terre et des alliances entre les bras du fleuve et l’océan Atlantique.',
-    geographicalOrigins: 'Alumbè, Île Mandji (Port-Gentil) et bas-delta de l’Ogooué (province de l’Ogooué-Maritime).',
-    mottoOrSymbol: 'Transmission intergénérationnelle et honneur du lignage.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-ajiwe',
     name: 'Ajiwè',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu des terres côtières et insulaires de l’Ogooué-Maritime.',
-    historicalMeaning: 'Lignée traditionnelle Ôrungu dépositaire des savoirs rituels, des récits de fondation des campements côtiers et de la sagesse des anciens.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), baies de l’Ogooué-Maritime et chenaux du delta.',
-    mottoOrSymbol: 'Constance de l’esprit et respect de la parole donnée.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-alengonyango',
     name: 'Alèngonyangô',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu du littoral et des rivières de l’Ogooué-Maritime.',
-    historicalMeaning: 'Lignée matrilinéaire et patrilinéaire prestigieuse de l’espace Ôrungu, gardienne des chants de lignage et des généalogies familiales (Ompangano).',
-    geographicalOrigins: 'Littoral de Port-Gentil (Île Mandji), delta de l’Ogooué et rives maritimes.',
-    mottoOrSymbol: 'Rayonnement de la maison maternelle et mémoire des anciens.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-ananga',
     name: 'Ananga',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu des rives maritimes et fluviales du Bas-Ogooué.',
-    historicalMeaning: 'Clan d’observateurs et de guides coutumiers dont le nom évoque la clairvoyance, la veille sur le terroir et la rectitude morale.',
-    geographicalOrigins: 'Delta de l’Ogooué, Île Mandji et côtes de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Clairvoyance des anciens et vigilance sur la communauté.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-anombwe',
     name: 'Anômbwè',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu du delta de l’Ogooué et de l’Île Mandji.',
-    historicalMeaning: 'Lignée historique Ôrungu attachée à la préservation des coutumes ancestrales, des alliances matrimoniales et du patrimoine linguistique côtier.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez et villages du delta de l’Ogooué.',
-    mottoOrSymbol: 'Enracinement coutumier et concorde entre les familles.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-anori',
     name: 'Anori',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu des passes maritimes et du delta de l’Ogooué.',
-    historicalMeaning: 'Lignée traditionnelle Ôrungu reconnue pour la maîtrise des eaux côtières, le sens de l’hospitalité et la conservation des proverbes anciens.',
-    geographicalOrigins: 'Littoral de l’Ogooué-Maritime, Île Mandji et embouchures de l’Ogooué.',
-    mottoOrSymbol: 'Sagesse tranquille et droiture du verbe.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '« Anôri ! » — cri de guerre du clan.',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-anuva-azino',
     name: 'Anuva - Azinô',
     tribe: 'Ôrungu',
-    description: 'Clan double officiel Ôrungu (Anuva - Azinô) de l’Ogooué-Maritime.',
-    historicalMeaning: 'Lignée jumelée scellant l’alliance historique des maisons Anuva et Azinô dans la garde des traditions orales et des terres claniques Ôrungu.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), rives du delta de l’Ogooué et littoral atlantique.',
-    mottoOrSymbol: 'Fraternité des deux maisons et pérennité du sang.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-avange',
     name: 'Avange',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu du delta et de la côte de l’Ogooué-Maritime.',
-    historicalMeaning: 'Clan historique Ôrungu porteur d’une riche tradition d’éloquence lors des grands palabres coutumiers et des cérémonies de filiation.',
-    geographicalOrigins: 'Port-Gentil (Île Mandji), Cap Lopez et bras maritimes de l’Ogooué.',
-    mottoOrSymbol: 'Maîtrise de la parole juste et équilibre communautaire.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-avanji',
     name: 'Avanji',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu apparenté aux grandes lignées fluvio-maritimes Myènè.',
-    historicalMeaning: 'Branche Ôrungu de la grande famille clanique Avanji, témoignant des liens séculaires entre le delta maritime de l’Ogooué et les rives fluviales intérieures.',
-    geographicalOrigins: 'Delta maritime de l’Ogooué, Alumbè, Ozouri et Île Mandji (Ogooué-Maritime).',
-    mottoOrSymbol: 'Pont vivant entre le fleuve Ogooué et l’océan.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '« Avandji n’Abulyé, ignèmbwè imbani imo ! » — Avandji et Abulya, deux sauces à l’huile de palme pareilles : égaux en nombre et en puissance.',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-aworidela',
     name: 'Awôridèla',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu des terres ancestrales de l’Ogooué-Maritime.',
-    historicalMeaning: 'Lignée majeure du monde Ôrungu, gardienne des récits généalogiques anciens et des alliances coutumières sur le littoral.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), Sangatanga, Cap Lopez et delta de l’Ogooué.',
-    mottoOrSymbol: 'Dignité ancestrale et sauvegarde des racines.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-ayamba',
     name: 'Ayamba',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu du littoral et des chenaux du Bas-Ogooué.',
-    historicalMeaning: 'Clan traditionnel Ôrungu dépositaire des savoirs liés à la mer, à la pêche côtière et aux rites de protection de la communauté.',
-    geographicalOrigins: 'Delta de l’Ogooué, Île Mandji et côtes de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Harmonie avec l’océan et générosité du terroir.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-ayanji',
     name: 'Ayanji',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu établi dans le bassin maritime de l’Ogooué.',
-    historicalMeaning: 'Lignée ancienne Ôrungu reconnue pour la fidélité à la mémoire des aïeux et la transmission rigoureuse des alliances claniques.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), bas-delta de l’Ogooué et lagunes côtières.',
-    mottoOrSymbol: 'Honneur des anciens et cohésion de la lignée.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '« Omwo-Nyadji, itowa ! » — Fils de Nyandji, tombé du ciel !',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-ayege-avemba',
     name: 'Ayege - Avèmba',
     tribe: 'Ôrungu',
-    description: 'Clan double officiel Ôrungu (Ayege - Avèmba) de l’Ogooué-Maritime.',
-    historicalMeaning: 'Alliance clanique historique réunissant les lignées Ayege et Avèmba autour d’un même héritage coutumier et spirituel dans le delta de l’Ogooué.',
-    geographicalOrigins: 'Cap Lopez, Île Mandji (Port-Gentil) et villages côtiers de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Double racine, même parole et solidarité éternelle.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-azandi',
     name: 'Azandi',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu des rives maritimes et estuariennes de l’Ogooué.',
-    historicalMeaning: 'Lignée traditionnelle Ôrungu garante de la paix sociale, des médiations coutumières et de la pureté du vocabulaire cérémoniel.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), delta de l’Ogooué et littoral de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Justice coutumière et paix des foyers.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-aziza',
     name: 'Aziza',
     tribe: 'Ôrungu',
-    description: 'Clan officiel Ôrungu du littoral atlantique et du delta de l’Ogooué.',
-    historicalMeaning: 'Clan historique Ôrungu célébré pour la préservation des arts oraux, des proverbes marins et de l’histoire des fondateurs de la côte.',
-    geographicalOrigins: 'Port-Gentil (Île Mandji), Cap Lopez et delta maritime de l’Ogooué.',
-    mottoOrSymbol: 'Mémoire vive et noblesse du cœur.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-azume-aka-abele',
     name: 'Azumè – Aka - Abèlè',
     tribe: 'Ôrungu',
-    description: 'Confédération clanique triple officielle Ôrungu (Azumè – Aka - Abèlè).',
-    historicalMeaning: 'Grande triade lignagère Ôrungu unissant les branches Azumè, Aka et Abèlè par un pacte coutumier ancestral de fraternité et de partage territorial.',
-    geographicalOrigins: 'Delta maritime de l’Ogooué, Île Mandji (Port-Gentil) et terroirs côtiers de l’Ogooué-Maritime.',
-    mottoOrSymbol: 'Trois foyers unis dans une seule flamme ancestrale.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'clan-orungu-azuwa-akosa-aworidela',
     name: 'Azuwa – Akôsa - Awôridèla',
     tribe: 'Ôrungu',
-    description: 'Confédération clanique triple officielle Ôrungu (Azuwa – Akôsa - Awôridèla).',
-    historicalMeaning: 'Illustre alliance tripartite Ôrungu rassemblant les maisons Azuwa, Akôsa et Awôridèla, gardiennes des généalogies royales et des sanctuaires côtiers.',
-    geographicalOrigins: 'Île Mandji (Port-Gentil), Cap Lopez, Sangatanga et delta de l’Ogooué (Ogooué-Maritime).',
-    mottoOrSymbol: 'Force du trépied ancestral et unité sacrée du clan.',
+    description: '',
+    historicalMeaning: '',
+    geographicalOrigins: '',
+    mottoOrSymbol: '',
+    contentVersion: CLAN_CONTENT_VERSION,
     createdAt: '2026-01-01T00:00:00Z'
   }
+
 ];
 
 // IDs of obsolete pre-seeded clans (unverified non-Ôrungu seed entries & old Ôrungu placeholders) to purge automatically
@@ -292,17 +321,18 @@ export function mergeOfficialClans(
     if (!existing) {
       byNormName.set(key, official);
       newlyAddedOrUpdated.push(official);
-    } else if (!existing.historicalMeaning || !existing.geographicalOrigins) {
-      const enriched: ClanRegistry = {
-        ...official,
+    } else if ((existing.contentVersion || 0) < CLAN_CONTENT_VERSION) {
+      // Fiche ancienne (descriptions générées sans source) : remplacée par la version corrigée
+      const corrected: ClanRegistry = {
         ...existing,
-        historicalMeaning: existing.historicalMeaning || official.historicalMeaning,
-        geographicalOrigins: existing.geographicalOrigins || official.geographicalOrigins,
-        mottoOrSymbol: existing.mottoOrSymbol || official.mottoOrSymbol,
-        description: existing.description || official.description
+        description: official.description || '',
+        historicalMeaning: official.historicalMeaning || '',
+        geographicalOrigins: official.geographicalOrigins || '',
+        mottoOrSymbol: official.mottoOrSymbol || '',
+        contentVersion: CLAN_CONTENT_VERSION
       };
-      byNormName.set(key, enriched);
-      newlyAddedOrUpdated.push(enriched);
+      byNormName.set(key, corrected);
+      newlyAddedOrUpdated.push(corrected);
     }
   }
 
@@ -310,50 +340,6 @@ export function mergeOfficialClans(
     merged: Array.from(byNormName.values()),
     newlyAddedOrUpdated,
     removedObsoleteIds
-  };
-}
-
-export function getClanHistoricalAndGeoInfo(
-  clan: Partial<ClanRegistry> & { name: string; tribe?: string },
-  villages: VillageRegistry[] = []
-): {
-  historicalMeaning: string;
-  geographicalOrigins: string;
-  mottoOrSymbol: string;
-  associatedVillages: string[];
-} {
-  const normName = (clan.name || '').trim().toLowerCase();
-  const preset = INITIAL_CLANS.find(c => c.name.trim().toLowerCase() === normName);
-  const matchedVillages = villages
-    .filter(v => (v.clan || '').trim().toLowerCase() === normName)
-    .map(v => v.name);
-
-  const tribe = clan.tribe || preset?.tribe || 'Myènè';
-  const defaultGeoByTribe: Record<string, string> = {
-    'Mpongwè': 'Estuaire du Komo, rives de Libreville (Glass, Baraka, Louis) et Pointe-Denis (province de l’Estuaire).',
-    'Enenga': 'Bassin fluvial de Lambaréné, Lac Zilé, Lac Onangué et rives du Moyen-Ogooué.',
-    'Galoa': 'Moyen-Ogooué, Adolinanongo, Lambaréné et grands lacs du Sud (Onangué, Ezanga).',
-    'Nkomi': 'Lagune du Fernan Vaz (Eliwa Nkomi), Omboué et Sainte-Anne (province de l’Ogooué-Maritime).',
-    'Adyumba': 'Rives du Lac Azingo et voies d’eau septentrionales du Moyen-Ogooué.',
-    'Ôrungu': 'Île Mandji (Port-Gentil), Cap Lopez, Alumbè, Ozouri et delta maritime de l’Ogooué (Ogooué-Maritime).'
-  };
-
-  return {
-    historicalMeaning:
-      clan.historicalMeaning ||
-      preset?.historicalMeaning ||
-      clan.description ||
-      `Lignée clanique traditionnelle de la tribu ${tribe}, dépositaire des alliances coutumières, de la filiation OMPAGANO et de la transmission orale du parler ${tribe}.`,
-    geographicalOrigins:
-      clan.geographicalOrigins ||
-      preset?.geographicalOrigins ||
-      defaultGeoByTribe[tribe] ||
-      'Bassin de l’Ogooué, lacs et littoral maritime du Gabon.',
-    mottoOrSymbol:
-      clan.mottoOrSymbol ||
-      preset?.mottoOrSymbol ||
-      `Sauvegarde du patrimoine oral et de la mémoire généalogique ${tribe}.`,
-    associatedVillages: matchedVillages
   };
 }
 
@@ -484,163 +470,225 @@ export function mapTribeNameToDialectCode(tribe?: string): string {
   return TRIBAL_DIALECT_INFO[t]?.dialectCode || 'orungu';
 }
 
+// Phrases de départ : toutes tirées de sources vérifiables (leçons omyènè, Raponda-Walker,
+// Ambouroué) ou validées par l'équipe. Les anciennes phrases générées par IA (mots inexistants)
+// sont listées dans SEED_ITEM_CORRECTIONS pour être remplacées aussi dans la base.
 export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
   {
     id: 'nkala-enenga-01',
-    frenchText: 'Bonjour à tous / Salutations fraternelles',
-    myeneText: 'Mbolo vana',
+    frenchText: 'Bonjour à tous',
+    myeneText: 'Mbôluani',
     dialect: 'orungu',
     category: 'salutations',
-    contextNotes: "Formule de salutation chaleureuse adressée à plusieurs personnes réunies. 'Mbolo' est la base de salutation universelle Myènè, et 'vana' désigne l'assemblée.",
+    contextNotes: 'Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l\'ôrungu ([mbolwanè]).',
     imageUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
     difficulty: 'debutant',
     status: 'active',
-    contributionsCount: 14,
-    recordingsCount: 12,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-10T10:00:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-02',
-    frenchText: 'Merci beaucoup / Gratitude fraternelle',
-    myeneText: 'Na vevi',
-    dialect: 'mpongwe',
+    frenchText: 'Merci',
+    myeneText: 'Akéwa',
+    dialect: 'orungu',
     category: 'salutations',
-    contextNotes: "'Na vevi' signifie merci. 'Vevi' exprime la reconnaissance et la gratitude cordiale dans la tradition Myènè.",
+    contextNotes: 'Remerciement. « Akéwa mpolo ! » : merci beaucoup. Sources : Leçons omyènè (C. Hombouhiry), Formules de politesse ; Raponda-Walker (finiz\'akewa, remercier).',
     imageUrl: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?auto=format&fit=crop&w=800&q=80',
     difficulty: 'debutant',
     status: 'active',
-    contributionsCount: 22,
-    recordingsCount: 19,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-10T10:05:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-03',
-    frenchText: 'La pirogue glisse sur les eaux calmes du lac',
-    myeneText: 'Irende si bendi go nongo y’omvwa',
-    dialect: 'enenga',
+    frenchText: 'Dans la pirogue d\'autrui, ne prends pas tes aises',
+    myeneText: 'Owaro-mfélo, ré nyènyo ngôri.',
+    dialect: 'orungu',
     category: 'fleuve_peche',
-    contextNotes: "La sphère Myènè est intimement liée à la vie sur les lacs et le delta de l'Ogooué. 'Irende' est la pirogue monoxyle creusée dans l'okoumé, véhicule vital des pêcheurs.",
+    contextNotes: 'Proverbe. Owaro : la pirogue. Source : Leçons omyènè (C. Hombouhiry), Proverbes (chap. 1).',
     imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80',
-    difficulty: 'intermediaire',
+    difficulty: 'avance',
     status: 'active',
-    contributionsCount: 9,
-    recordingsCount: 7,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-12T14:20:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-04',
-    frenchText: 'Le crabe royal d’eau douce (Nkala)',
-    myeneText: 'Nkala y’inongo',
+    frenchText: 'La maison du peuple',
+    myeneText: 'Nkala y\'inongo',
     dialect: 'orungu',
-    category: 'fleuve_peche',
-    contextNotes: "Nkala donne son nom au projet. Le crabe symbolise la persévérance, la vigilance et la traversée entre terre et eau dans la cosmogonie fluviale et maritime.",
+    category: 'famille_communaute',
+    contextNotes: 'Nkala : le village ; inongo (inôngô) : le peuple, l\'ethnie. Sources : Leçons omyènè (C. Hombouhiry) (La Nature ; généalogie myènè).',
     imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
     difficulty: 'debutant',
     status: 'active',
-    contributionsCount: 18,
-    recordingsCount: 15,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-14T09:15:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-05',
-    frenchText: 'L’hippopotame souffle au crépuscule',
-    myeneText: 'Nguwu e pembi go mpyo',
-    dialect: 'galoa',
+    frenchText: 'L\'animal qui a une queue ne traverse pas le feu',
+    myeneText: 'Nyam\'okwéndé ré nôg\'ogoni.',
+    dialect: 'orungu',
     category: 'nature_faune',
-    contextNotes: "Les rives des lacs et du fleuve abritent les grands troupeaux de nguwu (hippopotames). On observe leurs souffles quand le soleil décline.",
+    contextNotes: 'Proverbe : qui a quelque chose à se reprocher évite le danger. Source : Leçons omyènè (C. Hombouhiry), Proverbes.',
     imageUrl: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=800&q=80',
     difficulty: 'avance',
     status: 'active',
-    contributionsCount: 6,
-    recordingsCount: 5,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-15T11:45:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-06',
-    frenchText: 'Le soleil se lève sur la grande forêt',
-    myeneText: 'Nkombi yi bendi go mpounga polo',
-    dialect: 'nkomi',
-    category: 'nature_faune',
-    contextNotes: "'Nkombi' est le soleil / le jour. 'Mpounga' désigne l'immense forêt équatoriale dense qui borde le bassin de l'Ogooué et la lagune du Fernan-Vaz.",
+    frenchText: 'Le jour s\'est levé, le cauchemar s\'est arrêté',
+    myeneText: 'Owendja wa jédji, gnino mbé ya simbi.',
+    dialect: 'orungu',
+    category: 'vie_quotidienne',
+    contextNotes: 'Source : Leçons omyènè (C. Hombouhiry), Phrases traduites en omyènè.',
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
     difficulty: 'intermediaire',
     status: 'active',
-    contributionsCount: 11,
-    recordingsCount: 10,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-16T16:10:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-07',
-    frenchText: 'Que la paix repose dans ta maison',
-    myeneText: 'Oza w’omvwa go nago yâwé',
-    dialect: 'adyumba',
+    frenchText: 'Le clan n\'a pas de prix',
+    myeneText: 'Mbuwé a zé n\'igholo.',
+    dialect: 'orungu',
     category: 'famille_communaute',
-    contextNotes: "Bénédiction traditionnelle Myènè prononcée par les aînés lors des visites familiales et des cérémonies d'accueil.",
+    contextNotes: 'Proverbe. Mbuwé : le clan (exogamique, issu d\'un ancêtre commun). Source : Leçons omyènè (C. Hombouhiry), Proverbes.',
     imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80',
-    difficulty: 'avance',
+    difficulty: 'intermediaire',
     status: 'active',
-    contributionsCount: 8,
-    recordingsCount: 6,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-18T08:30:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-08',
-    frenchText: 'Les enfants préparent le poisson fumé',
-    myeneText: 'Wana wa tongi inyege yi dyosi',
-    dialect: 'enenga',
+    frenchText: 'Le poisson fumé',
+    myeneText: 'Ewèrè ézômô',
+    dialect: 'orungu',
     category: 'vie_quotidienne',
-    contextNotes: "Le poisson fumé au bois aromatique est le pilier culinaire de la cuisine traditionnelle riveraine et côtière Myènè.",
+    contextNotes: 'Ewèrè : le poisson ; ewèrè z\'azanga : le poisson salé. Source : Leçons omyènè (C. Hombouhiry), Les aliments.',
     imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
-    difficulty: 'intermediaire',
+    difficulty: 'debutant',
     status: 'active',
-    contributionsCount: 15,
-    recordingsCount: 13,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-20T17:00:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-09',
-    frenchText: 'Celui qui écoute les anciens ne s’égare point sur le fleuve',
-    myeneText: 'O noki w’abami a za dova go nongo',
+    frenchText: 'Le fleuve a fait des détours car il n\'a trouvé personne pour le guider',
+    myeneText: 'Oghèningo a ghèndi règhô kôndènè éré dèng\'oma wi tévuna yè',
     dialect: 'orungu',
     category: 'proverbes_contes',
-    contextNotes: "Proverbe fondamental Myènè valorisant la transmission intergénérationnelle et la mémoire des hauts-fonds du fleuve et de l'estuaire.",
+    contextNotes: 'Proverbe : on dévie faute de conseils (tevuna : conseiller, montrer le chemin). Source : Leçons omyènè (C. Hombouhiry), Proverbes.',
     imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
     difficulty: 'avance',
     status: 'active',
-    contributionsCount: 19,
-    recordingsCount: 16,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-22T19:30:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   },
   {
     id: 'nkala-enenga-10',
-    frenchText: 'Le tambour appelle à la danse rituelle',
-    myeneText: 'Ngoma yi kengi vana g’ezango',
+    frenchText: 'Viens danser !',
+    myeneText: 'Yaga go dyina !',
     dialect: 'orungu',
     category: 'vie_quotidienne',
-    contextNotes: "'Ngoma' est le tambour sacré en bois taillé. 'Ezango' est la danse communautaire célébrant les grandes joies et les rites.",
+    contextNotes: 'Yaga : viens ; go dyina : danser. Source : Leçons omyènè (C. Hombouhiry), Les incontournables.',
     imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
-    difficulty: 'intermediaire',
+    difficulty: 'debutant',
     status: 'active',
-    contributionsCount: 12,
-    recordingsCount: 11,
-    createdBy: 'system_ompagano',
-    createdAt: '2026-01-25T12:00:00Z'
+    contributionsCount: 0,
+    recordingsCount: 0,
+    createdBy: 'system_ompangano',
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-10-30T00:00:00Z'
   }
 ];
+
+/** Anciens textes myènè (générés par IA, incorrects) des phrases de départ, par identifiant. */
+export const SEED_ITEM_CORRECTIONS: Record<string, string> = {
+  'nkala-enenga-01': 'Mbolo vana',
+  'nkala-enenga-02': 'Na vevi',
+  'nkala-enenga-03': 'Irende si bendi go nongo y’omvwa',
+  'nkala-enenga-04': 'Nkala y’inongo',
+  'nkala-enenga-05': 'Nguwu e pembi go mpyo',
+  'nkala-enenga-06': 'Nkombi yi bendi go mpounga polo',
+  'nkala-enenga-07': 'Oza w’omvwa go nago yâwé',
+  'nkala-enenga-08': 'Wana wa tongi inyege yi dyosi',
+  'nkala-enenga-09': 'O noki w’abami a za dova go nongo',
+  'nkala-enenga-10': 'Ngoma yi kengi vana g’ezango'
+};
+
+/**
+ * Remplace, dans une liste chargée de la base, les phrases de départ qui portent encore
+ * l'ancien texte généré par IA. Renvoie les éléments corrigés (à réécrire par un admin).
+ */
+export function applySeedItemCorrections(items: QuestionnaireItem[]): { items: QuestionnaireItem[]; corrected: QuestionnaireItem[] } {
+  const corrected: QuestionnaireItem[] = [];
+  const byId = new Map(INITIAL_ENENGA_ITEMS.map(it => [it.id, it]));
+  const next = items.map(it => {
+    const oldText = SEED_ITEM_CORRECTIONS[it.id];
+    const fixed = byId.get(it.id);
+    if (!oldText || !fixed || (it.myeneText || '').trim() !== oldText) return it;
+    const updated: QuestionnaireItem = {
+      ...it,
+      frenchText: fixed.frenchText,
+      myeneText: fixed.myeneText,
+      dialect: fixed.dialect,
+      category: fixed.category,
+      contextNotes: fixed.contextNotes,
+      difficulty: fixed.difficulty,
+      updatedAt: new Date().toISOString()
+    };
+    corrected.push(updated);
+    return updated;
+  });
+  return { items: next, corrected };
+}
+
+/** Anciens titres de badges → nouveaux titres avec le nom myènè (mise à jour de la base par un admin). */
+export const BADGE_TITLE_RENAMES: Record<string, { from: string; to: string }> = {
+  'badge-premiere-voix': { from: 'Première Voix', to: 'Inioï · Première Voix' },
+  'badge-maitre-verbe': { from: 'Maître du Verbe', to: 'Ekafè · Maître du Verbe' },
+  'badge-cinq-validations': { from: 'Oreille de l’Aîné', to: 'Onèrô · Oreille de l’Aîné' },
+  'badge-defi-faune': { from: 'Pisteur de la Savane', to: 'Mbagara · Pisteur de la Savane' }
+};
 
 export const SYSTEM_BADGES: Badge[] = [
   {
     id: 'badge-genealogie-verifiee',
-    title: 'Filiation OMPAGANO',
+    title: 'Filiation OMPANGANO',
     description: 'A renseigné avec authenticité sa tribu, ses clans paternel et maternel et son village.',
     icon: '📜',
     category: 'genealogie'
@@ -655,7 +703,7 @@ export const SYSTEM_BADGES: Badge[] = [
   },
   {
     id: 'badge-cinq-validations',
-    title: 'Oreille de l’Aîné',
+    title: 'Onèrô · Oreille de l’Aîné',
     description: 'A examiné et validé ou corrigé 5 contributions de relecture.',
     icon: '👂',
     requiredValidations: 5,
@@ -663,7 +711,7 @@ export const SYSTEM_BADGES: Badge[] = [
   },
   {
     id: 'badge-premiere-voix',
-    title: 'Première Voix',
+    title: 'Inioï · Première Voix',
     description: 'A enregistré sa toute première prononciation dans la langue des ancêtres.',
     icon: '🎙️',
     requiredRecordings: 1,
@@ -672,13 +720,13 @@ export const SYSTEM_BADGES: Badge[] = [
   {
     id: 'badge-gardien-lacs',
     title: 'Gardien des Lacs',
-    description: 'A maintenu une série de 3 jours consécutifs de fidélité au programme OMPAGANO.',
+    description: 'A maintenu une série de 3 jours consécutifs de fidélité au programme OMPANGANO.',
     icon: '🌊',
     category: 'fidelite'
   },
   {
     id: 'badge-maitre-verbe',
-    title: 'Maître du Verbe',
+    title: 'Ekafè · Maître du Verbe',
     description: 'A atteint plus de 1000 points d’expérience pour la sauvegarde de la langue.',
     icon: '👑',
     requiredXp: 1000,
@@ -715,7 +763,7 @@ export const SYSTEM_BADGES: Badge[] = [
   },
   {
     id: 'badge-defi-faune',
-    title: 'Pisteur de la Savane',
+    title: 'Mbagara · Pisteur de la Savane',
     description: 'A enrichi 5 expressions relatives à la faune et la grande forêt équatoriale.',
     icon: '🐆',
     category: 'defi'
@@ -1104,33 +1152,53 @@ export function generateDeterministicCsvItemId(
 }
 
 export interface CsvDeduplicationResult {
+  /** Phrases absentes de la base : à créer. */
   newItemsToImport: QuestionnaireItem[];
+  /** Phrases déjà présentes (même numéro, ou même texte) dont le contenu a changé : à mettre à jour. */
+  itemsToUpdate: QuestionnaireItem[];
+  /** Phrases déjà présentes et identiques : ignorées. */
   alreadyExistingItems: QuestionnaireItem[];
   internalDuplicatesCount: number;
   totalParsedCount: number;
 }
 
+/** Champs comparés pour savoir si une phrase existante doit être mise à jour. */
+function csvContentChanged(existing: QuestionnaireItem, candidate: QuestionnaireItem): boolean {
+  const norm = (v: unknown) => (v === undefined || v === null ? '' : String(v)).trim();
+  const fields: (keyof QuestionnaireItem)[] = [
+    'frenchText', 'myeneText', 'dialect', 'category', 'phoneticApi', 'grammaticalTarget', 'contextNotes', 'difficulty', 'moduleThematique'
+  ];
+  return fields.some(f => candidate[f] !== undefined && norm(candidate[f]) !== '' && norm(candidate[f]) !== norm(existing[f]));
+}
+
 /**
- * Deduplicates parsed CSV items against:
- * 1. All existing items already present in the live production database (matched by ID OR by normalized Myènè+French text),
- *    preserving existing production IDs and contributions.
- * 2. Internal duplicate rows within the CSV file itself.
+ * Compare les phrases d'un CSV à la base :
+ * 1. Même numéro (colonne ID du fichier, ex. ORU_0001) qu'une phrase existante :
+ *    la phrase est MISE À JOUR si son contenu a changé (sinon ignorée). L'identifiant,
+ *    les compteurs, l'image et la date de création de la phrase existante sont conservés,
+ *    donc les contributions déjà liées restent attachées.
+ * 2. Sans numéro connu, même texte myènè + français qu'une phrase existante : ignorée.
+ * 3. Sinon : nouvelle phrase.
+ * Les lignes en double dans le fichier lui-même (même numéro ou même texte) ne sont prises qu'une fois.
  */
 export function deduplicateParsedCsvItems(
   parsedItems: QuestionnaireItem[],
   existingItems: QuestionnaireItem[]
 ): CsvDeduplicationResult {
-  const existingIds = new Set<string>();
-  const existingSignatures = new Set<string>();
+  const byId = new Map<string, QuestionnaireItem>();
+  const bySignature = new Map<string, QuestionnaireItem>();
 
   for (const existing of existingItems || []) {
     if (!existing) continue;
     if (existing.id) {
-      existingIds.add(existing.id.trim().toLowerCase());
-      existingIds.add(sanitizeFirebaseRecordId(existing.id).toLowerCase());
+      byId.set(existing.id.trim().toLowerCase(), existing);
+      byId.set(sanitizeFirebaseRecordId(existing.id).toLowerCase(), existing);
+    }
+    if (existing.sourceRef) {
+      byId.set(sanitizeFirebaseRecordId(existing.sourceRef).toLowerCase(), existing);
     }
     if (existing.myeneText || existing.frenchText) {
-      existingSignatures.add(buildItemDeduplicationSignature(existing.myeneText, existing.frenchText));
+      bySignature.set(buildItemDeduplicationSignature(existing.myeneText, existing.frenchText), existing);
     }
   }
 
@@ -1138,6 +1206,7 @@ export function deduplicateParsedCsvItems(
   const seenInCsvSignatures = new Set<string>();
 
   const newItemsToImport: QuestionnaireItem[] = [];
+  const itemsToUpdate: QuestionnaireItem[] = [];
   const alreadyExistingItems: QuestionnaireItem[] = [];
   let internalDuplicatesCount = 0;
 
@@ -1145,30 +1214,62 @@ export function deduplicateParsedCsvItems(
     if (!candidate) continue;
     const safeId = sanitizeFirebaseRecordId(candidate.id);
     const lowerId = safeId.toLowerCase();
+    const refKey = candidate.sourceRef ? sanitizeFirebaseRecordId(candidate.sourceRef).toLowerCase() : '';
     const sig = buildItemDeduplicationSignature(candidate.myeneText, candidate.frenchText);
 
-    // 1. Check if already in production database (by ID or by normalized Myènè + French text)
-    if (existingIds.has(lowerId) || existingSignatures.has(sig)) {
+    // Doublon à l'intérieur du même fichier
+    if (seenInCsvIds.has(lowerId) || (refKey && seenInCsvIds.has(refKey)) || seenInCsvSignatures.has(sig)) {
+      internalDuplicatesCount++;
+      continue;
+    }
+    seenInCsvIds.add(lowerId);
+    if (refKey) seenInCsvIds.add(refKey);
+    seenInCsvSignatures.add(sig);
+
+    // 1. Même numéro qu'une phrase existante → mise à jour si le contenu a changé
+    const sameNumber = byId.get(lowerId) || (refKey ? byId.get(refKey) : undefined);
+    if (sameNumber) {
+      if (csvContentChanged(sameNumber, candidate)) {
+        itemsToUpdate.push({
+          ...sameNumber,
+          frenchText: candidate.frenchText || sameNumber.frenchText,
+          myeneText: candidate.myeneText || sameNumber.myeneText,
+          dialect: candidate.dialect || sameNumber.dialect,
+          category: candidate.category || sameNumber.category,
+          theme: candidate.theme || sameNumber.theme,
+          moduleThematique: candidate.moduleThematique || sameNumber.moduleThematique,
+          phoneticApi: candidate.phoneticApi || sameNumber.phoneticApi,
+          grammaticalTarget: candidate.grammaticalTarget || sameNumber.grammaticalTarget,
+          durationSec: candidate.durationSec || sameNumber.durationSec,
+          contextNotes: candidate.contextNotes || sameNumber.contextNotes,
+          difficulty: candidate.difficulty || sameNumber.difficulty,
+          sourceRef: candidate.sourceRef || sameNumber.sourceRef,
+          status: 'active',
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        alreadyExistingItems.push(candidate);
+      }
+      continue;
+    }
+
+    // 2. Même texte qu'une phrase existante (sous un autre identifiant) → ignorée
+    if (bySignature.has(sig)) {
       alreadyExistingItems.push(candidate);
       continue;
     }
 
-    // 2. Check if duplicated earlier within the same CSV file
-    if (seenInCsvIds.has(lowerId) || seenInCsvSignatures.has(sig)) {
-      internalDuplicatesCount++;
-      continue;
-    }
-
-    seenInCsvIds.add(lowerId);
-    seenInCsvSignatures.add(sig);
+    // 3. Nouvelle phrase
     newItemsToImport.push({
       ...candidate,
-      id: safeId
+      id: safeId,
+      updatedAt: candidate.updatedAt || new Date().toISOString()
     });
   }
 
   return {
     newItemsToImport,
+    itemsToUpdate,
     alreadyExistingItems,
     internalDuplicatesCount,
     totalParsedCount: (parsedItems || []).length
@@ -1280,6 +1381,9 @@ export function parsePhrasesAndDiscoverThemes(
 
     results.push({
       id: rawId,
+      // Numérotation d'origine du fichier (ex. ORU_0001) : permet de METTRE À JOUR la phrase
+      // lors d'un nouvel envoi du même fichier corrigé, au lieu de créer un doublon.
+      sourceRef: explicitCsvId || undefined,
       frenchText,
       myeneText,
       dialect: targetDialect,
@@ -1303,7 +1407,7 @@ export function parsePhrasesAndDiscoverThemes(
   return { items: results, newDiscoveredThemes };
 }
 
-// Convertit le contenu d'un CSV (Corpus TTS Ôrungu ou format Standard OMPAGANO) en QuestionnaireItem[]
+// Convertit le contenu d'un CSV (Corpus TTS Ôrungu ou format Standard OMPANGANO) en QuestionnaireItem[]
 export function parsePhrasesFromCsv(
   csvText: string, 
   defaultDialect: string = 'orungu', 
@@ -1314,11 +1418,13 @@ export function parsePhrasesFromCsv(
 
 // Générateur de modèle CSV d'importation vierge/documenté
 export function generateCsvTemplate(): string {
+  // Exemples tirés des leçons omyènè (C. Hombouhiry). La transcription API est laissée vide :
+  // elle doit être saisie par un locuteur ou un linguiste, jamais devinée.
   return `ID,Module_Thematique,Texte_Orungu_Orthographe,Transcription_API_Tonale,Traduction_Francaise,Cibles_Phonologiques_Grammaticales,Duree_Estimee_Sec
-ORU_0001,M1_Oralite_Salutations,"Mbolo ! A wé ré vôvô ?","[m̩bólò ‖ à wé ɾé βɔ́βɔ̀]","Bonjour ! Comment vas-tu ?","Salutations & Intonation",8.2
-ORU_0002,M1_Oralite_Salutations,"Owaro-mfélo, ré nyènyo ngôri.","[òwáɾò m̩félò | ɾé ɲɛ́ɲò ŋ̩ɡɔ́ɾì]","Dans la pirogue d'autrui, ne prends pas tes aises.","Proverbe de navigation",8.2
-ORU_0003,M2_Quotidien_Alternances_Sandhi,"Omwanto é kol'otondo wami go nkala.","[òmwántò é kólòtóndò wàmì ɣò ŋ̩kálà]","La femme achète mon panier au village.","Élision & Sandhi",8.2
-ORU_0004,M5_Histoire_Clans_Rites_Orungu,"Agamwinboni wa bonga ambwaro mpolo go nugo go ntchuwa.","[àɣámwímbónì wá bóŋɡà àmbwàɾò m̩pólò ɣò núɣò ɣò n̩tʃúwà]","Le souverain Agamwinboni prit les grandes pirogues en haute mer.","Navigation & Dynastie",8.2`;
+ORU_0001,M1_Oralite_Salutations,"Mbolo ! A wéré vôvô ?","","Bonjour ! Comment vas-tu ?","Salutations & Intonation",8.2
+ORU_0002,M1_Oralite_Salutations,"Owaro-mfélo, ré nyènyo ngôri.","","Dans la pirogue d'autrui, ne prends pas tes aises.","Proverbe de navigation",8.2
+ORU_0003,M2_Quotidien_Alternances_Sandhi,"Va myè aningo","","Donne-moi de l'eau","Impératif",4
+ORU_0004,M6_Oralite_Proverbes,"Ngow' orové azongo mbani","","On ne poursuit pas deux cochons sauvages dans une savane.","Proverbe",8.2`;
 }
 
 // =========================================================================

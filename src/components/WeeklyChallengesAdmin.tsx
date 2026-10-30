@@ -102,7 +102,7 @@ export const WeeklyChallengesAdmin: React.FC<WeeklyChallengesAdminProps> = ({
         <div>
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <Trophy className="w-5 h-5 text-[#f59e0b]" />
-            <span>Gestion des Défis Hebdomadaires OMPAGANO</span>
+            <span>Gestion des Défis Hebdomadaires OMPANGANO</span>
           </h3>
           <p className="text-xs text-[#d4af94] mt-1">
             Configurez les challenges thématiques pour stimuler les contributions ciblées (Pêche, Rites, Faune...) et récompensez les utilisateurs par des badges spéciaux.
