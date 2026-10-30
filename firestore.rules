@@ -1,81 +1,166 @@
 rules_version = '2';
+// ============================================================================
+// Règles Firestore OMPANGANO (projet Firebase « enenga », base (default))
+//
+// Principes :
+//  - Aucune session anonyme : il faut un compte Google ou e-mail.
+//  - Un contributeur ne modifie jamais son rôle, son statut, ses XP, ses badges
+//    ni ses compteurs (liste PROTECTED identique à src/services/userSecurity.ts).
+//  - Les validateurs attribuent les récompenses ; les administrateurs gèrent tout.
+//  - Le classement public est une collection séparée (« leaderboard ») : les
+//    profils complets (date de naissance, contact, clans…) ne sont lisibles que
+//    par leur propriétaire et l'équipe.
+// ============================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Vérifie si l'utilisateur est authentifié avec une session Firebase valide
-    function isSignedIn() {
-      return request.auth != null;
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
-    // Vérifie si l'utilisateur est le propriétaire du document
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
 
-    // Vérifie si l'utilisateur a le rôle administrateur (inclut andymigoumbi@gmail.com)
+    // Super-administrateur : adresse vérifiée exacte (jamais « contient admin »)
+    function isSuperAdmin() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() == 'andymigoumbi@gmail.com';
+    }
+
+    // Le document admins/{uid} ne peut être écrit que par un admin (voir plus bas)
     function isAdmin() {
-      return isSignedIn() && (
-        (request.auth.token.email != null && request.auth.token.email.lower() == 'andymigoumbi@gmail.com') ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
-      );
+      return isSuperAdmin()
+        || (signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
     }
 
-    // Profils utilisateurs OMPAGANO : lecture et écriture STRICTEMENT réservées aux connectés
-    match /users/{userId} {
-      allow read, write: if isSignedIn();
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user');
     }
 
-    // Registre dynamique des Clans Myènè : lecture et écriture réservées aux connectés
-    match /clans/{clanId} {
-      allow read, write: if isSignedIn();
+    function isStaff() {
+      return isAdmin() || (signedIn() && myRole() == 'validator');
     }
 
-    // Registre dynamique des Villages Myènè : lecture et écriture réservées aux connectés
-    match /villages/{villageId} {
-      allow read, write: if isSignedIn();
+    function protectedFields() {
+      return ['role', 'status', 'suspicionScore', 'xp', 'level', 'levelIndex', 'badges',
+              'contributionsCount', 'recordingsCount', 'validationsCount',
+              'weeklyProgress', 'completedChallenges'];
     }
 
-    // Questionnaires, mots et phrases : lecture et écriture réservées aux connectés
-    match /items/{itemId} {
-      allow read, write: if isSignedIn();
+    function rewardFields() {
+      return ['xp', 'level', 'levelIndex', 'badges', 'contributionsCount', 'recordingsCount',
+              'weeklyProgress', 'completedChallenges', 'lastContributionDate', 'updatedAt'];
     }
 
-    // Contributions vocales et orthographiques : lecture et écriture réservées aux connectés
-    match /contributions/{contributionId} {
-      allow read, write: if isSignedIn();
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
     }
 
-    // Métriques et statistiques système synchronisées
-    match /metrics/{metricId} {
-      allow read, write: if isSignedIn();
+    // Création d'un compte : champs protégés absents ou à leur valeur initiale
+    function validNewProfile() {
+      let d = request.resource.data;
+      return d.get('role', 'user') == 'user'
+        && d.get('status', 'active') == 'active'
+        && d.get('xp', 0) == 0
+        && d.get('levelIndex', 1) == 1
+        && d.get('badges', []).size() == 0
+        && d.get('contributionsCount', 0) == 0
+        && d.get('recordingsCount', 0) == 0
+        && d.get('validationsCount', 0) == 0
+        && d.get('suspicionScore', 0) == 0
+        && d.get('weeklyProgress', {}).size() == 0
+        && d.get('completedChallenges', []).size() == 0;
     }
 
-    // Défis Hebdomadaires
-    match /challenges/{challengeId} {
-      allow read, write: if isSignedIn();
+    // ---------------------------------------------------------------- Profils
+    match /users/{uid} {
+      allow get: if isOwner(uid) || isStaff();
+      allow list: if isStaff();
+      allow create: if isAdmin() || (isOwner(uid) && validNewProfile());
+      allow update: if isAdmin()
+        // le propriétaire : tout sauf les champs protégés
+        || (isOwner(uid) && !changedKeys().hasAny(protectedFields()))
+        // un validateur sur son propre profil : compteur de validations et badges
+        || (isOwner(uid) && isStaff() && changedKeys().hasOnly(['validationsCount', 'badges', 'updatedAt']))
+        // un validateur sur le profil d'un contributeur : récompenses uniquement
+        || (isStaff() && !isOwner(uid) && changedKeys().hasOnly(rewardFields()));
+      allow delete: if isAdmin();
     }
 
-    // Thèmes dynamiques OMPAGANO
-    match /themes/{themeId} {
-      allow read, write: if isSignedIn();
+    // -------------------------------------------------- Classement public
+    // Le propriétaire peut publier son entrée, mais ses chiffres doivent être
+    // identiques à ceux de son profil (qu'il ne peut pas modifier).
+    match /leaderboard/{uid} {
+      allow read: if signedIn();
+      allow write: if isStaff()
+        || (isOwner(uid)
+            && request.resource.data.xp == get(/databases/$(database)/documents/users/$(uid)).data.get('xp', 0)
+            && request.resource.data.levelIndex == get(/databases/$(database)/documents/users/$(uid)).data.get('levelIndex', 1)
+            && request.resource.data.contributionsCount == get(/databases/$(database)/documents/users/$(uid)).data.get('contributionsCount', 0)
+            && request.resource.data.recordingsCount == get(/databases/$(database)/documents/users/$(uid)).data.get('recordingsCount', 0)
+            && request.resource.data.validationsCount == get(/databases/$(database)/documents/users/$(uid)).data.get('validationsCount', 0)
+            && request.resource.data.badgesCount == get(/databases/$(database)/documents/users/$(uid)).data.get('badges', []).size());
     }
 
-    // Badges aux dénominations dynamiques
-    match /badges/{badgeId} {
-      allow read, write: if isSignedIn();
+    // ----------------------------------------------------------- Contributions
+    // Le corpus est partagé entre contributeurs (variantes par tribu).
+    match /contributions/{cid} {
+      allow read: if signedIn();
+      // Création par l'auteur, toujours en attente, sans récompense
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'active') != 'suspended'
+        && request.resource.data.get('rewardedXp', 0) == 0;
+      allow update: if isAdmin()
+        // l'auteur peut compléter sa contribution tant qu'elle est en attente
+        || (signedIn()
+            && resource.data.userId == request.auth.uid
+            && resource.data.status == 'pending'
+            && request.resource.data.status == 'pending'
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.get('rewardedXp', 0) == 0)
+        // un validateur ne valide jamais ses propres contributions
+        || (isStaff() && resource.data.userId != request.auth.uid
+            && request.resource.data.userId == resource.data.userId);
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending');
     }
 
-    // Liste des administrateurs
-    match /admins/{adminId} {
-      allow read: if isSignedIn();
+    // ------------------------------------------------------ Catalogue (admin)
+    match /items/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /challenges/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /themes/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /badges/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // Clans et villages : un contributeur peut AJOUTER le sien à l'inscription
+    match /clans/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+    match /villages/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ----------------------------------------------------------- Métriques
+    match /metrics/{id} {
+      allow read: if signedIn();
+      // simple horodatage de version, utilisé par tous pour signaler un changement
+      allow write: if (id == 'catalog_versions' && signedIn()) || isAdmin();
+    }
+
+    // ------------------------------------------------------ Administrateurs
+    match /admins/{uid} {
+      allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // Diagnostics / Test de connexion
-    match /test/{docId} {
-      allow read, write: if isSignedIn();
-    }
+    // Tout le reste est fermé.
   }
 }

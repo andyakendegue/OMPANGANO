@@ -26,6 +26,12 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<any>(null);
+  // Références (et non états) lues dans les callbacks : évite les valeurs figées des closures
+  const isRecordingRef = useRef(false);
+  const startedAtRef = useRef<number>(0);
+
+  // Durée maximale d'un enregistrement (taille raisonnable pour Storage et pour l'entraînement)
+  const MAX_RECORDING_SECONDS = 60;
 
   useEffect(() => {
     return () => {
@@ -54,7 +60,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       const dataArray = new Uint8Array(bufferLength);
 
       const updateLevels = () => {
-        if (!isRecording) return;
+        if (!isRecordingRef.current) return;
         analyser.getByteFrequencyData(dataArray);
         // Take 8 frequency samples
         const samples: number[] = [];
@@ -82,18 +88,24 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         throw new Error("L'accès au microphone n'est pas supporté par ce navigateur.");
       }
 
+      // Voix brute : pas de suppression de bruit / d'écho / de gain automatique,
+      // qui déforment le timbre et les tons (corpus destiné à l'entraînement des modèles).
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
         }
       });
 
-      const options = { mimeType: 'audio/webm' };
+      // Choisit un format réellement supporté (Safari / iOS : audio/mp4)
+      const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+      const supported = typeof MediaRecorder.isTypeSupported === 'function'
+        ? candidates.find(t => MediaRecorder.isTypeSupported(t))
+        : undefined;
       let recorder: MediaRecorder;
       try {
-        recorder = new MediaRecorder(stream, options);
+        recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
       } catch {
         recorder = new MediaRecorder(stream);
       }
@@ -107,25 +119,38 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // Type MIME réel produit par le navigateur (et non toujours « audio/webm »)
+        const realType = (recorder.mimeType || audioChunksRef.current[0]?.type || 'audio/webm').split(';')[0];
+        const audioBlob = new Blob(audioChunksRef.current, { type: realType });
+        // Durée réelle mesurée (l'ancien code lisait un état figé à 0, d'où « 3 s » partout)
+        const durationSec = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
         const reader = new FileReader();
         reader.onloadend = () => {
           const dataUrl = reader.result as string;
           setAudioUrl(dataUrl);
-          onRecordingComplete(audioBlob, dataUrl, recordingDuration);
+          onRecordingComplete(audioBlob, dataUrl, durationSec);
         };
         reader.readAsDataURL(audioBlob);
 
-        // Stop stream tracks
+        // Stop stream tracks + libère le contexte audio du visualiseur
         stream.getTracks().forEach((track) => track.stop());
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+          audioContextRef.current.close().catch(() => {});
+        }
       };
 
       recorder.start(200);
+      startedAtRef.current = Date.now();
+      isRecordingRef.current = true;
       setIsRecording(true);
       startVisualizer(stream);
 
       timerIntervalRef.current = setInterval(() => {
-        setRecordingDuration((prev) => prev + 1);
+        const elapsed = Math.round((Date.now() - startedAtRef.current) / 1000);
+        setRecordingDuration(elapsed);
+        if (elapsed >= MAX_RECORDING_SECONDS) {
+          stopRecording();
+        }
       }, 1000);
     } catch (err: any) {
       console.error('Erreur micro:', err);
@@ -138,7 +163,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && isRecordingRef.current) {
+      isRecordingRef.current = false;
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);

@@ -48,7 +48,7 @@ import {
   VillageRegistry,
   SeedStatus
 } from '../types';
-import { SYSTEM_BADGES, USER_LEVELS, calculateSuspicionScore, THEMATIC_CATEGORIES } from '../services/seedData';
+import { SYSTEM_BADGES, USER_LEVELS, calculateSuspicionScore, THEMATIC_CATEGORIES, mapDialectToTribeName } from '../services/seedData';
 import { CsvImportSection } from './CsvImportSection';
 import { WeeklyChallengesAdmin } from './WeeklyChallengesAdmin';
 import { ThemeManagerAdmin } from './ThemeManagerAdmin';
@@ -551,7 +551,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                alt="Logo OMPAGANO" 
+                alt="Logo OMPANGANO" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -559,7 +559,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider mb-1">
               <Sparkles className="w-4 h-4" />
-              <span>Console d'Administration OMPAGANO NKALA APP</span>
+              <span>Console d'Administration OMPANGANO</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
               Espace Super-Admin & Aînés
@@ -1201,9 +1201,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="text-xs text-[#a8826d] flex items-center justify-between px-1">
+              <div className="text-xs text-[#a8826d] flex flex-wrap items-center justify-between gap-2 px-1">
                 <span>Affichage de <strong>{filteredContributions.length}</strong> réponse(s)</span>
                 <span>{filteredContributions.filter(c => !!c.audioUrl).length} avec enregistrement vocal</span>
+                {onDeleteContribution && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const n = filteredContributions.length;
+                      if (!window.confirm(`Supprimer définitivement les ${n} réponse(s) affichée(s) (filtres actuels) ? Les enregistrements audio seront aussi supprimés.`)) return;
+                      if (!window.confirm(`Confirmation : ${n} réponse(s) seront supprimées. Cette action est irréversible.`)) return;
+                      for (const c of filteredContributions) {
+                        await onDeleteContribution(c.id);
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-[#7f1d1d]/60 hover:bg-[#991b1b] text-[#fecaca] font-bold border border-[#ef4444]/40"
+                  >
+                    Supprimer les {filteredContributions.length} réponse(s) affichée(s)
+                  </button>
+                )}
               </div>
 
               {filteredContributions.map(c => (
@@ -1238,7 +1254,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </span>
                       ) : (
                         <span className="text-[#f59e0b] font-medium flex items-center gap-1">
-                          <Edit className="w-3.5 h-3.5" /> Variante proposée : « {c.proposedSpelling} » ({c.dialectVariant || 'enenga'})
+                          <Edit className="w-3.5 h-3.5" /> Variante proposée : « {c.proposedSpelling} » ({mapDialectToTribeName(c.dialectVariant)})
                         </span>
                       )}
                     </div>
@@ -1441,7 +1457,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-white">
-                Création & Gestion des Fiches OMPAGANO ({items.length} fiches en base)
+                Création & Gestion des Fiches OMPANGANO ({items.length} fiches en base)
               </h3>
               <p className="text-xs text-[#d4af94]">
                 Filtrez instantanément par thème, dialecte ou mot-clé et naviguez par pages sans avoir à scroller toute la base.
@@ -1472,7 +1488,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form onSubmit={handleItemSubmit} className="warm-card-gradient border-2 border-[#d97706]/40 rounded-2xl p-5 space-y-4 shadow-xl">
               <div className="flex justify-between items-center border-b border-[#4a2412] pb-2">
                 <h4 className="font-bold text-sm text-white">
-                  {editingItemId ? 'Modifier la fiche OMPAGANO' : 'Créer une nouvelle expression à traduire'}
+                  {editingItemId ? 'Modifier la fiche OMPANGANO' : 'Créer une nouvelle expression à traduire'}
                 </h4>
                 <button type="button" onClick={() => setIsEditingItem(false)} className="text-xs text-[#a8826d] hover:text-white">
                   Annuler
@@ -1813,7 +1829,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <h5 className="font-bold text-xs text-white truncate">{item.frenchText}</h5>
                         <p className="font-serif text-sm text-[#f59e0b] truncate">{item.myeneText}</p>
                         <span className="text-[10px] text-[#a8826d] capitalize block">
-                          {item.dialect || 'enenga'} • {item.difficulty}
+                          {mapDialectToTribeName(item.dialect)} • {item.difficulty}
                         </span>
                       </div>
                     </div>
@@ -1958,7 +1974,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div className="sm:col-span-2 space-y-2">
-                  <label className="block text-[#fed7aa] font-semibold">Badges OMPAGANO Attribués :</label>
+                  <label className="block text-[#fed7aa] font-semibold">Badges OMPANGANO Attribués :</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {badges.map(badge => {
                       const hasBadge = (selectedUserForEdit.badges || []).includes(badge.id);
@@ -2067,7 +2083,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <span>Traçabilité & Détection des Profils Inactifs ou Faux</span>
             </div>
             <p className="text-xs text-[#fecaca] leading-relaxed">
-              Le programme OMPAGANO est réservé aux contributeurs authentiques de la communauté Myènè.
+              Le programme OMPANGANO est réservé aux contributeurs authentiques de la communauté Myènè.
               Cet outil analyse automatiquement les anomalies généalogiques et l'inactivité prolongée.
             </p>
           </div>

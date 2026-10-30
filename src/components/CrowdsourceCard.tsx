@@ -35,6 +35,7 @@ import {
   mapDialectToTribeName,
   mapTribeNameToDialectCode
 } from '../services/seedData';
+import { MYENE } from '../services/myeneLexique';
 
 interface CrowdsourceCardProps {
   item: QuestionnaireItem;
@@ -176,7 +177,8 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         secondaryMeaning: finalSecondaryMeaning || undefined,
         dialectVariant: dialectVariant,
         comment: contributorNotes.trim(),
-        audioDuration: audioDuration || 3,
+        audioDuration: audioBlob ? audioDuration : 0,
+        audioMimeType: audioBlob?.type || undefined,
         audioUrl: audioDataUrl || undefined,
         status: 'pending',
         offlineQueued: !isOnline
@@ -200,17 +202,17 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
         // confetti fallback
       }
 
-      // Reward points calculation (+20 XP bonus if contributor also enriches French meaning/nuance)
+      // Points ESTIMÉS : ils sont attribués seulement quand un validateur approuve la contribution
       const baseXp = audioBlob ? 120 : 50;
       const nuanceBonus = !isFrenchExact && (finalProposedFrench || finalSecondaryMeaning) ? 20 : 0;
       const xp = baseXp + nuanceBonus;
-      onRewardEarned(xp, audioBlob ? ['badge-premiere-voix'] : ['badge-dix-traductions']);
+      onRewardEarned(0, []);
 
       NotificationService.addInAppNotification({
         id: 'contrib-' + Date.now(),
         userId: currentUser?.id || 'guest',
-        title: 'Contribution Enregistrée ! 🌟',
-        message: `Merci d’enrichir le patrimoine de la langue Myènè pour "${item.frenchText}". +${xp} XP gagnés !`,
+        title: `${MYENE.AKEWA.mot} ! Contribution enregistrée 🌟`,
+        message: `Merci d’enrichir le patrimoine de la langue Myènè pour "${item.frenchText}". Jusqu’à +${xp} XP après validation par un validateur.`,
         type: 'reward',
         read: false,
         createdAt: new Date().toISOString()
@@ -219,7 +221,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
       setIsSubmittedSuccess(true);
     } catch (err) {
       console.error('Erreur soumission:', err);
-      alert('Une erreur est survenue lors de la soumission. Vos données ont été sauvegardées localement.');
+      alert(`${MYENE.NYEZA_MYE.mot}… Une erreur est survenue lors de la soumission. Vos données ont été sauvegardées localement.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -514,7 +516,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                     type="text"
                     value={proposedText}
                     onChange={(e) => setProposedText(e.target.value)}
-                    placeholder="Ex: Mbolo vana..."
+                    placeholder={`Ex : ${MYENE.MBOLUANI.mot}...`}
                     className="w-full px-4 py-2.5 bg-[#140a05] border border-[#522915] rounded-xl text-white focus:outline-none focus:border-[#f59e0b] text-base font-serif"
                   />
                 </div>
@@ -533,7 +535,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                       <option value="mpongwe">Tribu Mpongwè (Estuaire / Libreville)</option>
                       <option value="galwa">Tribu Galwa (Lambaréné fleuve)</option>
                       <option value="nkomi">Tribu Nkomi (Fernan Vaz)</option>
-                      <option value="orungu">Tribu Orungu (Port-Gentil)</option>
+                      <option value="orungu">Tribu Ôrungu (Port-Gentil)</option>
                       <option value="adyumba">Tribu Adyumba (Lac Azingo)</option>
                     </select>
                   </div>
@@ -701,7 +703,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               <div className="w-12 h-12 mx-auto rounded-full bg-[#22c55e]/20 flex items-center justify-center text-[#4ade80]">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-bold text-white">Na vevi ! Félicitations pour votre contribution !</h3>
+              <h3 className="text-lg font-bold text-white">{MYENE.AKEWA_MPOLO.mot} ! Merci pour votre contribution !</h3>
               <p className="text-xs text-[#bbf7d0]">
                 Votre enregistrement, votre avis orthographique et vos précisions de sens enrichissent fidèlement le patrimoine linguistique Myènè.
               </p>

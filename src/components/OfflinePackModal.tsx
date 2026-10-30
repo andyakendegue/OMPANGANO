@@ -186,7 +186,7 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-[#fed7aa] flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-[#f59e0b]" />
-              <span>Pack OMPAGANO Local</span>
+              <span>Pack OMPANGANO Local</span>
             </span>
             <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
               packStatus.isDownloaded

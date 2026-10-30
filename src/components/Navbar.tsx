@@ -16,6 +16,7 @@ import {
 import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { useOfflineShellStatus } from '../services/pwaOfflineManager';
+import { MYENE } from '../services/myeneLexique';
 
 interface NavbarProps {
   currentUser: UserProfile | null;
@@ -60,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                alt="Logo OMPAGANO" 
+                alt="Logo OMPANGANO" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -68,10 +69,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-base sm:text-lg tracking-wider text-white">
-                OMPAGANO
+                OMPANGANO
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#c85a32] text-white">
-                NKALA APP
+                ESSAKA
               </span>
             </div>
             <p className="text-[10px] text-[#f59e0b] font-medium hidden sm:block">
@@ -178,7 +179,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={onSignOut}
                 className="p-2 rounded-xl bg-[#27150c] hover:bg-[#7f1d1d] text-[#a8826d] hover:text-[#fca5a5] border border-[#4a2412] transition-colors"
-                title="Déconnexion"
+                title={`${MYENE.KA_MENE.mot} (Déconnexion)`}
               >
                 <LogOut className="w-4 h-4" />
               </button>

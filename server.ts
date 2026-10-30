@@ -15,10 +15,10 @@ const PORT = Number(process.env.PORT) || 3000;
  */
 function ensureFreshProductionBuild() {
   try {
-    console.log('[OMPAGANO Server] Building production offline-first bundle...');
+    console.log('[OMPANGANO Server] Building production offline-first bundle...');
     execSync('npx vite build', { cwd: ROOT_DIR, stdio: 'inherit' });
   } catch (err) {
-    console.error('[OMPAGANO Server] Build warning:', err);
+    console.error('[OMPANGANO Server] Build warning:', err);
   }
 }
 
@@ -93,5 +93,5 @@ app.get('*', (_req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[OMPAGANO Server] Production Offline-First Server listening on http://0.0.0.0:${PORT}`);
+  console.log(`[OMPANGANO Server] Production Offline-First Server listening on http://0.0.0.0:${PORT}`);
 });

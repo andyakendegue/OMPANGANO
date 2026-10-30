@@ -13,7 +13,7 @@ import {
   KeyRound
 } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider, signInOrRegisterWithEmail, checkIsAdminEmail } from '../firebase';
+import { auth, googleProvider, signInOrRegisterWithEmail } from '../firebase';
 import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { useOfflineShellStatus } from '../services/pwaOfflineManager';
@@ -27,6 +27,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userName, setUserName] = useState('');
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const offlineShell = useOfflineShellStatus();
@@ -40,22 +41,16 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         auth.currentUser && !auth.currentUser.isAnonymous ? auth.currentUser : null;
       const user = existingFbUser || (await signInWithPopup(auth, googleProvider)).user;
 
-      const isUserAdmin = checkIsAdminEmail(user.email);
       onLoginSuccess({
         id: user.uid,
         displayName:
-          user.displayName || user.email?.split('@')[0] || 'Contributeur OMPAGANO',
+          user.displayName || user.email?.split('@')[0] || 'Contributeur OMPANGANO',
         fullName: user.displayName || user.email?.split('@')[0] || 'Locuteur Myènè',
         contact: user.email || '',
         email: user.email || '',
         photoURL: user.photoURL || '',
-        role: isUserAdmin ? 'admin' : 'user',
-        status: 'active',
-        xp: 150,
-        level: 'Initié Curieux',
-        levelIndex: 1,
-        tribe: 'Enenga',
-        badges: ['badge-premiere-voix']
+        // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
+        tribe: 'Ôrungu'
       });
     } catch (err: any) {
       console.warn('Google popup notice:', err);
@@ -101,10 +96,9 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     setErrorMessage(null);
 
     try {
-      const user = await signInOrRegisterWithEmail(cleanEmail, password);
-      const isUserAdmin = checkIsAdminEmail(cleanEmail);
+      const user = await signInOrRegisterWithEmail(cleanEmail, password, isCreatingAccount ? 'register' : 'login');
       const displayName =
-        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur OMPAGANO';
+        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur OMPANGANO';
       const fullName = userName.trim() || user.displayName || 'Locuteur Myènè';
 
       onLoginSuccess({
@@ -113,13 +107,8 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         contact: cleanEmail,
         displayName,
         fullName,
-        role: isUserAdmin ? 'admin' : 'user',
-        status: 'active',
-        xp: 150,
-        level: 'Initié Curieux',
-        levelIndex: 1,
-        tribe: 'Enenga',
-        badges: ['badge-premiere-voix']
+        // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
+        tribe: 'Ôrungu'
       });
     } catch (err: any) {
       console.warn('Email auth notice:', err);
@@ -146,7 +135,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                alt="Logo OMPAGANO"
+                alt="Logo OMPANGANO"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -154,10 +143,10 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold tracking-wider text-lg text-white font-serif">
-                OMPAGANO
+                OMPANGANO
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30">
-                NKALA APP
+                ESSAKA
               </span>
             </div>
             <p className="text-xs text-[#d4af94]">
@@ -243,14 +232,14 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   <div className="w-full h-full bg-white rounded-[20px] overflow-hidden flex items-center justify-center p-1 shadow-inner">
                     <img
                       src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                      alt="Logo OMPAGANO"
+                      alt="Logo OMPANGANO"
                       className="w-full h-full object-contain"
                     />
                   </div>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white font-serif">
-                    Connexion à OMPAGANO
+                    Connexion à OMPANGANO
                   </h2>
                   <p className="text-xs text-[#d4af94]">
                     Identifiez-vous pour accéder au studio de contribution
@@ -333,7 +322,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   </button>
 
                   <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] leading-relaxed text-center">
-                    🔒 Authentification officielle Firebase sécurisée par le protocole OMPAGANO.
+                    🔒 Authentification officielle Firebase sécurisée par le protocole OMPANGANO.
                   </div>
                 </div>
               )}
@@ -392,6 +381,16 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                     </div>
                   </div>
 
+                  <label className="flex items-center gap-2 text-xs text-[#fed7aa] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isCreatingAccount}
+                      onChange={e => setIsCreatingAccount(e.target.checked)}
+                      className="accent-[#f59e0b]"
+                    />
+                    <span>Je crée un nouveau compte (première visite)</span>
+                  </label>
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -399,7 +398,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   >
                     <Mail className="w-4 h-4" />
                     <span>
-                      {isLoading ? 'Connexion en cours...' : 'Se connecter / Créer mon compte'}
+                      {isLoading ? 'Connexion en cours...' : isCreatingAccount ? 'Créer mon compte' : 'Se connecter'}
                     </span>
                   </button>
                 </form>
@@ -411,7 +410,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
 
       {/* Footer */}
       <footer className="max-w-5xl w-full mx-auto text-center py-4 border-t border-[#3b1d10] text-[11px] text-[#a8826d]">
-        OMPAGANO NKALA APP • Sauvegarde et Vitalisation des Langues Myènè du Gabon
+        OMPANGANO • Sauvegarde et Vitalisation des Langues Myènè du Gabon
       </footer>
     </div>
   );

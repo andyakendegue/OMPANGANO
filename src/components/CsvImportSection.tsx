@@ -17,7 +17,8 @@ import {
   THEMATIC_CATEGORIES, 
   parsePhrasesAndDiscoverThemes, 
   generateCsvTemplate,
-  deduplicateParsedCsvItems
+  deduplicateParsedCsvItems,
+  mapDialectToTribeName
 } from '../services/seedData';
 
 interface CsvImportSectionProps {
@@ -93,6 +94,9 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
         if (dedup.alreadyExistingItems.length > 0) {
           msg += `🛡️ ${dedup.alreadyExistingItems.length} fiche(s) déjà présentes dans la base seront ignorées automatiquement (0 doublon). `;
         }
+        if (dedup.itemsToUpdate.length > 0) {
+          msg += `🔁 ${dedup.itemsToUpdate.length} fiche(s) déjà en base avec le même numéro seront mises à jour. `;
+        }
         msg += `🚀 ${dedup.newItemsToImport.length} nouvelle(s) fiche(s) prête(s) à être importée(s).`;
         if (newDiscoveredThemes.length > 0) {
           msg += ` ✨ ${newDiscoveredThemes.length} nouveau(x) thème(s) détecté(s) (${newDiscoveredThemes.map(t => t.name).join(', ')}).`;
@@ -132,7 +136,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'modele_import_phrases_ompagano.csv');
+    link.setAttribute('download', 'modele_import_phrases_ompangano.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -173,6 +177,9 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
       if (dedup.alreadyExistingItems.length > 0) {
         msg += `🛡️ ${dedup.alreadyExistingItems.length} fiche(s) déjà présentes en base sont ignorées (aucun doublon). `;
       }
+      if (dedup.itemsToUpdate.length > 0) {
+        msg += `🔁 ${dedup.itemsToUpdate.length} fiche(s) seront mises à jour (même numéro). `;
+      }
       msg += `🚀 ${dedup.newItemsToImport.length} nouvelle(s) fiche(s) restante(s) à importer.`;
       if (newDiscoveredThemes.length > 0) {
         msg += ` ✨ ${newDiscoveredThemes.length} nouveau(x) module(s) thématique(s) découvert(s).`;
@@ -187,11 +194,16 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
   };
 
   // Items that will actually be imported (respecting both deduplication AND optional theme filter)
+  // = nouvelles fiches + fiches existantes à mettre à jour (même numéro, contenu modifié)
   const itemsReadyToImport = useMemo(() => {
-    const baseNew = deduplicationReport.newItemsToImport;
+    const baseNew = [...deduplicationReport.newItemsToImport, ...deduplicationReport.itemsToUpdate];
     if (selectedThemeFilter === 'all') return baseNew;
     return baseNew.filter(item => item.category === selectedThemeFilter || item.theme === selectedThemeFilter);
-  }, [deduplicationReport.newItemsToImport, selectedThemeFilter]);
+  }, [deduplicationReport.newItemsToImport, deduplicationReport.itemsToUpdate, selectedThemeFilter]);
+  const updatesReadyCount = useMemo(() => {
+    const ids = new Set(deduplicationReport.itemsToUpdate.map(i => i.id));
+    return itemsReadyToImport.filter(i => ids.has(i.id)).length;
+  }, [itemsReadyToImport, deduplicationReport.itemsToUpdate]);
 
   // Execute Resumable, Deduplicated Import
   const handleExecuteImport = async () => {
@@ -206,7 +218,8 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
         await onRegisterNewThemes(discoveredThemes);
       }
 
-      const countToImport = itemsReadyToImport.length;
+      const countToImport = itemsReadyToImport.length - updatesReadyCount;
+      const countToUpdate = updatesReadyCount;
       const skippedCount = deduplicationReport.alreadyExistingItems.length;
 
       await onImportItems(itemsReadyToImport, (saved, total) => {
@@ -214,7 +227,9 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
       });
 
       setImportSuccessMessage(
-        `🎉 Importation terminée avec succès ! ${countToImport} nouvelle(s) fiche(s) ajoutée(s) sans aucun doublon` +
+        `🎉 Importation terminée ! ${countToImport} nouvelle(s) fiche(s) ajoutée(s)` +
+        (countToUpdate > 0 ? `, ${countToUpdate} fiche(s) mise(s) à jour d'après leur numéro` : '') +
+        ` — aucun doublon créé` +
         (skippedCount > 0 ? ` (${skippedCount} fiche(s) déjà existantes ont été préservées intactes).` : '.')
       );
       setParsedItems([]);
@@ -271,7 +286,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
             </h4>
           </div>
           <span className="text-[11px] text-[#f59e0b] bg-[#1c120c] px-2.5 py-0.5 rounded-full border border-[#4a2e1d]">
-            Format enrichi OMPAGANO
+            Format enrichi OMPANGANO
           </span>
         </div>
 
@@ -401,7 +416,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
               Déposez votre fichier CSV ici, ou cliquez pour parcourir
             </h4>
             <p className="text-xs text-[#d4af94] mt-1">
-              Prend en charge le format officiel <strong>OMPAGANO</strong> ou le schéma de corpus audio <strong>TTS Ôrungu</strong>.
+              Prend en charge le format officiel <strong>OMPANGANO</strong> ou le schéma de corpus audio <strong>TTS Ôrungu</strong>.
             </p>
           </div>
 
@@ -450,7 +465,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
             <span>{discoveredThemes.length} Nouveau(x) Thème(s) extrait(s) dynamiquement du CSV</span>
           </div>
           <p className="text-xs text-[#fed7aa]/90">
-            Ces modules thématiques ont été détectés dans les colonnes du fichier et seront automatiquement créés et enregistrés dans le catalogue OMPAGANO lors de la confirmation :
+            Ces modules thématiques ont été détectés dans les colonnes du fichier et seront automatiquement créés et enregistrés dans le catalogue OMPANGANO lors de la confirmation :
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             {discoveredThemes.map(th => (
@@ -494,7 +509,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
               </div>
 
               <div className="p-3 rounded-xl bg-[#140a05] border border-amber-500/30">
-                <div className="text-[10px] text-amber-400 uppercase font-bold">Déjà en Base (Ignorées)</div>
+                <div className="text-[10px] text-amber-400 uppercase font-bold">Déjà en base, inchangées</div>
                 <div className="text-lg font-black text-amber-300 mt-0.5">{deduplicationReport.alreadyExistingItems.length}</div>
                 <div className="text-[10px] text-[#d4af94]">0 doublon créé</div>
               </div>
@@ -506,9 +521,9 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
               </div>
 
               <div className="p-3 rounded-xl bg-[#140a05] border border-[#3b1f11]">
-                <div className="text-[10px] text-[#a8826d] uppercase font-bold">Doublons Internes CSV</div>
-                <div className="text-lg font-black text-stone-300 mt-0.5">{deduplicationReport.internalDuplicatesCount}</div>
-                <div className="text-[10px] text-[#a8826d]">Épurés automatiquement</div>
+                <div className="text-[10px] text-sky-400 uppercase font-bold">Mises à jour (même n°)</div>
+                <div className="text-lg font-black text-sky-300 mt-0.5">{deduplicationReport.itemsToUpdate.length}</div>
+                <div className="text-[10px] text-[#a8826d]">Doublons internes épurés : {deduplicationReport.internalDuplicatesCount}</div>
               </div>
             </div>
 
@@ -539,7 +554,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <span>Aperçu des phrases</span>
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  {itemsReadyToImport.length} nouvelle(s) à importer
+                  {itemsReadyToImport.length - updatesReadyCount} nouvelle(s) · {updatesReadyCount} mise(s) à jour
                 </span>
               </h4>
               <div className="flex items-center gap-3 mt-1.5">
@@ -607,12 +622,15 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
                 ) : itemsReadyToImport.length === 0 ? (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    <span>Toutes ces fiches sont déjà en base (0 à importer)</span>
+                    <span>Toutes ces fiches sont déjà en base et à jour</span>
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>Importer les {itemsReadyToImport.length} nouvelles fiches</span>
+                    <span>
+                      Importer {itemsReadyToImport.length - updatesReadyCount} nouvelle(s)
+                      {updatesReadyCount > 0 ? ` et mettre à jour ${updatesReadyCount} fiche(s)` : ''}
+                    </span>
                   </>
                 )}
               </button>
@@ -649,7 +667,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
                       </span>
                       {item.dialect && (
                         <span className="text-[10px] uppercase font-bold text-[#fed7aa]/60">
-                          {item.dialect}
+                          {mapDialectToTribeName(item.dialect)}
                         </span>
                       )}
                       {item.difficulty && (

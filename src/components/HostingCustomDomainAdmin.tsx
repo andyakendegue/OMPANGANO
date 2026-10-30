@@ -87,7 +87,7 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold border border-amber-500/30">
               <Globe className="w-3.5 h-3.5" />
-              Projet NKALA APP • Site : ompangano (multi-sites isolé de enenga)
+              Projet Firebase enenga • Site : ompangano (multi-sites isolé de enenga)
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
               <span>{customDomain}</span>
@@ -147,7 +147,7 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
         </div>
 
         <p className="text-xs text-stone-500 leading-relaxed">
-          Pour relier <strong>{customDomain}</strong> à l'application OMPAGANO, ajoutez l'enregistrement CNAME (ou A) ci-dessous dans la zone DNS de votre nom de domaine <code>essaka.engineering</code> :
+          Pour relier <strong>{customDomain}</strong> à l'application OMPANGANO, ajoutez l'enregistrement CNAME (ou A) ci-dessous dans la zone DNS de votre nom de domaine <code>essaka.engineering</code> :
         </p>
 
         <div className="overflow-x-auto rounded-xl border border-stone-200">
@@ -232,8 +232,8 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
             <h4 className="font-bold text-stone-900 text-sm">Commandes de Déploiement Local</h4>
           </div>
           <div className="bg-stone-900 text-stone-200 p-3 rounded-xl font-mono text-xs space-y-1">
-            <p className="text-stone-400"># 1. Sélectionner le projet NKALA APP :</p>
-            <p className="text-amber-400">firebase use &lt;ID_PROJET_NKALA_APP&gt;</p>
+            <p className="text-stone-400"># 1. Sélectionner le projet Firebase enenga :</p>
+            <p className="text-amber-400">firebase use enenga</p>
             <p className="text-stone-400 mt-2"># 2. Déployer UNIQUEMENT le site ompangano :</p>
             <p className="text-emerald-400">npm run deploy:hosting</p>
             <p className="text-stone-400 text-[10px]">Exécute : vite build && firebase deploy --only hosting:ompangano</p>

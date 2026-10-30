@@ -5,7 +5,6 @@ import {
   signInWithPopup, 
   signOut as fbSignOut,
   onAuthStateChanged, 
-  signInAnonymously, 
   User as FirebaseUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
@@ -32,7 +31,6 @@ import {
 import { 
   getDatabase, 
   ref as rtdbRef, 
-  set as rtdbSet, 
   update as rtdbUpdate,
   remove as rtdbRemove,
   get as rtdbGet,
@@ -81,9 +79,9 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // List of official administrator emails guaranteed super-admin rights
+// Doit rester identique à la liste des règles Firestore / RTDB / Storage.
 export const ADMIN_EMAILS: string[] = [
-  'andymigoumbi@gmail.com',
-  'andymigoumbi+admin@gmail.com'
+  'andymigoumbi@gmail.com'
 ];
 
 /**
@@ -92,8 +90,8 @@ export const ADMIN_EMAILS: string[] = [
  */
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
-  const clean = email.trim().toLowerCase();
-  return ADMIN_EMAILS.includes(clean) || clean.includes('admin') || clean === 'andymigoumbi@gmail.com';
+  // Comparaison EXACTE uniquement : une adresse qui « contient » admin n'est jamais administrateur.
+  return ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
 /**
@@ -117,6 +115,10 @@ export async function ensureAdminRoleForUser(user: { id: string; email?: string 
   }
   return false;
 }
+
+// Collections tenues uniquement dans Firestore (pas de copie RTDB) : leurs règles de sécurité
+// vérifient des valeurs du profil Firestore, ce que les règles RTDB ne peuvent pas faire.
+const FIRESTORE_ONLY_COLLECTIONS = new Set<string>(['leaderboard']);
 
 // Operation Type and Error Info
 export enum OperationType {
@@ -210,22 +212,37 @@ export function convertBlobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-// Connect or register user with Email & Password using Firebase Auth
-export async function signInOrRegisterWithEmail(email: string, password: string): Promise<FirebaseUser> {
+// Connexion OU création de compte par e-mail, selon le choix EXPLICITE de l'utilisateur.
+// (Avant : un mauvais mot de passe déclenchait une tentative de création de compte,
+//  et une faute de frappe dans l'adresse créait un nouveau compte sans prévenir.)
+export async function signInOrRegisterWithEmail(
+  email: string,
+  password: string,
+  mode: 'login' | 'register' = 'login'
+): Promise<FirebaseUser> {
   const cleanEmail = email.trim().toLowerCase();
   try {
-    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+    const cred = mode === 'register'
+      ? await createUserWithEmailAndPassword(auth, cleanEmail, password)
+      : await signInWithEmailAndPassword(auth, cleanEmail, password);
     return cred.user;
   } catch (err: any) {
-    if (
-      err.code === 'auth/user-not-found' ||
-      err.code === 'auth/invalid-credential' ||
-      err.code === 'auth/invalid-login-credentials'
-    ) {
-      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
-      return cred.user;
+    const code = String(err?.code || '');
+    let message = "Impossible d'établir la connexion par e-mail.";
+    if (code === 'auth/email-already-in-use') {
+      message = 'Un compte existe déjà avec cette adresse. Décochez « Je crée un nouveau compte » pour vous connecter.';
+    } else if (code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+      message = 'Adresse e-mail ou mot de passe incorrect. Pas encore de compte ? Cochez « Je crée un nouveau compte ».';
+    } else if (code === 'auth/weak-password') {
+      message = 'Mot de passe trop faible (6 caractères minimum).';
+    } else if (code === 'auth/too-many-requests') {
+      message = 'Trop de tentatives. Réessayez dans quelques minutes.';
+    } else if (code === 'auth/network-request-failed') {
+      message = 'Pas de connexion Internet.';
     }
-    throw err;
+    const wrapped = new Error(message) as Error & { code?: string };
+    wrapped.code = code;
+    throw wrapped;
   }
 }
 
@@ -234,14 +251,16 @@ export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> 
   try {
     await auth.authStateReady();
   } catch {}
-  if (auth.currentUser) return auth.currentUser;
-  try {
-    const cred = await signInAnonymously(auth);
-    return cred.user;
-  } catch {
-    // Anonymous auth might be disabled in Firebase Console; user must sign in via Google or Email
-    return null;
-  }
+  // Plus de connexion anonyme : les règles de sécurité refusent les sessions anonymes.
+  if (auth.currentUser && !auth.currentUser.isAnonymous) return auth.currentUser;
+  return null;
+}
+
+/** Vrai si Firebase a refusé l'opération pour une raison de droits (inutile de la rejouer). */
+export function isPermissionDeniedError(error: unknown): boolean {
+  const code = String((error as any)?.code || '').toLowerCase();
+  const msg = String((error as any)?.message || error || '').toLowerCase();
+  return code.includes('permission-denied') || code.includes('permission_denied') || msg.includes('permission_denied') || msg.includes('permission denied') || msg.includes('missing or insufficient permissions');
 }
 
 // Clean undefined values to prevent Firestore & RTDB crash: "Unsupported field value: undefined"
@@ -355,7 +374,8 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
             const clean = sanitizeDataForFirebase(mut.data);
             await setDoc(doc(db, mut.collectionPath, mut.recordId), clean, { merge: true });
             if (rtdb) {
-              await rtdbSet(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean).catch(() => {});
+              // update (fusion) et non set : un set écraserait les champs absents de la mutation
+              await rtdbUpdate(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean).catch(() => {});
             }
           } else if (mut.type === 'delete') {
             await deleteDoc(doc(db, mut.collectionPath, mut.recordId));
@@ -366,6 +386,11 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
           successCount++;
           console.info(`✓ [Sync Replay Succès] ${mut.type} sur ${mut.collectionPath}/${mut.recordId}`);
         } catch (replayErr) {
+          if (isPermissionDeniedError(replayErr)) {
+            // Refus des règles de sécurité : rejouer ne servira jamais, on abandonne la mutation.
+            console.warn(`✗ [Sync Replay Refusé] ${mut.collectionPath}/${mut.recordId} abandonné (droits insuffisants).`);
+            continue;
+          }
           console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, conservé en attente:`, replayErr);
           remaining.push(mut);
         }
@@ -414,6 +439,7 @@ export function bumpCatalogVersion(collectionPath: string) {
 export async function dualSaveRecord(collectionPath: string, recordId: string, data: any): Promise<{ firestore: boolean; rtdb: boolean }> {
   let fsOk = false;
   let rtdbOk = false;
+  let fsDenied = false;
   const sanitized = sanitizeDataForFirebase(data);
 
   // If currently offline, queue immediately
@@ -433,14 +459,17 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
       console.info(`✓ Synchronisé Firestore avec succès: ${collectionPath}/${recordId}`);
     } catch (err) {
       checkAndMarkQuotaError(err);
+      fsDenied = isPermissionDeniedError(err);
       console.warn(`Notice d'enregistrement Firestore sur ${collectionPath}/${recordId}:`, err);
     }
   }
 
   // 2. Write to Realtime Database (only if authenticated)
-  if (activeUser && rtdb) {
+  // IMPORTANT : update (fusion) et jamais set. Un set remplaçait tout l'enregistrement
+  // et effaçait les champs absents d'une mise à jour partielle (profil, contribution…).
+  if (activeUser && rtdb && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath)) {
     try {
-      await rtdbSet(rtdbRef(rtdb, `${collectionPath}/${recordId}`), sanitized);
+      await rtdbUpdate(rtdbRef(rtdb, `${collectionPath}/${recordId}`), sanitized);
       rtdbOk = true;
       console.info(`✓ Synchronisé RTDB avec succès: ${collectionPath}/${recordId}`);
     } catch (err) {
@@ -453,7 +482,8 @@ export async function dualSaveRecord(collectionPath: string, recordId: string, d
   }
 
   // If Firestore failed or user was not yet authenticated, queue for replay when authenticated & online
-  if (!fsOk) {
+  // (sauf refus des règles de sécurité : rejouer ne servirait à rien)
+  if (!fsOk && !fsDenied) {
     queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
   }
 
@@ -528,7 +558,7 @@ export async function dualBatchSaveRecords(
         }
       }
 
-      if (rtdb && Object.keys(rtdbChunkPayload).length > 0) {
+      if (rtdb && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath) && Object.keys(rtdbChunkPayload).length > 0) {
         try {
           await rtdbUpdate(rtdbRef(rtdb, collectionPath), rtdbChunkPayload);
         } catch (rtdbErr) {
@@ -573,6 +603,10 @@ export async function dualDeleteRecord(collectionPath: string, recordId: string)
       console.info(`✓ Supprimé de Firestore: ${collectionPath}/${recordId}`);
     } catch (err) {
       checkAndMarkQuotaError(err);
+      if (isPermissionDeniedError(err)) {
+        console.warn(`Suppression refusée (droits) sur ${collectionPath}/${recordId}`);
+        return { firestore: false, rtdb: false };
+      }
       console.warn(`Notice suppression Firestore sur ${collectionPath}/${recordId}:`, err);
     }
   }
@@ -655,7 +689,7 @@ export async function smartGetUserProfile<T = any>(userId: string): Promise<T | 
     if (serverSnap.exists()) {
       const data = { id: userId, ...serverSnap.data() } as T;
       if (rtdb && auth.currentUser) {
-        rtdbSet(rtdbRef(rtdb, `users/${userId}`), sanitizeDataForFirebase(data)).catch(() => {});
+        rtdbUpdate(rtdbRef(rtdb, `users/${userId}`), sanitizeDataForFirebase(data)).catch(() => {});
       }
       return data;
     }
@@ -678,7 +712,7 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
   options?: { maxFirestoreFallbackDocs?: number }
 ): Promise<{ items: T[]; source: 'rtdb' | 'cache' | 'firestore-delta' | 'firestore-full' | 'local-only'; firestoreReadsUsed: number }> {
   // 1. Try Realtime Database first (0 Firestore document reads!)
-  if (rtdb && auth.currentUser) {
+  if (rtdb && auth.currentUser && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath)) {
     try {
       const snap = await rtdbGet(rtdbRef(rtdb, collectionPath));
       if (snap.exists()) {
@@ -730,7 +764,7 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
         rtdbBackfill[docSnap.id] = sanitizeDataForFirebase(updatedRecord);
       });
 
-      if (rtdb && auth.currentUser && Object.keys(rtdbBackfill).length > 0) {
+      if (rtdb && auth.currentUser && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath) && Object.keys(rtdbBackfill).length > 0) {
         rtdbUpdate(rtdbRef(rtdb, collectionPath), rtdbBackfill).catch(() => {});
       }
 
@@ -745,8 +779,9 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
     }
   }
 
-  // 4. Try Firestore persistent IndexedDB cache before hitting the server (0 server reads!)
-  try {
+  // 4. Hors-ligne uniquement : cache IndexedDB de Firestore (0 lecture serveur).
+  //    En ligne, on ne s'y fie pas : il peut être partiel et ne doit pas servir de point de départ au delta.
+  if (typeof navigator !== 'undefined' && !navigator.onLine) try {
     const cachedSnap = await getDocsFromCache(collection(db, collectionPath));
     if (!cachedSnap.empty) {
       const fromFsCache: T[] = [];
@@ -754,17 +789,14 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
         fromFsCache.push({ id: docSnap.id, ...docSnap.data() } as T);
       });
       if (fromFsCache.length >= localCachedItems.length && fromFsCache.length > 0) {
-        setLastCollectionSyncTimestamp(collectionPath, new Date().toISOString());
         return { items: fromFsCache, source: 'cache', firestoreReadsUsed: 0 };
       }
     }
   } catch {}
 
-  // If we already have a rich local IndexedDB cache (e.g., from offlineStorage), mark timestamp and avoid full scan!
-  if (localCachedItems.length > 20) {
-    setLastCollectionSyncTimestamp(collectionPath, new Date().toISOString());
-    return { items: localCachedItems, source: 'local-only', firestoreReadsUsed: 0 };
-  }
+  // (Ancien raccourci supprimé : il marquait la collection comme synchronisée sans l'avoir lue,
+  //  si bien que les documents plus anciens que cette date n'étaient jamais récupérés.
+  //  Une lecture complète a lieu une seule fois par appareil, ensuite seules les modifications sont lues.)
 
   // 5. Cold bootstrap fallback from Firestore (with optional safety limit, and automatic RTDB backfill so it only happens ONCE)
   try {
@@ -784,7 +816,7 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
     setLastCollectionSyncTimestamp(collectionPath, new Date().toISOString());
 
     // Backfill RTDB in chunks so all future opens read from RTDB for 0 Firestore reads!
-    if (rtdb && auth.currentUser && loaded.length > 0) {
+    if (rtdb && auth.currentUser && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath) && loaded.length > 0) {
       const keys = Object.keys(rtdbBackfill);
       const CHUNK = 250;
       (async () => {
@@ -903,17 +935,20 @@ export async function isRealtimeDatabaseEmpty(): Promise<boolean> {
 
 // Validate connection on boot (Zero-read check using Auth + RTDB ping instead of burning a Firestore read on every boot)
 export async function testFirestoreConnection(): Promise<boolean> {
-  if (!auth.currentUser) {
+  // Vérification réelle : lecture d'un nœud léger de la RTDB (aucune lecture Firestore)
+  if (!auth.currentUser || !rtdb) return false;
+  try {
+    await rtdbGet(rtdbRef(rtdb, 'metrics/catalog_versions'));
     return true;
+  } catch {
+    return false;
   }
-  return true;
 }
 
 export { 
   signInWithPopup, 
   fbSignOut, 
   onAuthStateChanged, 
-  signInAnonymously, 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 };
