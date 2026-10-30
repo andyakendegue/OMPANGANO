@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
-import { doc, runTransaction } from 'firebase/firestore';
+import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { onAuthStateChanged, signOut as fbSignOut } from 'firebase/auth';
 import { 
   db, 
@@ -353,8 +353,18 @@ export default function App() {
       : stripProtectedUserFields(profile, actorRole);
     await dualSaveRecord('users', profile.id, payload);
     // Entrée publique du classement (les chiffres doivent correspondre au profil cloud)
+    // Les règles comparent l'entrée au profil CLOUD : on s'appuie donc sur lui (et non sur la copie locale,
+    // qui peut être périmée après une récompense), et on n'écrit rien s'il est illisible.
     if (profile.registrationCompleted) {
-      dualSaveRecord('leaderboard', profile.id, buildLeaderboardEntry(options?.isNew ? { ...profile, ...NEW_USER_PROTECTED_DEFAULTS } : profile)).catch(() => {});
+      try {
+        const cloudSnap = await getDoc(doc(db, 'users', profile.id));
+        if (cloudSnap.exists()) {
+          const cloudProfile = { ...profile, ...cloudSnap.data(), id: profile.id } as UserProfile;
+          await dualSaveRecord('leaderboard', profile.id, buildLeaderboardEntry(cloudProfile));
+        }
+      } catch {
+        /* classement resynchronisé au prochain enregistrement */
+      }
     }
     refreshPendingMutationsCount();
   };

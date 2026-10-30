@@ -48,6 +48,7 @@ from wordfreq import zipf_frequency as ZF
 def add(my, fr, th, dial, prov, page, statut, note, source_txt=""):
     my = re.sub(r"\s+'", "'", my); my = re.sub(r"\b(\w+) \1\b", r"\1", my); my = re.sub(r"\s+([,.;:?!])", r"\1", my)
     fr = re.sub(r"\.{2,}", ".", fr).replace('"', '').replace(' .', '.'); fr = re.sub(r"\s+", " ", fr).strip()
+    my = re.sub(r"([.!?])\s*[.!?]+$", r"\1", my); fr = re.sub(r"([.!?])\s*[.!?]+$", r"\1", fr)
     if statut.startswith("attestee"):
         lw = [w for w in re.findall(r"[^\W\d_]+", my.lower()) if len(w) >= 5]
         if "ç" in my or any(ZF(w, 'fr') >= 3.3 for w in lw): stats['rejet_francais_dans_myene'] += 1; return
@@ -93,12 +94,63 @@ for x in E:
             nv += 1
 stats['variantes'] = nv
 
+# 2b) galwa attesté — Teisserès & Dubois 1957
+GW = json.load(open('/home/claude/w/galwa_extrait.json'))
+SRC_G = "attestée — Teisserès & Dubois 1957, Méthode pratique pour apprendre l'omyene (galwa de Ngomo)"
+VTH = [("FAMILLE", "vie_quotidienne_famille"), ("VILLAGE", "vie_quotidienne_famille"), ("ÉCOLE", "education_enseignement"),
+       ("MAISON", "maison_habitat"), ("CUISINE", "cuisine_agriculture"), ("CHAMBRE", "maison_habitat"), ("CASE", "maison_habitat"),
+       ("REPAS", "cuisine_agriculture"), ("ANIMAUX", "chasse_faune_nature"), ("PLANTATION", "cuisine_agriculture"),
+       ("TEMPS", "temps_climat_environnement"), ("ARBRES", "nature_plantes_pharmacopee"), ("EAU", "peche_navigation"),
+       ("PÊCHE", "peche_navigation"), ("CORPS", "sante_corps_spiritualite"), ("MALADIE", "sante_hygiene_soins"),
+       ("VÊTEMENT", "habillement_parure"), ("COMMERCE", "commerce_echanges_voyages"), ("VOYAGE", "commerce_echanges_voyages"),
+       ("MARIAGE", "droit_famille_mariage"), ("RELIGION", "sante_corps_spiritualite"), ("TRAVAIL", "artisanat_outils"),
+       ("CHASSE", "chasse_faune_nature"), ("PIROGUE", "peche_navigation"), ("NOMBRE", "numeration_mesures")]
+def th_g(x):
+    for k, t in VTH:
+        if k in x.get('vocab', '').upper(): return t
+    return theme_fr(x['fr'])
+def fr_ok(fr):
+    w = re.findall(r"[a-zàâçéèêëîïôûùü]+", fr.lower())
+    return len(fr) >= 4 and w and sum(ZF(x, 'fr') >= 2.5 for x in w) / len(w) >= 0.75 and not re.search(r"\b(id|etc|cf|voir leçon|pl|sg|[IVX]{1,4})\b|^\d", fr)
+def gnorm(s):  # orthographe 1957 conservée telle quelle
+    return re.sub(r"[.!?]+$", "", s.strip())
+ng = 0
+for x in GW['aligned']:
+    if not fr_ok(x['fr']): continue
+    my = gnorm(x['my'].replace(",.", ".")) + "."
+    add(my[0].upper() + my[1:], x['fr'].replace(",.", "."), theme_fr(x['fr']), "galwa", SRC_G, f"p. {x['page']} ({x['lecon']})", "attestee",
+        "Phrase de version, alignée sur le thème français du livre ; orthographe 1957 conservée (ṽ, ñ, e/è)", x['my']); ng += 1
+for x in GW['ex']:
+    my = x['my'].split(" ou ")[0].strip()
+    if len(my) < 3 or not fr_ok(x['fr']) or any(ZF(w, 'fr') >= 3.3 for w in re.findall(r"[^\W\d_]{5,}", my.lower())): continue
+    m2 = gnorm(my); f2 = re.sub(r"[.!?]+$", "", x['fr'][0].upper() + x['fr'][1:])
+    add(m2[0].upper() + m2[1:] + ".", f2 + ".",
+        th_g(x), "galwa", SRC_G, f"p. {x['page']} ({x['lecon'][:60]})", "attestee", "Exemple de grammaire du livre ; orthographe 1957 conservée", my); ng += 1
+for x in GW['lex']:
+    my = x['my'].split(" ou ")[0].strip()
+    if not fr_ok(x['fr']) or len(my) < 2: continue
+    m2 = gnorm(my); f2 = x['fr'][0].upper() + x['fr'][1:]
+    f2 = re.sub(r"[.!?]+$", "", f2)
+    add(m2[0].upper() + m2[1:] + ".", f2 + ".", th_g(x), "galwa", SRC_G, f"p. {x['page']} ({x['vocab'] or x['lecon'][:40]})", "attestee",
+        "Mot du vocabulaire thématique (mot isolé)", my); ng += 1
+for x in GW['diff']:
+    g_, m_ = x['galwa'].strip(), x['mpongwe'].strip()
+    if not g_ or not m_ or g_ == m_ or len(g_) < 2 or re.search(r"[A-Z]{3}|Présent|Passé", g_ + m_): continue
+    add(gnorm(m_)[0].upper() + gnorm(m_)[1:] + ".", (x['fr'] if fr_ok(x['fr']) else f"Forme mpongwè correspondant au galwa « {g_} »") + ".",
+        "lexique_variantes_dialectales", "mpongwe", "attestée — Teisserès & Dubois 1957, leçon 32 (différences galoa / mpôngwè)",
+        "p. 87-91 (leçon 32)", "attestee", f"Variante : mpongwè « {m_} » / galwa « {g_} »", m_); ng += 1
+stats['galwa_attestees'] = ng
+
 # 3) phrases composées
 O = json.load(open('/home/claude/w/comp_orungu.json')); M = json.load(open('/home/claude/w/comp_mpongwe.json'))
-need = 30600 - len(out)
+GC = json.load(open('/home/claude/w/comp_galwa.json'))
+CIBLE = 35000
+need = CIBLE - len(out)
+random.shuffle(GC)
 random.shuffle(O); random.shuffle(M)
 take_m = min(len(M), int(need * 0.22))
-pool = M[:take_m] + O
+take_g = int(need * 0.25)
+pool = M[:take_m] + GC[:take_g] + O
 byth = collections.defaultdict(list)
 for r in pool: byth[r['theme']].append(r)
 order = []
@@ -106,14 +158,14 @@ while any(byth.values()):
     for t in list(byth):
         if byth[t]: order.append(byth[t].pop())
 for r in order:
-    if len(out) >= 30600: break
+    if len(out) >= CIBLE: break
     add(r['myene'], r['fr'], r['theme'], r['dialecte'], r['source'], "", "composee_a_valider",
         r.get('note') or "Phrase composée : lexique et conjugaison des leçons omyènè (base ôrungu), à faire valider par un locuteur")
 stats['total'] = len(out)
 for i, r in enumerate(out, 1): r['id'] = f"NEW_{i:05d}"
 cols = ["id", "frenchText", "myeneText", "theme", "dialect", "difficulty", "contextNotes", "imageUrl",
         "transcription_phonetique", "provenance", "source_page", "myeneText_source", "statut"]
-with open('/home/claude/w/out_corpus_myene_NOUVEAU_30000.csv', 'w', encoding='utf-8', newline='') as f:
+with open('/home/claude/w/out_corpus_myene_NOUVEAU.csv', 'w', encoding='utf-8', newline='') as f:
     w = csv.DictWriter(f, cols); w.writeheader(); w.writerows(out)
 print(stats)
 print(collections.Counter(r['statut'] for r in out)); print(collections.Counter(r['dialect'] for r in out))
