@@ -1,7 +1,7 @@
 import csv,re,collections,unicodedata,json
 from commun import cle
 G='/mnt/user-data/attachments/a2f1503b-c6e2-53c6-b424-dcd64d983a11/e6729ee1-corpus_myene_crowdsourcing_10000.csv'
-F={'gemini_origine':G,'ancien_mis_a_jour':'out_corpus_myene_ANCIEN_mis_a_jour.csv','nouveau':'out_corpus_myene_NOUVEAU_30000.csv'}
+F={'gemini_origine':G,'ancien_mis_a_jour':'out_corpus_myene_ANCIEN_mis_a_jour.csv','nouveau':'out_corpus_myene_NOUVEAU.csv'}
 D={k:list(csv.DictReader(open(v,encoding='utf-8'))) for k,v in F.items()}
 def toks(s): return [cle(t) for t in re.findall(r"[^\W\d_]+",s) if cle(t)]
 A={}

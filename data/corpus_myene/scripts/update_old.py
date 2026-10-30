@@ -4,7 +4,7 @@ from commun import cle, phon
 random.seed(10)
 OLD = '/mnt/user-data/attachments/a2f1503b-c6e2-53c6-b424-dcd64d983a11/e6729ee1-corpus_myene_crowdsourcing_10000.csv'
 rows = list(csv.DictReader(open(OLD, encoding='utf-8')))
-NEW = list(csv.DictReader(open('/home/claude/w/out_corpus_myene_NOUVEAU_30000.csv', encoding='utf-8')))
+NEW = list(csv.DictReader(open('/home/claude/w/out_corpus_myene_NOUVEAU.csv', encoding='utf-8')))
 used = set(cle(r['myeneText']) for r in NEW)
 L = json.load(open('/home/claude/w/lecons_pairs.json'))
 L += [("Mbolo", "Bonjour", "expression", "03_expressions_conversation/Bonjour.docx"),
@@ -18,7 +18,7 @@ L = [(nfc(a), nfc(b), t, s) for a, b, t, s in L]
 
 # réserve de phrases composées non utilisées (pour remplacer doublons et gabarits répétitifs)
 POOL = collections.defaultdict(list)
-for fn in ('comp_orungu.json', 'comp_mpongwe.json'):
+for fn in ('comp_orungu.json', 'comp_mpongwe.json', 'comp_galwa.json'):
     for r in json.load(open('/home/claude/w/' + fn)):
         if cle(r['myene']) not in used: POOL[r['theme']].append(r)
 for t in POOL: random.shuffle(POOL[t])
@@ -109,6 +109,8 @@ for r in rows:
     dial = None; why = ""
     for rx, d, w in MARQ:
         if re.search(rx, my, re.I): dial, why = d, w; break
+    if not dial and "Teisserès" in prov:
+        dial, why = "galwa", "phrase composée avec la grammaire et le vocabulaire galwa de Teisserès & Dubois 1957"
     if not dial and "Raponda" in prov:
         dial, why = "mpongwe", "phrase composée avec le lexique de Raponda-Walker (mpongwè)"
     if not dial:
