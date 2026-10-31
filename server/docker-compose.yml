@@ -23,6 +23,8 @@ services:
     restart: unless-stopped
     environment:
       GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?définir GARAGE_RPC_SECRET dans .env}
+    ports:
+      - "${BIND_IP:-127.0.0.1}:3900:3900"   # S3 : le Caddy du VPS y redirige le domaine des fichiers
     volumes:
       - ./garage/garage.toml:/etc/garage.toml:ro
       - garage_meta:/var/lib/garage/meta
@@ -48,7 +50,6 @@ services:
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?idem}
     ports:
       - "${BIND_IP:-127.0.0.1}:3001:3000"   # 3000 est pris par le serveur de dev du site ; sur le VPS BIND_IP=172.17.0.1 (passerelle Docker jointe par le Caddy)
-      - "${BIND_IP:-127.0.0.1}:3900:3900"   # S3 : le Caddy du VPS y redirige le domaine des fichiers
 
 volumes:
   pgdata:
