@@ -1,0 +1,15 @@
+# À AJOUTER à /opt/n8n/Caddyfile (Caddy en conteneur, comme pour ollama), puis :
+#   docker exec n8n-caddy-1 caddy validate --config /etc/caddy/Caddyfile && docker exec n8n-caddy-1 caddy reload --config /etc/caddy/Caddyfile
+# Les enregistrements DNS A des deux domaines pointent vers le VPS.
+
+api-ompangano.essaka.engineering {
+	encode zstd gzip
+	reverse_proxy 172.17.0.1:3001 {
+		flush_interval -1   # flux SSE (/v1/events) sans mise en tampon
+	}
+}
+
+# Fichiers (voix) : URL présignées, la signature est liée à ce nom de domaine.
+media-ompangano.essaka.engineering {
+	reverse_proxy 172.17.0.1:3900
+}
