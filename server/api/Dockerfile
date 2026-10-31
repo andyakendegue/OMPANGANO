@@ -1,0 +1,14 @@
+# Contexte de build : racine du dépôt (voir docker-compose.yml)
+FROM node:22-alpine
+WORKDIR /app
+COPY server/package.json server/package-lock.json ./server/
+RUN cd server && npm ci --omit=dev && npm i --no-save tsx
+COPY server ./server
+COPY shared ./shared
+COPY src/types ./src/types
+WORKDIR /app/server
+ENV NODE_ENV=production
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:3000/health || exit 1
+CMD ["npx", "tsx", "api/src/main.ts"]

@@ -1,0 +1,31 @@
+{
+  "name": "ompangano-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx api/src/main.ts",
+    "dev": "tsx watch api/src/main.ts",
+    "migrate": "tsx api/src/migrate.ts",
+    "lint": "tsc --noEmit",
+    "test": "tsx --test api/test/*.test.ts",
+    "migrate-from-firebase": "tsx scripts/migrate-from-firebase.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
+    "@aws-sdk/s3-request-presigner": "^3.1161.0",
+    "@fastify/cors": "^11.3.1",
+    "@fastify/rate-limit": "^11.2.1",
+    "csv-parse": "^7.0.3",
+    "fastify": "^5.12.7",
+    "jose": "^6.2.14",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.14",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

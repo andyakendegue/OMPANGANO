@@ -1,0 +1,12 @@
+# HTTPS automatique (Let's Encrypt) : les enregistrements DNS A des deux domaines doivent pointer vers le VPS.
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy api:3000 {
+		flush_interval -1   # flux SSE (/v1/events) sans mise en tampon
+	}
+}
+
+# Fichiers (voix, images) : le navigateur envoie/lit directement via des URL présignées (signature liée au domaine).
+{$MEDIA_DOMAIN} {
+	reverse_proxy garage:3900
+}
