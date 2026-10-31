@@ -48,3 +48,18 @@ Sans Docker, les tests de l'API tournent avec PGlite (PostgreSQL en mémoire) : 
 
 `backup/backup.sh` (cron quotidien) : `pg_dump` + copie du bucket, rotation 14 jours, copie hors VPS si `BACKUP_REMOTE` est défini.
 `backup/restore.sh <dump> [<media.tar.gz>]` restaure dans une base `ompangano_restore` (le basculement reste manuel).
+
+## Déploiement et bascule (phase 4 — après réception des paramètres ci-dessus)
+
+1. DNS : enregistrements A de `API_DOMAIN` et `MEDIA_DOMAIN` vers le VPS.
+2. Sur le VPS (Docker requis) : copier `server/` et `shared/` et `src/types/`, créer `.env`, puis
+   `docker compose --profile prod up -d --build postgres garage` → `./scripts/init-garage.sh` (noter la clé dans `.env`) →
+   `docker compose --profile prod up -d --build` → `npx tsx scripts/set-bucket-cors.ts`.
+3. Contrôle : `curl https://$API_DOMAIN/health`.
+4. Migration à blanc (compte de service fourni par le propriétaire, hors git) :
+   `npx tsx scripts/migrate-from-firebase.ts --service-account=/chemin/cle.json --dry-run`
+5. Corpus (à blanc, puis réel) : `--corpus=../data/corpus_myene/corpus_myene_ANCIEN_mis_a_jour.csv,../data/corpus_myene/corpus_myene_NOUVEAU_35000.csv [--statuts=attestee]`.
+6. Sauvegarde puis **test de restauration** : `./backup/backup.sh`, puis `./backup/restore.sh backups/db/<dump>` sur une base vide ; cron quotidien.
+7. Bascule : annoncer une courte coupure → migration finale `--overwrite` → `VITE_API_URL=https://$API_DOMAIN npm run deploy:hosting` (depuis la racine) → vérification complète.
+8. Retour arrière : `git checkout avant-migration-vps && npm run deploy:hosting`.
+9. Après deux semaines stables et **avec l'accord du propriétaire** seulement : proposer de fermer les collections OMPANGANO dans les règles Firebase (attention au site `enenga`).

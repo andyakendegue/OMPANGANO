@@ -272,3 +272,39 @@ Toutes les propositions ont été validées. Elles ont été appliquées dans l'
    ```
 5. Se connecter une fois en admin pour appliquer automatiquement les corrections de phrases, de clans et de badges en base, et reconstruire le classement (bouton de synchronisation cloud).
 6. Donner de nouvelles dates aux défis hebdomadaires.
+
+---
+
+## Migration VPS (31 octobre 2026)
+
+**État :** phases 1 à 3 faites sur la branche `migration-vps` (API, front, script de migration). La phase 4 (déploiement et bascule) attend les paramètres du propriétaire. Rien n'est déployé et aucune donnée Firebase n'a été touchée.
+
+### Ce qui a changé
+- **Firebase ne garde que Hosting et Auth.** Les profils, phrases, contributions, clans, villages, thèmes, badges, défis et métriques sont dans PostgreSQL ; les voix dans Garage (compatible S3), bucket privé.
+- **Le serveur décide de tout** (`server/api/src/app.ts`) : rôle, statut, XP, badges et compteurs ne sont jamais fixés par le navigateur. Le calcul des points (`computeValidationReward`, `validationBadgesFor`, `PROTECTED_USER_FIELDS`) vient de `shared/userSecurity.ts`, exécuté dans une transaction SQL. Super-administrateur : adresse exacte `andymigoumbi@gmail.com` avec `email_verified = true`.
+- **Front :** `src/firebase.ts` est une façade (mêmes noms exportés) au-dessus de `src/data/api.ts`. Le cache IndexedDB, la file de modifications et le service worker sont inchangés. Le bundle ne contient plus ni Firestore, ni la Realtime Database, ni Storage.
+- **Synchronisation :** téléchargement complet paginé au premier lancement, puis uniquement les modifications depuis le curseur ; une suppression arrive sous forme de `deletedAt` et retire l'élément du cache. Le flux `GET /v1/events` remplace `metrics/catalog_versions`.
+- **Voix :** envoi direct vers Garage par URL présignée (`/v1/media/upload-url`, 10 min, 15 Mo maximum, audio seulement, dossier `recordings/{uid}/`). Les contributions portent `audioUrl = "media:{chemin}"` ; la lecture passe par `/v1/media/url`.
+- **Retirés :** « Bouclier Spark », quota Firestore, scripts `deploy:rules` et `test:rules`. `firestore.rules`, `database.rules.json` et `storage.rules` ne sont **pas** modifiés ni redéployés (le site `enenga` partage le projet).
+
+### Vérifié
+- 39 tests passent (`npm run test:api`) : les cas de `tests/rules.test.mjs` transposés (rôle et XP non modifiables, `badminton.admin@…` refusé, validation de sa propre contribution refusée, renvoi de validation non compté deux fois, rejet après approbation retire les points, envoi audio hors de son dossier ou non audio refusé), plus synchronisation, import, flux SSE et migration. PostgreSQL y est simulé par PGlite.
+- `npm run lint` et `npm run build` passent.
+- Corpus : 10 000 (ITEM) + 35 000 (NEW) phrases lues ; 44 999 créées à blanc dans PostgreSQL de test (ITEM_001 existait déjà), 0 doublon, relance sans création.
+
+### Pas vérifié
+- Docker n'est pas installé sur la machine de développement : `docker compose up`, Garage, Caddy et les scripts de sauvegarde/restauration n'ont pas été exécutés. Le test de restauration reste à faire sur le VPS.
+- Aucun essai en navigateur contre l'API (il faut un compte Firebase réel), ni en mode avion.
+- Le script de migration n'a été lancé que sur une fausse source ; l'essai à blanc réel demande le compte de service.
+
+### Déployer (phase 4, après réception des paramètres)
+Voir `server/README.md`. Ordre : DNS, `docker compose --profile prod up -d`, `init-garage.sh`, CORS du bucket, migration à blanc puis réelle, `VITE_API_URL=https://… npm run deploy:hosting`, vérification complète.
+
+### Revenir en arrière
+Firebase n'a pas été vidé. Retour : `git checkout avant-migration-vps`, `npm run deploy:hosting`. Les contributions faites sur le VPS après la bascule ne seraient pas dans Firebase : les exporter avant (`pg_dump`).
+
+### Points d'attention
+- Comptes existants : l'authentification Firebase est inchangée, aucune réinitialisation de mot de passe.
+- XP existants repris tels quels (anciennes règles : points à la soumission, parfois gonflés).
+- Un administrateur qui se connecte déclenche encore les corrections automatiques du catalogue (`sanitizeAndDeduplicateItems`, suppression des « doublons ») : à surveiller avec 45 000 phrases.
+- Corpus : des versions plus récentes (`final/IMPORT_*`, 40 125 lignes) existent d'après le journal DONDO ; la fiche demande les CSV de `data/corpus_myene/`. À trancher avec le propriétaire avant l'import.
