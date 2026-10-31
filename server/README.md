@@ -12,7 +12,7 @@ docker compose up -d postgres garage
 ./scripts/init-garage.sh          # note la clé S3 affichée dans .env (S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY)
 docker compose up -d --build api  # applique les migrations SQL au démarrage
 npx tsx scripts/set-bucket-cors.ts
-curl http://localhost:3000/health
+curl http://localhost:3001/health
 ```
 
 Sans Docker, les tests de l'API tournent avec PGlite (PostgreSQL en mémoire) : `npm install && npm test`.

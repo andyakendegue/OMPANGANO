@@ -540,6 +540,40 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return genericRow((await q.query<any>(`SELECT * FROM ${table} WHERE id = $1`, [id]))[0]);
   }
 
+  /** Écriture en masse (administrateur) : un seul ordre SQL par lot de 500. */
+  async function bulkUpsert(q: Queryable, table: GenericTable, records: Record<string, unknown>[]): Promise<number> {
+    const seen = new Map<string, Record<string, unknown>>();
+    for (const r of records) {
+      const id = String(r.id ?? '');
+      if (!RECORD_ID_RE.test(id)) fail(400, `Identifiant invalide : ${id.slice(0, 40)}`);
+      seen.set(id, { ...(seen.get(id) || {}), ...cleanData(r) });
+    }
+    const entries = [...seen.entries()];
+    for (let i = 0; i < entries.length; i += 500) {
+      const part = entries.slice(i, i + 500);
+      const ids = part.map(([id]) => id);
+      const datas = part.map(([, d]) => JSON.stringify(d));
+      if (table === 'items') {
+        const col = (k: string) => part.map(([, d]) => (str(d[k]) ? (d[k] as string) : null));
+        await q.query(
+          `INSERT INTO items (id, source_ref, dialect, category, status, data)
+           SELECT v.id, v.source_ref, v.dialect, v.category, COALESCE(v.status, 'active'), v.data
+           FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::jsonb[]) AS v(id, source_ref, dialect, category, status, data)
+           ON CONFLICT (id) DO UPDATE SET source_ref = COALESCE(EXCLUDED.source_ref, items.source_ref), dialect = COALESCE(EXCLUDED.dialect, items.dialect),
+             category = COALESCE(EXCLUDED.category, items.category), status = EXCLUDED.status, data = items.data || EXCLUDED.data, deleted_at = NULL`,
+          [ids, col('sourceRef'), col('dialect'), col('category'), col('status'), datas]
+        );
+      } else {
+        await q.query(
+          `INSERT INTO ${table} (id, data) SELECT * FROM unnest($1::text[], $2::jsonb[])
+           ON CONFLICT (id) DO UPDATE SET data = ${table}.data || EXCLUDED.data, deleted_at = NULL`,
+          [ids, datas]
+        );
+      }
+    }
+    return entries.length;
+  }
+
   app.put('/v1/:collection/:id', async (req) => {
     const { collection, id } = req.params as { collection: string; id: string };
     if (!isGenericTable(collection)) fail(404, 'Collection inconnue.');
@@ -556,6 +590,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     if (!Array.isArray(records) || records.length > 2000) fail(400, 'records attendu (2000 maximum).');
     const a = await actorOf(req);
     const n = await db.tx(async q => {
+      if (a.isAdmin) return bulkUpsert(q, collection as GenericTable, records!);
       for (const r of records!) await upsertGeneric(q, collection as GenericTable, String(r.id), r, a);
       return records!.length;
     });

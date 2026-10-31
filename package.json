@@ -11,8 +11,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "deploy:hosting": "npm run build && firebase deploy --only hosting:ompangano",
-    "deploy:rules": "firebase deploy --only firestore:rules,database,storage",
-    "test:rules": "firebase emulators:exec --only firestore,database,storage --project demo-ompangano \"node tests/rules.test.mjs\""
+    "test:api": "cd server && npm test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

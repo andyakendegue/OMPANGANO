@@ -67,11 +67,13 @@ export function contributionRow(r: any): Contribution & { deletedAt?: string } {
     createdAt: d.createdAt || iso(r.created_at),
     updatedAt: iso(r.updated_at)
   };
-  if (r.audio_storage_path) out.audioStoragePath = r.audio_storage_path;
+  if (r.audio_storage_path) {
+    out.audioStoragePath = r.audio_storage_path;
+    out.audioUrl = `media:${r.audio_storage_path}`; // marqueur « a un enregistrement » ; l'URL réelle vient de GET /v1/media/url
+  }
   if (r.audio_mime_type) out.audioMimeType = r.audio_mime_type;
   if (r.validator_id) out.validatorId = r.validator_id;
   if (r.deleted_at) out.deletedAt = iso(r.deleted_at);
-  delete out.audioUrl; // l'URL est délivrée à la demande (GET /v1/media/url)
   return out as unknown as Contribution & { deletedAt?: string };
 }
 

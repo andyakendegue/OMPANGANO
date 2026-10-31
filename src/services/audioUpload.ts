@@ -1,10 +1,9 @@
 /**
- * Envoi des enregistrements vocaux vers Firebase Storage.
+ * Envoi des enregistrements vocaux vers le stockage du VPS (Garage), par URL présignée.
  * Chemin : recordings/{uid}/{itemId}_{horodatage}.{extension réelle}
- * (voir storage.rules : chacun n'écrit que dans son dossier).
+ * (le serveur n'accepte que le dossier de l'utilisateur, des fichiers audio, 15 Mo maximum).
  */
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../firebase';
+import { uploadMedia } from '../data/api';
 
 /** Extension de fichier correspondant au type MIME réellement produit par le navigateur. */
 export function extensionForMime(mime?: string): string {
@@ -26,28 +25,18 @@ export async function dataUrlToBlob(dataUrl: string): Promise<Blob | null> {
   }
 }
 
-/** Envoie l'enregistrement ; renvoie null en cas d'échec (l'appelant le garde alors sur l'appareil). */
+/**
+ * Envoie l'enregistrement ; renvoie null en cas d'échec (l'appelant le garde alors sur l'appareil).
+ * `url` est un marqueur « media:{chemin} » : la lecture passe par resolveMediaUrl().
+ */
 export async function uploadRecording(
   uid: string,
   itemId: string,
   blob: Blob
 ): Promise<{ url: string; path: string } | null> {
-  try {
-    const contentType = blob.type && blob.type.startsWith('audio/') ? blob.type.split(';')[0] : 'audio/webm';
-    const safeItem = (itemId || 'item').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const path = `recordings/${uid}/${safeItem}_${Date.now()}.${extensionForMime(contentType)}`;
-    const audioRef = ref(storage, path);
-    await uploadBytes(audioRef, blob, { contentType });
-    const url = await getDownloadURL(audioRef);
-    return { url, path };
-  } catch (err) {
-    console.warn("Envoi de l'enregistrement vers Storage impossible :", err);
-    return null;
-  }
-}
-
-/** Supprime un enregistrement de Storage (propriétaire ou administrateur, voir storage.rules). */
-export async function deleteRecording(path: string): Promise<void> {
-  if (!path || !path.startsWith('recordings/')) return;
-  await deleteObject(ref(storage, path));
+  const contentType = blob.type && blob.type.startsWith('audio/') ? blob.type.split(';')[0] : 'audio/webm';
+  const safeItem = (itemId || 'item').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const path = `recordings/${uid}/${safeItem}_${Date.now()}.${extensionForMime(contentType)}`;
+  const ok = await uploadMedia(path, blob, contentType);
+  return ok ? { url: `media:${path}`, path } : null;
 }

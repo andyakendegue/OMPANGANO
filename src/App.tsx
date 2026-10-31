@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
-import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { onAuthStateChanged, signOut as fbSignOut } from 'firebase/auth';
 import { 
-  db, 
   auth, 
   testFirestoreConnection, 
-  handleFirestoreError, 
-  OperationType,
   dualSaveRecord,
   dualBatchSaveRecords,
   dualDeleteRecord,
@@ -18,10 +14,9 @@ import {
   smartGetUserProfile,
   subscribeToCatalogSignals,
   sanitizeDataForFirebase,
-  bumpCatalogVersion,
-  rtdb
+  bumpCatalogVersion
 } from './firebase';
-import { ref as rtdbRef, update as rtdbUpdate } from 'firebase/database';
+import { api } from './data/api';
 import { 
   QuestionnaireItem, 
   Contribution, 
@@ -60,7 +55,7 @@ import {
   applySeedItemCorrections,
   BADGE_TITLE_RENAMES
 } from './services/seedData';
-import { uploadRecording, dataUrlToBlob, deleteRecording } from './services/audioUpload';
+import { uploadRecording, dataUrlToBlob } from './services/audioUpload';
 import { 
   getPendingOfflineContributions, 
   saveOfflineContribution, 
@@ -351,21 +346,8 @@ export default function App() {
     const payload = options?.isNew
       ? { ...profile, ...(actorRole === 'admin' ? {} : NEW_USER_PROTECTED_DEFAULTS) }
       : stripProtectedUserFields(profile, actorRole);
+    // Le serveur ignore les champs protégés et calcule lui-même le classement public.
     await dualSaveRecord('users', profile.id, payload);
-    // Entrée publique du classement (les chiffres doivent correspondre au profil cloud)
-    // Les règles comparent l'entrée au profil CLOUD : on s'appuie donc sur lui (et non sur la copie locale,
-    // qui peut être périmée après une récompense), et on n'écrit rien s'il est illisible.
-    if (profile.registrationCompleted) {
-      try {
-        const cloudSnap = await getDoc(doc(db, 'users', profile.id));
-        if (cloudSnap.exists()) {
-          const cloudProfile = { ...profile, ...cloudSnap.data(), id: profile.id } as UserProfile;
-          await dualSaveRecord('leaderboard', profile.id, buildLeaderboardEntry(cloudProfile));
-        }
-      } catch {
-        /* classement resynchronisé au prochain enregistrement */
-      }
-    }
     refreshPendingMutationsCount();
   };
 
@@ -1165,7 +1147,7 @@ export default function App() {
         NotificationService.sendLocalNotification(`${MYENE.MBIAMBIE.mot} ! Synchronisation en ligne réussie ⚡`, {
           body: `${syncedContribCount > 0 ? `${syncedContribCount} contribution(s) ` : ''}${
             replayedMutations > 0 ? `et ${replayedMutations} mise(s) à jour ` : ''
-          }synchronisée(s) avec Firebase.`
+          }synchronisée(s) avec le serveur.`
         });
       }
     } catch (err) {
@@ -1318,7 +1300,7 @@ export default function App() {
       // Les points, badges et défis sont attribués à la VALIDATION (voir applyValidationWithRewards).
       return true;
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'contributions/' + contributionId);
+      console.warn('Enregistrement de la contribution impossible :', error);
       setContributions(prev => {
         const next = [payload, ...prev.filter(c => c.id !== payload.id)];
         cacheContributionsLocally(next);
@@ -1628,64 +1610,37 @@ export default function App() {
 
     let updatedContribution: Contribution = { ...existing, ...validationFields };
     let contributorAfter: UserProfile | null = null;
+    let validatorAfter: UserProfile | null = null;
     try {
       await ensureFirebaseAuthSession();
-      await runTransaction(db, async (tx) => {
-        const contribRef = doc(db, 'contributions', contributionId);
-        const userRef = doc(db, 'users', existing.userId);
-        const contribSnap = await tx.get(contribRef);
-        const userSnap = await tx.get(userRef);
-        const currentContrib = contribSnap.exists()
-          ? ({ id: contributionId, ...contribSnap.data() } as Contribution)
-          : existing;
-        const reward = userSnap.exists()
-          ? computeValidationReward({
-              contributor: { id: existing.userId, ...userSnap.data() } as UserProfile,
-              contribution: currentContrib,
-              newStatus: fields.status,
-              item: items.find(i => i.id === currentContrib.itemId),
-              challenges,
-              badges
-            })
-          : { userPatch: null, contributionPatch: {}, completedChallenges: [] };
-
-        updatedContribution = { ...currentContrib, ...validationFields, ...reward.contributionPatch };
-        tx.set(contribRef, sanitizeDataForFirebase({ ...validationFields, ...reward.contributionPatch }), { merge: true });
-        if (reward.userPatch && userSnap.exists()) {
-          tx.set(userRef, sanitizeDataForFirebase(reward.userPatch), { merge: true });
-          contributorAfter = { id: existing.userId, ...userSnap.data(), ...reward.userPatch } as UserProfile;
-        } else {
-          contributorAfter = null;
+      // Les points, badges, défis et le compteur du validateur sont calculés par le serveur, dans une transaction.
+      const result = await api<{ contribution: Contribution; contributor: UserProfile | null; validator: UserProfile }>(
+        'POST',
+        `/v1/contributions/${encodeURIComponent(contributionId)}/validate`,
+        {
+          status: fields.status,
+          spellingVerdict: fields.spellingVerdict,
+          pronunciationVerdict: fields.pronunciationVerdict,
+          validatorNotes: fields.validatorNotes || ''
         }
-      });
+      );
+      updatedContribution = { ...existing, ...result.contribution };
+      contributorAfter = result.contributor;
+      validatorAfter = result.validator;
     } catch (err) {
       console.warn('Validation refusée ou échouée :', err);
       alert(`${MYENE.NYEZA_MYE.mot}… La validation n'a pas pu être enregistrée (${(err as Error)?.message || 'erreur inconnue'}).`);
       return false;
     }
 
-    // Miroir RTDB (lecture rapide) + classement public du contributeur
-    if (rtdb) {
-      rtdbUpdate(rtdbRef(rtdb, `contributions/${contributionId}`), sanitizeDataForFirebase(updatedContribution)).catch(() => {});
-    }
     const contributor = contributorAfter as UserProfile | null;
     if (contributor) {
-      const { id: _id, ...rewardOnly } = contributor;
-      if (rtdb) {
-        const patch: Record<string, unknown> = {};
-        for (const key of ['xp', 'level', 'levelIndex', 'badges', 'contributionsCount', 'recordingsCount', 'weeklyProgress', 'completedChallenges', 'lastContributionDate', 'updatedAt']) {
-          patch[key] = (rewardOnly as Record<string, unknown>)[key] ?? null;
-        }
-        rtdbUpdate(rtdbRef(rtdb, `users/${contributor.id}`), sanitizeDataForFirebase(patch)).catch(() => {});
-      }
-      dualSaveRecord('leaderboard', contributor.id, buildLeaderboardEntry(contributor)).catch(() => {});
       setUsersList(prev => {
         const next = prev.map(u => (u.id === contributor.id ? { ...u, ...contributor } : u));
         cacheUsersLocally(next);
         return next;
       });
     }
-    bumpCatalogVersion('contributions');
 
     setContributions(prev => {
       const next = prev.map(c => (c.id === contributionId ? updatedContribution : c));
@@ -1693,14 +1648,16 @@ export default function App() {
       return next;
     });
 
-    // Compteur de validations du validateur (et badge « 5 validations »)
-    const updatedValids = (activeUser.validationsCount || 0) + 1;
-    await updateAndPersistCurrentUser(prev => ({
-      ...prev,
-      validationsCount: updatedValids,
-      badges: validationBadgesFor(updatedValids, prev.badges || [], badges),
-      updatedAt: new Date().toISOString()
-    }));
+    // Compteur de validations et badges du validateur : valeurs du serveur
+    const validator = validatorAfter as UserProfile | null;
+    if (validator) {
+      await updateAndPersistCurrentUser(prev => ({
+        ...prev,
+        validationsCount: validator.validationsCount,
+        badges: validator.badges,
+        updatedAt: validator.updatedAt
+      }), false);
+    }
     return true;
   };
 
@@ -2017,28 +1974,7 @@ export default function App() {
       return;
     }
 
-    // Retrait des points déjà attribués (admin uniquement, en ligne)
-    if (target && isAdmin && (target.rewardedXp || target.rewardedContribution || target.rewardedRecording)) {
-      try {
-        await runTransaction(db, async (tx) => {
-          const userRef = doc(db, 'users', target.userId);
-          const userSnap = await tx.get(userRef);
-          if (!userSnap.exists()) return;
-          const reward = computeValidationReward({
-            contributor: { id: target.userId, ...userSnap.data() } as UserProfile,
-            contribution: target,
-            newStatus: 'rejected',
-            item: items.find(i => i.id === target.itemId),
-            challenges,
-            badges
-          });
-          if (reward.userPatch) tx.set(userRef, sanitizeDataForFirebase(reward.userPatch), { merge: true });
-        });
-      } catch (err) {
-        console.warn('Retrait des points impossible :', err);
-        if (!window.confirm("Les points de cette contribution n'ont pas pu être retirés (connexion ?). Supprimer quand même ?")) return;
-      }
-    }
+    // Le serveur retire les points déjà attribués (administrateur) et supprime l'enregistrement audio.
 
     markIdAsDeleted('contributions', contributionId);
     await removeOfflineContribution(contributionId);
@@ -2051,9 +1987,6 @@ export default function App() {
 
     if (!target || !target.offlineQueued) {
       await dualDeleteRecord('contributions', contributionId);
-    }
-    if (target?.audioStoragePath) {
-      deleteRecording(target.audioStoragePath).catch(() => {});
     }
     refreshPendingMutationsCount();
   };
