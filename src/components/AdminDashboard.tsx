@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { resolveMediaUrl } from '../data/api';
 import { 
   BarChart3, 
   CheckCircle, 
@@ -277,7 +278,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [fraudSearchQuery, setFraudSearchQuery] = useState('');
 
   // Audio Playback
-  const handlePlayAudio = (id: string, url?: string) => {
+  const handlePlayAudio = async (id: string, url?: string) => {
     if (!url) return;
     if (playingAudioId === id) {
       if (audioElement) {
@@ -288,7 +289,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
 
     if (audioElement) audioElement.pause();
-    const audio = new Audio(url);
+    let playable = url;
+    try { playable = await resolveMediaUrl(url); } catch (e) { console.warn('URL audio indisponible :', e); return; }
+    const audio = new Audio(playable);
     audio.onended = () => setPlayingAudioId(null);
     audio.play().catch(e => console.warn('Erreur lecture audio:', e));
     setAudioElement(audio);

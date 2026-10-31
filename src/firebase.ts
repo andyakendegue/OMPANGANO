@@ -1,208 +1,61 @@
+/**
+ * Firebase ne sert plus qu'à l'authentification (Google + e-mail/mot de passe).
+ * Les données (profils, phrases, contributions, voix…) sont sur le VPS : ce fichier est une FAÇADE
+ * qui garde les noms historiques (dualSaveRecord, smartFetchCollection…) mais parle à l'API
+ * (src/data/api.ts). Le cache hors-ligne et la file de modifications restent sur l'appareil.
+ */
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
   signOut as fbSignOut,
-  onAuthStateChanged, 
+  onAuthStateChanged,
   User as FirebaseUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { 
-  getFirestore, 
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-  doc, 
-  setDoc, 
-  deleteDoc, 
-  getDoc, 
-  getDocFromCache,
-  collection, 
-  getDocs,
-  getDocsFromCache,
-  query,
-  where,
-  limit,
-  onSnapshot,
-  writeBatch
-} from 'firebase/firestore';
-import { 
-  getDatabase, 
-  ref as rtdbRef, 
-  update as rtdbUpdate,
-  remove as rtdbRemove,
-  get as rtdbGet,
-  onValue as rtdbOnValue
-} from 'firebase/database';
-import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
+import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
+import { PROTECTED_USER_FIELDS } from '../shared/userSecurity';
 
-// Initialize Firebase App
+// Initialize Firebase App (Auth uniquement)
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-
-// CRITICAL: Initialize Firestore with experimentalAutoDetectLongPolling and persistent multi-tab cache
-// This prevents the "@firebase/firestore: Could not reach Cloud Firestore backend. Backend didn't respond within 10 seconds"
-// error caused by blocked/buffered WebSockets in preview proxies, VPNs, or iframe environments.
-const typedConfig = firebaseConfig as Record<string, any>;
-const targetDbId = (typedConfig.firestoreDatabaseId && typedConfig.firestoreDatabaseId !== '(default)')
-  ? typedConfig.firestoreDatabaseId
-  : undefined;
-
-let firestoreInstance;
-try {
-  firestoreInstance = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager()
-    })
-  }, targetDbId);
-} catch {
-  firestoreInstance = targetDbId ? getFirestore(app, targetDbId) : getFirestore(app);
-}
-export const db = firestoreInstance;
-
-// Initialize Realtime Database (for project enenga default-rtdb)
-export const rtdb = firebaseConfig.databaseURL 
-  ? getDatabase(app, firebaseConfig.databaseURL)
-  : getDatabase(app);
-
-// Initialize Firebase Auth
 export const auth = getAuth(app);
-
-// Initialize Firebase Storage (bucket for voice recordings)
-export const storage = getStorage(app, firebaseConfig.storageBucket);
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// List of official administrator emails guaranteed super-admin rights
-// Doit rester identique à la liste des règles Firestore / RTDB / Storage.
-export const ADMIN_EMAILS: string[] = [
-  'andymigoumbi@gmail.com'
-];
+// L'API reçoit le jeton d'identité Firebase ; un rafraîchissement forcé est demandé après un 401.
+setTokenProvider(async (forceRefresh) => {
+  try {
+    await auth.authStateReady();
+    return (await auth.currentUser?.getIdToken(forceRefresh)) ?? null;
+  } catch {
+    return null;
+  }
+});
 
-/**
- * Checks if an email is an administrator email.
- * Ensures andymigoumbi@gmail.com is unconditionally identified as admin.
- */
+// Adresse du super-administrateur. Indicatif d'affichage seulement : c'est le SERVEUR qui décide des rôles.
+export const ADMIN_EMAILS: string[] = ['andymigoumbi@gmail.com'];
+
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   // Comparaison EXACTE uniquement : une adresse qui « contient » admin n'est jamais administrateur.
   return ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
-/**
- * Ensures an admin user has their role updated in memory and in Firestore/RTDB.
- */
+/** Le rôle administrateur du super-admin est attribué par le serveur à la première requête (/v1/me). */
 export async function ensureAdminRoleForUser(user: { id: string; email?: string | null; role?: string }) {
   if (checkIsAdminEmail(user.email)) {
     user.role = 'admin';
-    try {
-      await dualSaveRecord('users', user.id, { role: 'admin', updatedAt: new Date().toISOString() });
-      await dualSaveRecord('admins', user.id, {
-        userId: user.id,
-        email: user.email,
-        role: 'admin',
-        updatedAt: new Date().toISOString()
-      });
-      return true;
-    } catch (err) {
-      console.warn('Notice ensuring admin role in cloud database:', err);
-    }
-  }
-  return false;
-}
-
-// Collections tenues uniquement dans Firestore (pas de copie RTDB) : leurs règles de sécurité
-// vérifient des valeurs du profil Firestore, ce que les règles RTDB ne peuvent pas faire.
-const FIRESTORE_ONLY_COLLECTIONS = new Set<string>(['leaderboard']);
-
-// Operation Type and Error Info
-export enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-export interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-    providerInfo?: {
-      providerId?: string | null;
-      email?: string | null;
-    }[];
-  };
-}
-
-const FS_QUOTA_COOLDOWN_KEY = 'nkala_fs_quota_exhausted_until';
-
-export function isFirestoreQuotaExhausted(): boolean {
-  try {
-    const raw = sessionStorage.getItem(FS_QUOTA_COOLDOWN_KEY);
-    if (!raw) return false;
-    const until = Number(raw);
-    if (Date.now() < until) return true;
-    sessionStorage.removeItem(FS_QUOTA_COOLDOWN_KEY);
-    return false;
-  } catch {
-    return false;
-  }
-}
-
-export function checkAndMarkQuotaError(error: unknown): boolean {
-  const msg = error instanceof Error ? error.message : String(error || '');
-  const code = (error as any)?.code || '';
-  if (
-    code === 'resource-exhausted' ||
-    msg.includes('Quota exceeded') ||
-    msg.includes('resource-exhausted')
-  ) {
-    try {
-      // Activate automatic RTDB + Local Cache shield for 30 minutes to protect Spark plan
-      sessionStorage.setItem(FS_QUOTA_COOLDOWN_KEY, String(Date.now() + 30 * 60 * 1000));
-    } catch {}
-    console.warn('[Bouclier Spark 50k] Quota Firestore atteint — bascule transparente sur Realtime Database + Cache Local IndexedDB.');
     return true;
   }
   return false;
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  checkAndMarkQuotaError(error);
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || []
-    },
-    operationType,
-    path
-  };
-  console.warn('Firestore Operation Notification:', JSON.stringify(errInfo));
-  return errInfo;
-}
-
-// Convert audio Blob into permanent base64 data URL
+// Convert audio Blob into permanent base64 data URL (aperçu local uniquement)
 export function convertBlobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -213,8 +66,6 @@ export function convertBlobToBase64(blob: Blob): Promise<string> {
 }
 
 // Connexion OU création de compte par e-mail, selon le choix EXPLICITE de l'utilisateur.
-// (Avant : un mauvais mot de passe déclenchait une tentative de création de compte,
-//  et une faute de frappe dans l'adresse créait un nouveau compte sans prévenir.)
 export async function signInOrRegisterWithEmail(
   email: string,
   password: string,
@@ -246,24 +97,22 @@ export async function signInOrRegisterWithEmail(
   }
 }
 
-// Ensure there is always a valid Firebase Auth session before database writes
+// Attend que la session Firebase soit prête avant d'appeler l'API
 export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> {
   try {
     await auth.authStateReady();
   } catch {}
-  // Plus de connexion anonyme : les règles de sécurité refusent les sessions anonymes.
+  // Pas de connexion anonyme : le serveur refuse les sessions anonymes.
   if (auth.currentUser && !auth.currentUser.isAnonymous) return auth.currentUser;
   return null;
 }
 
-/** Vrai si Firebase a refusé l'opération pour une raison de droits (inutile de la rejouer). */
+/** Vrai si le serveur a refusé l'opération (droits, données invalides) : inutile de la rejouer. */
 export function isPermissionDeniedError(error: unknown): boolean {
-  const code = String((error as any)?.code || '').toLowerCase();
-  const msg = String((error as any)?.message || error || '').toLowerCase();
-  return code.includes('permission-denied') || code.includes('permission_denied') || msg.includes('permission_denied') || msg.includes('permission denied') || msg.includes('missing or insufficient permissions');
+  return isPermanentApiError(error);
 }
 
-// Clean undefined values to prevent Firestore & RTDB crash: "Unsupported field value: undefined"
+// Retire les valeurs undefined avant l'envoi
 export function sanitizeDataForFirebase(obj: any): any {
   if (obj === null || obj === undefined) return null;
   if (typeof obj !== 'object') return obj;
@@ -277,6 +126,46 @@ export function sanitizeDataForFirebase(obj: any): any {
     }
   }
   return clean;
+}
+
+// -------------------------------------------------------------
+// ÉCRITURES VERS L'API (une seule entrée pour tous les types de données)
+// -------------------------------------------------------------
+const OWN_PROFILE_KEY = 'nkala_authenticated_user';
+
+function localRoleIsAdmin(): boolean {
+  try {
+    const raw = localStorage.getItem(OWN_PROFILE_KEY);
+    return !!raw && JSON.parse(raw)?.role === 'admin';
+  } catch {
+    return false;
+  }
+}
+
+async function saveToApi(collectionPath: string, recordId: string, data: any): Promise<void> {
+  const body = sanitizeDataForFirebase(data) || {};
+  if (collectionPath === 'leaderboard') return; // classement calculé par le serveur
+  if (collectionPath === 'users') {
+    const me = auth.currentUser?.uid;
+    const touchesProtected = PROTECTED_USER_FIELDS.some(k => k in body);
+    // Un admin modifie les champs protégés via /users/:id ; tout autre cas passe par /me (champs protégés ignorés)
+    if (recordId === me && !(touchesProtected && localRoleIsAdmin())) {
+      await api('PATCH', '/v1/me', body);
+    } else {
+      await api('PATCH', `/v1/users/${encodeURIComponent(recordId)}`, body);
+    }
+    return;
+  }
+  if (collectionPath === 'contributions') {
+    await api('POST', '/v1/contributions', { ...body, id: recordId }); // création idempotente (rejeu hors-ligne sans doublon)
+    return;
+  }
+  await api('PUT', `/v1/${encodeURIComponent(collectionPath)}/${encodeURIComponent(recordId)}`, body);
+}
+
+async function deleteFromApi(collectionPath: string, recordId: string): Promise<void> {
+  if (collectionPath === 'leaderboard') return;
+  await api('DELETE', `/v1/${encodeURIComponent(collectionPath)}/${encodeURIComponent(recordId)}`);
 }
 
 // -------------------------------------------------------------
@@ -319,22 +208,18 @@ export function queueOfflineAdminMutation(mutation: Omit<OfflineAdminMutation, '
       mutation.data &&
       typeof mutation.data === 'object'
     ) {
-      mergedData = {
-        ...current[existingIdx].data,
-        ...mutation.data
-      };
+      mergedData = { ...current[existingIdx].data, ...mutation.data };
     }
 
     const filtered = current.filter(
       m => !(m.collectionPath === mutation.collectionPath && m.recordId === mutation.recordId)
     );
-    const item: OfflineAdminMutation = {
+    filtered.push({
       ...mutation,
       data: mergedData,
       id: `mut_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       timestamp: Date.now()
-    };
-    filtered.push(item);
+    });
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(filtered));
     console.info(`[Offline Queue] Action mise en file d'attente hors-ligne: ${mutation.type.toUpperCase()} ${mutation.collectionPath}/${mutation.recordId}`);
   } catch (err) {
@@ -358,10 +243,7 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
       if (pending.length === 0) return 0;
 
       const activeUser = await ensureFirebaseAuthSession();
-      if (!activeUser) {
-        // Cannot replay to Firestore until user is authenticated
-        return 0;
-      }
+      if (!activeUser) return 0; // pas de session : on réessaiera
 
       console.info(`[Sync Replay] Synchronisation en ligne de ${pending.length} modification(s) en attente...`);
 
@@ -371,24 +253,14 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
       for (const mut of pending) {
         try {
           if (mut.type === 'save' && mut.data) {
-            const clean = sanitizeDataForFirebase(mut.data);
-            await setDoc(doc(db, mut.collectionPath, mut.recordId), clean, { merge: true });
-            if (rtdb) {
-              // update (fusion) et non set : un set écraserait les champs absents de la mutation
-              await rtdbUpdate(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`), clean).catch(() => {});
-            }
+            await saveToApi(mut.collectionPath, mut.recordId, mut.data);
           } else if (mut.type === 'delete') {
-            await deleteDoc(doc(db, mut.collectionPath, mut.recordId));
-            if (rtdb) {
-              await rtdbRemove(rtdbRef(rtdb, `${mut.collectionPath}/${mut.recordId}`)).catch(() => {});
-            }
+            await deleteFromApi(mut.collectionPath, mut.recordId);
           }
           successCount++;
-          console.info(`✓ [Sync Replay Succès] ${mut.type} sur ${mut.collectionPath}/${mut.recordId}`);
         } catch (replayErr) {
-          if (isPermissionDeniedError(replayErr)) {
-            // Refus des règles de sécurité : rejouer ne servira jamais, on abandonne la mutation.
-            console.warn(`✗ [Sync Replay Refusé] ${mut.collectionPath}/${mut.recordId} abandonné (droits insuffisants).`);
+          if (isPermanentApiError(replayErr)) {
+            console.warn(`✗ [Sync Replay Refusé] ${mut.collectionPath}/${mut.recordId} abandonné (${(replayErr as ApiError).message}).`);
             continue;
           }
           console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, conservé en attente:`, replayErr);
@@ -409,92 +281,40 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
   return activeReplayPromise;
 }
 
-// Helper to bump collection version timestamp in RTDB (0 Firestore reads) + debounced Firestore marker
-const catalogVersionTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+/** Conservé pour compatibilité : le serveur signale lui-même les modifications (flux /v1/events). */
+export function bumpCatalogVersion(_collectionPath: string) {}
 
-export function bumpCatalogVersion(collectionPath: string) {
-  if (collectionPath === 'metrics' || collectionPath === 'admins') return;
-  const nowIso = new Date().toISOString();
-  if (rtdb && auth.currentUser) {
-    rtdbUpdate(rtdbRef(rtdb, 'metrics/catalog_versions'), {
-      [collectionPath]: nowIso,
-      updatedAt: nowIso
-    }).catch(() => {});
-  }
-  if (!isFirestoreQuotaExhausted() && auth.currentUser) {
-    if (catalogVersionTimers[collectionPath]) {
-      clearTimeout(catalogVersionTimers[collectionPath]);
-    }
-    catalogVersionTimers[collectionPath] = setTimeout(() => {
-      setDoc(
-        doc(db, 'metrics', 'catalog_versions'),
-        { [collectionPath]: nowIso, updatedAt: nowIso },
-        { merge: true }
-      ).catch(err => checkAndMarkQuotaError(err));
-    }, 1500);
-  }
-}
-
-// Dual write helper: persists to both Firestore AND Realtime Database with automatic sanitization & offline queueing
 export async function dualSaveRecord(collectionPath: string, recordId: string, data: any): Promise<{ firestore: boolean; rtdb: boolean }> {
-  let fsOk = false;
-  let rtdbOk = false;
-  let fsDenied = false;
   const sanitized = sanitizeDataForFirebase(data);
 
-  // If currently offline, queue immediately
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
     return { firestore: false, rtdb: false };
   }
 
-  // Wait for Firebase Auth state to settle before writing to Firestore
   const activeUser = await ensureFirebaseAuthSession();
-
-  // 1. Write to Firestore (only if authenticated and Spark quota not exhausted)
-  if (activeUser && !isFirestoreQuotaExhausted()) {
-    try {
-      await setDoc(doc(db, collectionPath, recordId), sanitized, { merge: true });
-      fsOk = true;
-      console.info(`✓ Synchronisé Firestore avec succès: ${collectionPath}/${recordId}`);
-    } catch (err) {
-      checkAndMarkQuotaError(err);
-      fsDenied = isPermissionDeniedError(err);
-      console.warn(`Notice d'enregistrement Firestore sur ${collectionPath}/${recordId}:`, err);
-    }
-  }
-
-  // 2. Write to Realtime Database (only if authenticated)
-  // IMPORTANT : update (fusion) et jamais set. Un set remplaçait tout l'enregistrement
-  // et effaçait les champs absents d'une mise à jour partielle (profil, contribution…).
-  if (activeUser && rtdb && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath)) {
-    try {
-      await rtdbUpdate(rtdbRef(rtdb, `${collectionPath}/${recordId}`), sanitized);
-      rtdbOk = true;
-      console.info(`✓ Synchronisé RTDB avec succès: ${collectionPath}/${recordId}`);
-    } catch (err) {
-      console.warn(`Notice d'enregistrement RTDB sur ${collectionPath}/${recordId}:`, err);
-    }
-  }
-
-  if (fsOk || rtdbOk) {
-    bumpCatalogVersion(collectionPath);
-  }
-
-  // If Firestore failed or user was not yet authenticated, queue for replay when authenticated & online
-  // (sauf refus des règles de sécurité : rejouer ne servirait à rien)
-  if (!fsOk && !fsDenied) {
+  if (!activeUser) {
     queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
+    return { firestore: false, rtdb: false };
   }
 
-  return { firestore: fsOk, rtdb: rtdbOk };
+  try {
+    await saveToApi(collectionPath, recordId, sanitized);
+    return { firestore: true, rtdb: true };
+  } catch (err) {
+    if (isPermanentApiError(err)) {
+      console.warn(`Écriture refusée sur ${collectionPath}/${recordId} :`, (err as ApiError).message);
+      return { firestore: false, rtdb: false };
+    }
+    console.warn(`Écriture différée sur ${collectionPath}/${recordId} :`, err);
+    queueOfflineAdminMutation({ type: 'save', collectionPath, recordId, data: sanitized });
+    return { firestore: false, rtdb: false };
+  }
 }
 
 /**
- * High-speed chunked batch writer for large CSV imports (1,000 to 10,000+ items).
- * Commits in chunks of 250 documents per Firestore `writeBatch` (well below the 500-op hard limit)
- * and multi-key updates in Realtime Database, reporting live progress after each chunk.
- * If offline or if any record fails to write, queues it in the offline mutation queue for automatic replay.
+ * Écriture groupée pour les gros imports (CSV de 10 000 à 45 000 phrases) : lots de 500,
+ * progression après chaque lot. Hors-ligne ou lot en échec réseau : mis en file pour rejeu automatique.
  */
 export async function dualBatchSaveRecords(
   collectionPath: string,
@@ -507,449 +327,199 @@ export async function dualBatchSaveRecords(
     return { savedCount: 0, totalCount: 0 };
   }
 
-  const isCurrentlyOnline = typeof navigator === 'undefined' || navigator.onLine;
-  const activeUser = isCurrentlyOnline ? await ensureFirebaseAuthSession() : null;
-  const CHUNK_SIZE = 250;
+  const online = typeof navigator === 'undefined' || navigator.onLine;
+  const activeUser = online ? await ensureFirebaseAuthSession() : null;
+  const CHUNK_SIZE = 500;
   let savedCount = 0;
 
   for (let start = 0; start < totalCount; start += CHUNK_SIZE) {
-    const chunk = records.slice(start, start + CHUNK_SIZE);
-    const rtdbChunkPayload: Record<string, any> = {};
+    const chunk = records
+      .slice(start, start + CHUNK_SIZE)
+      .map(r => ({ id: String(r.id || '').trim().replace(/[.$#[\]/\\]+/g, '_'), data: sanitizeDataForFirebase(r.data) }))
+      .filter(r => r.id);
 
-    if (activeUser && isCurrentlyOnline) {
-      if (!isFirestoreQuotaExhausted()) {
-        try {
-          const batch = writeBatch(db);
-          for (const entry of chunk) {
-            const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
-            if (!safeId) continue;
-            const sanitized = sanitizeDataForFirebase(entry.data);
-            batch.set(doc(db, collectionPath, safeId), sanitized, { merge: true });
-            rtdbChunkPayload[safeId] = sanitized;
-          }
-          await batch.commit();
-        } catch (batchErr) {
-          checkAndMarkQuotaError(batchErr);
-          console.warn(`[Batch Import] Fallback unitaire sur le lot ${start}-${start + chunk.length}:`, batchErr);
-          for (const entry of chunk) {
-            const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
-            if (!safeId) continue;
-            const sanitized = sanitizeDataForFirebase(entry.data);
-            rtdbChunkPayload[safeId] = sanitized;
-            if (!isFirestoreQuotaExhausted()) {
-              try {
-                await setDoc(doc(db, collectionPath, safeId), sanitized, { merge: true });
-              } catch (singleErr) {
-                checkAndMarkQuotaError(singleErr);
-                queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: safeId, data: sanitized });
-              }
-            } else {
-              queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: safeId, data: sanitized });
-            }
-          }
-        }
-      } else {
-        for (const entry of chunk) {
-          const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
-          if (!safeId) continue;
-          const sanitized = sanitizeDataForFirebase(entry.data);
-          rtdbChunkPayload[safeId] = sanitized;
-          queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: safeId, data: sanitized });
+    let sent = false;
+    if (activeUser && chunk.length > 0) {
+      try {
+        await api('POST', `/v1/${encodeURIComponent(collectionPath)}/batch`, { records: chunk.map(r => ({ ...r.data, id: r.id })) });
+        sent = true;
+      } catch (err) {
+        if (isPermanentApiError(err)) {
+          console.warn(`[Batch Import] Lot refusé (${(err as ApiError).message})`);
+          sent = true; // inutile de le rejouer
+        } else {
+          console.warn(`[Batch Import] Lot ${start}-${start + chunk.length} mis en attente :`, err);
         }
       }
-
-      if (rtdb && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath) && Object.keys(rtdbChunkPayload).length > 0) {
-        try {
-          await rtdbUpdate(rtdbRef(rtdb, collectionPath), rtdbChunkPayload);
-        } catch (rtdbErr) {
-          console.warn(`[Batch Import] Notice RTDB sur le lot ${start}-${start + chunk.length}:`, rtdbErr);
-        }
-      }
-    } else {
-      // Offline or unauthenticated during batch import: queue each record for automatic online sync
-      for (const entry of chunk) {
-        const safeId = String(entry.id || '').trim().replace(/[.$#[\]/\\]+/g, '_');
-        if (!safeId) continue;
-        const sanitized = sanitizeDataForFirebase(entry.data);
-        queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: safeId, data: sanitized });
-      }
+    }
+    if (!sent) {
+      for (const r of chunk) queueOfflineAdminMutation({ type: 'save', collectionPath, recordId: r.id, data: r.data });
     }
 
     savedCount += chunk.length;
     onProgress?.(savedCount, totalCount);
   }
 
-  bumpCatalogVersion(collectionPath);
   return { savedCount, totalCount };
 }
 
-// Dual delete helper: deletes from Firestore AND Realtime Database with offline queueing
 export async function dualDeleteRecord(collectionPath: string, recordId: string): Promise<{ firestore: boolean; rtdb: boolean }> {
-  let fsOk = false;
-  let rtdbOk = false;
-
-  // If currently offline, queue delete immediately
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     queueOfflineAdminMutation({ type: 'delete', collectionPath, recordId });
     return { firestore: false, rtdb: false };
   }
-
   const activeUser = await ensureFirebaseAuthSession();
-
-  if (activeUser && !isFirestoreQuotaExhausted()) {
-    try {
-      await deleteDoc(doc(db, collectionPath, recordId));
-      fsOk = true;
-      console.info(`✓ Supprimé de Firestore: ${collectionPath}/${recordId}`);
-    } catch (err) {
-      checkAndMarkQuotaError(err);
-      if (isPermissionDeniedError(err)) {
-        console.warn(`Suppression refusée (droits) sur ${collectionPath}/${recordId}`);
-        return { firestore: false, rtdb: false };
-      }
-      console.warn(`Notice suppression Firestore sur ${collectionPath}/${recordId}:`, err);
-    }
-  }
-
-  if (activeUser && rtdb) {
-    try {
-      await rtdbRemove(rtdbRef(rtdb, `${collectionPath}/${recordId}`));
-      rtdbOk = true;
-      console.info(`✓ Supprimé de RTDB: ${collectionPath}/${recordId}`);
-    } catch (err) {
-      console.warn(`Notice suppression RTDB sur ${collectionPath}/${recordId}:`, err);
-    }
-  }
-
-  if (fsOk || rtdbOk) {
-    bumpCatalogVersion(collectionPath);
-  }
-
-  // If Firestore delete failed, queue for replay when back online
-  if (!fsOk) {
+  if (!activeUser) {
     queueOfflineAdminMutation({ type: 'delete', collectionPath, recordId });
+    return { firestore: false, rtdb: false };
   }
-
-  return { firestore: fsOk, rtdb: rtdbOk };
+  try {
+    await deleteFromApi(collectionPath, recordId);
+    return { firestore: true, rtdb: true };
+  } catch (err) {
+    if (isPermanentApiError(err)) {
+      console.warn(`Suppression refusée sur ${collectionPath}/${recordId} :`, (err as ApiError).message);
+      return { firestore: false, rtdb: false };
+    }
+    queueOfflineAdminMutation({ type: 'delete', collectionPath, recordId });
+    return { firestore: false, rtdb: false };
+  }
 }
 
 // -------------------------------------------------------------
-// SPARK 50,000 READS QUOTA SAVER ENGINE
-// 1. Reads from Realtime Database first (0 Firestore document reads!)
-// 2. Falls back to Firestore local IndexedDB cache (0 server reads!)
-// 3. Uses incremental delta queries (`where('updatedAt', '>', lastSyncTs)`)
-//    so 10,000 items never get re-read on every session!
+// SYNCHRONISATION INCRÉMENTALE
+// 1er lancement : téléchargement complet paginé. Ensuite : seulement les modifications
+// depuis le dernier curseur (suppressions comprises : deletedAt retire l'élément du cache local).
 // -------------------------------------------------------------
-const DELTA_SYNC_TS_PREFIX = 'nkala_delta_sync_ts_';
+const SYNC_CURSOR_PREFIX = 'ompangano_sync_cursor_';
+
+function cursorKey(collectionPath: string): string {
+  return `${SYNC_CURSOR_PREFIX}${auth.currentUser?.uid || 'anon'}_${collectionPath}`;
+}
 
 export function getLastCollectionSyncTimestamp(collectionPath: string): string | null {
   try {
-    return localStorage.getItem(`${DELTA_SYNC_TS_PREFIX}${collectionPath}`);
+    return localStorage.getItem(cursorKey(collectionPath));
   } catch {
     return null;
   }
 }
 
-export function setLastCollectionSyncTimestamp(collectionPath: string, isoTimestamp: string) {
+export function setLastCollectionSyncTimestamp(collectionPath: string, cursor: string) {
   try {
-    localStorage.setItem(`${DELTA_SYNC_TS_PREFIX}${collectionPath}`, isoTimestamp);
+    localStorage.setItem(cursorKey(collectionPath), cursor);
   } catch {}
 }
 
-/**
- * Smart Zero-Quota User Profile Reader:
- * Checks RTDB first (0 Firestore reads), then Firestore Local Cache (0 server reads),
- * and only issues 1 Firestore `getDoc` if neither had the user document.
- */
+/** Profil d'un utilisateur : le sien (créé avec les valeurs initiales s'il n'existe pas) ou, pour l'équipe, celui d'un autre. */
 export async function smartGetUserProfile<T = any>(userId: string): Promise<T | null> {
   if (!userId) return null;
-
-  // 1. Try Realtime Database first (0 Firestore document reads)
-  if (rtdb && auth.currentUser) {
-    try {
-      const rtdbSnap = await rtdbGet(rtdbRef(rtdb, `users/${userId}`));
-      if (rtdbSnap.exists()) {
-        return { id: userId, ...rtdbSnap.val() } as T;
-      }
-    } catch {}
-  }
-
-  // 2. Try Firestore local IndexedDB cache (0 Firestore server reads)
   try {
-    const cacheSnap = await getDocFromCache(doc(db, 'users', userId));
-    if (cacheSnap.exists()) {
-      return { id: userId, ...cacheSnap.data() } as T;
-    }
-  } catch {}
-
-  // 3. Fallback to 1 single document read from Firestore server (if quota allows)
-  if (isFirestoreQuotaExhausted()) return null;
-  try {
-    const serverSnap = await getDoc(doc(db, 'users', userId));
-    if (serverSnap.exists()) {
-      const data = { id: userId, ...serverSnap.data() } as T;
-      if (rtdb && auth.currentUser) {
-        rtdbUpdate(rtdbRef(rtdb, `users/${userId}`), sanitizeDataForFirebase(data)).catch(() => {});
-      }
-      return data;
-    }
+    if (userId === auth.currentUser?.uid) return await api<T>('GET', '/v1/me');
+    return await api<T>('GET', `/v1/users/${encodeURIComponent(userId)}`);
   } catch (err) {
-    checkAndMarkQuotaError(err);
+    if ((err as ApiError)?.status === 404) return null;
+    throw err;
   }
-  return null;
 }
 
-/**
- * Smart Collection Synchronizer designed for 10,000+ items on the Spark Free Tier (50,000 reads/day limit).
- * - Priority 1: Realtime Database (`rtdbGet`) -> 0 Firestore document reads!
- * - Priority 2: Firestore Local Cache (`getDocsFromCache`) -> 0 server reads!
- * - Priority 3: Incremental Firestore Delta Query (`where('updatedAt', '>', lastSyncTs)`) -> only reads changed docs!
- * - Priority 4: Initial Bootstrap with automatic RTDB backfill so future sessions cost 0 Firestore reads.
- */
 export async function smartFetchCollection<T extends { id: string; updatedAt?: string; createdAt?: string }>(
   collectionPath: string,
   localCachedItems: T[],
-  options?: { maxFirestoreFallbackDocs?: number }
-): Promise<{ items: T[]; source: 'rtdb' | 'cache' | 'firestore-delta' | 'firestore-full' | 'local-only'; firestoreReadsUsed: number }> {
-  // 1. Try Realtime Database first (0 Firestore document reads!)
-  if (rtdb && auth.currentUser && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath)) {
-    try {
-      const snap = await rtdbGet(rtdbRef(rtdb, collectionPath));
-      if (snap.exists()) {
-        const val = snap.val();
-        if (val && typeof val === 'object') {
-          const list: T[] = Object.entries(val).map(([key, record]: [string, any]) => ({
-            ...(record || {}),
-            id: record?.id || key
-          }));
-          if (list.length > 0) {
-            setLastCollectionSyncTimestamp(collectionPath, new Date().toISOString());
-            return { items: list, source: 'rtdb', firestoreReadsUsed: 0 };
-          }
-        }
-      }
-    } catch {}
-  }
-
-  // 2. If Firestore daily quota is in cooldown, use local cache immediately (0 reads)
-  if (isFirestoreQuotaExhausted()) {
+  _options?: { maxFirestoreFallbackDocs?: number }
+): Promise<{ items: T[]; source: 'api-delta' | 'api-full' | 'local-only'; firestoreReadsUsed: number }> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return { items: localCachedItems, source: 'local-only', firestoreReadsUsed: 0 };
   }
-
-  // 3. If we already have local cached items and a previous sync timestamp, perform an INCREMENTAL DELTA QUERY!
-  // Instead of reading 10,000 documents, we only read documents where `updatedAt > lastSyncTs` (often 0 to 5 reads!)
-  const lastSyncTs = getLastCollectionSyncTimestamp(collectionPath);
-  if (localCachedItems.length > 0 && lastSyncTs) {
-    try {
-      const deltaQuery = query(
-        collection(db, collectionPath),
-        where('updatedAt', '>', lastSyncTs)
-      );
-      const deltaSnap = await getDocs(deltaQuery);
-      const nowIso = new Date().toISOString();
-      setLastCollectionSyncTimestamp(collectionPath, nowIso);
-
-      if (deltaSnap.empty) {
-        return { items: localCachedItems, source: 'firestore-delta', firestoreReadsUsed: 0 };
-      }
-
-      const deltaMap = new Map<string, T>();
-      for (const existing of localCachedItems) {
-        deltaMap.set(existing.id, existing);
-      }
-      const rtdbBackfill: Record<string, any> = {};
-      deltaSnap.forEach(docSnap => {
-        const updatedRecord = { id: docSnap.id, ...docSnap.data() } as T;
-        deltaMap.set(docSnap.id, updatedRecord);
-        rtdbBackfill[docSnap.id] = sanitizeDataForFirebase(updatedRecord);
-      });
-
-      if (rtdb && auth.currentUser && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath) && Object.keys(rtdbBackfill).length > 0) {
-        rtdbUpdate(rtdbRef(rtdb, collectionPath), rtdbBackfill).catch(() => {});
-      }
-
-      return {
-        items: Array.from(deltaMap.values()),
-        source: 'firestore-delta',
-        firestoreReadsUsed: deltaSnap.size
-      };
-    } catch (deltaErr) {
-      checkAndMarkQuotaError(deltaErr);
-      return { items: localCachedItems, source: 'local-only', firestoreReadsUsed: 0 };
-    }
-  }
-
-  // 4. Hors-ligne uniquement : cache IndexedDB de Firestore (0 lecture serveur).
-  //    En ligne, on ne s'y fie pas : il peut être partiel et ne doit pas servir de point de départ au delta.
-  if (typeof navigator !== 'undefined' && !navigator.onLine) try {
-    const cachedSnap = await getDocsFromCache(collection(db, collectionPath));
-    if (!cachedSnap.empty) {
-      const fromFsCache: T[] = [];
-      cachedSnap.forEach(docSnap => {
-        fromFsCache.push({ id: docSnap.id, ...docSnap.data() } as T);
-      });
-      if (fromFsCache.length >= localCachedItems.length && fromFsCache.length > 0) {
-        return { items: fromFsCache, source: 'cache', firestoreReadsUsed: 0 };
-      }
-    }
-  } catch {}
-
-  // (Ancien raccourci supprimé : il marquait la collection comme synchronisée sans l'avoir lue,
-  //  si bien que les documents plus anciens que cette date n'étaient jamais récupérés.
-  //  Une lecture complète a lieu une seule fois par appareil, ensuite seules les modifications sont lues.)
-
-  // 5. Cold bootstrap fallback from Firestore (with optional safety limit, and automatic RTDB backfill so it only happens ONCE)
   try {
-    const targetRef = options?.maxFirestoreFallbackDocs
-      ? query(collection(db, collectionPath), limit(options.maxFirestoreFallbackDocs))
-      : collection(db, collectionPath);
-    const fullSnap = await getDocs(targetRef);
-    const loaded: T[] = [];
-    const rtdbBackfill: Record<string, any> = {};
-
-    fullSnap.forEach(docSnap => {
-      const rec = { id: docSnap.id, ...docSnap.data() } as T;
-      loaded.push(rec);
-      rtdbBackfill[docSnap.id] = sanitizeDataForFirebase(rec);
-    });
-
-    setLastCollectionSyncTimestamp(collectionPath, new Date().toISOString());
-
-    // Backfill RTDB in chunks so all future opens read from RTDB for 0 Firestore reads!
-    if (rtdb && auth.currentUser && !FIRESTORE_ONLY_COLLECTIONS.has(collectionPath) && loaded.length > 0) {
-      const keys = Object.keys(rtdbBackfill);
-      const CHUNK = 250;
-      (async () => {
-        for (let i = 0; i < keys.length; i += CHUNK) {
-          const sliceKeys = keys.slice(i, i + CHUNK);
-          const payload: Record<string, any> = {};
-          for (const k of sliceKeys) payload[k] = rtdbBackfill[k];
-          await rtdbUpdate(rtdbRef(rtdb, collectionPath), payload).catch(() => {});
-        }
-      })();
+    // Classement public : liste courte, relue en entier
+    if (collectionPath === 'leaderboard') {
+      const entries = await api<T[]>('GET', '/v1/leaderboard');
+      return { items: entries, source: 'api-full', firestoreReadsUsed: 0 };
     }
 
-    return { items: loaded, source: 'firestore-full', firestoreReadsUsed: fullSnap.size };
+    const stored = getLastCollectionSyncTimestamp(collectionPath);
+    // Cache vide malgré un curseur (données effacées) : on repart de zéro
+    const delta = !!stored && localCachedItems.length > 0;
+    const map = new Map<string, T>(delta ? localCachedItems.map(i => [i.id, i]) : []);
+    let cursor: string | null = delta ? stored : null;
+
+    for (;;) {
+      const qs = new URLSearchParams({ limit: '2000' });
+      if (cursor) qs.set('since', cursor);
+      const page = await api<{ records: (T & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean }>(
+        'GET', `/v1/sync/${encodeURIComponent(collectionPath)}?${qs}`
+      );
+      for (const rec of page.records) {
+        if (rec.deletedAt) map.delete(rec.id);
+        else map.set(rec.id, rec);
+      }
+      if (page.cursor) cursor = page.cursor;
+      if (!page.hasMore) break;
+    }
+    if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
+    return { items: Array.from(map.values()), source: delta ? 'api-delta' : 'api-full', firestoreReadsUsed: 0 };
   } catch (err) {
-    checkAndMarkQuotaError(err);
+    console.warn(`Synchronisation de ${collectionPath} impossible, cache local utilisé :`, err);
     return { items: localCachedItems, source: 'local-only', firestoreReadsUsed: 0 };
   }
 }
 
 /**
- * Single-document / RTDB lightweight signal listener:
- * Instead of attaching 9 collection-wide `onSnapshot` listeners (which can cost 10,000+ reads per session),
- * we listen to `metrics/catalog_versions`, `metrics/seed_status`, and `metrics/summary` via RTDB (0 Firestore reads!),
- * with a fallback to a single 1-document listener on Firestore if RTDB is unavailable.
+ * Signaux de modification : statut du catalogue et métriques (lus une fois), puis flux /v1/events
+ * qui prévient quand une collection a changé (remplace metrics/catalog_versions).
  */
 export function subscribeToCatalogSignals(callbacks: {
   onSeedStatus: (seedStatus: any) => void;
   onSystemMetrics: (metrics: any) => void;
   onCollectionVersionChanged: (collectionPath: string, versionIso: string) => void;
 }): () => void {
-  const unsubscribes: Array<() => void> = [];
-  const seenVersions: Record<string, string> = {};
+  let stopped = false;
 
-  if (rtdb) {
+  const readMetrics = async () => {
     try {
-      const unsubSeedRtdb = rtdbOnValue(rtdbRef(rtdb, 'metrics/seed_status'), (snap) => {
-        if (snap.exists()) {
-          callbacks.onSeedStatus(snap.val());
-        }
-      });
-      unsubscribes.push(unsubSeedRtdb);
-
-      const unsubSummaryRtdb = rtdbOnValue(rtdbRef(rtdb, 'metrics/summary'), (snap) => {
-        if (snap.exists()) {
-          callbacks.onSystemMetrics(snap.val());
-        }
-      });
-      unsubscribes.push(unsubSummaryRtdb);
-
-      const unsubVersionsRtdb = rtdbOnValue(rtdbRef(rtdb, 'metrics/catalog_versions'), (snap) => {
-        if (snap.exists()) {
-          const data = snap.val() as Record<string, string>;
-          if (data && typeof data === 'object') {
-            for (const [col, iso] of Object.entries(data)) {
-              if (col === 'updatedAt' || typeof iso !== 'string') continue;
-              if (seenVersions[col] && seenVersions[col] !== iso) {
-                callbacks.onCollectionVersionChanged(col, iso);
-              }
-              seenVersions[col] = iso;
-            }
-          }
-        }
-      });
-      unsubscribes.push(unsubVersionsRtdb);
-    } catch {}
-  }
-
-  // Single 1-doc fallback check on Firestore for seed_status & catalog_versions if not quota-exhausted (max 2 reads total on boot!)
-  if (!isFirestoreQuotaExhausted() && auth.currentUser) {
-    getDoc(doc(db, 'metrics', 'seed_status'))
-      .then((snap) => {
-        if (snap.exists()) callbacks.onSeedStatus(snap.data());
-      })
-      .catch((err) => checkAndMarkQuotaError(err));
-
-    const unsubFsCatalogDoc = onSnapshot(
-      doc(db, 'metrics', 'catalog_versions'),
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data() as Record<string, string>;
-          for (const [col, iso] of Object.entries(data)) {
-            if (col === 'updatedAt' || typeof iso !== 'string') continue;
-            if (seenVersions[col] && seenVersions[col] !== iso) {
-              callbacks.onCollectionVersionChanged(col, iso);
-            }
-            seenVersions[col] = iso;
-          }
-        }
-      },
-      (err) => {
-        checkAndMarkQuotaError(err);
+      const page = await api<{ records: any[] }>('GET', '/v1/sync/metrics?limit=100');
+      for (const rec of page.records) {
+        if (rec.deletedAt) continue;
+        if (rec.id === 'seed_status') callbacks.onSeedStatus(rec);
+        else if (rec.id === 'summary') callbacks.onSystemMetrics(rec);
       }
-    );
-    unsubscribes.push(unsubFsCatalogDoc);
-  }
+    } catch {}
+  };
+  readMetrics();
+
+  // Plusieurs signaux rapprochés pour une même collection ne déclenchent qu'une relecture
+  const timers: Record<string, ReturnType<typeof setTimeout>> = {};
+  const unsubscribe = subscribeToEvents((collection) => {
+    if (stopped) return;
+    if (collection === 'metrics') { readMetrics(); return; }
+    clearTimeout(timers[collection]);
+    timers[collection] = setTimeout(() => {
+      if (!stopped) callbacks.onCollectionVersionChanged(collection, new Date().toISOString());
+    }, 400);
+  });
 
   return () => {
-    for (const unsub of unsubscribes) {
-      try {
-        unsub();
-      } catch {}
-    }
+    stopped = true;
+    unsubscribe();
+    Object.values(timers).forEach(clearTimeout);
   };
 }
 
-// Check if Realtime Database is accessible and needs initial synchronization
-export async function isRealtimeDatabaseEmpty(): Promise<boolean> {
-  if (!auth.currentUser || !rtdb) return false;
-  try {
-    const snap = await rtdbGet(rtdbRef(rtdb, 'metrics/seed_status'));
-    return !snap.exists();
-  } catch {
-    return false;
-  }
-}
-
-// Validate connection on boot (Zero-read check using Auth + RTDB ping instead of burning a Firestore read on every boot)
+/** Le serveur est-il joignable ? (aucune donnée lue) */
 export async function testFirestoreConnection(): Promise<boolean> {
-  // Vérification réelle : lecture d'un nœud léger de la RTDB (aucune lecture Firestore)
-  if (!auth.currentUser || !rtdb) return false;
   try {
-    await rtdbGet(rtdbRef(rtdb, 'metrics/catalog_versions'));
+    await api('GET', '/health');
     return true;
   } catch {
     return false;
   }
 }
 
-export { 
-  signInWithPopup, 
-  fbSignOut, 
-  onAuthStateChanged, 
+export {
+  signInWithPopup,
+  fbSignOut,
+  onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 };
-
