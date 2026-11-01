@@ -7,6 +7,7 @@
  */
 import type { Db } from '../api/src/db.ts';
 import type { MediaStorage } from '../api/src/storage.ts';
+import { DEMO_MOCK_USER_IDS } from '../../shared/demoUsers.ts';
 
 export interface Source {
   listFirestore(collection: string): Promise<Record<string, any>[]>;
@@ -237,7 +238,9 @@ export async function migrate(db: Db, storage: MediaStorage, src: Source, opts: 
     if (!wanted(col)) continue;
     const fsDocs = await src.listFirestore(col);
     const rtDocs = (await src.listRtdb(col)).map(d => normalizeRtdbValue(d));
-    const merged = mergeSources(fsDocs, rtDocs);
+    // Les profils fictifs de démonstration ne sont jamais migrés (ni leurs contributions)
+    const merged = mergeSources(fsDocs, rtDocs).filter(({ doc }) =>
+      col === 'users' ? !DEMO_MOCK_USER_IDS.has(doc.id) : col === 'contributions' ? !DEMO_MOCK_USER_IDS.has(doc.userId) : true);
     const rep: CollectionReport = { firestore: fsDocs.length, rtdb: rtDocs.length, merged: merged.length, written: 0, skippedExisting: 0, errors: [] };
     report.collections[col] = rep;
 

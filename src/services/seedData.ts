@@ -1512,12 +1512,8 @@ export function generateVillagesCsvTemplate(): string {
 // ASSAINISSEMENT & ANTI-POLLUTION DE LA BASE DE DONNÉES (AUDIT & NETTOYAGE)
 // =========================================================================
 
-export const DEMO_MOCK_USER_IDS = new Set([
-  'u-mboumba',
-  'u-kombila',
-  'u-suspect-1',
-  'u-suspect-2'
-]);
+export { DEMO_MOCK_USER_IDS } from '../../shared/demoUsers';
+import { DEMO_MOCK_USER_IDS } from '../../shared/demoUsers';
 
 const LEGACY_UNVERIFIED_CLAN_NAMES = new Set([
   'agwesono',
