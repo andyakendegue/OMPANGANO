@@ -49,7 +49,7 @@ Sans Docker, les tests de l'API tournent avec PGlite (PostgreSQL en mémoire) : 
 - `backup/backup.sh` : `pg_dump` + copie du bucket, chiffrés en AES-256 avec `/opt/ompangano/secrets/backup.key` ; rotation 14 jours dans `/opt/ompangano/backups/`. Cron quotidien à 03:15 (`/etc/cron.d/ompangano`, journal `/var/log/ompangano-backup.log`).
 - **La clé `backup.key` doit aussi être gardée hors du VPS** (gestionnaire de mots de passe) : sans elle, les sauvegardes sont illisibles.
 - `backup/restore.sh <dump.enc> [<media.tar.gz.enc>]` restaure dans une base `ompangano_restore` (testé le 1er novembre 2026 : comptes identiques). Mise en service à la main.
-- Copie vers Firebase Storage : `backup/upload-firebase.ts` (dossier `backups-ompangano/`, fichiers chiffrés). Demande un compte de service limité à la création d'objets Storage, distinct de la clé d'administration.
+- Copie vers Firebase Storage : `backup/upload-firebase.ts` (dossier `backups-ompangano/`, fichiers chiffrés). Demande un compte de service limité à la création d'objets Storage, distinct de la clé d'administration. **Non utilisable tant que le projet `enenga` est sur le plan gratuit** : Google refuse l'envoi (« billing account … disabled », bucket `enenga.appspot.com`, essai du 1er novembre 2026). Il faudrait passer en Blaze, ou choisir une autre destination (autre serveur via `BACKUP_REMOTE`, Google Drive avec rclone…).
 
 ## Déploiement et bascule (phase 4 — après réception des paramètres ci-dessus)
 
