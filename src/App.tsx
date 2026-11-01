@@ -100,7 +100,7 @@ import { ChallengeCelebrationModal } from './components/ChallengeCelebrationModa
 import { AppUpdateBanner } from './components/AppUpdateBanner';
 import { TermsConsentModal, TermsConsentPayload } from './components/TermsConsentModal';
 import { VisualGuideModal, VISUAL_GUIDE_SEEN_KEY } from './components/VisualGuideModal';
-import { ContributionFaqSection } from './components/ContributionFaqSection';
+import { FaqModal } from './components/FaqModal';
 import { MYENE } from './services/myeneLexique';
 import {
   stripProtectedUserFields,
@@ -283,6 +283,7 @@ export default function App() {
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
   const [isTermsConsentModalOpen, setIsTermsConsentModalOpen] = useState(false);
   const [isVisualGuideOpen, setIsVisualGuideOpen] = useState(false);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
   const [isPostOnboardingGuide, setIsPostOnboardingGuide] = useState(false);
   const [isOfflinePackModalOpen, setIsOfflinePackModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -2602,6 +2603,7 @@ export default function App() {
           setIsPostOnboardingGuide(false);
           setIsVisualGuideOpen(true);
         }}
+        onOpenFaq={() => setIsFaqOpen(true)}
         onSyncOffline={syncPendingOfflineData}
         onSignOut={() => {
           try {
@@ -2702,17 +2704,6 @@ export default function App() {
                 )}
               </div>
             )}
-
-            {/* Interactive FAQ Section on the Main Page with Real-Time Text Search */}
-            <ContributionFaqSection
-              userTribe={currentUser?.tribe}
-              selectedTribeFilter={selectedQuestionTribe}
-              onSelectTribeFilter={(tribe) => {
-                setSelectedQuestionTribe(tribe);
-                setCurrentItemIndex(0);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            />
           </>
         )}
 
@@ -2859,6 +2850,19 @@ export default function App() {
       />
 
       {/* Post-Onboarding Visual Guide & Application Objectives Modal */}
+      <FaqModal
+        isOpen={isFaqOpen}
+        userTribe={currentUser?.tribe}
+        selectedTribeFilter={selectedQuestionTribe as any}
+        onSelectTribeFilter={(tribe) => {
+          setSelectedQuestionTribe(tribe as any);
+          setCurrentItemIndex(0);
+          setIsFaqOpen(false);
+          setCurrentTab('crowdsource');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onClose={() => setIsFaqOpen(false)}
+      />
       <VisualGuideModal
         isOpen={isVisualGuideOpen && !isOnboardingModalOpen && !isTermsConsentModalOpen}
         currentUser={currentUser}

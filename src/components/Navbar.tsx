@@ -11,7 +11,8 @@ import {
   Globe2,
   HardDrive,
   CheckCircle2,
-  Compass
+  Compass,
+  HelpCircle
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -27,6 +28,7 @@ interface NavbarProps {
   onOpenNotifications: () => void;
   onOpenOfflinePack: () => void;
   onOpenVisualGuide?: () => void;
+  onOpenFaq?: () => void;
   onSyncOffline: () => void;
   onSignOut: () => void;
   currentTab: string;
@@ -42,6 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNotifications,
   onOpenOfflinePack,
   onOpenVisualGuide,
+  onOpenFaq,
   onSyncOffline,
   onSignOut,
   currentTab,
@@ -96,6 +99,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Compass className="w-3.5 h-3.5 text-[#f59e0b]" />
               <span className="hidden lg:inline">Guide & Objectifs</span>
+            </button>
+          )}
+
+          {/* FAQ (ouverte en fenêtre modale) */}
+          {onOpenFaq && (
+            <button
+              type="button"
+              onClick={onOpenFaq}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#381e11] text-[#fed7aa] border border-[#4a2412] text-xs font-semibold active:scale-95 transition-all"
+              title="Foire aux questions"
+              aria-label="Ouvrir la FAQ"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-[#f59e0b]" />
+              <span className="hidden md:inline">FAQ</span>
             </button>
           )}
 
