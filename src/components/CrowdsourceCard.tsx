@@ -8,9 +8,8 @@ import {
   BookOpen, 
   Send, 
   ChevronRight, 
-  ChevronLeft, 
-  Info, 
-  WifiOff, 
+  ChevronLeft,
+  WifiOff,
   Award,
   Globe2,
   CheckCircle2,
@@ -112,7 +111,6 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false);
 
   const handleAudioComplete = (blob: Blob, dataUrl: string, duration: number) => {
     setAudioBlob(blob);
@@ -443,26 +441,11 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
               <span className="text-xs font-semibold uppercase tracking-wider text-[#f59e0b]">
                 Traduction proposée en langue Myènè :
               </span>
-              <button
-                type="button"
-                onClick={() => setShowExplanation(!showExplanation)}
-                className="text-xs text-[#fed7aa]/80 hover:text-[#fed7aa] flex items-center gap-1 transition-colors"
-              >
-                <Info className="w-3.5 h-3.5 text-[#f59e0b]" />
-                <span>{showExplanation ? 'Masquer contexte' : 'Contexte culturel'}</span>
-              </button>
             </div>
 
             <div className="text-2xl sm:text-3xl font-extrabold text-[#fff7ed] tracking-wide font-serif py-1">
               {item.myeneText}
             </div>
-
-            {showExplanation && (
-              <div className="mt-3 pt-3 border-t border-[#4a2412] text-xs text-[#d4af94] leading-relaxed bg-[#180d07]/60 p-3 rounded-xl">
-                <p className="font-semibold text-[#f59e0b] mb-1">Mémoire & Origines :</p>
-                {item.contextNotes}
-              </div>
-            )}
           </div>
 
           {/* STEP 1: Orthography Verification */}

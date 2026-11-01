@@ -701,11 +701,6 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                       )}
                     </div>
                   )}
-                  {item.contextNotes && (
-                    <p className="text-[11px] text-[#d4af94] mt-1 line-clamp-2 leading-relaxed">
-                      {item.contextNotes}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-[#3b1d10] gap-2">
