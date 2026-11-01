@@ -595,18 +595,44 @@ export function subscribeToCatalogSignals(callbacks: {
 
   // Plusieurs signaux rapprochés pour une même collection ne déclenchent qu'une relecture
   const timers: Record<string, ReturnType<typeof setTimeout>> = {};
-  const unsubscribe = subscribeToEvents((collection) => {
-    if (stopped) return;
-    if (collection === 'metrics') { readMetrics(); return; }
+  const notifyChanged = (collection: string) => {
     clearTimeout(timers[collection]);
     timers[collection] = setTimeout(() => {
       if (!stopped) callbacks.onCollectionVersionChanged(collection, new Date().toISOString());
     }, 400);
-  });
+  };
+  const SYNCED = ['items', 'clans', 'villages', 'challenges', 'themes', 'badges', 'contributions', 'users'];
+  // Relecture de tout (modifications seulement : léger) : reconnexion, retour sur l'onglet, retour du réseau, filet périodique
+  let lastFullCheck = 0;
+  const checkAll = (minGapMs = 15_000) => {
+    if (stopped || Date.now() - lastFullCheck < minGapMs) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    lastFullCheck = Date.now();
+    readMetrics();
+    SYNCED.forEach(notifyChanged);
+  };
+
+  const unsubscribe = subscribeToEvents((collection) => {
+    if (stopped) return;
+    if (collection === 'metrics') { readMetrics(); return; }
+    notifyChanged(collection);
+  }, () => checkAll(0));
+
+  const onVisible = () => { if (document.visibilityState === 'visible') checkAll(); };
+  const onOnline = () => checkAll(0);
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('online', onOnline);
+  window.addEventListener('focus', onVisible);
+  // Filet de sécurité si le flux temps réel est coupé sans que l'appareil s'en aperçoive (réseau mobile, mise en veille)
+  const poll = setInterval(() => { if (document.visibilityState === 'visible') checkAll(55_000); }, 60_000);
 
   return () => {
     stopped = true;
     unsubscribe();
+    clearInterval(poll);
+    document.removeEventListener('visibilitychange', onVisible);
+    window.removeEventListener('online', onOnline);
+    window.removeEventListener('focus', onVisible);
     Object.values(timers).forEach(clearTimeout);
   };
 }
