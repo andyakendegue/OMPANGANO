@@ -411,6 +411,13 @@ export function setLastCollectionSyncTimestamp(collectionPath: string, cursor: s
   } catch {}
 }
 
+function getStoredEpoch(collectionPath: string): string | null {
+  try { return localStorage.getItem(`${cursorKey(collectionPath)}_epoch`); } catch { return null; }
+}
+function setStoredEpoch(collectionPath: string, epoch: string) {
+  try { localStorage.setItem(`${cursorKey(collectionPath)}_epoch`, epoch); } catch {}
+}
+
 /** Profil d'un utilisateur : le sien (créé avec les valeurs initiales s'il n'existe pas) ou, pour l'équipe, celui d'un autre. */
 export async function smartGetUserProfile<T = any>(userId: string): Promise<T | null> {
   if (!userId) return null;
@@ -439,24 +446,33 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
     }
 
     const stored = getLastCollectionSyncTimestamp(collectionPath);
+    let sentEpoch = getStoredEpoch(collectionPath);
     // Cache vide malgré un curseur (données effacées) : on repart de zéro
     const delta = !!stored && localCachedItems.length > 0;
     const map = new Map<string, T>(delta ? localCachedItems.map(i => [i.id, i]) : []);
     let cursor: string | null = delta ? stored : null;
+    let epoch = sentEpoch;
+    let wasReset = false;
 
     for (;;) {
       const qs = new URLSearchParams({ limit: '2000' });
       if (cursor) qs.set('since', cursor);
-      const page = await api<{ records: (T & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean }>(
+      if (sentEpoch) qs.set('epoch', sentEpoch);
+      const page = await api<{ records: (T & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean }>(
         'GET', `/v1/sync/${encodeURIComponent(collectionPath)}?${qs}`
       );
+      // Les données ont été remises à zéro côté serveur : le cache local est abandonné
+      if (page.reset && !wasReset) { map.clear(); wasReset = true; }
+      if (page.epoch) { epoch = page.epoch; sentEpoch = page.epoch; }
       for (const rec of page.records) {
         if (rec.deletedAt) map.delete(rec.id);
         else map.set(rec.id, rec);
       }
       if (page.cursor) cursor = page.cursor;
+      else if (page.reset) cursor = null;
       if (!page.hasMore) break;
     }
+    if (epoch) setStoredEpoch(collectionPath, epoch);
     if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
     return { items: Array.from(map.values()), source: delta ? 'api-delta' : 'api-full', firestoreReadsUsed: 0 };
   } catch (err) {

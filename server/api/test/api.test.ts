@@ -325,18 +325,18 @@ test('synchro incrémentale : pages, suppressions logiques, curseur', async () =
   const first = (await call('GET', '/v1/sync/items?limit=1000', u.token)).body;
   const cursor = first.cursor as string;
   assert.ok(cursor.includes('|'));
-  const second = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(cursor)}`, u.token)).body;
+  const second = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(cursor)}&epoch=${first.epoch}`, u.token)).body;
   assert.equal(second.records.length, 0);
   await call('DELETE', `/v1/items/${ids[0]}`, SUPER);
   await call('PUT', `/v1/items/${ids[1]}`, SUPER, { myeneText: 'Modifié' });
-  const third = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(cursor)}`, u.token)).body;
+  const third = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(cursor)}&epoch=${first.epoch}`, u.token)).body;
   const del = third.records.find((r: any) => r.id === ids[0]);
   assert.ok(del.deletedAt);
   assert.equal(third.records.find((r: any) => r.id === ids[1]).myeneText, 'Modifié');
   // pagination
   const p1 = (await call('GET', '/v1/sync/items?limit=2', u.token)).body;
   assert.equal(p1.records.length, 2); assert.equal(p1.hasMore, true);
-  const p2 = (await call('GET', `/v1/sync/items?limit=2&since=${encodeURIComponent(p1.cursor)}`, u.token)).body;
+  const p2 = (await call('GET', `/v1/sync/items?limit=2&since=${encodeURIComponent(p1.cursor)}&epoch=${p1.epoch}`, u.token)).body;
   assert.ok(p2.records.length >= 1);
   assert.ok(!p2.records.some((r: any) => p1.records.some((q: any) => q.id === r.id)));
   assert.equal((await call('GET', '/v1/sync/inconnue', u.token)).status, 404);
@@ -371,4 +371,19 @@ test('le seed initial n\'est jamais écrasé par un import CSV ni par une écrit
   await call('POST', '/v1/items/batch', SUPER, { records: [dup] });
   const all = (await call('GET', '/v1/sync/items?limit=5000', SUPER)).body.records;
   assert.ok(!all.some((i: any) => i.id === dupId), 'le doublon du seed ne doit pas être créé');
+});
+
+test('époque des données : une purge directe en base fait repartir les appareils de zéro', async () => {
+  const u = await newUser();
+  await newItem();
+  const first = (await call('GET', '/v1/sync/items?limit=5000', u.token)).body;
+  assert.equal(first.reset, false);
+  const sameEpoch = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(first.cursor)}&epoch=${first.epoch}`, u.token)).body;
+  assert.equal(sameEpoch.reset, false); assert.equal(sameEpoch.records.length, 0);
+  await db.query(`INSERT INTO metrics (id, data) VALUES ('sync_epoch', '{"value":"e2"}') ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data`);
+  const after = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(first.cursor)}&epoch=${first.epoch}`, u.token)).body;
+  assert.equal(after.reset, true); assert.equal(after.epoch, 'e2');
+  assert.ok(after.records.length >= 1, 'le serveur renvoie tout, pas seulement le delta');
+  const old = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(first.cursor)}`, u.token)).body; // ancien client sans époque
+  assert.equal(old.reset, true);
 });
