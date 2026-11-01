@@ -44,10 +44,12 @@ Sans Docker, les tests de l'API tournent avec PGlite (PostgreSQL en mémoire) : 
 
 Écarts assumés par rapport à la fiche : SQL écrit à la main (pas de Kysely/Drizzle) avec migrations `.sql` versionnées dans `migrations/` ; l'import CSV reçoit des objets JSON (le CSV est lu par le navigateur) ; l'URL audio n'est plus stockée, elle est délivrée à la demande par `/media/url` (le bucket est privé).
 
-## Sauvegardes
+## Sauvegardes (chiffrées)
 
-`backup/backup.sh` (cron quotidien) : `pg_dump` + copie du bucket, rotation 14 jours, copie hors VPS si `BACKUP_REMOTE` est défini.
-`backup/restore.sh <dump> [<media.tar.gz>]` restaure dans une base `ompangano_restore` (le basculement reste manuel).
+- `backup/backup.sh` : `pg_dump` + copie du bucket, chiffrés en AES-256 avec `/opt/ompangano/secrets/backup.key` ; rotation 14 jours dans `/opt/ompangano/backups/`. Cron quotidien à 03:15 (`/etc/cron.d/ompangano`, journal `/var/log/ompangano-backup.log`).
+- **La clé `backup.key` doit aussi être gardée hors du VPS** (gestionnaire de mots de passe) : sans elle, les sauvegardes sont illisibles.
+- `backup/restore.sh <dump.enc> [<media.tar.gz.enc>]` restaure dans une base `ompangano_restore` (testé le 1er novembre 2026 : comptes identiques). Mise en service à la main.
+- Copie vers Firebase Storage : `backup/upload-firebase.ts` (dossier `backups-ompangano/`, fichiers chiffrés). Demande un compte de service limité à la création d'objets Storage, distinct de la clé d'administration.
 
 ## Déploiement et bascule (phase 4 — après réception des paramètres ci-dessus)
 
