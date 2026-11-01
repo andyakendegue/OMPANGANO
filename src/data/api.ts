@@ -49,6 +49,12 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
       token = await tokenProvider(true);
       res = await rawFetch(method, path, body, token);
     }
+    // Trop de requêtes : on attend le délai indiqué par le serveur puis on réessaie (3 fois au plus)
+    for (let attempt = 0; res.status === 429 && attempt < 3; attempt++) {
+      const wait = Math.min(Math.max(Number(res.headers.get('retry-after')) || 2, 1), 30);
+      await new Promise(r => setTimeout(r, wait * 1000));
+      res = await rawFetch(method, path, body, token);
+    }
   } catch (err) {
     throw new ApiError(0, (err as Error)?.message || 'Réseau indisponible');
   }

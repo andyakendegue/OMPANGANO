@@ -8,6 +8,8 @@ import {
   dualDeleteRecord,
   ensureFirebaseAuthSession,
   replayPendingOfflineAdminMutations,
+  uploadProgress,
+  subscribeQueueChanged,
   getOfflineAdminMutations,
   checkIsAdminEmail,
   smartFetchCollection,
@@ -293,6 +295,9 @@ export default function App() {
   const refreshPendingMutationsCount = () => {
     setPendingAdminMutationsCount(getOfflineAdminMutations().length);
   };
+
+  // Le compteur « N sync » suit la file de modifications en direct
+  useEffect(() => subscribeQueueChanged(() => setPendingAdminMutationsCount(getOfflineAdminMutations().length)), []);
 
   // Keep currentUserRef synchronized at all times
   useEffect(() => {
@@ -1081,7 +1086,9 @@ export default function App() {
       let syncedContribCount = 0;
 
       if (pending && pending.length > 0) {
-        for (const item of pending) {
+        uploadProgress.start(pending.length);
+        for (const [idx, item] of pending.entries()) {
+          if (idx > 0) uploadProgress.advance();
           if (!activeProfile || !activeProfile.id) break; // pas de session : on réessaiera
           let uploadedAudioUrl: string | undefined;
           let uploadedPath: string | undefined;
@@ -1130,6 +1137,7 @@ export default function App() {
           const writeResult = await dualSaveRecord('contributions', item.id, syncedContribution);
           if (writeResult.firestore || writeResult.rtdb) {
             await removeOfflineContribution(item.id);
+            setPendingOfflineSubmissions(await getPendingOfflineContributions()); // le compteur « N sync » baisse à chaque envoi
             syncedContribCount++;
             setContributions(prev => {
               const exists = prev.some(c => c.id === item.id);
@@ -1143,6 +1151,7 @@ export default function App() {
         }
       }
 
+      uploadProgress.finish();
       const remainingPending = await getPendingOfflineContributions();
       setPendingOfflineSubmissions(remainingPending);
       refreshPendingMutationsCount();

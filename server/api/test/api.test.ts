@@ -336,6 +336,7 @@ test('synchro incrémentale : pages, suppressions logiques, curseur', async () =
   // pagination
   const p1 = (await call('GET', '/v1/sync/items?limit=2', u.token)).body;
   assert.equal(p1.records.length, 2); assert.equal(p1.hasMore, true);
+  assert.ok(p1.total > 2, 'total annoncé pour la barre de progression');
   const p2 = (await call('GET', `/v1/sync/items?limit=2&since=${encodeURIComponent(p1.cursor)}&epoch=${p1.epoch}`, u.token)).body;
   assert.ok(p2.records.length >= 1);
   assert.ok(!p2.records.some((r: any) => p1.records.some((q: any) => q.id === r.id)));

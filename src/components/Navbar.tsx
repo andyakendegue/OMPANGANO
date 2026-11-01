@@ -18,6 +18,7 @@ import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { useOfflineShellStatus } from '../services/pwaOfflineManager';
 import { MYENE } from '../services/myeneLexique';
+import { subscribeSyncProgress, type SyncProgress } from '../firebase';
 
 interface NavbarProps {
   currentUser: UserProfile | null;
@@ -51,6 +52,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab
 }) => {
   const offlineShell = useOfflineShellStatus();
+  const [sync, setSync] = React.useState<SyncProgress>({ kind: null, done: 0, total: 0 });
+  React.useEffect(() => subscribeSyncProgress(setSync), []);
 
   return (
     <header className="sticky top-0 z-40 bg-[#170d08]/95 backdrop-blur-md border-b border-[#3d1f11] px-3.5 py-3 sm:px-6">
@@ -147,8 +150,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
+          {/* Progression de la synchronisation en cours */}
+          {sync.kind && (
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#0f3d3a] text-[#99f6e4] border border-[#14b8a6]/40"
+              role="status"
+              aria-live="polite"
+              title={sync.kind === 'upload' ? 'Envoi de vos modifications en cours' : 'Téléchargement des données en cours'}
+            >
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              <span>
+                {sync.kind === 'upload'
+                  ? `${Math.max(sync.total - sync.done, 0)} restant${sync.total - sync.done > 1 ? 's' : ''}`
+                  : `Téléchargement ${sync.done.toLocaleString('fr-FR')} / ${sync.total.toLocaleString('fr-FR')}`}
+              </span>
+            </div>
+          )}
+
           {/* Offline Pending Sync Button */}
-          {pendingOfflineCount > 0 && (
+          {pendingOfflineCount > 0 && !sync.kind && (
             <button
               onClick={onSyncOffline}
               className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#b45309] text-[#fff7ed] shadow active:scale-95 transition-transform animate-pulse"
