@@ -20,7 +20,8 @@ const FS: Record<string, any[]> = {
   users: [
     { id: 'alice', email: 'Alice@X.com', displayName: 'Alice', role: 'user', xp: 150, level: 'Conteur des Lagunes', levelIndex: 2, badges: ['b1'], contributionsCount: 3, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-05-01T00:00:00Z', tribe: 'Ôrungu' },
     { id: 'bob', displayName: 'Bob (Firestore, ancien)', role: 'user', xp: 10, updatedAt: '2026-01-01T00:00:00Z' },
-    { id: 'adm', displayName: 'Admin', role: 'user', xp: 0 }
+    { id: 'adm', displayName: 'Admin', role: 'user', xp: 0 },
+    { id: 'u-mboumba', displayName: 'Mboumba Éric (démo)', xp: 1420 }
   ],
   admins: [{ id: 'adm', role: 'admin' }],
   items: [{ id: 'item_1', sourceRef: 'ITEM_001', frenchText: 'Merci', myeneText: 'Akéwa', dialect: 'orungu', category: 'vie', createdAt: '2026-01-01T00:00:00Z' }],
@@ -28,7 +29,8 @@ const FS: Record<string, any[]> = {
     { id: 'c_storage', userId: 'alice', itemId: 'item_1', status: 'approved', rewardedXp: 120, audioStoragePath: 'recordings/alice/item_1_1.webm', audioUrl: 'https://firebasestorage.googleapis.com/v0/b/x/o/recordings%2Falice%2Fitem_1_1.webm?alt=media', createdAt: '2026-02-01T00:00:00Z' },
     { id: 'c_b64', userId: 'alice', itemId: 'item_1', status: 'pending', audioUrl: `data:audio/webm;base64,${b64}`, createdAt: '2026-02-02T00:00:00Z' },
     { id: 'c_text', userId: 'bob', itemId: 'item_1', status: 'pending', createdAt: '2026-02-03T00:00:00Z' },
-    { id: 'c_sans_user', status: 'pending' }
+    { id: 'c_sans_user', status: 'pending' },
+    { id: 'c_demo', userId: 'u-kombila', status: 'approved' }
   ],
   clans: [{ id: 'azizet', name: 'Azizet' }], villages: [], themes: [], badges: [{ id: 'b1', title: 'B' }], challenges: [], metrics: [{ id: 'seed_status', isSeeded: true }]
 };
@@ -57,7 +59,7 @@ test('fusion : le plus récent gagne, Firestore à égalité, tableaux RTDB norm
   assert.deepEqual(byId.bob.badges, ['b1', 'b2']);
   assert.equal(byId.alice.displayName, 'Alice'); // égalité -> Firestore
   assert.deepEqual(byId.carol.badges, []);
-  assert.equal(m.length, 4);
+  assert.equal(m.length, 5); // (le profil fictif de démo est écarté plus tard, par migrate())
 });
 
 test('essai à blanc : rien n\'est écrit, comptes annoncés', async () => {

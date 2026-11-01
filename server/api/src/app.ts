@@ -15,6 +15,7 @@ import {
   type GenericTable, type SyncTable
 } from './model.ts';
 import { importItems } from './importItems.ts';
+import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
 import {
   NEW_USER_PROTECTED_DEFAULTS, PROTECTED_USER_FIELDS, buildLeaderboardEntry, computeValidationReward,
   stripProtectedUserFields, validationBadgesFor
@@ -550,7 +551,17 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       if (!RECORD_ID_RE.test(id)) fail(400, `Identifiant invalide : ${id.slice(0, 40)}`);
       seen.set(id, { ...(seen.get(id) || {}), ...cleanData(r) });
     }
-    const entries = [...seen.entries()];
+    let entries = [...seen.entries()];
+    if (table === 'items') {
+      // Une phrase dont le texte myènè est celui d'une phrase du seed n'est pas ajoutée une seconde fois
+      const seed = await q.query<any>(`SELECT id, data->>'myeneText' AS m FROM items WHERE deleted_at IS NULL AND data->>'createdBy' = '${SEED_CREATOR}'`);
+      const keys = new Map(seed.map(r => [normalizePhraseComparisonKey(r.m || ''), r.id as string]));
+      entries = entries.filter(([id, d]) => {
+        if (d.createdBy === SEED_CREATOR) return true;
+        const owner = keys.get(normalizePhraseComparisonKey(String(d.myeneText || '')));
+        return !owner || owner === id;
+      });
+    }
     for (let i = 0; i < entries.length; i += 500) {
       const part = entries.slice(i, i + 500);
       const ids = part.map(([id]) => id);

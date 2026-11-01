@@ -867,6 +867,9 @@ export default function App() {
         );
         if (cleanedItems.length > 0) {
           markDatabaseSeeded();
+          // Les questions du seed initial gardent leurs premières positions, dans leur ordre d'origine
+          const seedRank = new Map(INITIAL_ENENGA_ITEMS.map((it, idx) => [it.id, idx]));
+          cleanedItems.sort((a, b) => (seedRank.get(a.id) ?? 1e9) - (seedRank.get(b.id) ?? 1e9));
           setItems(cleanedItems);
           cacheItemsLocally(cleanedItems);
           // Corrections automatiques du catalogue : réservées aux administrateurs (règles de sécurité)

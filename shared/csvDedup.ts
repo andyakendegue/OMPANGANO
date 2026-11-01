@@ -1,3 +1,6 @@
+/** Auteur des phrases du seed initial. */
+export const SEED_CREATOR = 'system_ompangano';
+
 /** Déduplication des phrases importées (CSV). Partagé entre l'application et l'API. */
 import type { QuestionnaireItem } from '../src/types';
 
@@ -92,6 +95,8 @@ export function deduplicateParsedCsvItems(
 ): CsvDeduplicationResult {
   const byId = new Map<string, QuestionnaireItem>();
   const bySignature = new Map<string, QuestionnaireItem>();
+  // Phrases du seed initial : même texte myènè (même avec une autre traduction) = déjà présente, jamais doublée
+  const seedByMyene = new Map<string, QuestionnaireItem>();
 
   for (const existing of existingItems || []) {
     if (!existing) continue;
@@ -104,6 +109,7 @@ export function deduplicateParsedCsvItems(
     }
     if (existing.myeneText || existing.frenchText) {
       bySignature.set(buildItemDeduplicationSignature(existing.myeneText, existing.frenchText), existing);
+      if (existing.createdBy === SEED_CREATOR && existing.myeneText) seedByMyene.set(normalizePhraseComparisonKey(existing.myeneText), existing);
     }
   }
 
@@ -159,7 +165,7 @@ export function deduplicateParsedCsvItems(
     }
 
     // 2. Même texte qu'une phrase existante (sous un autre identifiant) → ignorée
-    if (bySignature.has(sig)) {
+    if (bySignature.has(sig) || seedByMyene.has(normalizePhraseComparisonKey(candidate.myeneText))) {
       alreadyExistingItems.push(candidate);
       continue;
     }

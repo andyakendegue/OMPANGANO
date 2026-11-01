@@ -363,4 +363,12 @@ test('le seed initial n\'est jamais écrasé par un import CSV ni par une écrit
   assert.equal((await read()).myeneText, 'Mbôluani !');
   await call('POST', '/v1/items/batch', SUPER, { records: [{ id, myeneText: 'Mbôluani ?', createdBy: 'system_ompangano' }] });
   assert.equal((await read()).myeneText, 'Mbôluani ?');
+  // même texte myènè que le seed, autre traduction, autre numéro : pas de doublon
+  const dupId = uniq('dup');
+  const dup = mk({ id: dupId, sourceRef: dupId.toUpperCase(), frenchText: 'Autre traduction', myeneText: 'Mbôluani ?' });
+  const r = await call('POST', '/v1/items/import', SUPER, { items: [dup] });
+  assert.equal(r.body.created, 0);
+  await call('POST', '/v1/items/batch', SUPER, { records: [dup] });
+  const all = (await call('GET', '/v1/sync/items?limit=5000', SUPER)).body.records;
+  assert.ok(!all.some((i: any) => i.id === dupId), 'le doublon du seed ne doit pas être créé');
 });
