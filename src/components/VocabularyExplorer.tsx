@@ -280,7 +280,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             <div>
               <h2 className="text-xl font-bold text-white">Mémoire & Vocabulaire Myènè</h2>
               <p className="text-xs text-[#d4af94]">
-                Explorez les {items.length} expressions du corpus classées par <strong>Tribu Myènè</strong> et par <strong>Thème culturel</strong>
+                Explorez les expressions du corpus classées par <strong>Tribu Myènè</strong> et par <strong>Thème culturel</strong>
               </p>
             </div>
           </div>
