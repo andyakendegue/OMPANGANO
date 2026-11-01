@@ -3,7 +3,10 @@
  * et rafraîchi une fois en cas de 401. Le navigateur ne décide jamais des droits : le serveur tranche.
  */
 const RAW_URL = (import.meta as any).env?.VITE_API_URL as string | undefined;
-export const API_URL = (RAW_URL || 'http://localhost:3001').replace(/\/+$/, '');
+const PROD_API_URL = 'https://api-ompangano.essaka.engineering';
+const isLocalHost = typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+// Hors développement local, l'API de production est utilisée même si VITE_API_URL a été oublié au build.
+export const API_URL = (RAW_URL || (typeof location === 'undefined' || isLocalHost ? 'http://localhost:3001' : PROD_API_URL)).replace(/\/+$/, '');
 
 export class ApiError extends Error {
   status: number;

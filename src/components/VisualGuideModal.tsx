@@ -365,7 +365,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   </div>
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#3b1d10]">
                     <strong className="text-sky-300 block">3. Synchronisation dès le retour du réseau</strong>
-                    Dès que la connexion revient, tout est transmis automatiquement vers le Cloud.
+                    Dès que la connexion revient, tout est transmis automatiquement.
                   </div>
                 </div>
               </div>

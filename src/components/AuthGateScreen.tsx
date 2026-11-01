@@ -62,7 +62,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
 
       if (isDomainBlocked) {
         setErrorMessage(
-          "Ce domaine de prévisualisation n'est pas encore dans la liste des domaines autorisés de votre projet Firebase. Vous pouvez l'ajouter dans la console Firebase > Authentication > Settings > Authorized domains, ou vous connecter par Email & Mot de passe."
+          "Connexion Google indisponible sur ce domaine. Vous pouvez vous connecter par Email & Mot de passe."
         );
       } else if (isPopupBlocked) {
         setErrorMessage(
@@ -322,7 +322,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   </button>
 
                   <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] leading-relaxed text-center">
-                    🔒 Authentification officielle Firebase sécurisée par le protocole OMPANGANO.
+                    🔒 Authentification sécurisée par le protocole OMPANGANO.
                   </div>
                 </div>
               )}

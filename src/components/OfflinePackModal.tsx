@@ -113,7 +113,7 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
     try {
       await onSyncPendingQueue();
       await refreshQueues();
-      setStatusBanner({ type: 'success', text: 'Synchronisation terminée avec succès vers Firebase !' });
+      setStatusBanner({ type: 'success', text: 'Synchronisation terminée avec succès !' });
     } catch (e: any) {
       setStatusBanner({ type: 'error', text: 'Certaines données restent en attente de réseau.' });
     } finally {
@@ -284,7 +284,7 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
 
           {totalPendingCount === 0 ? (
             <p className="text-xs text-[#a8826d] py-2">
-              Aucune donnée en attente. Toutes vos contributions, favoris, validations et points XP sont synchronisés avec Firebase.
+              Aucune donnée en attente. Toutes vos contributions, favoris, validations et points XP sont synchronisés.
             </p>
           ) : (
             <div className="space-y-2">
@@ -329,7 +329,7 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#15803d] to-[#166534] hover:opacity-95 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>Synchroniser automatiquement vers Firebase maintenant</span>
+                <span>Synchroniser automatiquement maintenant</span>
               </button>
             </div>
           )}

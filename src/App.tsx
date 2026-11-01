@@ -1151,7 +1151,7 @@ export default function App() {
         NotificationService.sendLocalNotification(`${MYENE.MBIAMBIE.mot} ! Synchronisation en ligne réussie ⚡`, {
           body: `${syncedContribCount > 0 ? `${syncedContribCount} contribution(s) ` : ''}${
             replayedMutations > 0 ? `et ${replayedMutations} mise(s) à jour ` : ''
-          }synchronisée(s) avec le serveur.`
+          }synchronisée(s).`
         });
       }
     } catch (err) {
@@ -1834,7 +1834,7 @@ export default function App() {
   // Official First Database Seed (Performed by Admin once, marked permanently in Firestore & RTDB)
   const handleExecuteInitialSeed = async (silent: boolean = false) => {
     if (currentUser?.role !== 'admin') {
-      if (!silent) alert("Seul un administrateur peut initialiser la base de données cloud.");
+      if (!silent) alert("Seul un administrateur peut initialiser la base de données.");
       return;
     }
     if (isSeedingDatabase) return;
@@ -1919,11 +1919,11 @@ export default function App() {
       setSystemMetrics(metricsPayload);
       refreshPendingMutationsCount();
 
-      NotificationService.sendLocalNotification('Premier Seed Firebase Réussi 🌱', {
+      NotificationService.sendLocalNotification('Premier seed réussi 🌱', {
         body: `Base de données initialisée : ${INITIAL_ENENGA_ITEMS.length} questions et ${INITIAL_CLANS.length} clans propagés.`
       });
       if (!silent) {
-        alert(`Félicitations ! Le premier Seed officiel de la base Firebase a été effectué avec succès.\n\n- ${INITIAL_ENENGA_ITEMS.length} questions injectées dans /items\n- ${INITIAL_CLANS.length} clans configurés dans /clans\n- ${INITIAL_VILLAGES.length} villages rattachés dans /villages\n\nLe marqueur permanent 'seed_status' est maintenant enregistré dans Firebase. Tous vos périphériques et utilisateurs accèdent désormais aux mêmes données en temps réel !`);
+        alert(`Félicitations ! Le premier seed officiel a été effectué avec succès.\n\n- ${INITIAL_ENENGA_ITEMS.length} questions\n- ${INITIAL_CLANS.length} clans\n- ${INITIAL_VILLAGES.length} villages\n\nTous vos appareils et utilisateurs accèdent désormais aux mêmes données.`);
       }
     } catch (err: any) {
       console.error('Erreur lors du Seed initial:', err);
@@ -2439,7 +2439,7 @@ export default function App() {
     refreshPendingMutationsCount();
 
     NotificationService.sendLocalNotification('Base de données synchronisée ☁️', {
-      body: `${items.length} questions, ${clans.length} clans et ${villages.length} villages synchronisés avec Firebase.`
+      body: `${items.length} questions, ${clans.length} clans et ${villages.length} villages synchronisés.`
     });
   };
 

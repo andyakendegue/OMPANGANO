@@ -963,7 +963,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
               disabled={isSavingClan}
               className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md disabled:opacity-50"
             >
-              {isSavingClan ? 'Enregistrement...' : 'Sauvegarder dans Firebase'}
+              {isSavingClan ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </div>
         </form>
@@ -1086,7 +1086,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
               disabled={isSavingVillage}
               className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-md disabled:opacity-50"
             >
-              {isSavingVillage ? 'Enregistrement...' : 'Sauvegarder dans Firebase'}
+              {isSavingVillage ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </div>
         </form>

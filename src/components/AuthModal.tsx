@@ -60,7 +60,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       if (isDomainBlocked) {
         setErrorMessage(
-          "Ce domaine de prévisualisation n'est pas configuré dans Firebase. Utilisez l'onglet Email & Mot de passe."
+          "Connexion Google indisponible sur ce domaine. Utilisez l'onglet Email & Mot de passe."
         );
       } else if (isPopupBlocked) {
         setErrorMessage(

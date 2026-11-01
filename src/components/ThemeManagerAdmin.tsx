@@ -115,7 +115,7 @@ export const ThemeManagerAdmin: React.FC<ThemeManagerAdminProps> = ({
         isCustom: true
       });
 
-      setFeedbackMsg({ text: `Thème "${formData.name}" enregistré avec succès dans Firestore !`, type: 'success' });
+      setFeedbackMsg({ text: `Thème "${formData.name}" enregistré avec succès !`, type: 'success' });
       setIsEditing(false);
       setEditingThemeId(null);
     } catch (err) {

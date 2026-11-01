@@ -19,7 +19,7 @@ export function loadConfig(env = process.env): Config {
   return {
     port: Number(env.PORT || 3000),
     databaseUrl: need('DATABASE_URL'),
-    corsOrigins: (env.CORS_ORIGINS || 'https://ompangano.web.app,https://ompangano.firebaseapp.com,http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173').split(',').map(s => s.trim()).filter(Boolean),
+    corsOrigins: (env.CORS_ORIGINS || 'https://ompangano.web.app,https://ompangano.firebaseapp.com,https://source.essaka.engineering,http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173').split(',').map(s => s.trim()).filter(Boolean),
     s3: {
       endpoint: need('S3_ENDPOINT'),
       publicEndpoint: env.S3_PUBLIC_ENDPOINT || undefined,
