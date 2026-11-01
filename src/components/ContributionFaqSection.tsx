@@ -314,7 +314,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     answerParagraphs: [
       'L’application OMPANGANO est conçue pour fonctionner même dans les zones à faible couverture réseau (villages riverains, lacs, déplacements).',
       'Vous pouvez télécharger un « Pack Hors-Ligne » depuis la barre supérieure avant votre départ, ou simplement continuer à répondre et enregistrer votre voix lorsque la connexion se coupe.',
-      'Dès que votre téléphone ou ordinateur retrouve une connexion Internet, un bandeau synchronise automatiquement toutes vos contributions en attente vers le serveur sécurisé sans aucune perte.'
+      'Dès que votre téléphone ou ordinateur retrouve une connexion Internet, un bandeau synchronise automatiquement toutes vos contributions en attente de façon sécurisée sans aucune perte.'
     ],
     category: 'hors_ligne',
     tags: [

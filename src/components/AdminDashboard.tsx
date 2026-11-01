@@ -54,7 +54,6 @@ import { CsvImportSection } from './CsvImportSection';
 import { WeeklyChallengesAdmin } from './WeeklyChallengesAdmin';
 import { ThemeManagerAdmin } from './ThemeManagerAdmin';
 import { BadgesManagerAdmin } from './BadgesManagerAdmin';
-import { HostingCustomDomainAdmin } from './HostingCustomDomainAdmin';
 import { ClanVillageAdmin } from './ClanVillageAdmin';
 
 interface AdminDashboardProps {
@@ -146,7 +145,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isSeedingDatabase = false
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'stats' | 'users' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'hosting' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
+    'stats' | 'users' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
   >('stats');
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -592,7 +591,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               }}
               disabled={isSanitizing || isSyncing}
               className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-500/40 font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50"
-              title="Purge les anciens clans/villages supprimés, élimine les doublons et nettoie les profils fictifs de démo dans Firebase et le cache local"
+              title="Purge les anciens clans/villages supprimés, élimine les doublons et nettoie les profils fictifs de démo en ligne et dans le cache local"
             >
               <Sparkles className={`w-3.5 h-3.5 ${isSanitizing ? 'animate-spin' : ''}`} />
               <span>{isSanitizing ? 'Assainissement...' : '🧹 Assainir & Purger les Doublons'}</span>
@@ -604,7 +603,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               setSyncStatusMessage(null);
               try {
                 await onTriggerCloudSync();
-                setSyncStatusMessage("Base de données Firebase 'enenga' synchronisée avec succès !");
+                setSyncStatusMessage("Données synchronisées avec succès !");
                 setTimeout(() => setSyncStatusMessage(null), 4000);
               } catch (e: any) {
                 setSyncStatusMessage("Erreur de synchronisation : " + (e?.message || 'Vérifiez la connexion'));
@@ -643,22 +642,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm sm:text-base text-white font-serif">
                   {seedStatus?.isSeeded 
-                    ? '✓ Base de Données Firebase Initialisée & Certifiée' 
-                    : '⚠️ Premier Seed Firebase Non Effectué (Données Locales Uniquement)'}
+                    ? '✓ Base de données initialisée' 
+                    : '⚠️ Premier seed non effectué (données locales uniquement)'}
                 </span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                   seedStatus?.isSeeded 
                     ? 'bg-[#22c55e]/20 text-[#4ade80] border border-[#22c55e]/40' 
                     : 'bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40'
                 }`}>
-                  {seedStatus?.isSeeded ? 'Seed Cloud Actif' : 'Marqueur Manquant'}
+                  {seedStatus?.isSeeded ? 'Seed actif' : 'Marqueur Manquant'}
                 </span>
               </div>
               <p className="text-xs text-[#d4af94] mt-1 leading-relaxed max-w-2xl">
                 {seedStatus?.isSeeded ? (
                   <>
-                    Le marqueur permanent <code className="text-[#fde047] font-mono font-bold">/metrics/seed_status</code> est actif dans Firebase. 
-                    <strong> {seedStatus.itemsCount} questions</strong>, <strong>{seedStatus.clansCount} clans</strong> et <strong>{seedStatus.villagesCount} villages</strong> sont stockés dans le Cloud et synchronisés sur tous vos périphériques.
+                    Le seed initial est enregistré. 
+                    <strong> {seedStatus.itemsCount} questions</strong>, <strong>{seedStatus.clansCount} clans</strong> et <strong>{seedStatus.villagesCount} villages</strong> sont enregistrés en ligne et synchronisés sur tous vos appareils.
                     {seedStatus.seededByName && <span className="block mt-0.5 text-[11px] text-[#a8826d]">Initialisé par {seedStatus.seededByName} le {new Date(seedStatus.seededAt).toLocaleString('fr-FR')}.</span>}
                   </>
                 ) : (
@@ -680,7 +679,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#15803d] to-[#047857] hover:opacity-95 text-white font-bold text-xs shadow-lg border border-[#22c55e]/40 active:scale-95 disabled:opacity-50 transition-all"
               >
                 <Sparkles className={`w-4 h-4 ${isSeedingDatabase ? 'animate-spin' : ''}`} />
-                <span>{isSeedingDatabase ? 'Injection dans Firebase en cours...' : '🌱 Effectuer le Premier Seed dans Firebase'}</span>
+                <span>{isSeedingDatabase ? 'Injection en cours...' : '🌱 Effectuer le premier seed'}</span>
               </button>
             ) : (
               <button
@@ -690,7 +689,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="text-[11px] px-3 py-1.5 rounded-lg bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] border border-[#4a2412] transition-colors"
                 title="Réinjecte l'intégralité du corpus si vous souhaitez forcer un re-seed"
               >
-                {isSeedingDatabase ? 'Re-seed en cours...' : 'Forcer un Re-seed Cloud'}
+                {isSeedingDatabase ? 'Re-seed en cours...' : 'Forcer un nouveau seed'}
               </button>
             )}
           </div>
@@ -780,16 +779,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         >
           <Upload className="w-4 h-4" />
           <span>Import CSV</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('hosting')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'hosting' ? 'bg-teal-700 text-white shadow-md font-bold' : 'bg-[#27150c] text-teal-400 hover:bg-[#341b10]'
-          }`}
-        >
-          <Globe className="w-4 h-4" />
-          <span>Domaine source.essaka.engineering</span>
         </button>
 
         <button
@@ -1433,13 +1422,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           usersList={usersList}
           onSaveBadge={onSaveBadge || (async () => {})}
           onDeleteBadge={onDeleteBadge || (async () => {})}
-        />
-      )}
-
-      {/* TAB: HOSTING & CUSTOM DOMAIN */}
-      {activeTab === 'hosting' && (
-        <HostingCustomDomainAdmin
-          onTriggerSync={onTriggerCloudSync}
         />
       )}
 
