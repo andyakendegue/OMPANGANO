@@ -308,16 +308,19 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   // ------------------------------------------------------------------ synchronisation
   app.get('/v1/sync/:collection', async (req) => {
     const { collection } = req.params as { collection: string };
-    const qs = req.query as { since?: string; limit?: string };
+    const qs = req.query as { since?: string; limit?: string; epoch?: string };
     if (!isSyncTable(collection)) fail(404, 'Collection inconnue.');
     if (collection === 'users') {
       const a = await actorOf(req);
       if (!a.isStaff) fail(403, 'Réservé aux validateurs et administrateurs.');
     }
     const limit = Math.min(Math.max(Number(qs.limit) || 1000, 1), 5000);
+    // « Époque » des données : quand elle change (purge directe en base), les appareils repartent de zéro
+    const epoch = (await db.query<any>(`SELECT data->>'value' AS v FROM metrics WHERE id = 'sync_epoch'`))[0]?.v || '0';
+    const reset = !!qs.since && qs.epoch !== epoch;
     let sinceTs: string | null = null;
     let sinceId = '';
-    if (qs.since) {
+    if (qs.since && !reset) {
       const [ts, id] = String(qs.since).split('|');
       if (Number.isNaN(Date.parse(ts))) fail(400, 'Paramètre since invalide.');
       sinceTs = ts;
@@ -332,8 +335,10 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const last = rows[rows.length - 1];
     return {
       records: rows.map(r => serializeRow(collection as SyncTable, r)),
-      cursor: last ? `${last._cur}|${last.id}` : (qs.since ?? null),
+      cursor: last ? `${last._cur}|${last.id}` : (reset ? null : (qs.since ?? null)),
       hasMore: rows.length === limit,
+      epoch,
+      reset,
       serverTime: new Date().toISOString()
     };
   });
