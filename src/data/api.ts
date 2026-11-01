@@ -102,8 +102,9 @@ export async function uploadMedia(path: string, blob: Blob, contentType: string)
 // ------------------------------------------------------------------ signal de modification (SSE)
 
 /** Écoute /v1/events (fetch en flux : EventSource ne sait pas envoyer l'en-tête Authorization). Reconnexion automatique. */
-export function subscribeToEvents(onChange: (collection: string) => void): () => void {
+export function subscribeToEvents(onChange: (collection: string) => void, onReconnect?: () => void): () => void {
   let stopped = false;
+  let connectedBefore = false;
   let controller: AbortController | null = null;
 
   const run = async () => {
@@ -116,6 +117,9 @@ export function subscribeToEvents(onChange: (collection: string) => void): () =>
         const res = await rawFetch('GET', '/v1/events', undefined, token, controller.signal);
         if (!res.ok || !res.body) throw new Error(`events ${res.status}`);
         delay = 2000;
+        // Après une coupure, des événements ont pu être manqués : l'appelant relit les données
+        if (connectedBefore) onReconnect?.();
+        connectedBefore = true;
         const reader = res.body.getReader();
         const dec = new TextDecoder();
         let buf = '';
