@@ -40,6 +40,8 @@ declare module 'fastify' {
   interface FastifyRequest { auth?: AuthUser }
 }
 
+/** Phrases du seed initial : un import CSV ou une écriture en masse venant d'un autre auteur ne les remplace jamais. */
+const SEED_CREATOR = 'system_ompangano';
 const ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const RECORD_ID_RE = /^[A-Za-z0-9_.-]{1,200}$/;
 const VALIDATION_STATUSES: ContributionStatus[] = ['approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
@@ -101,7 +103,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
 
   // ------------------------------------------------------------------ authentification
   app.addHook('preHandler', async (req) => {
-    if (!req.url.startsWith('/v1/')) return;
+    if (!req.url.startsWith('/v1/') || req.method === 'OPTIONS') return; // les pré-requêtes CORS n'ont pas de jeton
     const header = req.headers.authorization || '';
     const m = /^Bearer\s+(.+)$/i.exec(header);
     if (!m) fail(401, 'Jeton manquant.');
@@ -560,7 +562,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
            SELECT v.id, v.source_ref, v.dialect, v.category, COALESCE(v.status, 'active'), v.data
            FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::jsonb[]) AS v(id, source_ref, dialect, category, status, data)
            ON CONFLICT (id) DO UPDATE SET source_ref = COALESCE(EXCLUDED.source_ref, items.source_ref), dialect = COALESCE(EXCLUDED.dialect, items.dialect),
-             category = COALESCE(EXCLUDED.category, items.category), status = EXCLUDED.status, data = items.data || EXCLUDED.data, deleted_at = NULL`,
+             category = COALESCE(EXCLUDED.category, items.category), status = EXCLUDED.status, data = items.data || EXCLUDED.data, deleted_at = NULL
+           WHERE items.data->>'createdBy' IS DISTINCT FROM '${SEED_CREATOR}' OR EXCLUDED.data->>'createdBy' = '${SEED_CREATOR}'`,
           [ids, col('sourceRef'), col('dialect'), col('category'), col('status'), datas]
         );
       } else {

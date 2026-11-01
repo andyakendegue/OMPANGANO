@@ -56,7 +56,7 @@ export async function importItems(q: Queryable, parsed: QuestionnaireItem[], opt
       `UPDATE items t SET source_ref = v.source_ref, dialect = v.dialect, category = v.category, status = v.status,
               data = t.data || v.data, deleted_at = NULL
        FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::jsonb[]) AS v(id, source_ref, dialect, category, status, data)
-       WHERE t.id = v.id`,
+       WHERE t.id = v.id AND t.data->>'createdBy' IS DISTINCT FROM 'system_ompangano'`, // le seed initial n'est jamais écrasé par un CSV
       [
         part.map(p => p.id),
         part.map(p => itemColumns(p)[0]),

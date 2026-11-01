@@ -348,3 +348,19 @@ test('CORS : seuls les domaines du site', async () => {
   const ko = await app.inject({ method: 'OPTIONS', url: '/v1/me', headers: { origin: 'https://evil.example', 'access-control-request-method': 'GET' } });
   assert.equal(ko.headers['access-control-allow-origin'], undefined);
 });
+
+test('le seed initial n\'est jamais écrasé par un import CSV ni par une écriture en masse', async () => {
+  const id = uniq('seed');
+  await call('PUT', `/v1/items/${id}`, SUPER, { frenchText: 'Bonjour', myeneText: 'Mbôluani', sourceRef: id.toUpperCase(), dialect: 'enenga', category: 'vie', createdBy: 'system_ompangano' });
+  const mk = (extra: object) => ({ id, sourceRef: id.toUpperCase(), frenchText: 'Bonjour', myeneText: 'ÉCRASÉ', dialect: 'orungu', category: 'vie', contextNotes: '', imageUrl: '', difficulty: 'debutant', status: 'active', contributionsCount: 0, recordingsCount: 0, createdBy: 'admin_csv_import', createdAt: '', ...extra });
+  await call('POST', '/v1/items/import', SUPER, { items: [mk({})] });
+  await call('POST', '/v1/items/batch', SUPER, { records: [mk({})] });
+  const read = async () => (await call('GET', '/v1/sync/items?limit=5000', SUPER)).body.records.find((i: any) => i.id === id);
+  assert.equal((await read()).myeneText, 'Mbôluani');
+  assert.equal((await read()).createdBy, 'system_ompangano');
+  // une modification manuelle d'un admin reste possible, et le seed peut se corriger lui-même
+  await call('PUT', `/v1/items/${id}`, SUPER, { myeneText: 'Mbôluani !' });
+  assert.equal((await read()).myeneText, 'Mbôluani !');
+  await call('POST', '/v1/items/batch', SUPER, { records: [{ id, myeneText: 'Mbôluani ?', createdBy: 'system_ompangano' }] });
+  assert.equal((await read()).myeneText, 'Mbôluani ?');
+});
