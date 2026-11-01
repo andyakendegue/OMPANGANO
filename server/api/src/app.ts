@@ -116,7 +116,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   });
 
   await app.register(rateLimit, {
-    max: deps.rateLimitMax ?? 240,
+    max: deps.rateLimitMax ?? 1200,
     timeWindow: '1 minute',
     hook: 'preHandler',
     keyGenerator: (req) => req.auth?.uid || req.ip,
@@ -333,7 +333,15 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       [sinceTs, sinceId, limit]
     );
     const last = rows[rows.length - 1];
+    // Nombre total à télécharger (barre de progression), calculé une seule fois : sur la première page d'une synchro
+    const total = rows.length === limit || sinceTs === null
+      ? Number((await db.query<any>(
+          `SELECT count(*) AS n FROM ${collection} t WHERE ($1::timestamptz IS NULL OR (t.updated_at, t.id) > ($1::timestamptz, $2::text))`,
+          [sinceTs, sinceId]
+        ))[0].n)
+      : rows.length;
     return {
+      total,
       records: rows.map(r => serializeRow(collection as SyncTable, r)),
       cursor: last ? `${last._cur}|${last.id}` : (reset ? null : (qs.since ?? null)),
       hasMore: rows.length === limit,

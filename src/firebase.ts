@@ -129,6 +129,51 @@ export function sanitizeDataForFirebase(obj: any): any {
 }
 
 // -------------------------------------------------------------
+// PROGRESSION DE LA SYNCHRONISATION (envoi des modifications en attente, téléchargement des données)
+// -------------------------------------------------------------
+export interface SyncProgress {
+  kind: 'upload' | 'download' | null;
+  done: number;
+  total: number;
+}
+const IDLE: SyncProgress = { kind: null, done: 0, total: 0 };
+let uploadState: { done: number; total: number } | null = null;
+const downloadState = new Map<string, { done: number; total: number }>();
+let currentProgress: SyncProgress = IDLE;
+const progressListeners = new Set<(p: SyncProgress) => void>();
+const queueListeners = new Set<() => void>();
+/** En dessous de ce volume le téléchargement est trop rapide pour mériter un indicateur. */
+const MIN_DOWNLOAD_TO_SHOW = 500;
+
+function emitProgress() {
+  if (uploadState) currentProgress = { kind: 'upload', ...uploadState };
+  else {
+    let done = 0, total = 0;
+    for (const d of downloadState.values()) { done += d.done; total += d.total; }
+    currentProgress = total >= MIN_DOWNLOAD_TO_SHOW ? { kind: 'download', done, total } : IDLE;
+  }
+  progressListeners.forEach(cb => cb(currentProgress));
+}
+export function getSyncProgress(): SyncProgress { return currentProgress; }
+export function subscribeSyncProgress(cb: (p: SyncProgress) => void): () => void {
+  progressListeners.add(cb);
+  cb(currentProgress);
+  return () => { progressListeners.delete(cb); };
+}
+/** Appelé quand la file de modifications change (pour rafraîchir le compteur « N sync »). */
+export function subscribeQueueChanged(cb: () => void): () => void {
+  queueListeners.add(cb);
+  return () => { queueListeners.delete(cb); };
+}
+const notifyQueueChanged = () => queueListeners.forEach(cb => cb());
+
+export const uploadProgress = {
+  start(total: number) { uploadState = { done: 0, total }; emitProgress(); },
+  advance() { if (uploadState) { uploadState.done++; emitProgress(); } },
+  finish() { uploadState = null; emitProgress(); }
+};
+
+// -------------------------------------------------------------
 // ÉCRITURES VERS L'API (une seule entrée pour tous les types de données)
 // -------------------------------------------------------------
 const OWN_PROFILE_KEY = 'nkala_authenticated_user';
@@ -221,6 +266,7 @@ export function queueOfflineAdminMutation(mutation: Omit<OfflineAdminMutation, '
       timestamp: Date.now()
     });
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(filtered));
+    notifyQueueChanged();
     console.info(`[Offline Queue] Action mise en file d'attente hors-ligne: ${mutation.type.toUpperCase()} ${mutation.collectionPath}/${mutation.recordId}`);
   } catch (err) {
     console.warn('Notice file d attente hors-ligne:', err);
@@ -248,29 +294,65 @@ export async function replayPendingOfflineAdminMutations(): Promise<number> {
       console.info(`[Sync Replay] Synchronisation en ligne de ${pending.length} modification(s) en attente...`);
 
       let successCount = 0;
-      const remaining: OfflineAdminMutation[] = [];
-
-      for (const mut of pending) {
+      /** Collections acceptant l'écriture groupée (POST /:collection/batch) : 500 modifications par requête. */
+      const BATCHABLE = new Set(['items', 'clans', 'villages', 'themes', 'badges', 'challenges', 'metrics']);
+      const dropMany = (ids: Set<string>) => {
         try {
-          if (mut.type === 'save' && mut.data) {
-            await saveToApi(mut.collectionPath, mut.recordId, mut.data);
-          } else if (mut.type === 'delete') {
-            await deleteFromApi(mut.collectionPath, mut.recordId);
-          }
-          successCount++;
-        } catch (replayErr) {
-          if (isPermanentApiError(replayErr)) {
-            console.warn(`✗ [Sync Replay Refusé] ${mut.collectionPath}/${mut.recordId} abandonné (${(replayErr as ApiError).message}).`);
-            continue;
-          }
-          console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, conservé en attente:`, replayErr);
-          remaining.push(mut);
-        }
-      }
-
+          localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(getOfflineAdminMutations().filter(m => !ids.has(m.id))));
+        } catch {}
+        notifyQueueChanged();
+      };
+      uploadProgress.start(pending.length);
       try {
-        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining));
-      } catch {}
+        for (let i = 0; i < pending.length; ) {
+          const mut = pending[i];
+          // Suite de sauvegardes consécutives dans la même collection : une seule requête
+          let run: OfflineAdminMutation[] = [mut];
+          if (mut.type === 'save' && mut.data && BATCHABLE.has(mut.collectionPath)) {
+            run = [];
+            for (let j = i; j < pending.length && run.length < 500; j++) {
+              const m = pending[j];
+              if (m.type === 'save' && m.data && m.collectionPath === mut.collectionPath) run.push(m);
+              else break;
+            }
+          }
+          try {
+            if (mut.type === 'save' && mut.data && BATCHABLE.has(mut.collectionPath)) {
+              try {
+                await api('POST', `/v1/${encodeURIComponent(mut.collectionPath)}/batch`, {
+                  records: run.map(m => ({ ...sanitizeDataForFirebase(m.data), id: m.recordId }))
+                });
+              } catch (batchErr) {
+                if (!isPermanentApiError(batchErr)) throw batchErr;
+                // Lot refusé : on isole les éléments un par un
+                for (const m of run) {
+                  try { await saveToApi(m.collectionPath, m.recordId, m.data); }
+                  catch (e) { if (!isPermanentApiError(e)) throw e; }
+                }
+              }
+            } else if (mut.type === 'save' && mut.data) {
+              await saveToApi(mut.collectionPath, mut.recordId, mut.data);
+            } else if (mut.type === 'delete') {
+              await deleteFromApi(mut.collectionPath, mut.recordId);
+            }
+            successCount += run.length;
+            dropMany(new Set(run.map(m => m.id)));
+          } catch (replayErr) {
+            if (isPermanentApiError(replayErr)) {
+              console.warn(`✗ [Sync Replay Refusé] ${mut.collectionPath}/${mut.recordId} abandonné (${(replayErr as ApiError).message}).`);
+              dropMany(new Set(run.map(m => m.id)));
+            } else {
+              // Réseau, surcharge ou erreur serveur : le reste attend la prochaine synchronisation
+              console.warn(`✗ [Sync Replay Échec] ${mut.collectionPath}/${mut.recordId}, le reste est conservé en attente:`, replayErr);
+              break;
+            }
+          }
+          for (let k = 0; k < run.length; k++) uploadProgress.advance();
+          i += run.length;
+        }
+      } finally {
+        uploadProgress.finish();
+      }
 
       return successCount;
     } finally {
@@ -453,16 +535,21 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
     let cursor: string | null = delta ? stored : null;
     let epoch = sentEpoch;
     let wasReset = false;
+    let fetched = 0;
+    let announcedTotal = 0;
 
     for (;;) {
       const qs = new URLSearchParams({ limit: '2000' });
       if (cursor) qs.set('since', cursor);
       if (sentEpoch) qs.set('epoch', sentEpoch);
-      const page = await api<{ records: (T & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean }>(
+      const page = await api<{ records: (T & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number }>(
         'GET', `/v1/sync/${encodeURIComponent(collectionPath)}?${qs}`
       );
       // Les données ont été remises à zéro côté serveur : le cache local est abandonné
       if (page.reset && !wasReset) { map.clear(); wasReset = true; }
+      if (!announcedTotal && typeof page.total === 'number') announcedTotal = page.total;
+      fetched += page.records.length;
+      if (announcedTotal) { downloadState.set(collectionPath, { done: Math.min(fetched, announcedTotal), total: announcedTotal }); emitProgress(); }
       if (page.epoch) { epoch = page.epoch; sentEpoch = page.epoch; }
       for (const rec of page.records) {
         if (rec.deletedAt) map.delete(rec.id);
@@ -473,9 +560,11 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
       if (!page.hasMore) break;
     }
     if (epoch) setStoredEpoch(collectionPath, epoch);
+    downloadState.delete(collectionPath); emitProgress();
     if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
     return { items: Array.from(map.values()), source: delta ? 'api-delta' : 'api-full', firestoreReadsUsed: 0 };
   } catch (err) {
+    downloadState.delete(collectionPath); emitProgress();
     console.warn(`Synchronisation de ${collectionPath} impossible, cache local utilisé :`, err);
     return { items: localCachedItems, source: 'local-only', firestoreReadsUsed: 0 };
   }
