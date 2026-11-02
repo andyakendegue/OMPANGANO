@@ -30,4 +30,13 @@ export const catalogue: StockageCatalogue = {
   async parIds(ids) {
     return ids.map(id => fiches.get(id)).filter((f): f is QuestionnaireItem => !!f);
   },
+  async doublons(limite) {
+    const par = new Map<string, string[]>();
+    for (const f of fiches.values()) {
+      const cle = `${f.dialect}\u0001${texteRecherche(f)}`;
+      par.set(cle, [...(par.get(cle) || []), f.id]);
+    }
+    return [...par].filter(([, ids]) => ids.length > 1).slice(0, limite)
+      .map(([cle, ids]) => { const [dialecte, fr, my] = cle.split('\u0001'); return { dialecte, texte: `${my} = ${fr}`, ids }; });
+  },
 };

@@ -12,3 +12,4 @@ export * from './contenu';
 export * from './recompenses';
 export * from './niveaux';
 export * from './fraude';
+export * from './export';

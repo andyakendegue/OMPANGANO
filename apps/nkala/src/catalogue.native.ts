@@ -63,4 +63,11 @@ export const catalogue: StockageCatalogue = {
     const rows = await db.getAllAsync<{ data: string }>(`SELECT data FROM items WHERE id IN (${ids.map(() => '?').join(',')}) ORDER BY id`, ids);
     return rows.map(r => JSON.parse(r.data) as QuestionnaireItem);
   },
+  async doublons(limite) {
+    const db = await ouvrir();
+    const rows = await db.getAllAsync<{ dialect: string; txt: string; ids: string }>(
+      `SELECT dialect, txt, group_concat(id, '|') AS ids FROM items GROUP BY dialect, txt HAVING count(*) > 1 ORDER BY count(*) DESC LIMIT ?`, [limite]
+    );
+    return rows.map(r => ({ dialecte: r.dialect, texte: r.txt.split('\u0001').slice(0, 2).reverse().join(' = '), ids: r.ids.split('|') }));
+  },
 };
