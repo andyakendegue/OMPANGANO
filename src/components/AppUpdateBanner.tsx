@@ -34,7 +34,7 @@ export const AppUpdateBanner: React.FC = () => {
           <div className="text-xs sm:text-sm font-medium leading-tight truncate">
             <span className="font-bold">Mise à jour disponible ⚡</span>
             <span className="hidden sm:inline text-white/90 ml-1.5">
-              Une nouvelle version du code d'OMPANGANO est en ligne ({updateInfo?.version || '1.0'}).
+              Une nouvelle version du code de Nkala est en ligne ({updateInfo?.version || '1.0'}).
             </span>
           </div>
         </div>

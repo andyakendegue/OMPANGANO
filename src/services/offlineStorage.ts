@@ -11,6 +11,8 @@ import {
   UserProfile
 } from '../types';
 
+import { clearCatalogue, getAllIds, getItemsByIds } from './itemStore';
+
 const DB_NAME = 'nkala_enenga_offline_db';
 const DB_VERSION = 2;
 const STORE_PENDING = 'pending_contributions';
@@ -161,82 +163,64 @@ export async function removeOfflineContribution(id: string): Promise<void> {
   }
 }
 
-export async function cacheItemsLocally(items: QuestionnaireItem[]): Promise<void> {
+/** Supprime l'ancienne copie du catalogue (un seul gros tableau) : le catalogue vit désormais dans itemStore. Une seule fois. */
+export async function purgeLegacyItemsCache(): Promise<void> {
   try {
+    if (localStorage.getItem('ompangano_legacy_items_purged') === '1') return;
     const db = await openDatabase();
     await new Promise<void>((resolve) => {
       const tx = db.transaction(STORE_ITEMS, 'readwrite');
-      const store = tx.objectStore(STORE_ITEMS);
-      store.clear();
-      for (const item of items) {
-        store.put(item);
-      }
+      tx.objectStore(STORE_ITEMS).clear();
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
+      tx.onabort = () => resolve();
     });
-  } catch (err) {
-    console.warn('Erreur mise en cache items:', err);
-  }
+    localStorage.setItem('ompangano_legacy_items_purged', '1');
+  } catch {}
 }
 
-export async function getCachedItemsLocally(): Promise<QuestionnaireItem[]> {
-  try {
-    const db = await openDatabase();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_ITEMS, 'readonly');
-      const store = tx.objectStore(STORE_ITEMS);
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => resolve([]);
-    });
-  } catch {
-    return [];
-  }
-}
-
+/**
+ * Pack hors-ligne : les fiches sont déjà dans le catalogue local ; on y ajoute les images, une à une
+ * (par petits lots, jamais tout le catalogue en mémoire).
+ */
 export async function downloadFullOfflinePack(
-  items: QuestionnaireItem[],
   onProgress?: (progressPct: number, currentItem: string) => void
 ): Promise<OfflinePackStatus> {
   const db = await openDatabase();
-
-  await cacheItemsLocally(items);
-
+  const ids = await getAllIds();
   let completed = 0;
-  for (const item of items) {
-    if (onProgress) {
-      onProgress(Math.round((completed / Math.max(1, items.length)) * 100), item.frenchText);
-    }
-
-    if (item.imageUrl) {
-      try {
-        const response = await fetch(item.imageUrl, { mode: 'cors' });
-        if (response.ok) {
-          const blob = await response.blob();
-          await new Promise<void>((resolve) => {
-            const tx = db.transaction(STORE_MEDIA, 'readwrite');
-            const store = tx.objectStore(STORE_MEDIA);
-            store.put({ url: item.imageUrl, blob, cachedAt: Date.now() });
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => resolve();
-          });
+  for (let i = 0; i < ids.length; i += 100) {
+    for (const item of await getItemsByIds(ids.slice(i, i + 100))) {
+      onProgress?.(Math.round((completed / Math.max(1, ids.length)) * 100), item.frenchText);
+      if (item.imageUrl) {
+        try {
+          const response = await fetch(item.imageUrl, { mode: 'cors' });
+          if (response.ok) {
+            const blob = await response.blob();
+            await new Promise<void>((resolve) => {
+              const tx = db.transaction(STORE_MEDIA, 'readwrite');
+              tx.objectStore(STORE_MEDIA).put({ url: item.imageUrl, blob, cachedAt: Date.now() });
+              tx.oncomplete = () => resolve();
+              tx.onerror = () => resolve();
+            });
+          }
+        } catch {
+          // Fallback for CORS
         }
-      } catch {
-        // Fallback for CORS
       }
+      completed++;
     }
-    completed++;
   }
 
   const status: OfflinePackStatus = {
     isDownloaded: true,
-    itemCount: items.length,
+    itemCount: ids.length,
     downloadProgress: 100,
     downloadDate: new Date().toISOString()
   };
 
   localStorage.setItem('nkala_offline_pack_status', JSON.stringify(status));
-  if (onProgress) onProgress(100, 'Téléchargement terminé avec succès !');
+  onProgress?.(100, 'Téléchargement terminé avec succès !');
   return status;
 }
 
@@ -253,6 +237,8 @@ export async function clearOfflineStorage(): Promise<void> {
   try {
     localStorage.removeItem(LS_PENDING_FALLBACK_KEY);
     localStorage.removeItem('nkala_offline_pack_status');
+    await clearCatalogue();
+    await clearCatalogue();
     const db = await openDatabase();
     const stores = [STORE_PENDING, STORE_ITEMS, STORE_MEDIA, STORE_CLANS, STORE_VILLAGES];
     for (const s of stores) {

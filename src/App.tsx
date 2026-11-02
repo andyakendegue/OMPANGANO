@@ -13,6 +13,7 @@ import {
   getOfflineAdminMutations,
   checkIsAdminEmail,
   smartFetchCollection,
+  syncItemsIntoCatalogue,
   smartGetUserProfile,
   subscribeToCatalogSignals,
   sanitizeDataForFirebase,
@@ -62,8 +63,7 @@ import {
   getPendingOfflineContributions, 
   saveOfflineContribution, 
   removeOfflineContribution, 
-  cacheItemsLocally, 
-  getCachedItemsLocally,
+  purgeLegacyItemsCache,
   cacheClansLocally,
   getCachedClansLocally,
   cacheVillagesLocally,
@@ -82,7 +82,7 @@ import {
 import { NotificationService } from './services/notificationService';
 
 import { Navbar } from './components/Navbar';
-import { BottomNav, AppTab } from './components/BottomNav';
+import { BottomNav, CrowdsourceSubNav, AppTab } from './components/BottomNav';
 import { CrowdsourceCard } from './components/CrowdsourceCard';
 import { VocabularyExplorer } from './components/VocabularyExplorer';
 import { LeaderboardAndRewards } from './components/LeaderboardAndRewards';
@@ -95,6 +95,19 @@ const StaffLoading = () => (
 import { UserProfileView } from './components/UserProfileView';
 import { AuthModal } from './components/AuthModal';
 import { AuthGateScreen } from './components/AuthGateScreen';
+import { useCatalogue } from './hooks/useCatalogue';
+import {
+  applyItemsDelta,
+  countItems,
+  deleteItem,
+  getAllIds,
+  getAllItems,
+  getIdsByCategory,
+  getIdsByDialects,
+  getItem,
+  getItemsByIds,
+  putItem
+} from './services/itemStore';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { OfflinePackModal } from './components/OfflinePackModal';
@@ -197,9 +210,18 @@ export default function App() {
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   // Data states (filtered against any locally deleted IDs and hydrated from local offline cache)
-  const [items, setItems] = useState<QuestionnaireItem[]>(() =>
-    INITIAL_ENENGA_ITEMS.filter(i => !getDeletedIds('items').has(i.id))
+  // Le catalogue (~45 000 phrases) reste dans IndexedDB : l'écran ne garde que des compteurs,
+  // la liste des identifiants affichés et la fiche courante (téléphones à peu de mémoire).
+  const catalogue = useCatalogue();
+  const [displayedIds, setDisplayedIds] = useState<string[]>(() =>
+    INITIAL_ENENGA_ITEMS.filter(i => !getDeletedIds('items').has(i.id)).map(i => i.id)
   );
+  const [currentItem, setCurrentItem] = useState<QuestionnaireItem | null>(() =>
+    INITIAL_ENENGA_ITEMS.find(i => !getDeletedIds('items').has(i.id)) || null
+  );
+  const [pendingSelectId, setPendingSelectId] = useState<string | null>(null);
+  const [adminItems, setAdminItems] = useState<QuestionnaireItem[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<QuestionnaireItem[]>([]);
   const [currentItemIndex, setCurrentItemIndex] = useState<number>(0);
   const [contributions, setContributions] = useState<Contribution[]>(() => {
     const cached = getCachedContributionsLocally();
@@ -366,7 +388,7 @@ export default function App() {
     const nowIso = new Date().toISOString();
     return {
       id: base.id,
-      displayName: base.displayName || 'Contributeur OMPANGANO',
+      displayName: base.displayName || 'Contributeur Nkala',
       fullName: base.fullName || base.displayName || 'Locuteur Myènè',
       contact: base.contact || base.email || '',
       birthDate: '',
@@ -562,16 +584,8 @@ export default function App() {
       setUsersList(cachedUsers);
     }
 
-    const deletedItemsSet = getDeletedIds('items');
-    getCachedItemsLocally().then(cached => {
-      const { cleanedItems } = sanitizeAndDeduplicateItems(cached || [], INITIAL_CLANS, deletedItemsSet);
-      if (cleanedItems.length > 0) {
-        setItems(cleanedItems);
-        cacheItemsLocally(cleanedItems);
-      } else if (!isDatabaseMarkedSeeded()) {
-        cacheItemsLocally(INITIAL_ENENGA_ITEMS.filter(i => !deletedItemsSet.has(i.id)));
-      }
-    });
+    // Ancienne copie du catalogue (tableau unique dans l'ancienne base) : libère l'espace une fois
+    purgeLegacyItemsCache();
     const deletedClansSet = getDeletedIds('clans');
     getCachedClansLocally().then(cached => {
       const { merged } = mergeOfficialClans(cached || [], deletedClansSet);
@@ -854,47 +868,28 @@ export default function App() {
 
       if (colName === 'items') {
         const deletedSet = getDeletedIds('items');
-        const cached = (await getCachedItemsLocally()) || [];
-        const { items: rawLoaded } = await smartFetchCollection<QuestionnaireItem>('items', cached);
-        if (!isMounted) return;
-        // Corrige les anciennes phrases de départ générées par IA (affichage immédiat pour tous,
-        // réécriture en base par un administrateur)
-        const { items: loaded, corrected: correctedSeedItems } = applySeedItemCorrections(rawLoaded);
-        if (correctedSeedItems.length > 0 && currentUserRef.current?.role === 'admin') {
-          dualBatchSaveRecords('items', correctedSeedItems.map(it => ({ id: it.id, data: it })))
-            .then(refreshPendingMutationsCount)
-            .catch(() => {});
-        }
-        const { cleanedItems, updatedItemsToSave, duplicateItemIdsToRemove } = sanitizeAndDeduplicateItems(
-          loaded,
-          clans,
-          deletedSet
-        );
-        if (cleanedItems.length > 0) {
-          markDatabaseSeeded();
-          // Les questions du seed initial gardent leurs premières positions, dans leur ordre d'origine
-          const seedRank = new Map(INITIAL_ENENGA_ITEMS.map((it, idx) => [it.id, idx]));
-          cleanedItems.sort((a, b) => (seedRank.get(a.id) ?? 1e9) - (seedRank.get(b.id) ?? 1e9));
-          setItems(cleanedItems);
-          cacheItemsLocally(cleanedItems);
+        // Page par page directement dans IndexedDB : jamais tout le catalogue en mémoire
+        const { ok } = await syncItemsIntoCatalogue(page => {
+          // Corrige les anciennes phrases de départ générées par IA (affichage immédiat pour tous,
+          // réécriture en base par un administrateur)
+          const { items: fixed, corrected: correctedSeedItems } = applySeedItemCorrections(page);
+          const isAdmin = currentUserRef.current?.role === 'admin';
+          if (correctedSeedItems.length > 0 && isAdmin) {
+            dualBatchSaveRecords('items', correctedSeedItems.map(it => ({ id: it.id, data: it })))
+              .then(refreshPendingMutationsCount)
+              .catch(() => {});
+          }
+          const { cleanedItems, updatedItemsToSave } = sanitizeAndDeduplicateItems(fixed, clans, deletedSet);
           // Corrections automatiques du catalogue : réservées aux administrateurs (règles de sécurité)
-          const canFixCatalog = currentUserRef.current?.role === 'admin';
-          if (canFixCatalog && updatedItemsToSave.length > 0) {
-            dualBatchSaveRecords(
-              'items',
-              updatedItemsToSave.map(it => ({ id: it.id, data: it }))
-            ).then(refreshPendingMutationsCount).catch(() => {});
+          if (isAdmin && updatedItemsToSave.length > 0) {
+            dualBatchSaveRecords('items', updatedItemsToSave.map(it => ({ id: it.id, data: it })))
+              .then(refreshPendingMutationsCount)
+              .catch(() => {});
           }
-          if (canFixCatalog && duplicateItemIdsToRemove.length > 0) {
-            for (const dupId of duplicateItemIdsToRemove) {
-              dualDeleteRecord('items', dupId).catch(() => {});
-            }
-          }
-        } else if (!isDatabaseMarkedSeeded() && deletedSet.size === 0) {
-          const fallback = INITIAL_ENENGA_ITEMS.filter(i => !deletedSet.has(i.id));
-          setItems(fallback);
-          cacheItemsLocally(fallback);
-        }
+          return cleanedItems;
+        });
+        if (!isMounted) return;
+        if (ok && (await countItems()) > 0) markDatabaseSeeded();
       } else if (colName === 'contributions') {
         const deletedSet = getDeletedIds('contributions');
         const cached = getCachedContributionsLocally() || [];
@@ -1178,7 +1173,7 @@ export default function App() {
       return false;
     }
     if (activeUser.status === 'suspended') {
-      alert(`${MYENE.NYEZA_MYE.mot}… Votre compte est suspendu : les contributions sont désactivées. Contactez l'équipe OMPANGANO.`);
+      alert(`${MYENE.NYEZA_MYE.mot}… Votre compte est suspendu : les contributions sont désactivées. Contactez l'équipe Nkala.`);
       return false;
     }
 
@@ -1296,17 +1291,13 @@ export default function App() {
 
       // Compteurs locaux du catalogue (affichage uniquement)
       if (payload.itemId) {
-        setItems(prev => {
-          const next = prev.map(it => {
-            if (it.id !== payload.itemId) return it;
-            return {
-              ...it,
-              contributionsCount: (it.contributionsCount || 0) + 1,
-              recordingsCount: (it.recordingsCount || 0) + (recording ? 1 : 0)
-            };
+        getItem(payload.itemId).then(it => {
+          if (!it) return;
+          putItem({
+            ...it,
+            contributionsCount: (it.contributionsCount || 0) + 1,
+            recordingsCount: (it.recordingsCount || 0) + (recording ? 1 : 0)
           });
-          cacheItemsLocally(next);
-          return next;
         });
       }
 
@@ -1546,7 +1537,7 @@ export default function App() {
     setIsPostOnboardingGuide(true);
     setIsVisualGuideOpen(true);
 
-    NotificationService.sendLocalNotification('Filiation OMPANGANO Validée 📜', {
+    NotificationService.sendLocalNotification('Filiation Nkala Validée 📜', {
       body: `${MYENE.SALE.mot} ! Bienvenue dans le programme, ${updated.fullName}, de la tribu ${updated.tribe} !`
     });
   };
@@ -1859,8 +1850,7 @@ export default function App() {
       for (const item of INITIAL_ENENGA_ITEMS) {
         await dualSaveRecord('items', item.id, item);
       }
-      await cacheItemsLocally(INITIAL_ENENGA_ITEMS);
-      setItems(INITIAL_ENENGA_ITEMS);
+      await applyItemsDelta(INITIAL_ENENGA_ITEMS);
 
       // 2. Seed all Clans
       for (const clan of INITIAL_CLANS) {
@@ -2047,18 +2037,7 @@ export default function App() {
       updatedAt: new Date().toISOString()
     };
 
-    setItems(prev => {
-      const idx = prev.findIndex(i => i.id === id);
-      let updated: QuestionnaireItem[];
-      if (idx >= 0) {
-        updated = [...prev];
-        updated[idx] = fullItem;
-      } else {
-        updated = [fullItem, ...prev];
-      }
-      cacheItemsLocally(updated);
-      return updated;
-    });
+    await putItem(fullItem);
 
     await dualSaveRecord('items', id, fullItem);
     refreshPendingMutationsCount();
@@ -2066,11 +2045,7 @@ export default function App() {
 
   const handleDeleteQuestionnaireItem = async (itemId: string) => {
     markIdAsDeleted('items', itemId);
-    setItems(prev => {
-      const remaining = prev.filter(i => i.id !== itemId);
-      cacheItemsLocally(remaining);
-      return remaining;
-    });
+    await deleteItem(itemId);
     await dualDeleteRecord('items', itemId);
     refreshPendingMutationsCount();
   };
@@ -2147,7 +2122,7 @@ export default function App() {
 
     // 1. Comparaison avec la base : les phrases portant un numéro déjà connu (colonne ID du CSV)
     //    sont MISES À JOUR ; les autres déjà présentes sont ignorées ; seules les vraies nouvelles sont créées.
-    const { newItemsToImport, itemsToUpdate } = deduplicateParsedCsvItems(incomingItems, items);
+    const { newItemsToImport, itemsToUpdate } = deduplicateParsedCsvItems(incomingItems, await getAllItems());
     const toWrite = [...newItemsToImport, ...itemsToUpdate];
     if (toWrite.length === 0) {
       onProgress?.(0, 0);
@@ -2158,10 +2133,7 @@ export default function App() {
       unmarkIdAsDeleted('items', it.id);
     }
 
-    const updatedById = new Map(itemsToUpdate.map(it => [it.id, it]));
-    const updatedItemsList = [...newItemsToImport, ...items.map(it => updatedById.get(it.id) || it)];
-    setItems(updatedItemsList);
-    cacheItemsLocally(updatedItemsList);
+    await applyItemsDelta(toWrite);
 
     // 2. Commit in fast, safe chunks of 250 documents per Firestore writeBatch + RTDB update (or queue offline)
     await dualBatchSaveRecords(
@@ -2170,7 +2142,7 @@ export default function App() {
       onProgress
     );
 
-    const updatedTotal = updatedItemsList.length;
+    const updatedTotal = await countItems();
     const nextMetrics: SystemMetric = {
       ...systemMetrics,
       id: 'summary',
@@ -2290,7 +2262,7 @@ export default function App() {
     await ensureFirebaseAuthSession();
 
     const audit = auditAndSanitizeDatabaseState({
-      items,
+      items: await getAllItems(),
       clans,
       villages,
       usersList,
@@ -2306,8 +2278,7 @@ export default function App() {
     setVillages(audit.cleanedVillages);
     cacheVillagesLocally(audit.cleanedVillages);
 
-    setItems(audit.cleanedItems);
-    cacheItemsLocally(audit.cleanedItems);
+    await applyItemsDelta(audit.itemsToSave, audit.itemIdsToRemove);
 
     setUsersList(audit.cleanedUsers);
     cacheUsersLocally(audit.cleanedUsers);
@@ -2382,10 +2353,14 @@ export default function App() {
     await syncPendingOfflineData();
 
     // 1. Sync all Items in fast 250-doc batches (supports 10,000+ items cleanly)
-    await dualBatchSaveRecords(
-      'items',
-      items.map(it => ({ id: it.id, data: it }))
-    );
+    {
+      // Par lots de 250, l'un après l'autre : jamais tout le catalogue en mémoire
+      const allIds = await getAllIds();
+      for (let i = 0; i < allIds.length; i += 250) {
+        const chunk = await getItemsByIds(allIds.slice(i, i + 250));
+        await dualBatchSaveRecords('items', chunk.map(it => ({ id: it.id, data: it })));
+      }
+    }
 
     // 2. Sync all Clans
     for (const cl of clans) {
@@ -2419,7 +2394,7 @@ export default function App() {
     // 6. Metrics Summary
     const metricsPayload: SystemMetric = {
       id: 'summary',
-      totalItems: items.length,
+      totalItems: catalogue.total,
       totalContributions: contributions.length,
       totalRecordings: contributions.filter(c => !!c.audioUrl).length,
       totalValidated: contributions.filter(c => c.status === 'approved').length,
@@ -2436,7 +2411,7 @@ export default function App() {
       seededAt: new Date().toISOString(),
       seededBy: currentUser?.id || 'admin',
       seededByName: currentUser?.fullName || currentUser?.displayName || 'Admin',
-      itemsCount: items.length,
+      itemsCount: catalogue.total,
       clansCount: clans.length,
       villagesCount: villages.length,
       themesCount: themes.length,
@@ -2448,49 +2423,89 @@ export default function App() {
     refreshPendingMutationsCount();
 
     NotificationService.sendLocalNotification('Base de données synchronisée ☁️', {
-      body: `${items.length} questions, ${clans.length} clans et ${villages.length} villages synchronisés.`
+      body: `${catalogue.total} questions, ${clans.length} clans et ${villages.length} villages synchronisés.`
     });
   };
 
   // Active challenge selection & Tribe filter for questions
   const activeChallenge = challenges.find(c => c.id === activeChallengeId) || challenges[0];
 
-  const tribeItemCounts = React.useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const t of MYENE_TRIBES) {
-      counts[t] = 0;
-    }
-    for (const it of items) {
-      const tName = mapDialectToTribeName(it.dialect);
-      counts[tName] = (counts[tName] || 0) + 1;
-    }
-    return counts;
-  }, [items]);
+  const tribeItemCounts = catalogue.tribeCounts;
+  const totalCorpusCount = catalogue.total || INITIAL_ENENGA_ITEMS.length;
+  const challengeTheme = activeChallenge?.theme;
 
-  const displayedItems = React.useMemo(() => {
-    let base = items;
-    if (selectedQuestionTribe !== 'all') {
-      const byTribe = base.filter(
-        item => mapDialectToTribeName(item.dialect) === selectedQuestionTribe
-      );
-      if (byTribe.length > 0) {
-        base = byTribe;
+  // Identifiants des fiches à parcourir (selon la tribu et le défi choisis) : des chaînes seulement, pas les fiches
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const deleted = getDeletedIds('items');
+      const seedIds = INITIAL_ENENGA_ITEMS.filter(i => !deleted.has(i.id)).map(i => i.id);
+      if (catalogue.total === 0) {
+        if (!cancelled) setDisplayedIds(seedIds);
+        return;
       }
-    }
-    if (isChallengeFilterActive && activeChallenge && activeChallenge.theme !== 'all') {
-      const byChallenge = base.filter(
-        item => item.category === activeChallenge.theme || item.theme === activeChallenge.theme
-      );
-      if (byChallenge.length > 0) {
-        base = byChallenge;
+      let ids: string[] = [];
+      if (selectedQuestionTribe !== 'all') {
+        const dialects = Object.keys(catalogue.meta.byDialect).filter(d => mapDialectToTribeName(d) === selectedQuestionTribe);
+        ids = await getIdsByDialects(dialects);
       }
+      if (ids.length === 0) ids = await getAllIds();
+      if (isChallengeFilterActive && challengeTheme && challengeTheme !== 'all') {
+        const themed = new Set(await getIdsByCategory(challengeTheme));
+        const byChallenge = ids.filter(id => themed.has(id));
+        if (byChallenge.length > 0) ids = byChallenge;
+      }
+      // Les questions du seed initial gardent leurs premières positions, dans leur ordre d'origine
+      const seedRank = new Map(seedIds.map((id, idx) => [id, idx]));
+      const head = ids.filter(id => seedRank.has(id)).sort((a, b) => seedRank.get(a)! - seedRank.get(b)!);
+      const rest = head.length > 0 ? ids.filter(id => !seedRank.has(id)) : ids;
+      if (!cancelled) setDisplayedIds(head.length > 0 ? [...head, ...rest] : ids);
+    })();
+    return () => { cancelled = true; };
+  }, [catalogue.version, catalogue.total, selectedQuestionTribe, isChallengeFilterActive, challengeTheme]);
+
+  // Fiche choisie dans l'explorateur : on se place dessus dès que la liste est prête
+  useEffect(() => {
+    if (!pendingSelectId) return;
+    const idx = displayedIds.indexOf(pendingSelectId);
+    if (idx >= 0) {
+      setCurrentItemIndex(idx);
+      setPendingSelectId(null);
     }
-    return base;
-  }, [items, selectedQuestionTribe, isChallengeFilterActive, activeChallenge]);
+  }, [pendingSelectId, displayedIds]);
+
+  // Fiche courante : lue dans IndexedDB (ou dans le seed tant que le catalogue est vide)
+  const currentItemId = displayedIds[currentItemIndex] || displayedIds[0] || '';
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!currentItemId) { setCurrentItem(null); return; }
+      const stored = catalogue.total > 0 ? await getItem(currentItemId) : null;
+      const found = stored || INITIAL_ENENGA_ITEMS.find(i => i.id === currentItemId) || null;
+      if (!cancelled) setCurrentItem(found);
+    })();
+    return () => { cancelled = true; };
+  }, [currentItemId, catalogue.version, catalogue.total]);
+
+  // Outils d'administration : tout le catalogue n'est chargé que pendant que l'onglet est ouvert
+  useEffect(() => {
+    if (currentTab !== 'admin' || currentUser?.role !== 'admin') { setAdminItems([]); return; }
+    let cancelled = false;
+    getAllItems().then(list => { if (!cancelled) setAdminItems(list); });
+    return () => { cancelled = true; setAdminItems([]); };
+  }, [currentTab, currentUser?.role, catalogue.version]);
+
+  // Fiches favorites du profil : seulement celles-ci sont lues
+  useEffect(() => {
+    if (currentTab !== 'profile') { setFavoriteItems([]); return; }
+    let cancelled = false;
+    getItemsByIds(favoriteItemIds).then(list => { if (!cancelled) setFavoriteItems(list); });
+    return () => { cancelled = true; };
+  }, [currentTab, favoriteItemIds, catalogue.version]);
 
   // Navigation handlers
   const handleNextExpression = () => {
-    if (currentItemIndex < displayedItems.length - 1) {
+    if (currentItemIndex < displayedIds.length - 1) {
       setCurrentItemIndex(prev => prev + 1);
     } else {
       setCurrentItemIndex(0);
@@ -2508,7 +2523,7 @@ export default function App() {
     if (tab === 'admin' && currentUser?.role !== 'admin') {
       return;
     }
-    if (tab === 'validator' && currentUser?.role !== 'validator' && currentUser?.role !== 'admin') {
+    if (tab === 'validator' && currentUser?.role !== 'validator') {
       return;
     }
     setCurrentTab(tab);
@@ -2520,13 +2535,12 @@ export default function App() {
       if (currentTab === 'admin' && currentUser.role !== 'admin') {
         setCurrentTab('crowdsource');
       }
-      if (currentTab === 'validator' && currentUser.role !== 'validator' && currentUser.role !== 'admin') {
+      if (currentTab === 'validator' && currentUser.role !== 'validator') {
         setCurrentTab('crowdsource');
       }
     }
   }, [currentUser?.role, currentTab]);
 
-  const currentItem = displayedItems[currentItemIndex] || displayedItems[0] || items[0] || null;
   const totalPendingOfflineCount = pendingOfflineSubmissions.length + pendingAdminMutationsCount;
 
   // SESSION RESTORATION / AUTOMATIC RECONNECTION LOADING SCREEN
@@ -2561,7 +2575,7 @@ export default function App() {
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#fdfaf7] mb-2">
             {cachedUserPreview?.fullName || cachedUserPreview?.displayName
               ? `Bon retour, ${cachedUserPreview.fullName || cachedUserPreview.displayName} !`
-              : 'Restauration de votre session OMPANGANO...'}
+              : 'Restauration de votre session Nkala...'}
           </h1>
 
           <p className="text-sm text-[#c2a896] leading-relaxed mb-6">
@@ -2599,7 +2613,7 @@ export default function App() {
       {/* Code Update Banner if new version available */}
       <AppUpdateBanner />
 
-      {/* Top Navbar with OMPANGANO Branding */}
+      {/* Top Navbar with Nkala Branding */}
       <Navbar
         currentUser={currentUser}
         isOnline={isOnline}
@@ -2642,7 +2656,7 @@ export default function App() {
                   Rappel Contributeur Enregistré :
                 </span>
                 <span className="text-white font-medium">
-                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (OMPANGANO / NKALA – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et débloquer vos points, badges et récompenses d'accomplissement.
+                  Veuillez accepter les <strong>Conditions Générales de Contribution Individuelle (Nkala – Essaka Engineering)</strong> et valider l'utilisation de vos données pour poursuivre vos contributions et débloquer vos points, badges et récompenses d'accomplissement.
                 </span>
               </div>
             </div>
@@ -2662,6 +2676,14 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6">
+        {(currentTab === 'crowdsource' || currentTab === 'explore' || currentTab === 'leaderboard' || currentTab === 'validator') && (
+          <CrowdsourceSubNav
+            currentTab={currentTab}
+            onSelectTab={handleTabNavigation}
+            userRole={currentUser?.role}
+            pendingCount={contributions.filter(c => c.status === 'pending').length}
+          />
+        )}
         {currentTab === 'crowdsource' && (
           <>
             {currentItem ? (
@@ -2672,9 +2694,9 @@ export default function App() {
                 onNext={handleNextExpression}
                 onPrev={handlePrevExpression}
                 hasPrev={currentItemIndex > 0}
-                hasNext={currentItemIndex < displayedItems.length - 1}
+                hasNext={currentItemIndex < displayedIds.length - 1}
                 currentIndex={currentItemIndex}
-                totalCount={displayedItems.length}
+                totalCount={displayedIds.length}
                 onSubmitContribution={handleSaveContribution}
                 onRewardEarned={handleRewardEarned}
                 challenges={challenges.filter(c => c.isActive)}
@@ -2687,7 +2709,7 @@ export default function App() {
                   setIsChallengeFilterActive(prev => !prev);
                   setCurrentItemIndex(0);
                 }}
-                filteredChallengeItemsCount={items.filter(i => i.category === activeChallenge?.theme || i.theme === activeChallenge?.theme).length}
+                filteredChallengeItemsCount={Object.values(catalogue.meta.byDialectCategory).reduce((n, cats) => n + (cats[activeChallenge?.theme || ''] || 0), 0)}
                 onOpenVisualGuide={() => {
                   setIsPostOnboardingGuide(false);
                   setIsVisualGuideOpen(true);
@@ -2698,7 +2720,7 @@ export default function App() {
                   setCurrentItemIndex(0);
                 }}
                 tribeItemCounts={tribeItemCounts}
-                totalCorpusCount={items.length}
+                totalCorpusCount={totalCorpusCount}
               />
             ) : (
               <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
@@ -2721,7 +2743,6 @@ export default function App() {
 
         {currentTab === 'explore' && (
           <VocabularyExplorer
-            items={items}
             themes={themes}
             clans={clans}
             villages={villages}
@@ -2730,9 +2751,10 @@ export default function App() {
             usersList={usersList}
             favoriteItemIds={favoriteItemIds}
             onToggleFavorite={handleToggleFavoriteItem}
-            onSelectExpression={(index) => {
+            onSelectExpression={(itemId) => {
               setIsChallengeFilterActive(false);
-              setCurrentItemIndex(index);
+              setSelectedQuestionTribe('all');
+              setPendingSelectId(itemId);
               setCurrentTab('crowdsource');
             }}
           />
@@ -2747,7 +2769,7 @@ export default function App() {
         )}
 
         {/* Dedicated Validator Workspace: Oral vs Written nuance */}
-        {currentTab === 'validator' && (currentUser?.role === 'validator' || currentUser?.role === 'admin') && (
+        {currentTab === 'validator' && currentUser?.role === 'validator' && (
           <Suspense fallback={<StaffLoading />}>
             <ValidatorWorkspace
               contributions={contributions}
@@ -2761,7 +2783,7 @@ export default function App() {
         {currentTab === 'admin' && currentUser?.role === 'admin' && (
           <Suspense fallback={<StaffLoading />}>
           <AdminDashboard
-            items={items}
+            items={adminItems}
             contributions={contributions}
             systemMetrics={systemMetrics}
             usersList={usersList}
@@ -2798,6 +2820,13 @@ export default function App() {
             seedStatus={seedStatus}
             onExecuteInitialSeed={handleExecuteInitialSeed}
             isSeedingDatabase={isSeedingDatabase}
+            moderationSlot={
+              <ValidatorWorkspace
+                contributions={contributions}
+                currentUser={currentUser}
+                onValidateGranular={handleValidateGranular}
+              />
+            }
           />
           </Suspense>
         )}
@@ -2807,7 +2836,7 @@ export default function App() {
             currentUser={currentUser}
             contributions={contributions}
             onDeleteContribution={handleDeleteContribution}
-            items={items}
+            items={favoriteItems}
             favoriteItemIds={favoriteItemIds}
             onToggleFavorite={handleToggleFavoriteItem}
             onSelectExpression={(index) => {
@@ -2898,7 +2927,7 @@ export default function App() {
       <OfflinePackModal
         isOpen={isOfflinePackModalOpen}
         onClose={() => setIsOfflinePackModalOpen(false)}
-        items={items}
+        itemCount={totalCorpusCount}
         isOnline={isOnline}
         onSyncPendingQueue={syncPendingOfflineData}
       />

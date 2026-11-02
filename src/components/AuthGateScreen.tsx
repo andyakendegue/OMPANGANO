@@ -44,7 +44,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
       onLoginSuccess({
         id: user.uid,
         displayName:
-          user.displayName || user.email?.split('@')[0] || 'Contributeur OMPANGANO',
+          user.displayName || user.email?.split('@')[0] || 'Contributeur Nkala',
         fullName: user.displayName || user.email?.split('@')[0] || 'Locuteur Myènè',
         contact: user.email || '',
         email: user.email || '',
@@ -98,7 +98,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
     try {
       const user = await signInOrRegisterWithEmail(cleanEmail, password, isCreatingAccount ? 'register' : 'login');
       const displayName =
-        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur OMPANGANO';
+        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur Nkala';
       const fullName = userName.trim() || user.displayName || 'Locuteur Myènè';
 
       onLoginSuccess({
@@ -135,7 +135,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                alt="Logo OMPANGANO"
+                alt="Logo Nkala"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -143,7 +143,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold tracking-wider text-lg text-white font-serif">
-                OMPANGANO
+                Nkala
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30">
                 ESSAKA
@@ -232,14 +232,14 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   <div className="w-full h-full bg-white rounded-[20px] overflow-hidden flex items-center justify-center p-1 shadow-inner">
                     <img
                       src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                      alt="Logo OMPANGANO"
+                      alt="Logo Nkala"
                       className="w-full h-full object-contain"
                     />
                   </div>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white font-serif">
-                    Connexion à OMPANGANO
+                    Connexion à Nkala
                   </h2>
                   <p className="text-xs text-[#d4af94]">
                     Identifiez-vous pour accéder au studio de contribution
@@ -322,7 +322,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                   </button>
 
                   <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] leading-relaxed text-center">
-                    🔒 Authentification sécurisée par le protocole OMPANGANO.
+                    🔒 Authentification sécurisée par le protocole Nkala.
                   </div>
                 </div>
               )}
@@ -410,7 +410,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
 
       {/* Footer */}
       <footer className="max-w-5xl w-full mx-auto text-center py-4 border-t border-[#3b1d10] text-[11px] text-[#a8826d]">
-        OMPANGANO • Sauvegarde et Vitalisation des Langues Myènè du Gabon
+        Nkala • Sauvegarde et Vitalisation des Langues Myènè du Gabon
       </footer>
     </div>
   );

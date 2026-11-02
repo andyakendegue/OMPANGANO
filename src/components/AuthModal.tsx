@@ -42,7 +42,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onLoginSuccess({
         id: user.uid,
         displayName:
-          user.displayName || user.email?.split('@')[0] || 'Contributeur OMPANGANO',
+          user.displayName || user.email?.split('@')[0] || 'Contributeur Nkala',
         fullName: user.displayName || '',
         email: user.email || undefined,
         photoURL: user.photoURL || undefined,
@@ -96,7 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       const user = await signInOrRegisterWithEmail(cleanEmail, password, isCreatingAccount ? 'register' : 'login');
       const displayName =
-        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur OMPANGANO';
+        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur Nkala';
       const fullName = userName.trim() || user.displayName || 'Locuteur Myènè';
 
       onLoginSuccess({
@@ -137,14 +137,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                alt="Logo OMPANGANO"
+                alt="Logo Nkala"
                 className="w-full h-full object-contain"
               />
             </div>
           </div>
           <div>
             <h3 className="text-xl font-black text-white font-serif">
-              Connexion à OMPANGANO
+              Connexion à Nkala
             </h3>
             <p className="text-xs text-[#d4af94]">
               Accès réservé aux contributeurs et locuteurs Myènè
@@ -225,7 +225,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
 
             <div className="p-3 bg-[#180d07] rounded-xl border border-[#3b1d10] text-[11px] text-[#a8826d] text-center">
-              🔒 Connexion sécurisée au compte contributeur OMPANGANO.
+              🔒 Connexion sécurisée au compte contributeur Nkala.
             </div>
           </div>
         )}

@@ -24,7 +24,7 @@ import { warmUpOfflineShell } from '../services/pwaOfflineManager';
 interface OfflinePackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  items: QuestionnaireItem[];
+  itemCount: number;
   isOnline: boolean;
   onSyncPendingQueue: () => Promise<void>;
 }
@@ -43,7 +43,7 @@ const COLLECTION_LABELS: Record<string, string> = {
 export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
   isOpen,
   onClose,
-  items,
+  itemCount: _itemCount,
   isOnline,
   onSyncPendingQueue
 }) => {
@@ -90,7 +90,7 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
 
     try {
       await warmUpOfflineShell();
-      const result = await downloadFullOfflinePack(items, (pct, msg) => {
+      const result = await downloadFullOfflinePack((pct, msg) => {
         setDownloadProgressPct(pct);
         setDownloadStepMsg(msg);
       });
@@ -186,7 +186,7 @@ export const OfflinePackModal: React.FC<OfflinePackModalProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-[#fed7aa] flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-[#f59e0b]" />
-              <span>Pack OMPANGANO Local</span>
+              <span>Pack Nkala Local</span>
             </span>
             <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
               packStatus.isDownloaded

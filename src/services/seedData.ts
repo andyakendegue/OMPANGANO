@@ -688,7 +688,7 @@ export const BADGE_TITLE_RENAMES: Record<string, { from: string; to: string }> =
 export const SYSTEM_BADGES: Badge[] = [
   {
     id: 'badge-genealogie-verifiee',
-    title: 'Filiation OMPANGANO',
+    title: 'Filiation Nkala',
     description: 'A renseigné avec authenticité sa tribu, ses clans paternel et maternel et son village.',
     icon: '📜',
     category: 'genealogie'
@@ -720,7 +720,7 @@ export const SYSTEM_BADGES: Badge[] = [
   {
     id: 'badge-gardien-lacs',
     title: 'Gardien des Lacs',
-    description: 'A maintenu une série de 3 jours consécutifs de fidélité au programme OMPANGANO.',
+    description: 'A maintenu une série de 3 jours consécutifs de fidélité au programme Nkala.',
     icon: '🌊',
     category: 'fidelite'
   },
@@ -1223,7 +1223,7 @@ export function parsePhrasesAndDiscoverThemes(
   return { items: results, newDiscoveredThemes };
 }
 
-// Convertit le contenu d'un CSV (Corpus TTS Ôrungu ou format Standard OMPANGANO) en QuestionnaireItem[]
+// Convertit le contenu d'un CSV (Corpus TTS Ôrungu ou format Standarde Nkala) en QuestionnaireItem[]
 export function parsePhrasesFromCsv(
   csvText: string, 
   defaultDialect: string = 'orungu', 

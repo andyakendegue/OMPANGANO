@@ -75,7 +75,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
               <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5">
                 <img
                   src="/assets/aistudio/LOGO-symbole_1c65e221.png"
-                  alt="Logo OMPANGANO"
+                  alt="Logo Nkala"
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -86,13 +86,13 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                 <span>
                   {isPostOnboarding
                     ? `${MYENE.SALE.mot} ! Bienvenue à bord • Guide Visuel & Objectifs`
-                    : 'Guide Visuel Interactif & Objectifs OMPANGANO'}
+                    : 'Guide Visuel Interactif & Objectifs Nkala'}
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
                 {currentUser?.fullName
-                  ? `${MYENE.MBOLO.mot}, ${currentUser.fullName.split(' ')[0]} ! Voici comment utiliser OMPANGANO`
-                  : 'Objectifs & Guide Visuel de la Plateforme OMPANGANO'}
+                  ? `${MYENE.MBOLO.mot}, ${currentUser.fullName.split(' ')[0]} ! Voici comment utiliser Nkala`
+                  : 'Objectifs & Guide Visuel de la Plateforme Nkala'}
               </h2>
             </div>
           </div>
@@ -127,10 +127,10 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
             <div className="p-4 rounded-2xl bg-gradient-to-r from-[#27150c] via-[#1f1008] to-[#180d07] border border-[#f59e0b]/40 space-y-2">
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#fde047]">
                 <Target className="w-4 h-4 text-[#f59e0b]" />
-                <span>La Mission d'OMPANGANO & de l'Application NKALA</span>
+                <span>La Mission de Nkala</span>
               </div>
               <p className="text-xs sm:text-sm text-[#fed7aa] leading-relaxed">
-                Conçu par <strong className="text-white">Essaka Engineering</strong>, <strong className="text-[#f59e0b]">OMPANGANO</strong> est le programme participatif de référence dédié à la sauvegarde, la documentation et la transmission vivante de la langue <strong className="text-white">Omyènè</strong> au Gabon.
+                Conçu par <strong className="text-white">Essaka Engineering</strong>, <strong className="text-[#f59e0b]">Nkala</strong> est le programme participatif de référence dédié à la sauvegarde, la documentation et la transmission vivante de la langue <strong className="text-white">Omyènè</strong> au Gabon.
               </p>
             </div>
 
@@ -173,7 +173,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-sky-400 block">Objectif 3</span>
-                    <h3 className="text-sm font-bold text-white">Bâtir une IA Linguistique Gabonaise (NKALA)</h3>
+                    <h3 className="text-sm font-bold text-white">Bâtir une IA Linguistique Gabonaise (Nkala)</h3>
                   </div>
                 </div>
                 <p className="text-xs text-[#d4af94] leading-relaxed">

@@ -147,7 +147,7 @@ export const HostingCustomDomainAdmin: React.FC<HostingCustomDomainAdminProps> =
         </div>
 
         <p className="text-xs text-stone-500 leading-relaxed">
-          Pour relier <strong>{customDomain}</strong> à l'application OMPANGANO, ajoutez l'enregistrement CNAME (ou A) ci-dessous dans la zone DNS de votre nom de domaine <code>essaka.engineering</code> :
+          Pour relier <strong>{customDomain}</strong> à l'application Nkala, ajoutez l'enregistrement CNAME (ou A) ci-dessous dans la zone DNS de votre nom de domaine <code>essaka.engineering</code> :
         </p>
 
         <div className="overflow-x-auto rounded-xl border border-stone-200">

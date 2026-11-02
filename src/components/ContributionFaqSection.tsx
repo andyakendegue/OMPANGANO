@@ -86,7 +86,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     answerParagraphs: [
       'En linguistique Myènè (Omyènè), il ne faut jamais confondre la Tribu (sous-groupe dialectal et géographique) et le Clan (« mbuwé » : lignée exogamique issue d’un ancêtre commun ; le lignage se dit « ozombi »).',
       'Les différences orthographiques, phonétiques et tonales ne concernent que les 6 Tribus Myènè : Mpongwè, Adyumba, Enenga, Nkomi, Galoa et Ôrungu. Deux personnes appartenant à deux clans différents (par exemple Abulya et Agenje chez les Ôrungu) parlent exactement la même variété tribale Ôrungu, avec la même grammaire, la même orthographe et les mêmes tons.',
-      'C’est pourquoi toutes les questions du corpus OMPANGANO sont filtrées et catégorisées par Tribu (et par Thème culturel : pêche, faune, vie quotidienne, proverbes...), et jamais dans des « catégories claniques ». Votre clan dans votre profil sert uniquement à préserver la mémoire généalogique et coutumière.'
+      'C’est pourquoi toutes les questions du corpus Nkala sont filtrées et catégorisées par Tribu (et par Thème culturel : pêche, faune, vie quotidienne, proverbes...), et jamais dans des « catégories claniques ». Votre clan dans votre profil sert uniquement à préserver la mémoire généalogique et coutumière.'
     ],
     examples: [
       {
@@ -312,7 +312,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     shortSummary:
       'Oui ! Vos réponses écrites et vos enregistrements vocaux sont sauvegardés dans la mémoire locale de votre appareil et envoyés automatiquement dès le retour du réseau.',
     answerParagraphs: [
-      'L’application OMPANGANO est conçue pour fonctionner même dans les zones à faible couverture réseau (villages riverains, lacs, déplacements).',
+      'L’application Nkala est conçue pour fonctionner même dans les zones à faible couverture réseau (villages riverains, lacs, déplacements).',
       'Vous pouvez télécharger un « Pack Hors-Ligne » depuis la barre supérieure avant votre départ, ou simplement continuer à répondre et enregistrer votre voix lorsque la connexion se coupe.',
       'Dès que votre téléphone ou ordinateur retrouve une connexion Internet, un bandeau synchronise automatiquement toutes vos contributions en attente de façon sécurisée sans aucune perte.'
     ],

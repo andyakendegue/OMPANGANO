@@ -1,5 +1,5 @@
 {
-  "name": "OMPANGANO - Crowdsourcing Linguistique Myènè",
+  "name": "Nkala - Crowdsourcing Linguistique Myènè",
   "description": "Plateforme participative de préservation et d'enregistrement vocal de la langue myènè (Ôrungu, Mpongwè, Galwa, Nkomi, Enenga, Adyumba), avec badges, classement et mode hors-ligne.",
   "requestFramePermissions": [
     "microphone"

@@ -85,6 +85,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   onToggleRole,
   onClearOfflineCache
 }) => {
+  const [section, setSection] = useState<'apercu' | 'activite' | 'compte'>('apercu');
   const [chartRange, setChartRange] = useState<ChartRange>('30d');
   const [chartMode, setChartMode] = useState<ChartMode>('cumulative');
   const [playingFavId, setPlayingFavId] = useState<string | null>(null);
@@ -275,7 +276,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-white">
-                  {currentUser?.fullName || currentUser?.displayName || 'Visiteur OMPANGANO'}
+                  {currentUser?.fullName || currentUser?.displayName || 'Visiteur Nkala'}
                 </h2>
                 {currentUser?.role === 'admin' && (
                   <span className="text-[10px] bg-[#991b1b]/50 text-[#fca5a5] border border-[#ef4444]/40 px-2 py-0.5 rounded-full font-bold">
@@ -318,14 +319,32 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         </div>
 
+        {/* Sections du profil */}
+        <div className="flex items-center gap-2 overflow-x-auto">
+          {([['apercu', 'Aperçu'], ['activite', 'Mon activité'], ['compte', 'Compte & données']] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setSection(id)}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+                section === id ? 'bg-[#c85a32] text-white shadow-md font-bold' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {section === 'compte' && (
+<>
         {/* Filiation & Genealogical Summary Box */}
         <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-[#f59e0b] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center p-0.5 border border-[#f59e0b]/40 shadow-sm shrink-0">
-                <img src="/assets/aistudio/LOGO-symbole_1c65e221.png" alt="Sceau Ompangano" className="w-full h-full object-contain" />
+                <img src="/assets/aistudio/LOGO-symbole_1c65e221.png" alt="Sceau Nkala" className="w-full h-full object-contain" />
               </span>
-              <span>Filiation OMPANGANO Enregistrée</span>
+              <span>Filiation Nkala Enregistrée</span>
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#15803d]/30 text-[#86efac] border border-[#22c55e]/30 font-semibold">
               Certifiée Conforme
@@ -386,7 +405,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
 
           <p className="text-xs text-[#d4af94] leading-relaxed">
-            Charte de Contribution Individuelle, Utilisation des Données et Système de Badges, Points & Récompenses <strong>OMPANGANO – Application NKALA</strong> (Essaka Engineering, Droit gabonais Loi n° 001/2011 & OAPI).
+            Charte de Contribution Individuelle, Utilisation des Données et Système de Badges, Points & Récompenses <strong>Nkala</strong> (Essaka Engineering, Droit gabonais Loi n° 001/2011 & OAPI).
           </p>
 
           {hasAcceptedTerms && (
@@ -444,6 +463,11 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         </div>
 
+</>
+        )}
+
+        {section === 'apercu' && (
+<>
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-2.5 pt-1">
           <div className="p-3 bg-[#180d07] rounded-2xl border border-[#3b1d10] text-center">
@@ -657,6 +681,11 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         </div>
 
+</>
+        )}
+
+        {section === 'activite' && (
+<>
         {/* Dedicated Favorite Vocabulary Section */}
         <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -817,13 +846,18 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         )}
 
+</>
+        )}
+
+        {section === 'compte' && (
+<>
         {/* Role Badge & Status */}
         <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#f59e0b]" />
             <div>
               <span className="text-xs font-semibold text-[#fed7aa] block">Statut & Privilèges :</span>
-              <span className="text-[11px] text-[#a8826d]">Attribué par l'administration OMPANGANO</span>
+              <span className="text-[11px] text-[#a8826d]">Attribué par l'administration Nkala</span>
             </div>
           </div>
           <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase ${
@@ -878,6 +912,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             </button>
           )}
         </div>
+</>
+        )}
       </div>
     </div>
   );

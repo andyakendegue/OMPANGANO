@@ -78,7 +78,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
 
   if (!isOpen) return null;
 
-  const userName = currentUser?.fullName || currentUser?.displayName || 'Contributeur OMPANGANO';
+  const userName = currentUser?.fullName || currentUser?.displayName || 'Contributeur Nkala';
   const userBirthDate = currentUser?.birthDate || 'Date enregistrée au profil';
   const userBirthPlace = currentUser?.birthPlace || 'Gabon';
 
@@ -88,7 +88,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
 
     if (!termsAccepted) {
       setErrorMessage(
-        "Vous devez accepter les Conditions Générales de Contribution Individuelle de la plateforme OMPANGANO / NKALA."
+        "Vous devez accepter les Conditions Générales de Contribution Individuelle de la plateforme Nkala."
       );
       return;
     }
@@ -171,7 +171,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
             {isReminderForExistingUser ? (
               <>
                 Votre profil <strong className="text-white">{userName}</strong> est déjà enregistré sur{' '}
-                <strong className="text-[#f59e0b]">OMPANGANO / NKALA</strong>. Avant de poursuivre vos contributions vocales et
+                <strong className="text-[#f59e0b]">Nkala</strong>. Avant de poursuivre vos contributions vocales et
                 linguistiques, veuillez prendre connaissance et valider électroniquement les{' '}
                 <strong>Conditions Générales de Contribution Individuelle</strong> ainsi que l'autorisation d'utilisation de vos
                 données et le fonctionnement du <strong>système de points, badges et récompenses d'accomplissement</strong>.
@@ -179,7 +179,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
             ) : (
               <>
                 Charte de contribution individuelle, de protection des données et de valorisation des accomplissements (Badges,
-                Points XP & Récompenses) du programme <strong className="text-[#f59e0b]">OMPANGANO – Application NKALA</strong>,
+                Points XP & Récompenses) du programme <strong className="text-[#f59e0b]">Nkala</strong>,
                 établie selon le droit gabonais (Loi n° 001/2011 & CNPDCP, Accord de Bangui OAPI Annexe VII) entre{' '}
                 <strong className="text-white">ESSAKA ENGINEERING</strong> et chaque contributeur individuel.
               </>
@@ -258,7 +258,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 <strong className="text-white">{userBirthDate}</strong> à{' '}
                 <strong className="text-white">{userBirthPlace}</strong>, agissant à titre de{' '}
                 <strong className="text-[#f59e0b]">Contributeur Individuel</strong> sur la plateforme{' '}
-                <strong className="text-[#f59e0b]">OMPANGANO</strong>, déclare avoir été informé(e) et accepter les points suivants :
+                <strong className="text-[#f59e0b]">Nkala</strong>, déclare avoir été informé(e) et accepter les points suivants :
               </p>
 
               {/* Les 5 engagements clés du contributeur individuel */}
@@ -270,7 +270,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   <p className="text-xs text-[#fed7aa] leading-relaxed">
                     J'accepte que mes <strong className="text-white">textes, traductions, annotations culturelles, images et enregistrements vocaux</strong> soient
                     collectés et utilisés par <strong className="text-white">Essaka Engineering</strong> (RCCM RG/POG 2022 A 1290, Port-Gentil, Gabon) dans le
-                    cadre du programme participatif <strong className="text-[#f59e0b]">OMPANGANO</strong> et des projets associés.
+                    cadre du programme participatif <strong className="text-[#f59e0b]">Nkala</strong> et des projets associés.
                   </p>
                 </div>
 
@@ -280,7 +280,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   </span>
                   <p className="text-xs text-[#fed7aa] leading-relaxed">
                     Ces données servent à <strong className="text-white">entraîner, évaluer et améliorer des modèles d'intelligence artificielle</strong> valorisant
-                    les langues et cultures gabonaises, exploités notamment dans l'application <strong className="text-[#f59e0b]">NKALA</strong>.
+                    les langues et cultures gabonaises, exploités notamment dans l'application <strong className="text-[#f59e0b]">Nkala</strong>.
                   </p>
                 </div>
 
@@ -345,7 +345,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   className="mt-0.5 w-4 h-4 accent-[#f59e0b] rounded shrink-0"
                 />
                 <span className="text-xs text-white leading-relaxed">
-                  <strong className="text-[#fde047]">J'accepte les Conditions Générales de la plateforme OMPANGANO / NKALA</strong> applicables aux
+                  <strong className="text-[#fde047]">J'accepte les Conditions Générales de la plateforme Nkala</strong> applicables aux
                   contributeurs individuels (Droits, engagements de qualité, propriété intellectuelle et système de points, badges et récompenses).{' '}
                   <span className="text-[#ef4444] font-bold">* (Obligatoire)</span>
                 </span>
@@ -361,7 +361,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 />
                 <span className="text-xs text-white leading-relaxed">
                   <strong className="text-[#fde047]">Je valide l'utilisation de mes données personnelles et linguistiques</strong> par Essaka
-                  Engineering pour la sauvegarde patrimoniale, l'entraînement et l'exploitation des Modèles IA dans OMPANGANO et NKALA.{' '}
+                  Engineering pour la sauvegarde patrimoniale, l'entraînement et l'exploitation des Modèles IA dans Nkala.{' '}
                   <span className="text-[#ef4444] font-bold">* (Obligatoire)</span>
                 </span>
               </label>
@@ -415,7 +415,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 </div>
 
                 <div className="text-[11px] text-[#a8826d] bg-[#24130a] p-2.5 rounded-xl border border-[#3b1d10]">
-                  <div>Validé électroniquement sur <strong>OMPANGANO / NKALA</strong></div>
+                  <div>Validé électroniquement sur <strong>Nkala</strong></div>
                   <div>Date : <strong className="text-white">{new Date().toLocaleDateString('fr-FR')}</strong></div>
                   <div>Statut : <span className="text-[#fde047] font-semibold">Contributeur Individuel</span></div>
                 </div>
@@ -454,7 +454,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
             <div className="p-4 bg-[#180d07] rounded-2xl border border-[#4a2412] space-y-3 max-h-[55vh] overflow-y-auto pr-2">
               <div className="border-b border-[#3b1d10] pb-3">
                 <div className="text-[11px] font-bold text-[#f59e0b] uppercase tracking-wider">
-                  Charte de Contribution Individuelle & Système de Récompenses • OMPANGANO / NKALA
+                  Charte de Contribution Individuelle & Système de Récompenses • Nkala
                 </div>
                 <h3 className="text-base font-black text-white mt-0.5">
                   Entre Essaka Engineering et le Contributeur Individuel
@@ -463,20 +463,20 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   <strong>ESSAKA ENGINEERING</strong>, siège social situé au Quartier SALSA, Port-Gentil (Gabon), immatriculée au RCCM sous le n°{' '}
                   <strong>RG/POG 2022 A 1290</strong>, NIF n° <strong>202302004939</strong>, représentée par{' '}
                   <strong>M. MIGOUMBI AKENDEGUE CAPP ANDY</strong> (Gérant / Fondateur), d'une part, et toute personne physique inscrite en qualité de{' '}
-                  <strong>Contributeur Individuel</strong> sur la plateforme OMPANGANO, d'autre part.
+                  <strong>Contributeur Individuel</strong> sur la plateforme Nkala, d'autre part.
                 </p>
               </div>
 
               <div className="space-y-2">
                 <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Article 1 – Préambule & Définitions</h4>
                 <p>
-                  Essaka Engineering développe des modèles d'intelligence artificielle adaptés aux réalités gabonaises, notamment aux langues et cultures locales. Pour entraîner ces modèles, Essaka a conçu <strong>OMPANGANO</strong>, une plateforme participative collectant des textes, traductions, images et enregistrements vocaux auprès de contributeurs individuels. Essaka exploite par ailleurs l'application <strong>NKALA</strong>, dans laquelle les modèles entraînés sont utilisés.
+                  Essaka Engineering développe des modèles d'intelligence artificielle adaptés aux réalités gabonaises, notamment aux langues et cultures locales. Pour entraîner ces modèles, Essaka a conçu <strong>Nkala</strong>, une plateforme participative collectant des textes, traductions, images et enregistrements vocaux auprès de contributeurs individuels. Essaka exploite par ailleurs l'application <strong>Nkala</strong>, dans laquelle les modèles entraînés sont utilisés.
                 </p>
                 <ul className="list-disc pl-5 space-y-1 text-[#d4af94]">
-                  <li><strong>OMPANGANO :</strong> plateforme de crowdsourcing d'Essaka destinée à la collecte et à la validation de données linguistiques et culturelles.</li>
-                  <li><strong>NKALA :</strong> application d'Essaka dans laquelle les Modèles IA sont exploités.</li>
+                  <li><strong>Nkala :</strong> plateforme de crowdsourcing d'Essaka destinée à la collecte et à la validation de données linguistiques et culturelles.</li>
+                  <li><strong>Nkala :</strong> application d'Essaka dans laquelle les Modèles IA sont exploités.</li>
                   <li><strong>Modèles IA :</strong> modèles d'apprentissage automatique d'Essaka, entraînés en tout ou partie grâce aux Données des Contributeurs.</li>
-                  <li><strong>Contributeur :</strong> toute personne physique inscrite sur OMPANGANO fournissant ou validant des Données à titre individuel.</li>
+                  <li><strong>Contributeur :</strong> toute personne physique inscrite sur Nkala fournissant ou validant des Données à titre individuel.</li>
                   <li><strong>Données :</strong> textes, traductions, enregistrements vocaux, images et métadonnées associées fournis par le Contributeur.</li>
                   <li><strong>Points d'Expérience (XP), Rangs & Badges :</strong> système de valorisation mesurant les accomplissements validés du Contributeur et donnant accès à des distinctions et récompenses.</li>
                 </ul>
@@ -488,14 +488,14 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   <strong>Engagements du Contributeur :</strong> Le Contributeur s'engage à fournir des contributions sincères et de qualité (clarté des enregistrements vocaux, exactitude des textes et dialectes Myènè, respect des consignes) et garantit ne transmettre aucun contenu illicite, diffamatoire ou portant atteinte aux droits de tiers.
                 </p>
                 <p>
-                  <strong>Engagements d'Essaka Engineering :</strong> Essaka s'engage à fournir un accès sécurisé à OMPANGANO, à utiliser les Données uniquement dans le cadre défini aux présentes conditions, à chiffrer et protéger les Données, et à comptabiliser de manière transparente les Points d'Expérience (XP), les badges et les accomplissements de chaque Contributeur pouvant donner lieu à des récompenses.
+                  <strong>Engagements d'Essaka Engineering :</strong> Essaka s'engage à fournir un accès sécurisé à Nkala, à utiliser les Données uniquement dans le cadre défini aux présentes conditions, à chiffrer et protéger les Données, et à comptabiliser de manière transparente les Points d'Expérience (XP), les badges et les accomplissements de chaque Contributeur pouvant donner lieu à des récompenses.
                 </p>
               </div>
 
               <div className="space-y-1.5">
                 <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Article 4 – Autorisation d'Utilisation des Données</h4>
                 <p>
-                  <strong>4.1 Étendue et caractère non exclusif :</strong> Le Contributeur autorise Essaka Engineering, à titre non exclusif et pour le monde entier, à reproduire, enregistrer, annoter, transformer, stocker et utiliser ses Données pour entraîner, évaluer, améliorer et exploiter les Modèles IA, y compris au sein de l'application NKALA.
+                  <strong>4.1 Étendue et caractère non exclusif :</strong> Le Contributeur autorise Essaka Engineering, à titre non exclusif et pour le monde entier, à reproduire, enregistrer, annoter, transformer, stocker et utiliser ses Données pour entraîner, évaluer, améliorer et exploiter les Modèles IA, y compris au sein de l'application Nkala.
                 </p>
                 <p>
                   <strong>4.2 Protection de la voix et de l'image :</strong> Le Contributeur autorise l'usage de sa voix (et facultativement de son image) aux seules fins d'entraînement IA décrites ci-dessus. Essaka s'interdit formellement d'utiliser la voix ou l'image du Contributeur pour créer des contenus trompeurs imitant une personne identifiable (deepfakes) ou portant atteinte à sa dignité ou à sa réputation.
@@ -515,14 +515,14 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
               <div className="space-y-1.5">
                 <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Article 6 – Propriété Intellectuelle (Accord de Bangui OAPI)</h4>
                 <p>
-                  Le Contributeur reste titulaire des droits d'auteur et droits voisins sur ses Données conformément à l'<strong>Accord de Bangui instituant l'Organisation Africaine de la Propriété Intellectuelle (OAPI) et à son Annexe VII</strong> sur la propriété littéraire et artistique. Essaka Engineering demeure seule propriétaire des Modèles IA, des applications OMPANGANO et NKALA, de leur code source et de leur documentation.
+                  Le Contributeur reste titulaire des droits d'auteur et droits voisins sur ses Données conformément à l'<strong>Accord de Bangui instituant l'Organisation Africaine de la Propriété Intellectuelle (OAPI) et à son Annexe VII</strong> sur la propriété littéraire et artistique. Essaka Engineering demeure seule propriétaire des Modèles IA, des applications Nkala, de leur code source et de leur documentation.
                 </p>
               </div>
 
               <div className="space-y-1.5">
                 <h4 className="font-bold text-white text-xs uppercase text-[#fde047]">Articles 7 & 8 – Système de Points (XP), Badges, Rangs et Récompenses d'Accomplissement</h4>
                 <p>
-                  La participation individuelle sur OMPANGANO est bénévole et repose sur un système de reconnaissance et de gamification culturelle : chaque action validée (enregistrement vocal, traduction ou variante orthographique, note contextuelle, validation de pairs ou défi thématique) rapporte des <strong>Points d'Expérience (XP)</strong>.
+                  La participation individuelle sur Nkala est bénévole et repose sur un système de reconnaissance et de gamification culturelle : chaque action validée (enregistrement vocal, traduction ou variante orthographique, note contextuelle, validation de pairs ou défi thématique) rapporte des <strong>Points d'Expérience (XP)</strong>.
                 </p>
                 <p>
                   Ces Points XP permettent de gravir les <strong>5 Rangs Culturels</strong> (de <em>« Initié Curieux »</em> à <em>« Sage Ancien »</em>) et de débloquer des <strong>Badges honorifiques</strong> attestant de l'expertise et de l'assiduité du Contributeur. En fonction des accomplissements réalisés, des paliers atteints et du classement communautaire, Essaka Engineering peut attribuer des <strong>récompenses, distinctions, accès privilégiés ou dotations spéciales</strong> aux contributeurs les plus méritants.
@@ -564,7 +564,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                   <span>1. Barème des Points d'Expérience (XP) par Accomplissement</span>
                 </h4>
                 <p className="text-[11px] text-[#a8826d] mt-1">
-                  Chaque contribution sur OMPANGANO vous fait gagner des Points d'Expérience (XP). Vos points s'accumulent pour faire progresser votre rang et débloquer des badges et récompenses.
+                  Chaque contribution sur Nkala vous fait gagner des Points d'Expérience (XP). Vos points s'accumulent pour faire progresser votre rang et débloquer des badges et récompenses.
                 </p>
               </div>
 
@@ -611,7 +611,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
               <div className="pt-2 border-t border-[#3b1d10] space-y-2">
                 <h4 className="font-bold text-white text-sm flex items-center gap-2 text-[#fde047]">
                   <Award className="w-4 h-4 text-[#f59e0b]" />
-                  <span>2. Les 5 Niveaux & Rangs Culturels d'OMPANGANO</span>
+                  <span>2. Les 5 Niveaux & Rangs Culturels de Nkala</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-[#3b1d10]">
@@ -646,7 +646,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                 <ul className="list-disc pl-5 space-y-1.5 text-[#d4af94]">
                   <li>
                     <strong className="text-white">Badges de Maîtrise Permanente :</strong> Débloquez des distinctions telles que{' '}
-                    <span className="text-[#fde047]">📜 Filiation OMPANGANO</span>,{' '}
+                    <span className="text-[#fde047]">📜 Filiation Nkala</span>,{' '}
                     <span className="text-[#fde047]">🎙️ Première Voix</span>,{' '}
                     <span className="text-[#fde047]">🪶 Passeur de 10 Mots</span>,{' '}
                     <span className="text-[#fde047]">👂 Oreille de l’Aîné</span>,{' '}
@@ -661,7 +661,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                     <span className="text-[#fde047]">🐆 Pisteur de la Savane</span>.
                   </li>
                   <li>
-                    <strong className="text-white">Récompenses selon vos Accomplissements :</strong> Vos points (XP), votre rang dans le classement des Gardiens, vos badges débloqués et la qualité de vos contributions validées peuvent donner lieu à des <strong className="text-[#fde047]">récompenses spéciales, distinctions honorifiques, accès privilégiés aux fonctionnalités NKALA, promotions au rôle de Validateur Certifié ou dotations communautaires</strong> lors des événements et campagnes organisés par Essaka Engineering.
+                    <strong className="text-white">Récompenses selon vos Accomplissements :</strong> Vos points (XP), votre rang dans le classement des Gardiens, vos badges débloqués et la qualité de vos contributions validées peuvent donner lieu à des <strong className="text-[#fde047]">récompenses spéciales, distinctions honorifiques, accès privilégiés aux fonctionnalités Nkala, promotions au rôle de Validateur Certifié ou dotations communautaires</strong> lors des événements et campagnes organisés par Essaka Engineering.
                   </li>
                 </ul>
               </div>

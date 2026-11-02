@@ -286,7 +286,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
             </h4>
           </div>
           <span className="text-[11px] text-[#f59e0b] bg-[#1c120c] px-2.5 py-0.5 rounded-full border border-[#4a2e1d]">
-            Format enrichi OMPANGANO
+            Format enrichi Nkala
           </span>
         </div>
 
@@ -416,7 +416,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
               Déposez votre fichier CSV ici, ou cliquez pour parcourir
             </h4>
             <p className="text-xs text-[#d4af94] mt-1">
-              Prend en charge le format officiel <strong>OMPANGANO</strong> ou le schéma de corpus audio <strong>TTS Ôrungu</strong>.
+              Prend en charge le format officiel <strong>Nkala</strong> ou le schéma de corpus audio <strong>TTS Ôrungu</strong>.
             </p>
           </div>
 
@@ -465,7 +465,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
             <span>{discoveredThemes.length} Nouveau(x) Thème(s) extrait(s) dynamiquement du CSV</span>
           </div>
           <p className="text-xs text-[#fed7aa]/90">
-            Ces modules thématiques ont été détectés dans les colonnes du fichier et seront automatiquement créés et enregistrés dans le catalogue OMPANGANO lors de la confirmation :
+            Ces modules thématiques ont été détectés dans les colonnes du fichier et seront automatiquement créés et enregistrés dans le catalogue Nkala lors de la confirmation :
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             {discoveredThemes.map(th => (

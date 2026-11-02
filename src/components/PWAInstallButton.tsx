@@ -14,7 +14,7 @@ export const PWAInstallButton: React.FC = () => {
     return (
       <button
         onClick={install}
-        title="Installer l'application OMPANGANO pour un accès rapide et en Mode Avion"
+        title="Installer l'application Nkala pour un accès rapide et en Mode Avion"
         className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#e67e22] to-[#d35400] px-2.5 sm:px-3 py-1.5 text-xs font-bold text-white shadow-md hover:opacity-95 transition"
       >
         <Download className="w-3.5 h-3.5" />
@@ -28,7 +28,7 @@ export const PWAInstallButton: React.FC = () => {
       <>
         <button
           onClick={() => setShowIOSGuide(true)}
-          title="Installer OMPANGANO sur votre iPhone pour un fonctionnement optimal en Mode Avion"
+          title="Installer Nkala sur votre iPhone pour un fonctionnement optimal en Mode Avion"
           className="flex items-center gap-1.5 rounded-xl bg-[#2a1d17] border border-[#e67e22]/50 px-2.5 py-1.5 text-xs font-bold text-[#f39c12] hover:bg-[#3a281f] transition"
         >
           <Smartphone className="w-3.5 h-3.5" />

@@ -127,7 +127,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     setErrorMessage(null);
 
     if (!fullName.trim()) {
-      setErrorMessage('Le nom complet est obligatoire pour accéder à OMPANGANO.');
+      setErrorMessage('Le nom complet est obligatoire pour accéder à Nkala.');
       return;
     }
     if (!contact.trim()) {
@@ -236,7 +236,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                alt="Logo OMPANGANO" 
+                alt="Logo Nkala" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -244,14 +244,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#c85a32]/30 text-[#fde047] border border-[#c85a32]/50">
             <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span>Enregistrement Obligatoire • Protocole OMPANGANO</span>
+            <span>Enregistrement Obligatoire • Protocole Nkala</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black text-white">
-            {MYENE.SALE.mot} ! Bienvenue dans OMPANGANO
+            {MYENE.SALE.mot} ! Bienvenue dans Nkala
           </h2>
           <p className="text-xs sm:text-sm text-[#fed7aa] max-w-lg mx-auto leading-relaxed">
-            <strong className="text-[#f59e0b]">« Ompangano »</strong> est le programme participatif de sauvegarde de la langue Myènè. 
+            <strong className="text-[#f59e0b]">« Nkala »</strong> sauvegarde et transmet la langue Myènè ; sa première brique, <em>Ompangano</em>, est le programme participatif de collecte. 
             Renseignez votre filiation clanique et vos origines territoriales pour accéder au corpus et contribuer.
           </p>
         </div>
@@ -639,8 +639,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <span>Synthèse du Consentement du Contributeur Individuel (Essaka Engineering) :</span>
               </div>
               <p>
-                <strong>(1)</strong> Mes textes, traductions, images et enregistrements vocaux sont collectés par <strong>Essaka Engineering</strong> (Port-Gentil, Gabon, RCCM RG/POG 2022 A 1290) dans le cadre du programme participatif <strong>OMPANGANO</strong>.{' '}
-                <strong>(2)</strong> Ils servent à entraîner et améliorer des modèles d'intelligence artificielle valorisant les langues gabonaises, utilisés notamment dans l'application <strong>NKALA</strong>.{' '}
+                <strong>(1)</strong> Mes textes, traductions, images et enregistrements vocaux sont collectés par <strong>Essaka Engineering</strong> (Port-Gentil, Gabon, RCCM RG/POG 2022 A 1290) dans le cadre du programme participatif <strong>Nkala</strong>.{' '}
+                <strong>(2)</strong> Ils servent à entraîner et améliorer des modèles d'intelligence artificielle valorisant les langues gabonaises, utilisés notamment dans l'application <strong>Nkala</strong>.{' '}
                 <strong>(3)</strong> Ma participation individuelle est valorisée par un système de <strong>Points d'Expérience (XP), de Rangs culturels, de Badges et de Défis</strong> pouvant donner lieu à des récompenses en fonction de mes accomplissements validés.{' '}
                 <strong>(4)</strong> Je dispose d'un droit d'accès, de correction, de suppression (sous 60 jours) et de retrait (Loi n° 001/2011 & CNPDCP).{' '}
                 <strong>(5)</strong> Je participe librement et conserve mes droits d'auteur (OAPI Accord de Bangui Annexe VII).
@@ -671,7 +671,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   className="mt-0.5 w-4 h-4 accent-[#f59e0b] rounded shrink-0"
                 />
                 <span className="text-xs text-white leading-snug">
-                  <strong className="text-[#fde047]">J'accepte les Conditions Générales de la plateforme OMPANGANO / NKALA</strong> applicables aux contributeurs individuels. <span className="text-[#ef4444] font-bold">*</span>
+                  <strong className="text-[#fde047]">J'accepte les Conditions Générales de la plateforme Nkala</strong> applicables aux contributeurs individuels. <span className="text-[#ef4444] font-bold">*</span>
                 </span>
               </label>
 

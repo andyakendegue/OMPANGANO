@@ -1,16 +1,52 @@
 import React from 'react';
-import { 
-  Mic, 
-  BookOpen, 
-  Trophy, 
-  ShieldCheck, 
-  User,
-  CheckCircle,
-  Crown
-} from 'lucide-react';
+import { Mic, BookOpen, Trophy, User, CheckCircle, Crown } from 'lucide-react';
 import { UserRole } from '../types';
 
 export type AppTab = 'crowdsource' | 'explore' | 'leaderboard' | 'validator' | 'admin' | 'profile';
+export type AppSection = 'contribute' | 'admin' | 'profile';
+
+export const tabSection = (tab: AppTab): AppSection =>
+  tab === 'admin' ? 'admin' : tab === 'profile' ? 'profile' : 'contribute';
+
+/** Sous-navigation de la section Contribuer (un seul onglet principal). */
+export const CrowdsourceSubNav: React.FC<{
+  currentTab: AppTab;
+  onSelectTab: (tab: AppTab) => void;
+  userRole?: UserRole;
+  pendingCount?: number;
+}> = ({ currentTab, onSelectTab, userRole = 'user', pendingCount = 0 }) => {
+  const items = [
+    { id: 'crowdsource' as AppTab, label: 'Contribuer', icon: Mic, visible: true },
+    { id: 'explore' as AppTab, label: 'Ezango', icon: BookOpen, visible: true },
+    { id: 'leaderboard' as AppTab, label: 'Classement', icon: Trophy, visible: true },
+    // Les administrateurs modèrent depuis l'administration ; les validateurs gardent leur espace ici.
+    { id: 'validator' as AppTab, label: 'Validation', icon: CheckCircle, visible: userRole === 'validator' }
+  ].filter(i => i.visible);
+  return (
+    <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-3 border-b border-[#3f2113]">
+      {items.map(i => {
+        const Icon = i.icon;
+        const active = currentTab === i.id;
+        return (
+          <button
+            key={i.id}
+            type="button"
+            onClick={() => onSelectTab(i.id)}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+              active ? 'bg-[#c85a32] text-white shadow-md font-bold' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            <span>{i.label}</span>
+            {i.id === 'validator' && pendingCount > 0 && (
+              <span className="min-w-4 h-4 px-1 rounded-full bg-[#ef4444] text-white text-[9px] font-bold flex items-center justify-center">{pendingCount}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 interface BottomNavProps {
   currentTab: AppTab;
@@ -25,47 +61,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   userRole = 'user',
   pendingCount = 0
 }) => {
-  // Build role-tailored navigation items (RBAC)
+  // Trois entrées seulement : tout le crowdsourcing tient dans « Contribuer »
+  // (sous-onglets dans CrowdsourceSubNav), la modération des contributions est dans l'administration.
+  const section = tabSection(currentTab);
   const navItems = [
-    {
-      id: 'crowdsource' as AppTab,
-      label: 'Contribuer',
-      icon: Mic,
-      visible: true
-    },
-    {
-      id: 'explore' as AppTab,
-      label: 'Ezango', // « le livre » en myènè (onglet Vocabulaire)
-      icon: BookOpen,
-      visible: true
-    },
-    {
-      id: 'leaderboard' as AppTab,
-      label: 'Classement',
-      icon: Trophy,
-      visible: true
-    },
-    // Validator Tab: only visible to Validators and Admins
-    {
-      id: 'validator' as AppTab,
-      label: 'Validation Voix',
-      icon: CheckCircle,
-      badge: pendingCount > 0 ? pendingCount : undefined,
-      visible: userRole === 'validator' || userRole === 'admin'
-    },
-    // Admin Tab: ONLY visible to Admins
-    {
-      id: 'admin' as AppTab,
-      label: 'Administration',
-      icon: Crown,
-      visible: userRole === 'admin'
-    },
-    {
-      id: 'profile' as AppTab,
-      label: 'Mon Profil',
-      icon: User,
-      visible: true
-    }
+    { id: 'crowdsource' as AppTab, section: 'contribute' as const, label: 'Contribuer', icon: Mic, visible: true,
+      badge: userRole === 'validator' && pendingCount > 0 ? pendingCount : undefined },
+    { id: 'admin' as AppTab, section: 'admin' as const, label: 'Administration', icon: Crown, visible: userRole === 'admin',
+      badge: userRole === 'admin' && pendingCount > 0 ? pendingCount : undefined },
+    { id: 'profile' as AppTab, section: 'profile' as const, label: 'Profil', icon: User, visible: true, badge: undefined as number | undefined }
   ].filter(tab => tab.visible);
 
   return (
@@ -73,7 +77,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       <div className="flex items-center justify-around">
         {navItems.map((tab) => {
           const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
+          const isActive = section === tab.section;
 
           return (
             <button

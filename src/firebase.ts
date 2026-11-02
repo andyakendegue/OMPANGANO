@@ -18,6 +18,8 @@ import {
 import firebaseConfig from '../firebase-applet-config.json';
 import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
 import { PROTECTED_USER_FIELDS } from '../shared/userSecurity';
+import { applyItemsDelta, clearCatalogue, countItems, notifyCatalogueChanged } from './services/itemStore';
+import type { QuestionnaireItem } from './types';
 
 // Initialize Firebase App (Auth uniquement)
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -567,6 +569,74 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
     downloadState.delete(collectionPath); emitProgress();
     console.warn(`Synchronisation de ${collectionPath} impossible, cache local utilisé :`, err);
     return { items: localCachedItems, source: 'local-only', firestoreReadsUsed: 0 };
+  }
+}
+
+/**
+ * Synchronisation du catalogue des phrases, page par page, directement dans IndexedDB : les 45 000 fiches
+ * ne sont jamais réunies en mémoire. Chaque page téléchargée est écrite (et son curseur enregistré) avant la
+ * suivante : une coupure de réseau ou un onglet fermé par le téléphone reprend là où elle s'était arrêtée.
+ * `cleanPage` nettoie une page (corrections, fiches supprimées en local) avant son écriture.
+ */
+export async function syncItemsIntoCatalogue(
+  cleanPage: (records: QuestionnaireItem[]) => QuestionnaireItem[]
+): Promise<{ changed: number; ok: boolean }> {
+  const collectionPath = 'items';
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return { changed: 0, ok: false };
+  const PAGE = 500; // pages modestes : peu de mémoire à la fois, reprise fine
+  try {
+    const stored = getLastCollectionSyncTimestamp(collectionPath);
+    let sentEpoch = getStoredEpoch(collectionPath);
+    let cursor: string | null = stored && (await countItems()) > 0 ? stored : null;
+    let freshStore = !cursor && (await countItems()) === 0;
+    let announcedTotal = 0;
+    let fetched = 0;
+    let changed = 0;
+    let pagesDone = 0;
+    for (;;) {
+      const qs = new URLSearchParams({ limit: String(PAGE) });
+      if (cursor) qs.set('since', cursor);
+      if (sentEpoch) qs.set('epoch', sentEpoch);
+      const page = await api<{ records: (QuestionnaireItem & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number }>(
+        'GET', `/v1/sync/${collectionPath}?${qs}`
+      );
+      // Données remises à zéro côté serveur : le catalogue local est vidé avant d'écrire
+      if (page.reset) { await clearCatalogue(); freshStore = true; setLastCollectionSyncTimestamp(collectionPath, ''); }
+      if (!announcedTotal && typeof page.total === 'number') announcedTotal = page.total;
+      fetched += page.records.length;
+      if (announcedTotal) { downloadState.set(collectionPath, { done: Math.min(fetched, announcedTotal), total: announcedTotal }); emitProgress(); }
+      if (page.epoch) sentEpoch = page.epoch;
+
+      const removed: string[] = [];
+      const upserts: QuestionnaireItem[] = [];
+      for (const rec of page.records) {
+        if (rec.deletedAt) removed.push(rec.id);
+        else upserts.push(rec);
+      }
+      const cleaned = cleanPage(upserts);
+      // Une fiche écartée par le nettoyage (supprimée en local, doublon) ne doit pas rester d'une synchro précédente
+      const kept = new Set(cleaned.map(i => i.id));
+      for (const u of upserts) if (!kept.has(u.id)) removed.push(u.id);
+      await applyItemsDelta(cleaned, removed, { silent: true, knownEmpty: freshStore && removed.length === 0 });
+      changed += cleaned.length + removed.length;
+
+      if (page.cursor) cursor = page.cursor;
+      else if (page.reset) cursor = null;
+      if (page.epoch) setStoredEpoch(collectionPath, page.epoch);
+      if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
+      // Les premières fiches apparaissent à l'écran sans attendre la fin du téléchargement
+      if (++pagesDone % 8 === 1) notifyCatalogueChanged(false);
+      if (!page.hasMore) break;
+      // Laisse respirer l'interface entre deux pages
+      await new Promise(r => setTimeout(r, 0));
+    }
+    downloadState.delete(collectionPath); emitProgress();
+    notifyCatalogueChanged(true);
+    return { changed, ok: true };
+  } catch (err) {
+    downloadState.delete(collectionPath); emitProgress();
+    console.warn('Synchronisation du catalogue impossible, copie locale conservée :', err);
+    return { changed: 0, ok: false };
   }
 }
 

@@ -43,7 +43,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
     const granted = await NotificationService.requestPermission();
     setIsPushGranted(granted);
     if (granted) {
-      NotificationService.sendLocalNotification('Notifications OMPANGANO Activées !', {
+      NotificationService.sendLocalNotification('Notifications Nkala Activées !', {
         body: 'Vous recevrez vos rappels d’apprentissage et alertes de validation.'
       });
       setNotifications(NotificationService.getInAppNotifications());
@@ -60,7 +60,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   };
 
   const handleSendTestNotification = () => {
-    NotificationService.sendLocalNotification('OMPANGANO : Moment d’apprentissage Myènè 🌅', {
+    NotificationService.sendLocalNotification('Nkala : Moment d’apprentissage Myènè 🌅', {
       body: '5 minutes de parole aujourd’hui pour enrichir les voix de nos lagunes !'
     });
     setNotifications(NotificationService.getInAppNotifications());

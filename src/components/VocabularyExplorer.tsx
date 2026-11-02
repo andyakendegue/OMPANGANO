@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   Volume2,
@@ -29,9 +29,10 @@ import {
   TRIBAL_DIALECT_INFO,
   mapDialectToTribeName
 } from '../services/seedData';
+import { useCatalogue } from '../hooks/useCatalogue';
+import { categoryOf, getAllIds, getIdsByCategory, getIdsByDialects, getItemsByIds, searchIds } from '../services/itemStore';
 
 interface VocabularyExplorerProps {
-  items: QuestionnaireItem[];
   themes?: ThemeDefinition[];
   clans?: ClanRegistry[];
   villages?: VillageRegistry[];
@@ -40,8 +41,13 @@ interface VocabularyExplorerProps {
   usersList?: UserProfile[];
   favoriteItemIds?: string[];
   onToggleFavorite?: (itemId: string) => void;
-  onSelectExpression: (index: number) => void;
+  onSelectExpression: (itemId: string) => void;
 }
+
+// Valeurs par défaut stables : un `[]` neuf à chaque rendu relancerait les calculs en boucle
+const NO_CONTRIBUTIONS: Contribution[] = [];
+const NO_USERS: UserProfile[] = [];
+const NO_IDS: string[] = [];
 
 function normalizeTribeKey(name: string = ''): string {
   return name
@@ -52,14 +58,13 @@ function normalizeTribeKey(name: string = ''): string {
 }
 
 export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
-  items,
   themes = THEMATIC_CATEGORIES,
   clans: _clans = INITIAL_CLANS,
   villages = INITIAL_VILLAGES,
   currentUser = null,
-  contributions = [],
-  usersList = [],
-  favoriteItemIds = [],
+  contributions = NO_CONTRIBUTIONS,
+  usersList = NO_USERS,
+  favoriteItemIds = NO_IDS,
   onToggleFavorite,
   onSelectExpression
 }) => {
@@ -72,6 +77,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
   const pageSize = 40;
 
   const favoriteSet = useMemo(() => new Set(favoriteItemIds), [favoriteItemIds]);
+  const catalogue = useCatalogue();
 
   const userByIdMap = useMemo(() => {
     const m = new Map<string, UserProfile>();
@@ -84,87 +90,96 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     return m;
   }, [usersList, currentUser]);
 
-  // Compute associated tribes and tribe-specific orthographic/tonal variants for each item
-  const itemTribeMetadata = useMemo(() => {
-    const itemToTribes = new Map<string, TribeName[]>();
-    const itemToTribeVariant = new Map<string, Map<string, string>>();
-
-    const contribsByItem = new Map<string, Contribution[]>();
+  const contribsByItem = useMemo(() => {
+    const map = new Map<string, Contribution[]>();
     for (const c of contributions) {
       if (!c.itemId) continue;
-      const list = contribsByItem.get(c.itemId) || [];
+      const list = map.get(c.itemId) || [];
       list.push(c);
-      contribsByItem.set(c.itemId, list);
+      map.set(c.itemId, list);
     }
+    return map;
+  }, [contributions]);
 
-    for (const item of items) {
-      const matchedMap = new Map<string, TribeName>();
-      const variantsForTribes = new Map<string, string>();
-
-      const addTribe = (rawDialectOrTribe?: string) => {
-        if (!rawDialectOrTribe) return;
-        const tName = mapDialectToTribeName(rawDialectOrTribe);
-        matchedMap.set(normalizeTribeKey(tName), tName);
-      };
-
-      // 1. Primary dialect/tribe of the question
-      addTribe(item.dialect || 'orungu');
-
-      // 2. Tribes of contributors who proposed variants or recordings on this question
-      const itemContribs = contribsByItem.get(item.id) || [];
-      for (const contrib of itemContribs) {
-        const u = userByIdMap.get(contrib.userId);
-        const contribTribeRaw = contrib.dialectVariant || contrib.userTribe || u?.tribe;
-        if (contribTribeRaw) {
-          const tribeLabel = mapDialectToTribeName(contribTribeRaw);
-          addTribe(tribeLabel);
-          if (contrib.proposedSpelling && contrib.proposedSpelling.trim()) {
-            variantsForTribes.set(normalizeTribeKey(tribeLabel), contrib.proposedSpelling.trim());
-          }
+  /** Tribus d'une fiche : celle de son dialecte + celles des contributeurs qui ont proposé une variante ou un enregistrement */
+  const tribesOfItem = (item: QuestionnaireItem) => {
+    const matchedMap = new Map<string, TribeName>();
+    const variants = new Map<string, string>();
+    const addTribe = (raw?: string) => {
+      if (!raw) return;
+      const tName = mapDialectToTribeName(raw);
+      matchedMap.set(normalizeTribeKey(tName), tName);
+    };
+    addTribe(item.dialect || 'orungu');
+    for (const contrib of contribsByItem.get(item.id) || []) {
+      const u = userByIdMap.get(contrib.userId);
+      const raw = contrib.dialectVariant || contrib.userTribe || u?.tribe;
+      if (raw) {
+        const label = mapDialectToTribeName(raw);
+        addTribe(label);
+        if (contrib.proposedSpelling && contrib.proposedSpelling.trim()) {
+          variants.set(normalizeTribeKey(label), contrib.proposedSpelling.trim());
         }
       }
-
-      itemToTribes.set(item.id, Array.from(matchedMap.values()));
-      itemToTribeVariant.set(item.id, variantsForTribes);
     }
-
-    return { itemToTribes, itemToTribeVariant };
-  }, [items, contributions, userByIdMap]);
+    return { tribes: Array.from(matchedMap.values()), variants };
+  };
 
   const userTribe = useMemo<TribeName | ''>(() => {
     if (!currentUser?.tribe) return '';
     return mapDialectToTribeName(currentUser.tribe);
   }, [currentUser?.tribe]);
 
-  // Helper to check if an item matches the selected Tribe filter
-  const doesItemMatchTribe = (item: QuestionnaireItem, tribeFilter: string): boolean => {
-    if (tribeFilter === 'all') return true;
-    const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [
-      mapDialectToTribeName(item.dialect)
-    ];
-    const targetKey = normalizeTribeKey(tribeFilter);
-    return itemTribes.some(t => normalizeTribeKey(t) === targetKey);
-  };
+  // Les fiches qui ont reçu des contributions (peu nombreuses) sont lues pour connaître leurs tribus supplémentaires
+  const [contribItems, setContribItems] = useState<QuestionnaireItem[]>([]);
+  const contribItemIdsKey = useMemo(() => Array.from(contribsByItem.keys()).sort().join('|'), [contribsByItem]);
+  useEffect(() => {
+    let cancelled = false;
+    getItemsByIds(Array.from(contribsByItem.keys())).then(list => { if (!cancelled) setContribItems(list); });
+    return () => { cancelled = true; };
+  }, [contribItemIdsKey, catalogue.version]);
 
-  // Count questions per tribe
+  // Fiches ayant une tribu en plus de celle de leur dialecte
+  const extraTribeItems = useMemo(
+    () =>
+      contribItems.filter(it => {
+        const primary = normalizeTribeKey(mapDialectToTribeName(it.dialect));
+        return tribesOfItem(it).tribes.some(t => normalizeTribeKey(t) !== primary);
+      }),
+    [contribItems, contribsByItem, userByIdMap]
+  );
+
+  const extraTribeKey = useMemo(() => extraTribeItems.map(i => i.id).join('|'), [extraTribeItems]);
+
+  // Fiches favorites (lues seulement si le filtre est utilisé)
+  const [favoriteItems, setFavoriteItems] = useState<QuestionnaireItem[]>([]);
+  useEffect(() => {
+    if (!onlyFavorites) { setFavoriteItems([]); return; }
+    let cancelled = false;
+    getItemsByIds(favoriteItemIds).then(list => { if (!cancelled) setFavoriteItems(list); });
+    return () => { cancelled = true; };
+  }, [onlyFavorites, favoriteItemIds, catalogue.version]);
+
+  const dialectsOfTribe = (tribe: string) =>
+    Object.keys(catalogue.meta.byDialect).filter(d => normalizeTribeKey(mapDialectToTribeName(d)) === normalizeTribeKey(tribe));
+
+  // Nombre de fiches par tribu (compteurs du catalogue + tribus ajoutées par les contributions)
   const tribeCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const t of MYENE_TRIBES) {
-      counts.set(normalizeTribeKey(t), 0);
+    for (const t of MYENE_TRIBES) counts.set(normalizeTribeKey(t), 0);
+    for (const [dialect, n] of Object.entries(catalogue.meta.byDialect)) {
+      const k = normalizeTribeKey(mapDialectToTribeName(dialect));
+      counts.set(k, (counts.get(k) || 0) + n);
     }
-
-    for (const item of items) {
-      const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [
-        mapDialectToTribeName(item.dialect)
-      ];
-      const normSet = new Set(itemTribes.map(normalizeTribeKey));
-      for (const nKey of normSet) {
-        counts.set(nKey, (counts.get(nKey) || 0) + 1);
+    for (const it of extraTribeItems) {
+      const primary = normalizeTribeKey(mapDialectToTribeName(it.dialect));
+      for (const t of tribesOfItem(it).tribes) {
+        const k = normalizeTribeKey(t);
+        if (k !== primary) counts.set(k, (counts.get(k) || 0) + 1);
       }
     }
-
     return counts;
-  }, [items, itemTribeMetadata]);
+  }, [catalogue.meta, extraTribeItems]);
 
   // Dynamic Linguistic, Historical & Geographical Info for the Selected Tribe
   const activeTribeInfo = useMemo(() => {
@@ -181,16 +196,30 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     };
   }, [selectedTribe, villages]);
 
+  const matchesTribeFilter = (item: QuestionnaireItem, tribe: string) =>
+    tribe === 'all' || tribesOfItem(item).tribes.some(t => normalizeTribeKey(t) === normalizeTribeKey(tribe));
+
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
     let totalMatchingTribe = 0;
+    const count = (cat: string, n: number) => { counts.set(cat, (counts.get(cat) || 0) + n); totalMatchingTribe += n; };
 
-    for (const it of items) {
-      if (!doesItemMatchTribe(it, selectedTribe)) continue;
-      if (onlyFavorites && !favoriteSet.has(it.id)) continue;
-      totalMatchingTribe++;
-      const cat = it.category || it.theme || 'vie_quotidienne_famille';
-      counts.set(cat, (counts.get(cat) || 0) + 1);
+    if (onlyFavorites) {
+      for (const it of favoriteItems) {
+        if (!matchesTribeFilter(it, selectedTribe)) continue;
+        count(categoryOf(it), 1);
+      }
+    } else {
+      const dialects = selectedTribe === 'all' ? Object.keys(catalogue.meta.byDialectCategory) : dialectsOfTribe(selectedTribe);
+      for (const d of dialects) {
+        for (const [cat, n] of Object.entries(catalogue.meta.byDialectCategory[d] || {})) count(cat, n);
+      }
+      if (selectedTribe !== 'all') {
+        for (const it of extraTribeItems) {
+          if (normalizeTribeKey(mapDialectToTribeName(it.dialect)) === normalizeTribeKey(selectedTribe)) continue;
+          if (matchesTribeFilter(it, selectedTribe)) count(categoryOf(it), 1);
+        }
+      }
     }
 
     const list: Array<{ id: string; label: string; count: number }> = [
@@ -228,35 +257,104 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     }
 
     return list;
-  }, [items, themes, selectedTribe, itemTribeMetadata, onlyFavorites, favoriteSet]);
+  }, [catalogue.meta, themes, selectedTribe, extraTribeItems, onlyFavorites, favoriteItems]);
 
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return items.filter(item => {
-      if (onlyFavorites && !favoriteSet.has(item.id)) return false;
-      if (!doesItemMatchTribe(item, selectedTribe)) return false;
+  // Recherche différée : pas de recalcul à chaque lettre sur un téléphone lent
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-      const itemCat = item.category || item.theme || '';
-      const matchesCat = selectedCategory === 'all' || itemCat === selectedCategory;
-      if (!matchesCat) return false;
+  // Résultats : seulement les identifiants (plafonnés pour une recherche libre), puis la page affichée
+  const SEARCH_CAP = 400;
+  const [matchIds, setMatchIds] = useState<string[]>([]);
+  const [capped, setCapped] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setIsSearching(true);
+      try {
+        const q = debouncedQuery.trim().toLowerCase();
+        const textMatches = (item: QuestionnaireItem) =>
+          (item.frenchText || '').toLowerCase().includes(q) ||
+          (item.myeneText || '').toLowerCase().includes(q) ||
+          (!!item.contextNotes && item.contextNotes.toLowerCase().includes(q)) ||
+          tribesOfItem(item).tribes.some(t => t.toLowerCase().includes(q));
+        const catOk = (item: QuestionnaireItem) => selectedCategory === 'all' || (item.category || item.theme || '') === selectedCategory;
 
-      if (!q) return true;
-      const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [];
-      return (
-        (item.frenchText || '').toLowerCase().includes(q) ||
-        (item.myeneText || '').toLowerCase().includes(q) ||
-        (item.contextNotes && item.contextNotes.toLowerCase().includes(q)) ||
-        itemTribes.some(t => t.toLowerCase().includes(q))
-      );
-    });
-  }, [items, selectedTribe, selectedCategory, searchQuery, itemTribeMetadata, onlyFavorites, favoriteSet]);
+        let ids: string[] | null = null;
+        let isCapped = false;
+        if (onlyFavorites) {
+          const pool = (await getItemsByIds(favoriteItemIds)).filter(it => matchesTribeFilter(it, selectedTribe) && catOk(it) && (!q || textMatches(it)));
+          ids = pool.map(it => it.id);
+        } else {
+          // 1. Les index limitent d'abord les candidats (tribu, thème), sans lire les fiches
+          let candidates: string[] | null = null;
+          if (selectedTribe !== 'all') {
+            const set = new Set(await getIdsByDialects(dialectsOfTribe(selectedTribe)));
+            for (const it of extraTribeItems) if (matchesTribeFilter(it, selectedTribe)) set.add(it.id);
+            candidates = Array.from(set);
+          }
+          if (selectedCategory !== 'all') {
+            const byCat = new Set(await getIdsByCategory(selectedCategory));
+            candidates = candidates ? candidates.filter(id => byCat.has(id)) : Array.from(byCat);
+          }
+          // 2. La recherche de texte parcourt le texte réduit des fiches et s'arrête au plafond
+          if (q) {
+            const cand = candidates ? new Set(candidates) : undefined;
+            const found = new Set(await searchIds(q, { candidates: cand, cap: SEARCH_CAP + 1 }));
+            // Recherche par nom de tribu (ex. « orungu ») : toutes les fiches de cette tribu
+            for (const tribe of MYENE_TRIBES) {
+              if (tribe.toLowerCase().includes(q) || normalizeTribeKey(tribe).includes(normalizeTribeKey(q))) {
+                for (const id of await getIdsByDialects(dialectsOfTribe(tribe))) {
+                  if (!cand || cand.has(id)) found.add(id);
+                  if (found.size > SEARCH_CAP) break;
+                }
+              }
+            }
+            const list = Array.from(found);
+            isCapped = list.length > SEARCH_CAP;
+            ids = list.slice(0, SEARCH_CAP);
+          } else {
+            ids = candidates ?? (await getAllIds());
+          }
+        }
+        if (!cancelled) {
+          setMatchIds(ids);
+          setCapped(isCapped);
+        }
+      } finally {
+        if (!cancelled) setIsSearching(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [debouncedQuery, selectedTribe, selectedCategory, onlyFavorites, favoriteItemIds, extraTribeKey, catalogue.version]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(matchIds.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedItems = useMemo(() => {
+  const [paginatedItems, setPaginatedItems] = useState<QuestionnaireItem[]>([]);
+  useEffect(() => {
+    let cancelled = false;
     const start = (safePage - 1) * pageSize;
-    return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, safePage]);
+    getItemsByIds(matchIds.slice(start, start + pageSize)).then(list => {
+      if (!cancelled) setPaginatedItems(list);
+    });
+    return () => { cancelled = true; };
+  }, [matchIds, safePage]);
+
+  // Tribus et variantes des seules fiches affichées
+  const pageTribeMetadata = useMemo(() => {
+    const itemToTribes = new Map<string, TribeName[]>();
+    const itemToTribeVariant = new Map<string, Map<string, string>>();
+    for (const item of paginatedItems) {
+      const { tribes, variants } = tribesOfItem(item);
+      itemToTribes.set(item.id, tribes);
+      itemToTribeVariant.set(item.id, variants);
+    }
+    return { itemToTribes, itemToTribeVariant };
+  }, [paginatedItems, contribsByItem, userByIdMap]);
 
   const handleSpeak = (text: string, id: string) => {
     if ('speechSynthesis' in window) {
@@ -307,7 +405,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             </button>
 
             <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#180d07] border border-[#4a2412] text-[#f59e0b]">
-              {filteredItems.length} résultat(s)
+              {isSearching ? 'Recherche…' : `${matchIds.length}${capped ? '+' : ''} résultat(s)`}
             </span>
           </div>
         </div>
@@ -342,7 +440,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
               className="w-full pl-10 pr-8 py-3 bg-[#180d07] border border-[#4a2412] hover:border-[#d97706]/60 rounded-2xl text-xs sm:text-sm text-[#fed7aa] font-semibold focus:outline-none focus:border-[#f59e0b] transition-colors cursor-pointer"
             >
               <option value="all">
-                🌍 Toutes les 6 tribus Myènè ({items.length} fiches)
+                🌍 Toutes les 6 tribus Myènè ({catalogue.total} fiches)
               </option>
 
               {userTribe && (
@@ -436,7 +534,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                       Variété dialectale : {activeTribeInfo.tribe}
                     </span>
                     <span className="text-[10px] text-emerald-300 font-semibold">
-                      • {filteredItems.length} question(s) associée(s)
+                      • {matchIds.length}{capped ? '+' : ''} question(s) associée(s)
                     </span>
                   </div>
                   {activeTribeInfo.mottoOrSymbol && (
@@ -538,7 +636,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       </div>
 
       {/* Empty State when no item matches filters */}
-      {filteredItems.length === 0 && (
+      {(matchIds.length === 0 && !isSearching) && (
         <div className="warm-card-gradient rounded-3xl p-8 border border-[#4a2412] text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#180d07] border border-[#4a2412] flex items-center justify-center mx-auto text-xl">
             {onlyFavorites ? '⭐' : '🌍'}
@@ -576,11 +674,10 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       {/* Grid of vocabulary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {paginatedItems.map(item => {
-          const originalIndex = items.findIndex(i => i.id === item.id);
-          const itemTribes = itemTribeMetadata.itemToTribes.get(item.id) || [
+          const itemTribes = pageTribeMetadata.itemToTribes.get(item.id) || [
             mapDialectToTribeName(item.dialect)
           ];
-          const tribeVariantsMap = itemTribeMetadata.itemToTribeVariant.get(item.id);
+          const tribeVariantsMap = pageTribeMetadata.itemToTribeVariant.get(item.id);
           const specificTribeVariant =
             selectedTribe !== 'all'
               ? tribeVariantsMap?.get(normalizeTribeKey(selectedTribe))
@@ -744,7 +841,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                   <button
                     type="button"
                     onClick={() =>
-                      onSelectExpression(originalIndex >= 0 ? originalIndex : 0)
+                      onSelectExpression(item.id)
                     }
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl terracotta-gradient text-white text-xs font-semibold shadow hover:opacity-95 active:scale-95 transition-transform"
                   >
@@ -763,7 +860,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
         <div className="flex items-center justify-between p-4 warm-card-gradient border border-[#4a2412] rounded-2xl text-xs">
           <span className="text-[#d4af94]">
             Page <strong className="text-white">{safePage}</strong> sur{' '}
-            <strong className="text-white">{totalPages}</strong> ({filteredItems.length}{' '}
+            <strong className="text-white">{totalPages}</strong> ({matchIds.length}{capped ? '+' : ''}{' '}
             fiches)
           </span>
           <div className="flex items-center gap-2">

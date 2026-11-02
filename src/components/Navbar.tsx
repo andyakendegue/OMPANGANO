@@ -67,7 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                alt="Logo OMPANGANO" 
+                alt="Logo Nkala" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -75,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-base sm:text-lg tracking-wider text-white">
-                OMPANGANO
+                Nkala
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#c85a32] text-white">
                 ESSAKA

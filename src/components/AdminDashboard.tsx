@@ -54,6 +54,7 @@ import { CsvImportSection } from './CsvImportSection';
 import { WeeklyChallengesAdmin } from './WeeklyChallengesAdmin';
 import { ThemeManagerAdmin } from './ThemeManagerAdmin';
 import { BadgesManagerAdmin } from './BadgesManagerAdmin';
+import { useShowMore, ShowMoreButton } from './ShowMore';
 import { ClanVillageAdmin } from './ClanVillageAdmin';
 
 interface AdminDashboardProps {
@@ -103,6 +104,8 @@ interface AdminDashboardProps {
   seedStatus?: SeedStatus | null;
   onExecuteInitialSeed?: () => Promise<void>;
   isSeedingDatabase?: boolean;
+  /** Espace de validation vocale/écrite, affiché dans le groupe Modération. */
+  moderationSlot?: React.ReactNode;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -142,10 +145,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser,
   seedStatus,
   onExecuteInitialSeed,
-  isSeedingDatabase = false
+  isSeedingDatabase = false,
+  moderationSlot
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'stats' | 'users' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
+    'stats' | 'users' | 'moderation' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
   >('stats');
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -520,6 +524,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return true;
   });
 
+  const moreUsers = useShowMore(filteredUsers.length, `${userSearchQuery}|${userRoleFilter}|${userStatusFilter}|${userConsentFilter}`);
+  const moreContribs = useShowMore(filteredContributions.length);
+  const moreAllUsers = useShowMore(usersList.length);
+
   // Filtered suspicious profiles
   const usersWithScores = usersList.map(u => {
     const analysis = calculateSuspicionScore(u);
@@ -553,7 +561,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
               <img 
                 src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                alt="Logo OMPANGANO" 
+                alt="Logo Nkala" 
                 className="w-full h-full object-contain"
               />
             </div>
@@ -561,7 +569,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider mb-1">
               <Sparkles className="w-4 h-4" />
-              <span>Console d'Administration OMPANGANO</span>
+              <span>Console d'Administration Nkala</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
               Espace Super-Admin & Aînés
@@ -696,121 +704,76 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-[#3f2113]">
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'stats' ? 'bg-[#c85a32] text-white shadow-md font-bold' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>Vue d'ensemble</span>
-        </button>
+      {/* Navigation : groupes (niveau 1) puis rubriques (niveau 2) */}
+      {(() => {
+        type TabId = typeof activeTab;
+        const groups: { id: string; label: string; icon: React.ElementType; tabs: { id: TabId; label: string; icon: React.ElementType }[] }[] = [
+          { id: 'pilotage', label: 'Pilotage', icon: BarChart3, tabs: [
+            { id: 'stats', label: "Vue d'ensemble", icon: BarChart3 } ] },
+          { id: 'moderation', label: 'Modération', icon: CheckCircle, tabs: [
+            { id: 'moderation', label: 'Validation vocale', icon: CheckCircle },
+            { id: 'validation', label: `Réponses & Export (${contributions.length})`, icon: FileText },
+            { id: 'fraud_detection', label: 'Anti-Fraude', icon: ShieldAlert } ] },
+          { id: 'contenu', label: 'Contenu', icon: Layers, tabs: [
+            { id: 'questionnaires', label: `Fiches (${items.length})`, icon: FileText },
+            { id: 'themes', label: `Thèmes (${themes.length})`, icon: Layers },
+            { id: 'clans_villages', label: `Clans & Villages (${clans.length}/${villages.length})`, icon: Compass },
+            { id: 'csv_import', label: 'Import CSV', icon: Upload } ] },
+          { id: 'communaute', label: 'Communauté', icon: Crown, tabs: [
+            { id: 'users', label: `Utilisateurs & Droits (${usersList.length})`, icon: Crown },
+            { id: 'defis', label: `Défis (${challenges.length})`, icon: Trophy },
+            { id: 'badges_manager', label: `Badges (${badges.length})`, icon: Award },
+            { id: 'badges_levels', label: 'Niveaux XP', icon: Sliders } ] }
+        ];
+        const current = groups.find(g => g.tabs.some(t => t.id === activeTab)) || groups[0];
+        const pending = contributions.filter(c => c.status === 'pending').length;
+        return (
+          <div className="space-y-2 border-b border-[#3f2113] pb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {groups.map(g => {
+                const GIcon = g.icon;
+                const on = g.id === current.id;
+                return (
+                  <button
+                    key={g.id}
+                    onClick={() => setActiveTab(g.tabs[0].id)}
+                    className={`relative flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                      on ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
+                    }`}
+                  >
+                    <GIcon className="w-4 h-4" />
+                    <span>{g.label}</span>
+                    {g.id === 'moderation' && pending > 0 && (
+                      <span className="min-w-4 h-4 px-1 rounded-full bg-[#ef4444] text-white text-[9px] font-bold flex items-center justify-center">{pending}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {current.tabs.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto">
+                {current.tabs.map(t => {
+                  const TIcon = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setActiveTab(t.id)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                        activeTab === t.id ? 'bg-[#f59e0b] text-[#180d07] font-bold' : 'bg-[#1b1008] text-[#d4af94] hover:bg-[#341b10]'
+                      }`}
+                    >
+                      <TIcon className="w-3.5 h-3.5" />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
-        {/* TAB: CLANS & VILLAGES (NOUVEAU) */}
-        <button
-          onClick={() => setActiveTab('clans_villages')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'clans_villages' ? 'bg-[#c85a32] text-white shadow-md font-bold' : 'bg-[#27150c] text-[#fed7aa] hover:bg-[#341b10]'
-          }`}
-        >
-          <Compass className="w-4 h-4 text-[#f59e0b]" />
-          <span>Clans & Villages ({clans.length}/{villages.length})</span>
-        </button>
-
-        {/* TAB: USERS & ADMIN ROLES */}
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'users' ? 'bg-amber-600 text-white shadow-md font-bold' : 'bg-[#27150c] text-[#f59e0b] hover:bg-[#341b10]'
-          }`}
-        >
-          <Crown className="w-4 h-4" />
-          <span>Utilisateurs & Droits Admin ({usersList.length})</span>
-        </button>
-
-        {/* TAB: RESPONSES & VALIDATION */}
-        <button
-          onClick={() => setActiveTab('validation')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'validation' ? 'bg-emerald-700 text-white shadow-md font-bold' : 'bg-[#27150c] text-emerald-400 hover:bg-[#341b10]'
-          }`}
-        >
-          <CheckCircle className="w-4 h-4" />
-          <span>Réponses & Export ({contributions.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('themes')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'themes' ? 'bg-[#0284c7] text-white shadow-md font-bold' : 'bg-[#27150c] text-sky-400 hover:bg-[#341b10]'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>Thèmes ({themes.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('badges_manager')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'badges_manager' ? 'bg-[#9333ea] text-white shadow-md font-bold' : 'bg-[#27150c] text-purple-400 hover:bg-[#341b10]'
-          }`}
-        >
-          <Award className="w-4 h-4" />
-          <span>Dénominations Badges ({badges.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('defis')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'defis' ? 'bg-[#d97706] text-black font-extrabold shadow-md' : 'bg-[#27150c] text-[#f59e0b] hover:bg-[#341b10]'
-          }`}
-        >
-          <Trophy className="w-4 h-4" />
-          <span>Défis ({challenges.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('csv_import')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'csv_import' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#fed7aa] hover:bg-[#341b10]'
-          }`}
-        >
-          <Upload className="w-4 h-4" />
-          <span>Import CSV</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('questionnaires')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'questionnaires' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          <span>Fiches ({items.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('badges_levels')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'badges_levels' ? 'bg-[#c85a32] text-white shadow-md' : 'bg-[#27150c] text-[#d4af94] hover:bg-[#341b10]'
-          }`}
-        >
-          <Sliders className="w-4 h-4" />
-          <span>Niveaux XP</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('fraud_detection')}
-          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'fraud_detection' ? 'bg-[#b91c1c] text-white shadow-md' : 'bg-[#27150c] text-[#fca5a5] hover:bg-[#341b10]'
-          }`}
-        >
-          <ShieldAlert className="w-4 h-4 text-[#ef4444]" />
-          <span>Anti-Fraude</span>
-        </button>
-      </div>
+      {activeTab === 'moderation' && (moderationSlot ?? null)}
 
       {/* ========================================================= */}
       {/* TAB: CLANS & VILLAGES (HIERARCHIE TRIBU -> CLAN -> VILLAGE) */}
@@ -943,7 +906,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Aucun utilisateur ne correspond aux critères de recherche.
               </div>
             ) : (
-              filteredUsers.map((user) => {
+              <>{filteredUsers.slice(0, moreUsers.shown).map((user) => {
                 const isAdmin = user.role === 'admin';
                 const isValidator = user.role === 'validator';
                 const hasAcceptedConsent = !!(user.termsAccepted && user.dataUsageAccepted);
@@ -1091,7 +1054,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   </div>
                 );
-              })
+              })}<ShowMoreButton hasMore={moreUsers.hasMore} remaining={moreUsers.remaining} onMore={moreUsers.more} /></>
             )}
           </div>
         </div>
@@ -1214,7 +1177,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 )}
               </div>
 
-              {filteredContributions.map(c => (
+              {filteredContributions.slice(0, moreContribs.shown).map(c => (
                 <div key={c.id} className="warm-card-gradient border border-[#4a2412] rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#3b1d10] pb-2.5">
                     <div>
@@ -1337,6 +1300,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
               ))}
+              <ShowMoreButton hasMore={moreContribs.hasMore} remaining={moreContribs.remaining} onMore={moreContribs.more} />
             </div>
           )}
         </div>
@@ -1442,7 +1406,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-white">
-                Création & Gestion des Fiches OMPANGANO ({items.length} fiches en base)
+                Création & Gestion des Fiches Nkala ({items.length} fiches en base)
               </h3>
               <p className="text-xs text-[#d4af94]">
                 Filtrez instantanément par thème, dialecte ou mot-clé et naviguez par pages sans avoir à scroller toute la base.
@@ -1473,7 +1437,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form onSubmit={handleItemSubmit} className="warm-card-gradient border-2 border-[#d97706]/40 rounded-2xl p-5 space-y-4 shadow-xl">
               <div className="flex justify-between items-center border-b border-[#4a2412] pb-2">
                 <h4 className="font-bold text-sm text-white">
-                  {editingItemId ? 'Modifier la fiche OMPANGANO' : 'Créer une nouvelle expression à traduire'}
+                  {editingItemId ? 'Modifier la fiche Nkala' : 'Créer une nouvelle expression à traduire'}
                 </h4>
                 <button type="button" onClick={() => setIsEditingItem(false)} className="text-xs text-[#a8826d] hover:text-white">
                   Annuler
@@ -1959,7 +1923,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div className="sm:col-span-2 space-y-2">
-                  <label className="block text-[#fed7aa] font-semibold">Badges OMPANGANO Attribués :</label>
+                  <label className="block text-[#fed7aa] font-semibold">Badges Nkala Attribués :</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {badges.map(badge => {
                       const hasBadge = (selectedUserForEdit.badges || []).includes(badge.id);
@@ -2020,7 +1984,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           <div className="space-y-3">
-            {usersList.map((user) => (
+            {usersList.slice(0, moreAllUsers.shown).map((user) => (
               <div
                 key={user.id}
                 className="p-4 bg-[#27150c] border border-[#4a2412] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md"
@@ -2055,6 +2019,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
               </div>
             ))}
+            <ShowMoreButton hasMore={moreAllUsers.hasMore} remaining={moreAllUsers.remaining} onMore={moreAllUsers.more} />
           </div>
         </div>
       )}
@@ -2068,7 +2033,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <span>Traçabilité & Détection des Profils Inactifs ou Faux</span>
             </div>
             <p className="text-xs text-[#fecaca] leading-relaxed">
-              Le programme OMPANGANO est réservé aux contributeurs authentiques de la communauté Myènè.
+              Le programme Nkala est réservé aux contributeurs authentiques de la communauté Myènè.
               Cet outil analyse automatiquement les anomalies généalogiques et l'inactivité prolongée.
             </p>
           </div>

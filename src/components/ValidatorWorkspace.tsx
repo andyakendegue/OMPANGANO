@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Contribution, ContributionStatus, UserProfile } from '../types';
 import { mapDialectToTribeName } from '../services/seedData';
+import { useShowMore, ShowMoreButton } from './ShowMore';
 
 interface ValidatorWorkspaceProps {
   contributions: Contribution[];
@@ -179,6 +180,8 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
     return true;
   });
 
+  const moreContribs = useShowMore(filteredContributions.length);
+
   const pendingCount = contributions.filter(c => c.status === 'pending' && c.userId !== currentUser?.id).length;
   const audioApprovedCount = contributions.filter(c => c.status === 'audio_approved_text_revision').length;
   const textApprovedCount = contributions.filter(c => c.status === 'text_approved_audio_revision').length;
@@ -194,7 +197,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
               <div className="w-full h-full bg-white rounded-[14px] overflow-hidden flex items-center justify-center p-0.5 shadow-inner">
                 <img 
                   src="/assets/aistudio/LOGO-symbole_1c65e221.png" 
-                  alt="Logo OMPANGANO" 
+                  alt="Logo Nkala" 
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -339,7 +342,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredContributions.map(c => {
+          {filteredContributions.slice(0, moreContribs.shown).map(c => {
             const currentEval = getEvaluationState(c);
             const hasAudio = !!c.audioUrl;
 
@@ -577,6 +580,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
               </div>
             );
           })}
+          <ShowMoreButton hasMore={moreContribs.hasMore} remaining={moreContribs.remaining} onMore={moreContribs.more} />
         </div>
       )}
     </div>
