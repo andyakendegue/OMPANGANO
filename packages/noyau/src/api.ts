@@ -24,6 +24,7 @@ export function isPermanentApiError(err: unknown): boolean {
 export type TokenProvider = (forceRefresh: boolean) => Promise<string | null>;
 let tokenProvider: TokenProvider = async () => null;
 export const setTokenProvider = (fn: TokenProvider) => { tokenProvider = fn; };
+export const obtenirJeton = (forceRefresh = false) => tokenProvider(forceRefresh);
 
 async function rawFetch(method: string, path: string, body: unknown, token: string | null): Promise<Response> {
   return fetch(`${apiUrl}${path}`, {

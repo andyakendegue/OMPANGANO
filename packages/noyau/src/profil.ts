@@ -1,7 +1,8 @@
 import { api } from './api';
+import { avecCache } from './cache';
 import type { Contribution, ContributionStatus } from './types';
 
-export const chargerMesContributions = () => api<Contribution[]>('GET', '/v1/me/contributions');
+export const chargerMesContributions = () => avecCache('mes_contributions', () => api<Contribution[]>('GET', '/v1/me/contributions'));
 
 /** Seules les contributions en attente peuvent être retirées par leur auteur (règle du serveur). */
 export const supprimerContribution = (id: string) => api('DELETE', `/v1/contributions/${encodeURIComponent(id)}`);

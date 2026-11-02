@@ -3,11 +3,12 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, Text
 import * as Speech from 'expo-speech';
 import { useRouter } from 'expo-router';
 import {
-  chargerThemes, INFO_TRIBUS, lireCollection, MYENE_TRIBES, tribuDuDialecte,
-  type QuestionnaireItem, type ThemeDefinition, type VillageRegistry,
+  chargerAnnotations, chargerThemes, indexerAnnotations, INFO_TRIBUS, lireCollection, MYENE_TRIBES, tribuDuDialecte, tribusDeLaFiche,
+  type Annotation, type QuestionnaireItem, type ThemeDefinition, type VillageRegistry,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
+import { useVersionDonnees } from './donnees';
 import { couleurs } from './theme';
 
 const PAGE = 40; // même taille de page que le site web
@@ -37,12 +38,25 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
   const [compteursThemes, setCompteursThemes] = useState<Record<string, number>>({});
   const [parole, setParole] = useState<string | null>(null);
   const generation = useRef(0);
+  const vDonnees = useVersionDonnees();
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [dialectesFiches, setDialectesFiches] = useState<Record<string, string>>({});
 
+  useEffect(() => { chargerAnnotations().then(setAnnotations).catch(() => {}); }, [vDonnees]);
   useEffect(() => { chargerThemes().then(setThemes).catch(() => {}); lireCollection<VillageRegistry>('villages').then(setVillages).catch(() => {}); catalogue.compteursDialectes().then(setCompteursDialectes); }, []);
   useEffect(() => { const t = setTimeout(() => { setRequete(texte); setPage(1); }, 300); return () => clearTimeout(t); }, [texte]);
 
+  const index = useMemo(() => indexerAnnotations(annotations, id => dialectesFiches[id]), [annotations, dialectesFiches]);
+  // Les fiches qui ont reçu des annotations (peu nombreuses) sont lues pour connaître leur dialecte d'origine.
+  useEffect(() => {
+    const ids = [...new Set(annotations.map(a => a.itemId))];
+    if (ids.length === 0) return;
+    catalogue.parIds(ids).then(l => setDialectesFiches(Object.fromEntries(l.map(f => [f.id, String(f.dialect)]))));
+  }, [annotations]);
+  const supplementaires = useCallback((t: string) => (t === 'all' ? new Set<string>() : index.fichesSupplementaires.get(t.normalize('NFC').toLowerCase().trim()) || new Set<string>()), [index]);
+
   const dialectesDeTribu = useCallback((t: string) => (t === 'all' ? undefined : Object.keys(compteursDialectes).filter(d => tribuDuDialecte(d) === t)), [compteursDialectes]);
-  const compteTribu = (t: string) => Object.entries(compteursDialectes).filter(([d]) => tribuDuDialecte(d) === t).reduce((a, [, n]) => a + n, 0);
+  const compteTribu = (t: string) => Object.entries(compteursDialectes).filter(([d]) => tribuDuDialecte(d) === t).reduce((a, [, n]) => a + n, 0) + supplementaires(t).size;
   const totalFiches = Object.values(compteursDialectes).reduce((a, b) => a + b, 0);
 
   useEffect(() => { catalogue.compteursThemes(dialectesDeTribu(tribu)).then(setCompteursThemes); }, [tribu, dialectesDeTribu]);
@@ -58,12 +72,21 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
       n = tous.length; lot = tous.slice((page - 1) * PAGE, page * PAGE);
     } else {
       const base = { texte: requete, categorie: theme === 'all' ? null : theme, dialectes: dialectesDeTribu(tribu) };
-      if (tribu !== 'all' && !base.dialectes?.length) { lot = []; n = 0; }
-      else { n = await catalogue.compterRecherche(base); lot = await catalogue.rechercher({ ...base, limite: PAGE, decalage: (page - 1) * PAGE }); }
+      const premieres = tribu !== 'all' && !base.dialectes?.length ? 0 : await catalogue.compterRecherche(base);
+      // Fiches d'autres dialectes validées pour cette tribu par une contribution : ajoutées après les fiches de la tribu.
+      const extraIds = tribu === 'all' ? [] : [...supplementaires(tribu)];
+      const extras = (await catalogue.parIds(extraIds)).filter(f =>
+        (theme === 'all' || (f.category || f.theme || 'general') === theme) &&
+        (!requete || `${f.frenchText} ${f.myeneText} ${f.contextNotes}`.toLowerCase().includes(requete.toLowerCase())) &&
+        tribuDuDialecte(String(f.dialect)) !== tribu);
+      n = premieres + extras.length;
+      const debut = (page - 1) * PAGE;
+      const dePremieres = debut < premieres ? await catalogue.rechercher({ ...base, limite: PAGE, decalage: debut }) : [];
+      lot = [...dePremieres, ...extras.slice(Math.max(0, debut - premieres), Math.max(0, debut - premieres) + (PAGE - dePremieres.length))];
     }
     if (g !== generation.current) return;
     setFiches(lot); setTotal(n); setCharge(false);
-  }, [requete, tribu, theme, page, seulementFavoris, favoris.length, dialectesDeTribu]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [requete, tribu, theme, page, seulementFavoris, favoris.length, dialectesDeTribu, supplementaires, vDonnees]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { lire(); }, [lire]);
 
   const categories = useMemo(() => {
@@ -139,11 +162,21 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
 
       {fiches.map(f => {
         const aime = favoris.includes(f.id);
+        const annotsFiche = index.parFiche.get(f.id) || [];
+        const { tribus: tribusFiche, variantes } = tribusDeLaFiche(f, annotsFiche);
+        const variante = tribu !== 'all' ? variantes.get(tribu.normalize('NFC').toLowerCase().trim()) : undefined;
+        const nuance = annotsFiche.find(a => a.frenchMeaning || a.secondaryMeaning);
         return (
           <View key={f.id} style={[s.carte, aime && { borderColor: couleurs.ambre }]}>
             {!!f.imageUrl && <Image source={{ uri: f.imageUrl }} style={s.image} accessibilityLabel={f.frenchText} />}
             <View style={s.ligne}>
-              <Pressable onPress={() => choisirTribu(tribuDuDialecte(String(f.dialect)))}><Text style={[s.badge, (tribu === tribuDuDialecte(String(f.dialect)) || profil?.tribe === tribuDuDialecte(String(f.dialect))) && s.badgeOr]}>🌍 Tribu {tribuDuDialecte(String(f.dialect))}</Text></Pressable>
+              <View style={[s.pile, { flex: 1 }]}>
+                {tribusFiche.map(t => (
+                  <Pressable key={t} onPress={() => choisirTribu(t)} accessibilityLabel={`Filtrer par la tribu ${t}`}>
+                    <Text style={[s.badge, (tribu === t || profil?.tribe === t) && s.badgeOr]}>🌍 Tribu {t}</Text>
+                  </Pressable>
+                ))}
+              </View>
               <Text style={s.discret}>{f.difficulty}</Text>
               <Pressable onPress={() => favori(f.id)} hitSlop={10} accessibilityLabel={aime ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Text style={{ fontSize: 24, color: aime ? couleurs.ambre : couleurs.discret }}>{aime ? '★' : '☆'}</Text></Pressable>
             </View>
@@ -151,6 +184,13 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
             <Text style={s.discret}>Tribu {tribuDuDialecte(String(f.dialect))} · {f.recordingsCount || 0} voix enregistrées</Text>
             <Text style={s.myene}>{f.myeneText}</Text>
             {!!f.phoneticApi && <Text style={s.discret}>[{f.phoneticApi}]</Text>}
+            {!!variante && variante !== f.myeneText && <Text style={s.variante}>Variante Tribu {tribu} : <Text style={{ fontWeight: '900' }}>{variante}</Text></Text>}
+            {!!nuance && (
+              <View style={{ gap: 2 }}>
+                {!!nuance.frenchMeaning && <Text style={s.nuance}>💡 Autre tournure / sens : <Text style={{ fontWeight: '900' }}>« {nuance.frenchMeaning} »</Text></Text>}
+                {!!nuance.secondaryMeaning && <Text style={s.nuance}>🌿 Sens secondaire : {nuance.secondaryMeaning}</Text>}
+              </View>
+            )}
             <View style={s.ligne}>
               <Pressable onPress={() => dire(f)} accessibilityLabel="Écouter la prononciation"><Text style={s.petitTexte}>{parole === f.id ? '⏹ Écouter la prononciation' : '🔊 Écouter la prononciation'}</Text></Pressable>
               <Pressable onPress={() => favori(f.id)} style={[s.petit, aime && s.petitFav]}><Text style={s.petitTexte}>{aime ? '★ Favori' : '☆ Favori'}</Text></Pressable>
@@ -190,6 +230,9 @@ const s = StyleSheet.create({
   badgeOr: { backgroundColor: couleurs.ambre, color: '#180d07', borderColor: couleurs.ambre },
   francais: { color: '#fff', fontSize: 17, fontWeight: '800' },
   myene: { color: couleurs.ambre, fontSize: 20, fontWeight: '900' },
+  pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  variante: { color: '#fde68a', fontSize: 12 },
+  nuance: { color: '#a7f3d0', fontSize: 12 },
   petit: { borderColor: couleurs.bord, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
   petitActif: { backgroundColor: couleurs.ambre, borderColor: couleurs.ambre },
   petitFav: { backgroundColor: '#f59e0b33', borderColor: couleurs.ambre },

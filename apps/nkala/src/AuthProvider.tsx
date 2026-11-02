@@ -39,7 +39,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const recharger = useCallback(async () => {
     if (!auth.currentUser) { setProfil(null); return; }
     try {
-      const p = await chargerProfil();
+      let p = await chargerProfil();
+      try {
+        const local = JSON.parse((await AsyncStorage.getItem(`nkala_favoris_${p.id}`)) || 'null');
+        if (local?.enAttente && Array.isArray(local.ids)) {
+          p = { ...p, favoriteItemIds: local.ids };
+          enregistrerFavoris(local.ids).then(() => AsyncStorage.setItem(`nkala_favoris_${p.id}`, JSON.stringify({ ids: local.ids, enAttente: false }))).catch(() => {});
+        }
+      } catch { /* pas de copie locale */ }
       setProfil(p);
       setErreurProfil(null);
       AsyncStorage.setItem(CLE_PROFIL, JSON.stringify(p)).catch(() => {});
@@ -93,13 +100,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const deconnexion = useCallback(async () => { await fbSignOut(auth); setProfil(null); AsyncStorage.removeItem('nkala_profil_cache').catch(() => {}); }, []);
 
+  // Favoris : mise à jour immédiate et copie locale ; si le serveur est injoignable ils sont gardés et renvoyés plus tard (comme le web).
+  const cleFavoris = (uid: string) => `nkala_favoris_${uid}`;
   const favori = useCallback(async (itemId: string) => {
     if (!profil) return;
     const avant = profil.favoriteItemIds || [];
     const apres = basculerFavori(avant, itemId);
     setProfil({ ...profil, favoriteItemIds: apres });
-    try { await enregistrerFavoris(apres); }
-    catch { setProfil(p => (p ? { ...p, favoriteItemIds: avant } : p)); }
+    await AsyncStorage.setItem(cleFavoris(profil.id), JSON.stringify({ ids: apres, enAttente: true })).catch(() => {});
+    try {
+      await enregistrerFavoris(apres);
+      await AsyncStorage.setItem(cleFavoris(profil.id), JSON.stringify({ ids: apres, enAttente: false })).catch(() => {});
+    } catch (e) {
+      const st = (e as { status?: number }).status ?? 0;
+      if (st !== 0 && st < 500) { // refus définitif du serveur : on annule
+        setProfil(p => (p ? { ...p, favoriteItemIds: avant } : p));
+        await AsyncStorage.setItem(cleFavoris(profil.id), JSON.stringify({ ids: avant, enAttente: false })).catch(() => {});
+      }
+    }
   }, [profil]);
 
   const valeur = useMemo(() => ({ pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori }), [pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori]);

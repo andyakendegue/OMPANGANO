@@ -283,6 +283,24 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     }));
   });
 
+  // Annotations VALIDÉES des fiches (Ezango) : tribu d'une variante, orthographe proposée, nuances de sens français.
+  // Contributions approuvées (ou texte approuvé) seulement, sans identité de contributeur.
+  app.get('/v1/items/annotations', async () => {
+    const rows = await db.query<any>(
+      `SELECT c.item_id, c.data->>'dialectVariant' AS variant, u.data->>'tribe' AS user_tribe,
+              c.data->>'proposedSpelling' AS spelling, c.data->>'proposedFrenchMeaning' AS french_meaning,
+              c.data->>'secondaryMeaning' AS secondary
+         FROM contributions c
+         LEFT JOIN users u ON u.id = c.user_id
+        WHERE c.deleted_at IS NULL AND c.item_id IS NOT NULL AND c.status IN ('approved', 'text_approved_audio_revision')
+        ORDER BY c.created_at DESC LIMIT 5000`
+    );
+    return rows.map(r => ({
+      itemId: r.item_id, variant: r.variant || r.user_tribe || null, spelling: r.spelling || null,
+      frenchMeaning: r.french_meaning || null, secondaryMeaning: r.secondary || null
+    }));
+  });
+
   app.get('/v1/leaderboard', async () => {
     const rows = await db.query<any>(`SELECT * FROM leaderboard ORDER BY xp DESC, id LIMIT 500`);
     return rows.map(r => ({

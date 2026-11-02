@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
+import { definirSync, lireSync } from './syncEtat';
 import { cheminEnregistrement, envoyerContribution, isPermanentApiError, televerserMedia, type Contribution } from '@nkala/noyau';
 
 const CLE = 'nkala_file_contributions';
@@ -53,16 +54,33 @@ export async function rejouerFile(): Promise<number> {
   const file = await lire();
   const reste: Element[] = [];
   let envoyes = 0;
+  let traites = 0;
+  if (file.length) definirSync({ genre: 'envoi', fait: 0, total: file.length });
   for (const el of file) {
     const r = await envoyerUn(el);
+    definirSync({ genre: 'envoi', fait: ++traites, total: file.length });
     if (r === 'ok') { envoyes++; if (el.audioUri?.startsWith(FileSystem.documentDirectory || '\0')) FileSystem.deleteAsync(el.audioUri, { idempotent: true }).catch(() => {}); }
     else if (r === 'reessayer') reste.push(el);
   }
   await ecrire(reste);
+  if (lireSync().genre === 'envoi') definirSync({ genre: null, fait: 0, total: 0 });
   return envoyes;
 }
 
 /** Contributions gardées sur l'appareil (affichage de la file d'attente). */
 export async function listerFile(): Promise<{ id: string; texte: string; avecVoix: boolean; date: string }[]> {
   return (await lire()).map(e => ({ id: e.contribution.id, texte: e.contribution.originalMyeneText, avecVoix: !!e.audioUri, date: e.contribution.createdAt }));
+}
+
+/** Contributions en attente d'envoi, complètes (affichées dans « Mes contributions » avec la mention « Sur l'appareil »). */
+export async function contributionsEnFile(): Promise<Contribution[]> {
+  return (await lire()).map(e => ({ ...e.contribution, offlineQueued: true, audioUrl: e.audioUri ? e.audioUri : e.contribution.audioUrl }));
+}
+
+/** Retire une contribution encore sur l'appareil (et sa copie audio). */
+export async function retirerDeLaFile(id: string): Promise<void> {
+  const file = await lire();
+  const cible = file.find(e => e.contribution.id === id);
+  if (cible?.audioUri?.startsWith(FileSystem.documentDirectory || '\0')) FileSystem.deleteAsync(cible.audioUri, { idempotent: true }).catch(() => {});
+  await ecrire(file.filter(e => e.contribution.id !== id));
 }

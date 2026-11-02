@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import { useRouter } from 'expo-router';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import {
   chargerDefis, chargerThemes, consentementDonne, construireContribution, dialecteDeLaTribu, MYENE, MYENE_TRIBES, NUANCES_SENS,
-  synchroniserCatalogue, tribuDuDialecte, VARIANTES_TRIBALES,
-  type Progression, type QuestionnaireItem, type ThemeDefinition, type WeeklyChallenge,
+  FICHES_DE_SECOURS, tribuDuDialecte, VARIANTES_TRIBALES,
+  type QuestionnaireItem, type ThemeDefinition, type WeeklyChallenge,
 } from '@nkala/noyau';
 import { ajouterAlerte, notifierLocal } from './Alertes';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
+import { Confettis } from './Confettis';
+import { useVersionDonnees } from './donnees';
 import { prendreFiche } from './evenements';
+import { lancerSynchro } from './synchro';
+import { useEtatSync } from './syncEtat';
 import { ConditionsModale } from './Conditions';
 import { FaqModale } from './Faq';
 import { nombreEnAttente, rejouerFile, soumettre } from './fileAttente';
@@ -27,6 +32,7 @@ const demander = (m: string): Promise<boolean> =>
 
 export function Collecte({ onGuide }: { onGuide?: () => void }) {
   const { profil, recharger } = useAuth();
+  const routeur = useRouter();
   const [enLigne, setEnLigne] = useState(true);
   const [tribu, setTribu] = useState<string>('all');
   const [defis, setDefis] = useState<WeeklyChallenge[]>([]);
@@ -38,7 +44,10 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
   const [index, setIndex] = useState(0);
   const [fiche, setFiche] = useState<QuestionnaireItem | null>(null);
   const [compteurs, setCompteurs] = useState<Record<string, number>>({});
-  const [synchro, setSynchro] = useState<Progression | null>(null);
+  const etatSync = useEtatSync();
+  const synchro = etatSync.genre === 'telechargement' ? { fait: etatSync.fait, total: etatSync.total } : null;
+  const vDonnees = useVersionDonnees();
+  const [niveaux, setNiveaux] = useState<number[]>([]);
   const [version, setVersion] = useState(0);
   const [enAttente, setEnAttente] = useState(0);
   const [nbDefiTheme, setNbDefiTheme] = useState(0);
@@ -61,28 +70,17 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
   const [erreurMicro, setErreurMicro] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
   const [succes, setSucces] = useState(false);
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const [confettis, setConfettis] = useState(false);
+  const recorder = useAudioRecorder({ ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true });
   const lecteur = useAudioPlayer(audioUri ? { uri: audioUri } : null);
   const debut = useRef(0);
   const ficheDemandee = useRef<string | null>(prendreFiche());
 
   const defi = defis.find(d => d.id === defiId) || defis[0];
-  const total = Object.values(compteurs).reduce((a, b) => a + b, 0);
-  const compteTribu = (t: string) => Object.entries(compteurs).filter(([d]) => tribuDuDialecte(d) === t).reduce((a, [, n]) => a + n, 0);
+  const total = Object.values(compteurs).reduce((a, b) => a + b, 0) || FICHES_DE_SECOURS.length;
+  const compteTribu = (t: string) => (Object.keys(compteurs).length === 0 ? FICHES_DE_SECOURS.filter(f => tribuDuDialecte(String(f.dialect)) === t).length : 0) + Object.entries(compteurs).filter(([d]) => tribuDuDialecte(d) === t).reduce((a, [, n]) => a + n, 0);
 
-  useEffect(() => {
-    let avant = true;
-    return NetInfo.addEventListener(async e => {
-      const ok = e.isConnected !== false;
-      setEnLigne(ok);
-      // Retour du réseau : on renvoie la file, puis on relit le catalogue (comme le site web).
-      if (ok && !avant) {
-        await rejouerFile(); setEnAttente(await nombreEnAttente());
-        await synchroniserCatalogue(catalogue); setCompteurs(await catalogue.compteursDialectes()); setVersion(v => v + 1);
-      }
-      avant = ok;
-    });
-  }, []);
+  useEffect(() => NetInfo.addEventListener(e => setEnLigne(e.isConnected !== false)), []);
 
   // Au démarrage : renvoi de la file, défis et thèmes, puis synchronisation du catalogue (reprise automatique).
   useEffect(() => {
@@ -94,8 +92,8 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
       if (vivant) setEnAttente(await nombreEnAttente());
       setCompteurs(await catalogue.compteursDialectes());
       setVersion(v => v + 1);
-      await synchroniserCatalogue(catalogue, p => vivant && setSynchro(p));
-      if (vivant) { setSynchro(null); setCompteurs(await catalogue.compteursDialectes()); setVersion(v => v + 1); }
+      await lancerSynchro();
+      if (vivant) { setCompteurs(await catalogue.compteursDialectes()); setVersion(v => v + 1); }
     })();
     return () => { vivant = false; };
   }, []);
@@ -105,12 +103,28 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
     else setNbDefiTheme(0);
   }, [defi?.id, defi?.theme, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Le serveur a signalé une modification (flux temps réel, relecture périodique) : défis, thèmes et fiches sont relus.
+  useEffect(() => {
+    if (!vDonnees) return;
+    chargerDefis().then(l => setDefis(l.filter(d => d.isActive))).catch(() => {});
+    chargerThemes().then(setThemes).catch(() => {});
+    catalogue.compteursDialectes().then(c => { setCompteurs(c); setVersion(v => v + 1); });
+    nombreEnAttente().then(setEnAttente);
+  }, [vDonnees]);
+
   // Fiches à parcourir selon la tribu et le défi (identifiants seulement, comme le site web).
   useEffect(() => {
     let annule = false;
     (async () => {
       const c = await catalogue.compteursDialectes();
       let liste: string[] = [];
+      // Catalogue pas encore téléchargé (premier lancement hors-ligne) : fiches de secours du site web, comme INITIAL_ENENGA_ITEMS.
+      if ((await catalogue.compter()) === 0) {
+        liste = FICHES_DE_SECOURS.filter(f => tribu === 'all' || tribuDuDialecte(String(f.dialect)) === tribu).map(f => f.id);
+        if (liste.length === 0) liste = FICHES_DE_SECOURS.map(f => f.id);
+        if (!annule) { setIds(liste); setIndex(0); }
+        return;
+      }
       if (tribu !== 'all') {
         const dialectes = Object.keys(c).filter(d => tribuDuDialecte(d) === tribu);
         liste = await catalogue.identifiants({ dialectes });
@@ -135,7 +149,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
   useEffect(() => {
     let annule = false;
     (async () => {
-      const f = courant ? await catalogue.fiche(courant) : null;
+      const f = courant ? ((await catalogue.fiche(courant)) ?? FICHES_DE_SECOURS.find(x => x.id === courant) ?? null) : null;
       if (annule) return;
       setFiche(f); setSucces(false); setOrthographe(null); setProposee(''); setSens('exact'); setTypeSens('correction_sens');
       setSensPropose(''); setSensSecondaire(''); setNotes(''); setAudioUri(null); setDuree(0);
@@ -152,7 +166,13 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
       setSecondes(s);
       if (s >= DUREE_MAX) arreter();
     }, 500);
-    return () => clearInterval(t);
+    // Niveau sonore en direct (barres) : le décibel mesuré (−60 à 0) devient un pourcentage.
+    const mesure = setInterval(() => {
+      const db = recorder.getStatus().metering;
+      const niveau = typeof db === 'number' ? Math.max(8, Math.min(100, Math.round(((db + 60) / 60) * 100))) : 8;
+      setNiveaux(n => [...n.slice(-31), niveau]);
+    }, 120);
+    return () => { clearInterval(t); clearInterval(mesure); };
   }, [enregistre]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const arreter = async () => {
@@ -169,7 +189,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
       recorder.record();
-      debut.current = Date.now(); setSecondes(0); setAudioUri(null); setEnregistre(true);
+      debut.current = Date.now(); setSecondes(0); setAudioUri(null); setNiveaux([]); setEnregistre(true);
     } catch (e) { setErreurMicro('Impossible d’accéder au microphone (' + ((e as Error).message || 'Erreur inconnue') + ').'); }
   };
 
@@ -198,6 +218,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
         message: `Merci d’enrichir le patrimoine de la langue Myènè pour "${fiche.frenchText}". Jusqu’à +${xp} XP après validation par un validateur.`,
       });
       setSucces(true);
+      setConfettis(true); setTimeout(() => setConfettis(false), 3000);
     } catch {
       alerter(`${MYENE.NYEZA_MYE.mot}… Une erreur est survenue lors de la soumission. Vos données ont été sauvegardées localement.`);
     } finally { setOccupe(false); }
@@ -228,6 +249,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
 
   return (
     <View style={{ gap: 12 }}>
+      <Confettis declencheur={confettis} />
       <CelebrationDefi defis={defis} />
       {rappel}
       <ConditionsModale visible={conditions} rappel onClose={() => { setConditions(false); recharger(); }} />
@@ -287,8 +309,10 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
 
       {!fiche ? (
         <View style={s.carte}>
-          {(synchro || total === 0) && <ActivityIndicator color={couleurs.ambre} />}
-          <Text style={s.texte}>{synchro || total === 0 ? 'Premier téléchargement du catalogue…' : 'Aucune fiche disponible pour le moment'}</Text>
+          {synchro && <ActivityIndicator color={couleurs.ambre} />}
+          <Text style={s.titre}>Aucune fiche disponible pour le moment</Text>
+          <Text style={s.texte}>Toutes les fiches ont été supprimées ou aucune fiche n'est encore publiée dans la base de données.</Text>
+          {profil.role === 'admin' && <Pressable style={s.bouton} onPress={() => routeur.push('/(tabs)/admin')}><Text style={s.boutonTexte}>Ouvrir l'Administration pour ajouter des fiches</Text></Pressable>}
         </View>
       ) : (
         <View style={s.carte}>
@@ -369,6 +393,9 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
               <View style={s.micro}>
                 <Text style={s.etiquette}>Enregistrement de la prononciation{enregistre ? `   EN DIRECT • ${mmss(secondes)}` : ''}</Text>
                 {!!erreurMicro && <Text style={s.erreur}>{erreurMicro}</Text>}
+                {(enregistre || (audioUri && niveaux.length > 0)) && (
+                  <View style={s.onde}>{niveaux.map((n, i) => <View key={i} style={[s.barreOnde, { height: `${n}%`, backgroundColor: enregistre ? '#ef4444' : '#22c55e' }]} />)}</View>
+                )}
                 {!audioUri && !enregistre && <Text style={s.discret}>Appuyez sur le micro pour prononcer l’expression avec votre accent naturel</Text>}
                 {audioUri && !enregistre && <Text style={s.ok}>Voix capturée ({mmss(duree || 3)})</Text>}
                 {!enregistre && !audioUri && <Pressable style={s.record} onPress={commencer}><Text style={s.boutonTexte}>🎙️  Commencer l’enregistrement</Text></Pressable>}
@@ -394,6 +421,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
 }
 
 const s = StyleSheet.create({
+  titre: { color: couleurs.texteClair, fontSize: 17, fontWeight: '800' },
   carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 16, padding: 14, gap: 10 },
   defi: { backgroundColor: '#2a1608', borderColor: '#d97706', borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
   defiSur: { color: '#fde047', fontSize: 12, fontWeight: '800' },
@@ -434,6 +462,8 @@ const s = StyleSheet.create({
   nuanceActive: { backgroundColor: '#f59e0b33', borderColor: '#f59e0b' },
   champ: { backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 12, color: couleurs.texteClair, padding: 12, fontSize: 14 },
   micro: { backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 14, padding: 12, gap: 8 },
+  onde: { flexDirection: 'row', alignItems: 'center', height: 40, gap: 2, justifyContent: 'center' },
+  barreOnde: { width: 4, borderRadius: 2 },
   record: { backgroundColor: '#c85a32', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   recordGris: { backgroundColor: '#4a2412', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   bouton: { backgroundColor: couleurs.terre, borderRadius: 14, paddingVertical: 15, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 6 },

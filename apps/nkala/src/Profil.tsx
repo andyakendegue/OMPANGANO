@@ -11,7 +11,8 @@ import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { ConditionsModale } from './Conditions';
 import Inscription from './Inscription';
-import { nombreEnAttente } from './fileAttente';
+import { useVersionDonnees } from './donnees';
+import { contributionsEnFile, nombreEnAttente, retirerDeLaFile } from './fileAttente';
 import { couleurs } from './theme';
 
 type Section = 'apercu' | 'activite' | 'compte';
@@ -20,10 +21,20 @@ type Plage = '7d' | '30d' | 'all';
 function useMesContributions() {
   const [liste, setListe] = useState<Contribution[] | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const version = useVersionDonnees();
   const charger = useCallback(async () => {
-    try { setListe(await chargerMesContributions()); setErreur(null); } catch (e) { setErreur((e as Error).message); }
+    // Les contributions encore sur l'appareil sont ajoutées à celles du serveur (« Sur l'appareil (envoi en attente) »).
+    const locales = await contributionsEnFile();
+    try {
+      const serveur = await chargerMesContributions();
+      const ids = new Set(serveur.map(c => c.id));
+      setListe([...locales.filter(c => !ids.has(c.id)), ...serveur]); setErreur(null);
+    } catch (e) {
+      setListe(locales.length ? locales : null);
+      setErreur((e as Error).message);
+    }
   }, []);
-  useEffect(() => { charger(); }, [charger]);
+  useEffect(() => { charger(); }, [charger, version]);
   return { liste, erreur, charger };
 }
 
@@ -80,7 +91,7 @@ export function ProfilContributeur() {
     Speech.speak(f.myeneText, { language: 'fr-FR', onDone: () => setParole(null), onStopped: () => setParole(null) });
   };
   const retirer = (c: Contribution) => confirmer('Supprimer cette contribution (et son enregistrement) ?', async () => {
-    try { await supprimerContribution(c.id); await charger(); } catch (e) { Alert.alert('Suppression impossible', (e as Error).message); }
+    try { if (c.offlineQueued) await retirerDeLaFile(c.id); else await supprimerContribution(c.id); await charger(); } catch (e) { Alert.alert('Suppression impossible', (e as Error).message); }
   });
 
   if (!profil) return null;

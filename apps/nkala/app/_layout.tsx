@@ -2,6 +2,8 @@ import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../src/AuthProvider';
+import { MiseAJour } from '../src/MiseAJour';
+import { TempsReel } from '../src/TempsReel';
 import { couleurs } from '../src/theme';
 
 function Pile() {
@@ -32,6 +34,8 @@ export default function Racine() {
   return (
     <AuthProvider>
       <StatusBar style="light" />
+      <TempsReel />
+      <MiseAJour />
       <Pile />
     </AuthProvider>
   );
