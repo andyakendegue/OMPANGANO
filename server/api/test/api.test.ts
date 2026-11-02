@@ -594,3 +594,11 @@ test('protection : l’import d’un CSV corrigé remplace toujours le texte d�
   assert.equal((await texteEnBase(ref)).m, 'Texte corrigé import');
   assert.ok((await journalDe(ref)).some(e => e.action === 'modifie' && e.source === 'import' && e.ancienMyene === 'Texte ancien import'));
 });
+
+test('protection : la collection admins (doublon de PATCH /v1/users) et les métriques ne sont pas soumises à la règle des dates', async () => {
+  const u = await newUser('adm2');
+  assert.equal((await call('PUT', `/v1/admins/${u.uid}`, SUPER, { role: 'admin', updatedAt: dans(-1000) })).status, 200);
+  assert.equal((await call('PUT', `/v1/admins/${u.uid}`, SUPER, { role: 'admin', updatedAt: dans(-86_400_000) })).status, 200, 'pas de 409 inutile');
+  assert.equal((await call('PUT', '/v1/metrics/summary', SUPER, { n: 1, updatedAt: dans(-1000) })).status, 200);
+  assert.equal((await call('PUT', '/v1/metrics/summary', SUPER, { n: 2, updatedAt: dans(-86_400_000) })).status, 200);
+});

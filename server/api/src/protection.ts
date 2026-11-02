@@ -74,8 +74,11 @@ const dateValide = (v: unknown): number | null => {
  * Pour les fiches (items) une écriture sans date valide sur une fiche déjà présente est aussi refusée : on ne peut pas
  * savoir si elle est récente. Pour les autres collections, l'absence de date reste acceptée (anciens écrans d'administration).
  */
+/** Collections de contenu protégées ; `admins` (tenue par PATCH /v1/users/:id) et `metrics` (compteurs) en sont exclues. */
+const COLLECTIONS_PROTEGEES = new Set(['items', 'clans', 'villages', 'themes', 'badges', 'challenges']);
+
 export function estPlusAncienne(table: string, ecriture: Record<string, unknown>, existant: { updated_at: Date | string } | undefined): { refus: boolean; dateClient: string | null } {
-  if (!existant) return { refus: false, dateClient: null };
+  if (!existant || !COLLECTIONS_PROTEGEES.has(table)) return { refus: false, dateClient: null };
   const t = dateValide(ecriture.updatedAt);
   const serveur = new Date(existant.updated_at).getTime();
   if (t === null) return { refus: table === 'items', dateClient: null };
