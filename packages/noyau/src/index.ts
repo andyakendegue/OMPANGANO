@@ -9,3 +9,4 @@ export * from './classement';
 export * from './profil';
 export * from './admin';
 export * from './contenu';
+export * from './recompenses';

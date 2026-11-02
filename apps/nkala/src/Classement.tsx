@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { chargerClassement, type LigneClassement } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
+import { MesBadges } from './Recompenses';
 import { couleurs } from './theme';
 
 const TRIBUS = ['Toutes', 'Ôrungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
@@ -71,6 +72,7 @@ export function Classement() {
       })}
       {lignes && visibles.length === 0 && <Text style={s.discret}>Aucun contributeur trouvé.</Text>}
       <Pressable onPress={charger}><Text style={s.lien}>Actualiser le classement</Text></Pressable>
+      <MesBadges />
       {visibles.length > 100 && <Text style={s.discret}>100 premiers affichés sur {visibles.length}.</Text>}
     </View>
   );

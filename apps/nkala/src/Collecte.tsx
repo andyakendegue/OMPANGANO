@@ -7,6 +7,7 @@ import {
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
+import { BandeauDefi } from './Recompenses';
 import { nombreEnAttente, rejouerFile, soumettre } from './fileAttente';
 import { couleurs } from './theme';
 
@@ -112,6 +113,7 @@ export function Collecte() {
 
   return (
     <View style={{ gap: 12 }}>
+      <BandeauDefi />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {DIALECTES.map(([code, nom]) => (
           <Pressable key={nom} onPress={() => changerDialecte(code)} style={[s.puce, dialecte === code && s.puceActive]}>
