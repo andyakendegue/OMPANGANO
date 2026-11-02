@@ -388,3 +388,17 @@ test('époque des données : une purge directe en base fait repartir les apparei
   const old = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(first.cursor)}`, u.token)).body; // ancien client sans époque
   assert.equal(old.reset, true);
 });
+
+test('GET /v1/me/contributions : seulement les siennes, sans les supprimées', async () => {
+  const a = await newUser('mc');
+  const b = await newUser('mc');
+  const item = await newItem();
+  const mine = await call('POST', '/v1/contributions', a.token, { itemId: item, frenchText: 'x', originalMyeneText: 'y', isSpellingCorrect: true });
+  await call('POST', '/v1/contributions', b.token, { itemId: item, frenchText: 'x', originalMyeneText: 'y', isSpellingCorrect: true });
+  const list = await call('GET', '/v1/me/contributions', a.token);
+  assert.equal(list.status, 200);
+  assert.deepEqual(list.body.map((c: any) => c.id), [mine.body.id]);
+  assert.equal((await call('DELETE', `/v1/contributions/${mine.body.id}`, a.token)).status, 204);
+  assert.equal((await call('GET', '/v1/me/contributions', a.token)).body.length, 0);
+  assert.equal((await call('GET', '/v1/me/contributions')).status, 401);
+});

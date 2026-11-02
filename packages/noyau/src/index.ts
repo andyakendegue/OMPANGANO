@@ -6,3 +6,4 @@ export * from './auth';
 export * from './catalogue';
 export * from './contribution';
 export * from './classement';
+export * from './profil';

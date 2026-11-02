@@ -229,6 +229,15 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return userRow(row);
   });
 
+  // Mes contributions seulement (application mobile : évite de télécharger celles des autres)
+  app.get('/v1/me/contributions', async (req) => {
+    const rows = await db.query<any>(
+      `SELECT * FROM contributions WHERE user_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1000`,
+      [req.auth!.uid]
+    );
+    return rows.map(contributionRow);
+  });
+
   app.get('/v1/leaderboard', async () => {
     const rows = await db.query<any>(`SELECT * FROM leaderboard ORDER BY xp DESC, id LIMIT 500`);
     return rows.map(r => ({
