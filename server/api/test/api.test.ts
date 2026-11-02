@@ -402,3 +402,17 @@ test('GET /v1/me/contributions : seulement les siennes, sans les supprimées', a
   assert.equal((await call('GET', '/v1/me/contributions', a.token)).body.length, 0);
   assert.equal((await call('GET', '/v1/me/contributions')).status, 401);
 });
+
+test('GET /v1/admin/contributions : réservé au personnel, filtre par statut, compteurs', async () => {
+  const user = await newUser('adm');
+  const val = await newUser('adm', { role: 'validator' });
+  const item = await newItem();
+  const c = await call('POST', '/v1/contributions', user.token, { itemId: item, frenchText: 'x', originalMyeneText: 'y', isSpellingCorrect: true });
+  assert.equal((await call('GET', '/v1/admin/contributions', user.token)).status, 403);
+  const file = await call('GET', '/v1/admin/contributions?status=pending&limit=100', val.token);
+  assert.equal(file.status, 200);
+  assert.ok(file.body.records.some((r: any) => r.id === c.body.id));
+  assert.ok(file.body.counts.pending >= 1);
+  assert.equal((await call('GET', '/v1/admin/contributions?status=nimporte', val.token)).status, 400);
+  assert.equal((await call('GET', '/v1/admin/contributions?status=approved', val.token)).body.records.some((r: any) => r.id === c.body.id), false);
+});

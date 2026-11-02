@@ -1,15 +1,15 @@
 import { Bientot, Section } from '../../src/Section';
+import { Moderation, Pilotage, Utilisateurs } from '../../src/Admin';
 
-// Groupes identiques à AdminDashboard.tsx. Réservé aux administrateurs (garde à brancher avec l'authentification).
-const groupe = (t: string) => <Bientot texte={`${t} : à porter depuis AdminDashboard.tsx.`} />;
-
+// Quatre groupes comme AdminDashboard.tsx. Les droits sont vérifiés par le serveur ; l'onglet n'est visible que des administrateurs.
+// Chaque groupe a ici sa rubrique principale ; les autres rubriques du web arrivent ensuite.
 export default function Administration() {
   return (
     <Section titre="Administration" onglets={[
-      { id: 'pilotage', label: 'Pilotage', contenu: groupe("Vue d'ensemble") },
-      { id: 'moderation', label: 'Modération', contenu: groupe('Validation vocale, réponses et export, anti-fraude') },
-      { id: 'contenu', label: 'Contenu', contenu: groupe('Fiches, thèmes, clans et villages, import CSV') },
-      { id: 'communaute', label: 'Communauté', contenu: groupe('Utilisateurs, défis, badges, niveaux XP') },
+      { id: 'pilotage', label: 'Pilotage', contenu: <Pilotage /> },
+      { id: 'moderation', label: 'Modération', contenu: <Moderation /> },
+      { id: 'contenu', label: 'Contenu', contenu: <Bientot texte="Fiches, thèmes, clans et villages, import CSV : à porter depuis AdminDashboard.tsx." /> },
+      { id: 'communaute', label: 'Communauté', contenu: <Utilisateurs /> },
     ]} />
   );
 }

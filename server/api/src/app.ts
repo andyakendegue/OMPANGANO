@@ -45,6 +45,7 @@ declare module 'fastify' {
 const SEED_CREATOR = 'system_ompangano';
 const ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const RECORD_ID_RE = /^[A-Za-z0-9_.-]{1,200}$/;
+const CONTRIBUTION_STATUSES: string[] = ['pending', 'approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
 const VALIDATION_STATUSES: ContributionStatus[] = ['approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
 const ROLES = ['user', 'validator', 'admin'];
 const ACCOUNT_STATUSES = ['active', 'flagged', 'suspended'];
@@ -236,6 +237,25 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       [req.auth!.uid]
     );
     return rows.map(contributionRow);
+  });
+
+  // File de modération (application mobile) : contributions par statut + compteurs, réservé au personnel
+  app.get('/v1/admin/contributions', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isStaff) fail(403, 'Réservé aux validateurs et administrateurs.');
+    const qs = req.query as { status?: string; limit?: string; offset?: string };
+    const status = qs.status || 'pending';
+    if (status !== 'all' && !CONTRIBUTION_STATUSES.includes(status)) fail(400, 'Statut invalide.');
+    const limit = Math.min(Math.max(Number(qs.limit) || 30, 1), 100);
+    const offset = Math.max(Number(qs.offset) || 0, 0);
+    const rows = await db.query<any>(
+      `SELECT * FROM contributions WHERE deleted_at IS NULL AND ($1 = 'all' OR status = $1)
+       ORDER BY created_at, id LIMIT $2 OFFSET $3`,
+      [status, limit, offset]
+    );
+    const counts: Record<string, number> = {};
+    for (const r of await db.query<any>(`SELECT status, count(*) AS n FROM contributions WHERE deleted_at IS NULL GROUP BY status`)) counts[r.status] = Number(r.n);
+    return { records: rows.map(contributionRow), counts };
   });
 
   app.get('/v1/leaderboard', async () => {
