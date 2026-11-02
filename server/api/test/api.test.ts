@@ -416,3 +416,30 @@ test('GET /v1/admin/contributions : réservé au personnel, filtre par statut, c
   assert.equal((await call('GET', '/v1/admin/contributions?status=nimporte', val.token)).status, 400);
   assert.equal((await call('GET', '/v1/admin/contributions?status=approved', val.token)).body.records.some((r: any) => r.id === c.body.id), false);
 });
+
+test('GET /v1/games/audio : seulement les voix validées, consentement respecté, sans nom de contributeur', async () => {
+  const ok = await newUser('ga');
+  const refus = await newUser('ga');
+  await call('PATCH', '/v1/me', refus.token, { consentVoiceUsage: false });
+  const val = await newUser('ga', { role: 'validator' });
+  const jouer = await newUser('ga');
+  const item = await newItem({ dialect: 'nkomi', myeneText: 'Mbolo test', frenchText: 'Bonjour test' });
+  const a = await submit(ok, item, { audioStoragePath: `recordings/${ok.uid}/a.m4a`, audioMimeType: 'audio/mp4' });
+  const b = await submit(refus, item, { audioStoragePath: `recordings/${refus.uid}/b.m4a`, audioMimeType: 'audio/mp4' });
+  const c = await submit(ok, item, { audioStoragePath: `recordings/${ok.uid}/c.m4a`, audioMimeType: 'audio/mp4' });
+  const valider = (id: string, status: string, p = 'correct') =>
+    call('POST', `/v1/contributions/${id}/validate`, val.token, { status, spellingVerdict: 'correct', pronunciationVerdict: p });
+  await valider(a, 'approved'); await valider(b, 'approved');
+  // c reste en attente
+  const r = await call('GET', '/v1/games/audio?dialect=nkomi&limit=40', jouer.token);
+  assert.equal(r.status, 200);
+  const ids = r.body.map((x: any) => x.id);
+  assert.ok(ids.includes(a), 'voix validée absente');
+  assert.ok(!ids.includes(b), 'voix sans consentement renvoyée');
+  assert.ok(!ids.includes(c), 'voix non validée renvoyée');
+  const clip = r.body.find((x: any) => x.id === a);
+  assert.deepEqual(Object.keys(clip).sort(), ['audioUrl', 'dialect', 'frenchText', 'id', 'itemId', 'myeneText']);
+  assert.equal(clip.audioUrl, `media:recordings/${ok.uid}/a.m4a`);
+  assert.equal((await call('GET', '/v1/games/audio?dialect=galoa', jouer.token)).body.some((x: any) => x.id === a), false);
+  assert.equal((await call('GET', '/v1/games/audio')).status, 401);
+});

@@ -1,21 +1,47 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import {
-  appliquerTemps, attenteCoeur, bonneReponse, construireOrdre, construireQcm, DIALECTES, etatInitial, jouable, mauvaiseReponse,
-  ordreCorrect, peutJouer, REGLES, type EtatJeu, type Ordre, type Qcm,
+  appliquerTemps, attenteCoeur, bonneReponse, chargerClipsAudio, construireOrdre, construireOrdreAudio, construireQcm, construireQcmAudio,
+  DIALECTES, etatInitial, jouable, mauvaiseReponse, ordreCorrect, peutJouer, REGLES, resoudreMedia,
+  type ClipAudio, type EtatJeu, type Ordre, type OrdreAudio, type Qcm, type QcmAudio,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { couleurs } from './theme';
 
-type Jeu = 'qcm' | 'ordre';
-type Question = { jeu: 'qcm'; q: Qcm } | { jeu: 'ordre'; q: Ordre };
+type Jeu = 'qcm' | 'ordre' | 'son' | 'dictee';
+type Question = { jeu: 'qcm'; q: Qcm } | { jeu: 'ordre'; q: Ordre } | { jeu: 'son'; q: QcmAudio } | { jeu: 'dictee'; q: OrdreAudio };
 
 const JEUX: [Jeu, string, string][] = [
   ['qcm', 'Choisis la bonne phrase', 'Une phrase en français : trouve sa traduction en myènè (contrôle 7).'],
   ['ordre', 'Remets les mots dans l’ordre', 'Reconstitue la phrase myènè à partir des mots mélangés (contrôle 4).'],
+  ['son', 'Écoute et choisis', 'Un locuteur dit une phrase : touche celle que tu entends (contrôle 1).'],
+  ['dictee', 'Écoute et remets en ordre', 'Écoute la phrase puis reconstitue-la mot par mot (dictée sonore).'],
 ];
+
+/** Lecteur d'un clip validé (URL présignée résolue à la demande). */
+function Ecoute({ clip }: { clip: ClipAudio }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [erreur, setErreur] = useState(false);
+  const player = useAudioPlayer(url ? { uri: url } : null);
+  const demande = useRef(false);
+
+  useEffect(() => {
+    setUrl(null); setErreur(false); demande.current = true;
+    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+    resoudreMedia(clip.audioUrl).then(setUrl).catch(() => setErreur(true));
+  }, [clip.id]);
+  // Lecture automatique dès que l'adresse est prête, une seule fois par question.
+  useEffect(() => { if (url && demande.current) { demande.current = false; player.play(); } }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <Pressable style={s.ecoute} disabled={!url} onPress={() => { player.seekTo(0); player.play(); }}>
+      <Text style={s.boutonTexte}>{erreur ? 'Son indisponible' : url ? '🔊 Écouter' : 'Chargement du son…'}</Text>
+    </Pressable>
+  );
+}
 
 /** Onenji : cours par le jeu avec cœurs et points. Les phrases viennent du catalogue de Nkala, jamais d'une liste en dur. */
 export function Onenji() {
@@ -40,8 +66,21 @@ export function Onenji() {
   // Rafraîchit le décompte avant le prochain cœur.
   useEffect(() => { const t = setInterval(() => { setEtat(e => (e ? appliquerTemps(e) : e)); tic(n => n + 1); }, 15_000); return () => clearInterval(t); }, []);
 
+  const clips = useRef<ClipAudio[]>([]);
+
   const suivante = useCallback(async (j: Jeu, d: string) => {
     setRetour(null); setChoisis([]); setManque(false); setChoixQcm(null);
+    if (j === 'son' || j === 'dictee') {
+      for (let essai = 0; essai < 4; essai++) {
+        if (clips.current.length === 0) clips.current = await chargerClipsAudio(d, 12).catch(() => []);
+        const clip = clips.current.pop();
+        if (!clip) break;
+        if (j === 'son') { const q = construireQcmAudio(clip, await catalogue.aleatoires(d, 40)); if (q) return setQuestion({ jeu: 'son', q }); }
+        else { const q = construireOrdreAudio(clip); if (q) return setQuestion({ jeu: 'dictee', q }); }
+      }
+      setQuestion(null); setManque(true);
+      return;
+    }
     for (let essai = 0; essai < 6; essai++) {
       if (pool.current.length < 12) pool.current = (await catalogue.aleatoires(d, 60)).filter(jouable);
       const fiche = pool.current.pop();
@@ -52,7 +91,7 @@ export function Onenji() {
     setQuestion(null); setManque(true);
   }, []);
 
-  const demarrer = (j: Jeu) => { setJeu(j); setSerie({ bonnes: 0, total: 0 }); pool.current = []; suivante(j, dialecte); };
+  const demarrer = (j: Jeu) => { setJeu(j); setSerie({ bonnes: 0, total: 0 }); pool.current = []; clips.current = []; suivante(j, dialecte); };
   const quitter = () => { setJeu(null); setQuestion(null); setRetour(null); };
 
   const repondre = (ok: boolean, bonne: string) => {
@@ -118,7 +157,11 @@ export function Onenji() {
 
       {manque && (
         <View style={s.carte}>
-          <Text style={s.texte}>Pas assez de fiches {dialecte} pour ce jeu. Ouvrez Contribuer pour télécharger le catalogue, ou choisissez un autre dialecte.</Text>
+          <Text style={s.texte}>
+            {jeu === 'son' || jeu === 'dictee'
+              ? `Pas encore assez d’enregistrements validés en ${dialecte} (une voix compte seulement une fois approuvée par un validateur). Essaie un autre dialecte ou un autre jeu.`
+              : `Pas assez de fiches ${dialecte} pour ce jeu. Ouvrez Contribuer pour télécharger le catalogue, ou choisissez un autre dialecte.`}
+          </Text>
         </View>
       )}
 
@@ -137,9 +180,25 @@ export function Onenji() {
         </View>
       )}
 
-      {question?.jeu === 'ordre' && (
+      {question?.jeu === 'son' && (
         <View style={s.carte}>
-          <Text style={s.enonce}>{question.q.enonce}</Text>
+          <Ecoute clip={question.q.clip} />
+          {question.q.options.map((o, i) => {
+            const bon = i === question.q.bonne;
+            return (
+              <Pressable key={i} disabled={!!retour} onPress={() => { setChoixQcm(i); repondre(bon, question.q.options[question.q.bonne]); }}
+                style={[s.option, !!retour && bon && s.optionBonne, !!retour && !bon && choixQcm === i && s.optionFausse]}>
+                <Text style={s.optionTexte}>{o}</Text>
+              </Pressable>
+            );
+          })}
+          {!!retour && <Text style={s.discret}>{question.q.clip.frenchText}</Text>}
+        </View>
+      )}
+
+      {(question?.jeu === 'ordre' || question?.jeu === 'dictee') && (
+        <View style={s.carte}>
+          {question.jeu === 'dictee' ? <Ecoute clip={question.q.clip} /> : <Text style={s.enonce}>{question.q.enonce}</Text>}
           <View style={s.reponse}>
             {choisis.length === 0 && <Text style={s.discret}>Touche les mots dans l’ordre…</Text>}
             {choisis.map((idx, k) => (
@@ -190,6 +249,7 @@ const s = StyleSheet.create({
   mot: { backgroundColor: couleurs.carte, borderColor: couleurs.terre, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   motTexte: { color: couleurs.ambre, fontSize: 16, fontWeight: '700' },
   bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  ecoute: { backgroundColor: '#0d9488', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 14 },
   puce: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: couleurs.carte },
   puceActive: { backgroundColor: couleurs.terre },

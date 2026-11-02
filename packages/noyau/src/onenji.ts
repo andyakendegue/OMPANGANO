@@ -1,3 +1,4 @@
+import { api } from './api';
 import type { QuestionnaireItem } from './types';
 
 /**
@@ -102,3 +103,29 @@ export function construireOrdre(fiche: QuestionnaireItem, hasard: Hasard = Math.
 
 /** Un autre ordre est accepté s'il donne exactement la même phrase (mots répétés). */
 export const ordreCorrect = (propose: string[], q: Pick<Ordre, 'solution'>) => cle(propose.join(' ')) === cle(q.solution.join(' '));
+
+// ------------------------------------------------------------------ jeux sonores
+
+/** Enregistrement validé d'un locuteur (route /v1/games/audio : voix approuvée et autorisation d'usage donnée). */
+export interface ClipAudio { id: string; itemId: string; dialect: string; myeneText: string; frenchText: string; audioUrl: string }
+
+export const chargerClipsAudio = (dialecte: string | null, n = 12) =>
+  api<ClipAudio[]>('GET', `/v1/games/audio?limit=${n}${dialecte ? `&dialect=${encodeURIComponent(dialecte)}` : ''}`);
+
+const ficheDuClip = (c: ClipAudio) => ({ id: c.itemId, myeneText: c.myeneText, frenchText: c.frenchText, dialect: c.dialect, status: 'active' }) as QuestionnaireItem;
+
+export interface QcmAudio { clip: ClipAudio; options: string[]; bonne: number }
+
+/** Contrôle 1 : un son est émis, on touche la phrase correspondante. L'énoncé écrit n'est jamais montré. */
+export function construireQcmAudio(clip: ClipAudio, autres: QuestionnaireItem[], nbOptions = 4, hasard: Hasard = Math.random): QcmAudio | null {
+  const q = construireQcm(ficheDuClip(clip), autres, nbOptions, hasard);
+  return q ? { clip, options: q.options, bonne: q.bonne } : null;
+}
+
+export interface OrdreAudio extends Ordre { clip: ClipAudio }
+
+/** Dictée sonore : on écoute la phrase puis on remet ses mots dans l'ordre. */
+export function construireOrdreAudio(clip: ClipAudio, hasard: Hasard = Math.random): OrdreAudio | null {
+  const o = construireOrdre(ficheDuClip(clip), hasard);
+  return o ? { ...o, clip } : null;
+}
