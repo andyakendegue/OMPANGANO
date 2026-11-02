@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut as fbSignOut } from 'firebase/auth';
-import { chargerProfil, messageErreurAuth, type UserProfile } from '@nkala/noyau';
+import { basculerFavori, chargerProfil, enregistrerFavoris, messageErreurAuth, type UserProfile } from '@nkala/noyau';
 import { auth } from './firebase';
 
 interface Etat {
@@ -11,6 +11,8 @@ interface Etat {
   connexion: (email: string, mdp: string, creer: boolean) => Promise<void>;
   deconnexion: () => Promise<void>;
   recharger: () => Promise<void>;
+  /** Ajoute ou retire une fiche des favoris (mise à jour immédiate, puis envoi au serveur). */
+  favori: (itemId: string) => Promise<void>;
 }
 
 const Ctx = createContext<Etat | null>(null);
@@ -51,6 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const deconnexion = useCallback(async () => { await fbSignOut(auth); setProfil(null); }, []);
 
-  const valeur = useMemo(() => ({ pret, profil, erreurProfil, connexion, deconnexion, recharger }), [pret, profil, erreurProfil, connexion, deconnexion, recharger]);
+  const favori = useCallback(async (itemId: string) => {
+    if (!profil) return;
+    const avant = profil.favoriteItemIds || [];
+    const apres = basculerFavori(avant, itemId);
+    setProfil({ ...profil, favoriteItemIds: apres });
+    try { await enregistrerFavoris(apres); }
+    catch { setProfil(p => (p ? { ...p, favoriteItemIds: avant } : p)); }
+  }, [profil]);
+
+  const valeur = useMemo(() => ({ pret, profil, erreurProfil, connexion, deconnexion, recharger, favori }), [pret, profil, erreurProfil, connexion, deconnexion, recharger, favori]);
   return <Ctx.Provider value={valeur}>{children}</Ctx.Provider>;
 }

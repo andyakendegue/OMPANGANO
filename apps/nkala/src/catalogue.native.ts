@@ -1,13 +1,13 @@
 import * as SQLite from 'expo-sqlite';
-import type { QuestionnaireItem, StockageCatalogue } from '@nkala/noyau';
+import { normaliserRecherche, texteRecherche, type QuestionnaireItem, type StockageCatalogue } from '@nkala/noyau';
 
 // Même schéma que le web (itemStore) : fiches indexées par dialecte, curseur de reprise dans « meta ».
 let dbp: Promise<SQLite.SQLiteDatabase> | null = null;
 const ouvrir = () => (dbp ??= (async () => {
-  const db = await SQLite.openDatabaseAsync('nkala_catalogue.db');
+  const db = await SQLite.openDatabaseAsync('nkala_catalogue_v2.db');
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY NOT NULL, dialect TEXT NOT NULL, data TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY NOT NULL, dialect TEXT NOT NULL, txt TEXT NOT NULL, data TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS items_dialect ON items (dialect, id);
     CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY NOT NULL, v TEXT);
   `);
@@ -25,7 +25,7 @@ export const catalogue: StockageCatalogue = {
     const db = await ouvrir();
     await db.withTransactionAsync(async () => {
       for (const f of fiches) {
-        await db.runAsync(`INSERT OR REPLACE INTO items (id, dialect, data) VALUES (?, ?, ?)`, [f.id, String(f.dialect || ''), JSON.stringify(f)]);
+        await db.runAsync(`INSERT OR REPLACE INTO items (id, dialect, txt, data) VALUES (?, ?, ?, ?)`, [f.id, String(f.dialect || ''), texteRecherche(f), JSON.stringify(f)]);
       }
       for (const id of supprimees) await db.runAsync(`DELETE FROM items WHERE id = ?`, [id]);
       if (curseur) await db.runAsync(`INSERT OR REPLACE INTO meta (k, v) VALUES ('curseur', ?)`, [curseur]);
@@ -47,5 +47,20 @@ export const catalogue: StockageCatalogue = {
       [dialecte, dialecte, apresId ?? '']
     );
     return row ? (JSON.parse(row.data) as QuestionnaireItem) : null;
+  },
+  async rechercher({ dialecte, texte, limite, decalage }) {
+    const db = await ouvrir();
+    const q = normaliserRecherche(texte || '');
+    const rows = await db.getAllAsync<{ data: string }>(
+      `SELECT data FROM items WHERE (? IS NULL OR dialect = ?) AND (? = '' OR instr(txt, ?) > 0) ORDER BY id LIMIT ? OFFSET ?`,
+      [dialecte ?? null, dialecte ?? null, q, q, limite, decalage]
+    );
+    return rows.map(r => JSON.parse(r.data) as QuestionnaireItem);
+  },
+  async parIds(ids) {
+    if (!ids.length) return [];
+    const db = await ouvrir();
+    const rows = await db.getAllAsync<{ data: string }>(`SELECT data FROM items WHERE id IN (${ids.map(() => '?').join(',')}) ORDER BY id`, ids);
+    return rows.map(r => JSON.parse(r.data) as QuestionnaireItem);
   },
 };

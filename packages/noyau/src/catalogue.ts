@@ -12,7 +12,24 @@ export interface StockageCatalogue {
   compter(): Promise<number>;
   /** Fiche suivante d'un dialecte (null = tous), après `apresId` dans l'ordre des identifiants. */
   suivante(dialecte: string | null, apresId: string | null): Promise<QuestionnaireItem | null>;
+  /** Recherche paginée (Ezango). `texte` cherche dans le français, le myènè et le contexte. */
+  rechercher(req: RechercheCatalogue): Promise<QuestionnaireItem[]>;
+  parIds(ids: string[]): Promise<QuestionnaireItem[]>;
 }
+
+export interface RechercheCatalogue {
+  dialecte?: string | null;
+  texte?: string;
+  limite: number;
+  decalage: number;
+}
+
+/** Texte de recherche d'une fiche (identique au web : itemStore.searchTextOf). */
+export const texteRecherche = (it: Pick<QuestionnaireItem, 'frenchText' | 'myeneText' | 'contextNotes'>): string =>
+  `${it.frenchText || ''}\u0001${it.myeneText || ''}\u0001${it.contextNotes || ''}`.toLowerCase();
+
+/** Minuscules sans accents, pour qu'une recherche « eau » trouve « Eau » et « éau ». */
+export const normaliserRecherche = (t: string): string => t.toLowerCase().normalize('NFC').trim();
 
 export interface Progression { fait: number; total: number }
 
