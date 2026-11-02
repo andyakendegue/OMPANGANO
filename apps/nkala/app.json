@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Nkala",
+    "slug": "nkala",
+    "scheme": "nkala",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": { "bundleIdentifier": "engineering.essaka.nkala", "supportsTablet": true },
+    "android": { "package": "engineering.essaka.nkala" },
+    "web": { "bundler": "metro", "output": "single" },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}
