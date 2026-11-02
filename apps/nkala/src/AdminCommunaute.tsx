@@ -5,6 +5,7 @@ import {
   nouveauBadge, nouveauDefi, supprimerBadge, supprimerDefi, TYPES_DEFI, type Badge, type WeeklyChallenge,
 } from '@nkala/noyau';
 import { Utilisateurs } from './Admin';
+import { NiveauxXp } from './AdminFraude';
 import { couleurs } from './theme';
 
 const avertir = (t: string, m: string) => (Platform.OS === 'web' ? (globalThis as any).alert?.(`${t}\n${m}`) : Alert.alert(t, m));
@@ -14,11 +15,11 @@ const confirmer = (titre: string, msg: string, ok: () => void) => {
 };
 const entier = (t: string) => Math.max(0, Math.trunc(Number(t) || 0));
 
-type Rubrique = 'utilisateurs' | 'defis' | 'badges';
+type Rubrique = 'utilisateurs' | 'defis' | 'badges' | 'niveaux';
 
 export function Communaute() {
   const [r, setR] = useState<Rubrique>('utilisateurs');
-  const rubriques: [Rubrique, string][] = [['utilisateurs', 'Utilisateurs'], ['defis', 'Défis'], ['badges', 'Badges']];
+  const rubriques: [Rubrique, string][] = [['utilisateurs', 'Utilisateurs'], ['defis', 'Défis'], ['badges', 'Badges'], ['niveaux', 'Niveaux XP']];
   return (
     <View style={{ gap: 12 }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -31,6 +32,7 @@ export function Communaute() {
       {r === 'utilisateurs' && <Utilisateurs />}
       {r === 'defis' && <Defis />}
       {r === 'badges' && <Badges />}
+      {r === 'niveaux' && <NiveauxXp />}
     </View>
   );
 }

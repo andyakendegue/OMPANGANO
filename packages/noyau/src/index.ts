@@ -10,3 +10,5 @@ export * from './profil';
 export * from './admin';
 export * from './contenu';
 export * from './recompenses';
+export * from './niveaux';
+export * from './fraude';
