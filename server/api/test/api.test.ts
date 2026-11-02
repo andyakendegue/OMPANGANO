@@ -443,3 +443,21 @@ test('GET /v1/games/audio : seulement les voix validées, consentement respecté
   assert.equal((await call('GET', '/v1/games/audio?dialect=galoa', jouer.token)).body.some((x: any) => x.id === a), false);
   assert.equal((await call('GET', '/v1/games/audio')).status, 401);
 });
+
+test('GET /v1/items/annotations : seulement les contributions validées, sans identité', async () => {
+  const a = await newUser('an');
+  const val = await newUser('an', { role: 'validator' });
+  const lecteur = await newUser('an');
+  const item = await newItem({ dialect: 'orungu', myeneText: 'Mbolo an', frenchText: 'Bonjour an' });
+  const ok = await submit(a, item, { dialectVariant: 'mpongwe', proposedSpelling: 'Mbôlo', proposedFrenchMeaning: 'Salut', secondaryMeaning: 'formule de respect' });
+  const attente = await submit(a, item, { dialectVariant: 'nkomi', proposedSpelling: 'Mbolé' });
+  await call('POST', `/v1/contributions/${ok}/validate`, val.token, { status: 'approved', spellingVerdict: 'correct', pronunciationVerdict: 'no_audio' });
+  const r = await call('GET', '/v1/items/annotations', lecteur.token);
+  assert.equal(r.status, 200);
+  const mine = r.body.filter((x: any) => x.itemId === item);
+  assert.equal(mine.length, 1, 'seule la contribution validée est exposée');
+  assert.deepEqual(mine[0], { itemId: item, variant: 'mpongwe', spelling: 'Mbôlo', frenchMeaning: 'Salut', secondaryMeaning: 'formule de respect' });
+  assert.ok(!JSON.stringify(r.body).includes(a.uid), 'aucun identifiant de contributeur');
+  assert.equal((await call('GET', '/v1/items/annotations')).status, 401);
+  void attente;
+});

@@ -1,4 +1,5 @@
 import { api } from './api';
+import { avecCache } from './cache';
 import type { TribeName } from './types';
 
 export interface LigneClassement {
@@ -17,7 +18,7 @@ export interface LigneClassement {
   badgesCount: number;
 }
 
-export const chargerClassement = () => api<LigneClassement[]>('GET', '/v1/leaderboard');
+export const chargerClassement = () => avecCache('classement', () => api<LigneClassement[]>('GET', '/v1/leaderboard'));
 
 /** Favoris : liste d'identifiants de fiches portée par le profil (PATCH /v1/me). */
 export const enregistrerFavoris = (ids: string[]) => api('PATCH', '/v1/me', { favoriteItemIds: ids });

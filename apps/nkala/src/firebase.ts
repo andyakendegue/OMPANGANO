@@ -3,7 +3,7 @@ import * as FirebaseAuth from 'firebase/auth';
 import { initializeAuth, getAuth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { configurerApi, setTokenProvider } from '@nkala/noyau';
+import { configurerApi, configurerCache, setTokenProvider } from '@nkala/noyau';
 import config from './firebase.config.json';
 
 // Même projet Firebase que le web (authentification seulement ; les données sont sur le VPS).
@@ -29,4 +29,10 @@ setTokenProvider(async (forceRefresh) => {
   } catch {
     return null;
   }
+});
+
+// Copie locale des lectures (clans, villages, thèmes, défis, badges, classement…) pour l'usage hors-ligne.
+configurerCache({
+  lire: (cle) => AsyncStorage.getItem(`nkala_${cle}_${auth.currentUser?.uid || 'anon'}`),
+  ecrire: (cle, valeur) => AsyncStorage.setItem(`nkala_${cle}_${auth.currentUser?.uid || 'anon'}`, valeur),
 });

@@ -1,10 +1,13 @@
 import { api } from './api';
+import { avecCache } from './cache';
 import type { ClanRegistry, QuestionnaireItem, ThemeDefinition, VillageRegistry } from './types';
 
 export type Collection = 'items' | 'themes' | 'clans' | 'villages';
 
 /** Lit une petite collection en entier (thèmes, clans, villages) par pages de synchronisation. */
-export async function lireCollection<T extends { id: string }>(nom: Collection): Promise<T[]> {
+export const lireCollection = <T extends { id: string }>(nom: Collection): Promise<T[]> => avecCache(`collection:${nom}`, () => lireCollectionReseau<T>(nom));
+
+async function lireCollectionReseau<T extends { id: string }>(nom: Collection): Promise<T[]> {
   const out: T[] = [];
   let curseur: string | null = null;
   for (;;) {

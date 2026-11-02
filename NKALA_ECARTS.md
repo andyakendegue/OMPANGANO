@@ -1,6 +1,6 @@
 # Nkala (Expo) — ce qui n'est PAS développé
 
-Établi le 2 novembre 2026, avant la fusion de `expo-nkala` dans `main`. Mesure des textes : `node apps/nkala/scripts/comparer-textes-web-expo.cjs [--detail]` (305 textes fixes sur 320 du site web reproduits, 95 %). Les textes longs (conditions, guide, FAQ, tribus) sont **générés depuis le code du site web** par les scripts de `apps/nkala/scripts/` : relancez-les après toute modification des textes du site.
+Établi le 2 novembre 2026, avant la fusion de `expo-nkala` dans `main`. Mesure des textes : `node apps/nkala/scripts/comparer-textes-web-expo.cjs [--detail]` (309 textes fixes sur 320 du site web reproduits, 97 %). Les textes longs (conditions, guide, FAQ, tribus) sont **générés depuis le code du site web** par les scripts de `apps/nkala/scripts/` : relancez-les après toute modification des textes du site.
 
 ## Règles de visibilité appliquées dans l'application Expo
 - Contributeur : Contribuer (fiche, Ezango, classement), Profil.
@@ -8,21 +8,18 @@
 - Administrateur : en plus, onglets **Administration** et **Apprendre** (Onenji). Les futures parties Ontci (écoute) et annonces/Nkala suivront la même règle (`MODULES` dans `packages/noyau/src/modules.ts`).
 - Le serveur reste seul juge des droits (les écrans ne sont qu'une commodité).
 
-## A. Partie contributeur : écarts avec le site web
-Le site web n'a pas été modifié (son bundle principal est identique octet pour octet avant/après fusion). Dans Expo, il manque :
-1. **Boutons « Simuler montée en rang (+XP) » et « Réinitialiser »** du classement (outils de démonstration qui simulent des points) : volontairement non repris.
-2. **Animations** : confettis à l'envoi, transitions de rang, podium animé, forme d'onde en direct de l'enregistreur (niveau sonore).
-3. **Ezango** : « Variante Tribu X » d'une même phrase dans une autre tribu ; encadré « autre tournure / sens secondaire » tiré des contributions d'autrui (non exposé par l'API pour des raisons de confidentialité).
-4. **Premier lancement hors-ligne** : le web affiche les 10 fiches du seed intégré en attendant le téléchargement ; Expo affiche « Premier téléchargement du catalogue… » (aucune fiche sans réseau tant que le pack n'est pas chargé une fois).
-5. **Flux temps réel** (`/v1/events`) : Expo relit au retour du réseau et au retour dans l'application, pas en continu toutes les minutes ; pas d'indicateur de progression d'envoi (« N restants ») dans l'en-tête.
-6. **Favoris hors-ligne** : mis en file par le web ; dans Expo ils exigent le réseau (annulés si le serveur ne répond pas).
-7. **Mutations d'administration hors-ligne** (file « admin » du web) : non reprises.
-8. **Bannière « Mise à jour disponible »** et **bouton d'installation PWA** : sans objet sur mobile (mises à jour par les magasins / `expo-updates` à configurer).
-9. **Fenêtre de connexion** (`AuthModal`) : remplacée par l'écran d'accès unique ; connexion par **téléphone** (Flutter) non reprise ; **Google mobile** inactif tant que les identifiants OAuth iOS/Android ne sont pas créés (voir `NKALA_EXPO.md`).
-10. **Notifications** : adaptées au mobile (autorisation, rappel quotidien) ; libellés « du navigateur » / IndexedDB remplacés ; pas de notifications push serveur (FCM).
-11. **Administration** : pas d'écran « Hébergement et domaine », ni d'assainissement destructif de la base, de re-seed, ni de synchronisation Firebase (liés au seed Firebase d'origine).
-12. **Valeurs par défaut du web non reprises volontairement** : date de naissance « 1995-05-15 », lieu « Lambaréné » et tribu « Enenga » pré-remplis dans l'inscription (données factices) ; clans/villages d'exemple de la fiche de profil (« Avandji », « Imvona ») conservés comme textes de repli seulement.
-13. **Non testé sur appareil** : aucune de ces fonctions n'a été exécutée sur iPhone/Android/simulateur (seulement compilées et exportées).
+## A. Partie contributeur : état après la mise à niveau complète (2 nov. 2026, branche `contributeur-complet`)
+Le site web n'a pas été modifié (même code ; seuls les noms hachés des fichiers générés peuvent varier d'une compilation à l'autre). Textes : **309 / 320 reproduits (97 %)** ; les 11 restants sont des artefacts de composition (marque « Nkala » + « ESSAKA » en deux éléments, « Tribu » + nom) ou des mots propres au navigateur remplacés volontairement (« Notifications Push du Navigateur », « IndexedDB ») ou la fenêtre de connexion en double (`AuthModal`), inutile puisque l'écran d'accès précède toute l'application.
+
+**Reproduit depuis la liste précédente des écarts :** boutons « Simuler montée en rang (+XP) » / « Réinitialiser » (simulation locale, rien n'est écrit) ; confettis à l'envoi ; forme d'onde en direct de l'enregistreur (niveau micro) ; podium et transitions de rang animées avec indicateurs « ▲ +N rangs / +N XP » ; « Variante Tribu X », tribus supplémentaires d'une fiche et « Autre tournure / Sens secondaire » dans Ezango (via la nouvelle route `GET /v1/items/annotations`, limitée aux contributions **validées** et sans identité : plus strict que le site web, qui lit toutes les contributions) ; fiches de secours du site (10 fiches) avant le premier téléchargement, avec tribus et compteurs ; flux de modifications du serveur (`/v1/events`) + relecture au retour du réseau, au retour dans l'application et toutes les minutes ; indicateurs « Téléchargement x / y » et « N restants » dans l'en-tête ; favoris gardés hors-ligne et renvoyés ensuite ; contributions encore sur l'appareil visibles et supprimables dans « Mes contributions » ; copie locale des clans, villages, thèmes, défis, badges, classement et de l'historique pour l'usage hors-ligne ; bannière « Mise à jour disponible » (EAS Update) ; bouton « Installer l'App » (version web d'Expo uniquement).
+
+**Reste :**
+1. **À déployer sur le VPS** : la route `GET /v1/items/annotations` (45 tests verts) ; sans elle Ezango n'affiche simplement pas les variantes ni les nuances.
+2. **Google mobile** : inactif tant que les identifiants OAuth iOS/Android ne sont pas créés (`NKALA_EXPO.md`).
+3. **Mises à jour de code** : la bannière ne fonctionnera qu'après `eas update:configure` (adresse de mise à jour du projet EAS) ; `runtimeVersion` est déjà réglé.
+4. **Valeurs factices du web volontairement non reprises** : date de naissance « 1995-05-15 », lieu « Lambaréné » et tribu « Enenga » pré-remplis dans l'inscription.
+5. **Mutations d'administration hors-ligne** (file « admin » du web) : non reprises (partie administration, pas contributeur).
+6. **Non testé sur appareil** : aucune fonction n'a été exécutée sur iPhone/Android/simulateur ; en particulier le flux temps réel (`expo/fetch` en continu), les notifications, le micro et les mises à jour de code. La logique pure (cache hors-ligne, annotations, lecture du flux) est testée.
 
 ## B. Nkala existant (`~/Projets/nkala-app`, Flutter, ≈ 13 000 lignes) : rien n'est porté, sauf l'idée d'ensemble
 - **Annonces** (19 fichiers) : catégories et sous-catégories, création d'annonce, sélection de lieu sur carte, liste, détail, cartes d'annonce, dépôt (repository) Firestore/web.
