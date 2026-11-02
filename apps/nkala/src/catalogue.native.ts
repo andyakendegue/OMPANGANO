@@ -57,6 +57,11 @@ export const catalogue: StockageCatalogue = {
     );
     return rows.map(r => JSON.parse(r.data) as QuestionnaireItem);
   },
+  async aleatoires(dialecte, n) {
+    const db = await ouvrir();
+    const rows = await db.getAllAsync<{ data: string }>(`SELECT data FROM items WHERE (? IS NULL OR dialect = ?) ORDER BY random() LIMIT ?`, [dialecte ?? null, dialecte ?? null, n]);
+    return rows.map(r => JSON.parse(r.data) as QuestionnaireItem);
+  },
   async parIds(ids) {
     if (!ids.length) return [];
     const db = await ouvrir();

@@ -1,4 +1,4 @@
-import { normaliserRecherche, texteRecherche, type QuestionnaireItem, type StockageCatalogue } from '@nkala/noyau';
+import { melanger, normaliserRecherche, texteRecherche, type QuestionnaireItem, type StockageCatalogue } from '@nkala/noyau';
 
 // Sur le web, l'application d'origine (src/) garde IndexedDB ; ici une copie en mémoire suffit à l'aperçu.
 const fiches = new Map<string, QuestionnaireItem>();
@@ -26,6 +26,9 @@ export const catalogue: StockageCatalogue = {
     return [...fiches.keys()].sort().map(id => fiches.get(id)!)
       .filter(f => (!dialecte || f.dialect === dialecte) && (!q || texteRecherche(f).includes(q)))
       .slice(decalage, decalage + limite);
+  },
+  async aleatoires(dialecte, n) {
+    return melanger([...fiches.values()].filter(f => !dialecte || f.dialect === dialecte)).slice(0, n);
   },
   async parIds(ids) {
     return ids.map(id => fiches.get(id)).filter((f): f is QuestionnaireItem => !!f);

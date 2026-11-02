@@ -15,6 +15,8 @@ export interface StockageCatalogue {
   /** Recherche paginée (Ezango). `texte` cherche dans le français, le myènè et le contexte. */
   rechercher(req: RechercheCatalogue): Promise<QuestionnaireItem[]>;
   parIds(ids: string[]): Promise<QuestionnaireItem[]>;
+  /** `n` fiches tirées au hasard (jeux). */
+  aleatoires(dialecte: string | null, n: number): Promise<QuestionnaireItem[]>;
   /** Fiches au même dialecte et au même texte (lecture seule, pour l'audit). */
   doublons(limite: number): Promise<{ dialecte: string; texte: string; ids: string[] }[]>;
 }

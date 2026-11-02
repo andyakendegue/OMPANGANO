@@ -14,3 +14,4 @@ export * from './niveaux';
 export * from './fraude';
 export * from './export';
 export * from './inscription';
+export * from './onenji';
