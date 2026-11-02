@@ -14,6 +14,16 @@ const ouvrir = () => (dbp ??= (async () => {
   return db;
 })());
 
+function filtre({ dialecte, texte, categorie, dialectes }: { dialecte?: string | null; texte?: string; categorie?: string | null; dialectes?: string[] }) {
+  const c: string[] = []; const params: (string | number)[] = [];
+  if (dialecte) { c.push('dialect = ?'); params.push(dialecte); }
+  if (dialectes?.length) { c.push(`dialect IN (${dialectes.map(() => '?').join(',')})`); params.push(...dialectes); }
+  if (categorie) { c.push(`COALESCE(json_extract(data, '$.category'), json_extract(data, '$.theme'), 'general') = ?`); params.push(categorie); }
+  const q = normaliserRecherche(texte || '');
+  if (q) { c.push('instr(txt, ?) > 0'); params.push(q); }
+  return { sql: c.length ? `WHERE ${c.join(' AND ')}` : '', params };
+}
+
 export const catalogue: StockageCatalogue = {
   async lireCurseur() {
     const db = await ouvrir();
@@ -48,14 +58,43 @@ export const catalogue: StockageCatalogue = {
     );
     return row ? (JSON.parse(row.data) as QuestionnaireItem) : null;
   },
-  async rechercher({ dialecte, texte, limite, decalage }) {
+  async rechercher({ dialecte, texte, categorie, dialectes, limite, decalage }) {
     const db = await ouvrir();
-    const q = normaliserRecherche(texte || '');
-    const rows = await db.getAllAsync<{ data: string }>(
-      `SELECT data FROM items WHERE (? IS NULL OR dialect = ?) AND (? = '' OR instr(txt, ?) > 0) ORDER BY id LIMIT ? OFFSET ?`,
-      [dialecte ?? null, dialecte ?? null, q, q, limite, decalage]
-    );
+    const { sql, params } = filtre({ dialecte, texte, categorie, dialectes });
+    const rows = await db.getAllAsync<{ data: string }>(`SELECT data FROM items ${sql} ORDER BY id LIMIT ? OFFSET ?`, [...params, limite, decalage]);
     return rows.map(r => JSON.parse(r.data) as QuestionnaireItem);
+  },
+  async compterRecherche(req) {
+    const db = await ouvrir();
+    const { sql, params } = filtre(req);
+    return (await db.getFirstAsync<{ n: number }>(`SELECT count(*) AS n FROM items ${sql}`, params))?.n ?? 0;
+  },
+  async compteursThemes(dialectes) {
+    const db = await ouvrir();
+    const rows = await db.getAllAsync<{ c: string; n: number }>(
+      `SELECT COALESCE(json_extract(data, '$.category'), json_extract(data, '$.theme'), 'general') AS c, count(*) AS n FROM items ${dialectes?.length ? `WHERE dialect IN (${dialectes.map(() => '?').join(',')})` : ''} GROUP BY c`,
+      dialectes?.length ? dialectes : []
+    );
+    return Object.fromEntries(rows.map(r => [r.c, r.n]));
+  },
+  async identifiants({ dialectes, categorie }) {
+    const db = await ouvrir();
+    const clauses: string[] = [];
+    const params: (string | number)[] = [];
+    if (dialectes?.length) { clauses.push(`dialect IN (${dialectes.map(() => '?').join(',')})`); params.push(...dialectes); }
+    if (categorie) { clauses.push(`COALESCE(json_extract(data, '$.category'), json_extract(data, '$.theme')) = ?`); params.push(categorie); }
+    const rows = await db.getAllAsync<{ id: string }>(`SELECT id FROM items${clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''} ORDER BY id`, params);
+    return rows.map(r => r.id);
+  },
+  async compteursDialectes() {
+    const db = await ouvrir();
+    const rows = await db.getAllAsync<{ dialect: string; n: number }>(`SELECT dialect, count(*) AS n FROM items GROUP BY dialect`);
+    return Object.fromEntries(rows.map(r => [r.dialect, r.n]));
+  },
+  async fiche(id) {
+    const db = await ouvrir();
+    const row = await db.getFirstAsync<{ data: string }>(`SELECT data FROM items WHERE id = ?`, [id]);
+    return row ? (JSON.parse(row.data) as QuestionnaireItem) : null;
   },
   async aleatoires(dialecte, n) {
     const db = await ouvrir();

@@ -18,6 +18,8 @@ export async function lireCollection<T extends { id: string }>(nom: Collection):
   return out;
 }
 
+export const chargerThemes = () => lireCollection<ThemeDefinition>('themes');
+
 export const enregistrerElement = (nom: Collection, id: string, donnees: object) =>
   api('PUT', `/v1/${nom}/${encodeURIComponent(id)}`, donnees);
 

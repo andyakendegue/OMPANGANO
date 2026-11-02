@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { chargerClassement, type LigneClassement } from '@nkala/noyau';
+import { chargerClassement, niveauPourXp, USER_LEVELS, type LigneClassement } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { MesBadges } from './Recompenses';
 import { couleurs } from './theme';
 
 const TRIBUS = ['Toutes', 'Ôrungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
+const nomTribu = (t: string) => (t === 'Toutes' ? 'Toutes les Tribus' : t);
 const MEDAILLES = ['🥇', '🥈', '🥉'];
 
 export function Classement() {
@@ -39,21 +40,32 @@ export function Classement() {
   return (
     <View style={{ gap: 10 }}>
       {erreur && <Text style={s.erreur}>Classement indisponible : {erreur}</Text>}
-      {moi && (
-        <View style={[s.ligne, s.moi]}>
-          <Text style={s.rang}>#{rangs.get(moi.id)}</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.nom}>Vous · {moi.level}</Text>
-            <Text style={s.discret}>{moi.contributionsCount} contributions · {moi.recordingsCount} voix · {moi.badgesCount} badges</Text>
-          </View>
-          <Text style={s.xp}>{moi.xp} XP</Text>
-        </View>
-      )}
+      <View style={s.entete}>
+        <Text style={s.nomJoueur}>{profil?.fullName || profil?.displayName || 'Contributeur Nkala'}</Text>
+        <Text style={s.discret}>Niv. {niveauPourXp(profil?.xp || 0).index} · {niveauPourXp(profil?.xp || 0).name}</Text>
+        <Text style={s.discret}>Tribu {profil?.tribe || 'Myènè'} • {profil?.villageOfOrigin || 'Village non spécifié'}</Text>
+        <Text style={s.xpGrand}>{profil?.xp || 0} Points XP</Text>
+        <Text style={s.discret}>Série : {profil?.streakDays || 1} jours</Text>
+        {(() => {
+          const n = niveauPourXp(profil?.xp || 0);
+          const suivant = USER_LEVELS.find(l => l.index === n.index + 1);
+          const p = suivant ? Math.min(100, Math.round((((profil?.xp || 0) - n.minXp) / Math.max(1, suivant.minXp - n.minXp)) * 100)) : 100;
+          return (<>
+            <Text style={s.discret}>Vers le niveau suivant  {suivant ? `${profil?.xp || 0} / ${suivant.minXp} XP` : 'Niveau MAX'}</Text>
+            <View style={s.piste}><View style={[s.rempli, { width: `${p}%` }]} /></View>
+            <Text style={s.discret}>{n.name}  →  {suivant ? suivant.name : 'Maîtrise Suprême'}</Text>
+          </>);
+        })()}
+      </View>
+      <MesBadges />
+      <Text style={s.h}>Classement Mondial des Contributeurs</Text>
+      <Text style={s.discret}>En direct de l'Ogooué & de l'Estuaire • Transitions de rang dynamiques</Text>
+      {moi && <Text style={s.discret}>Votre rang : #{rangs.get(moi.id)}</Text>}
       <TextInput style={s.champ} placeholder="Chercher un contributeur" placeholderTextColor={couleurs.discret} value={nom} onChangeText={setNom} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {TRIBUS.map(t => (
           <Pressable key={t} onPress={() => setTribu(t)} style={[s.puce, tribu === t && s.puceActive]}>
-            <Text style={[s.puceTexte, tribu === t && { color: '#fff', fontWeight: '700' }]}>{t}</Text>
+            <Text style={[s.puceTexte, tribu === t && { color: '#fff', fontWeight: '700' }]}>{nomTribu(t)}</Text>
           </Pressable>
         ))}
       </ScrollView>
@@ -89,6 +101,12 @@ const s = StyleSheet.create({
   puce: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: couleurs.carte },
   puceActive: { backgroundColor: couleurs.terre },
   puceTexte: { color: couleurs.texte, fontSize: 12, fontWeight: '600' },
+  entete: { backgroundColor: couleurs.carte, borderColor: couleurs.ambre, borderWidth: 1, borderRadius: 16, padding: 14, gap: 4 },
+  nomJoueur: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  xpGrand: { color: couleurs.ambre, fontSize: 20, fontWeight: '900' },
+  piste: { height: 8, borderRadius: 4, backgroundColor: couleurs.fond, overflow: 'hidden' },
+  rempli: { height: 8, backgroundColor: couleurs.ambre },
+  h: { color: '#fff', fontSize: 16, fontWeight: '800', marginTop: 8 },
   lien: { color: couleurs.ambre, textAlign: 'center', fontSize: 13, fontWeight: '600' },
   erreur: { color: '#fca5a5', fontSize: 13 },
 });

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAudioPlayer } from 'expo-audio';
 import {
-  chargerFileModeration, chargerUtilisateurs, estAdmin, evaluerContribution, LIBELLE_COMPTE, LIBELLE_ROLE,
+  chargerFileModeration, chargerUtilisateurs, tribuDuDialecte, estAdmin, evaluerContribution, LIBELLE_COMPTE, LIBELLE_ROLE,
   LIBELLE_STATUT, modifierUtilisateur, resoudreMedia,
   type AccountStatus, type Contribution, type FileModeration, type UserProfile, type UserRole,
   type VerdictOrthographe, type VerdictPrononciation,
@@ -52,32 +52,40 @@ export function Pilotage() {
   );
 }
 
-// ---------------------------------------------------------------- Modération (validation vocale)
+// ---------------------------------------------------------------- Modération : Studio de Relecture & Validation des Aînés
+// (mêmes textes, mêmes filtres et mêmes règles de décision que ValidatorWorkspace du site web)
 
-function Ecoute({ valeur }: { valeur: string }) {
+function Ecoute({ valeur, duree }: { valeur: string; duree?: number }) {
   const [url, setUrl] = useState<string | null>(null);
   const [err, setErr] = useState(false);
+  const [joue, setJoue] = useState(false);
   const player = useAudioPlayer(url ? { uri: url } : null);
   const lire = async () => {
     try {
       if (!url) { setUrl(await resoudreMedia(valeur)); return; }
-      player.seekTo(0); player.play();
+      if (player.playing) { player.pause(); setJoue(false); } else { player.seekTo(0); player.play(); setJoue(true); }
     } catch { setErr(true); }
   };
-  // Après la résolution de l'adresse, la lecture démarre.
-  useEffect(() => { if (url) { player.play(); } }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (url) { player.play(); setJoue(true); } }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <Pressable onPress={lire} style={s.ecoute}>
-      <Text style={s.boutonTexte}>{err ? 'Lecture impossible' : '▶ Écouter l’enregistrement'}</Text>
+      <Text style={s.boutonTexte}>{err ? 'Lecture impossible' : joue ? '⏸ Mettre en pause' : '▶ Écouter la voix'}{duree ? `   ${Math.round(duree)} sec` : ''}</Text>
     </Pressable>
   );
 }
 
 function CarteModeration({ c, surFait }: { c: Contribution; surFait: () => void }) {
-  const [ortho, setOrtho] = useState<VerdictOrthographe>('correct');
-  const [prono, setProno] = useState<VerdictPrononciation>(c.audioUrl ? 'correct' : 'no_audio');
+  const aVoix = !!c.audioUrl;
+  const [ortho, setOrtho] = useState<VerdictOrthographe>(c.isSpellingCorrect === false ? 'incorrect' : 'correct');
+  const [prono, setProno] = useState<VerdictPrononciation>(aVoix ? 'correct' : 'no_audio');
   const [notes, setNotes] = useState('');
   const [occupe, setOccupe] = useState(false);
+
+  const verdict =
+    ortho === 'correct' && (prono === 'correct' || prono === 'no_audio') ? { t: '✨ Prêt à valider : Tout est correct', c: '#34d399' }
+    : ortho === 'incorrect' && prono === 'correct' ? { t: '🎙️ Nuance : Prononciation retenue • Orthographe à corriger', c: '#fcd34d' }
+    : ortho === 'correct' && prono === 'incorrect' ? { t: '✍️ Nuance : Écrit validé • Prononciation à réenregistrer', c: '#7dd3fc' }
+    : { t: '❌ À rejeter : Écrit et prononciation non conformes', c: '#fb7185' };
 
   const valider = async () => {
     setOccupe(true);
@@ -87,49 +95,125 @@ function CarteModeration({ c, surFait }: { c: Contribution; surFait: () => void 
 
   return (
     <View style={s.carte}>
-      <Text style={s.discret}>{c.userDisplayName} · {c.dialectVariant || c.userTribe || ''} · {(c.createdAt || '').slice(0, 10)}</Text>
-      <Text style={s.myene}>{c.originalMyeneText}</Text>
-      {!!c.proposedSpelling && c.proposedSpelling !== c.originalMyeneText && <Text style={s.texte}>Orthographe proposée : {c.proposedSpelling}</Text>}
-      <Text style={s.texteClair}>{c.frenchText}</Text>
-      {!!c.comment && <Text style={s.discret}>« {c.comment} »</Text>}
-      {!c.isSpellingCorrect && <Text style={s.discret}>Le contributeur juge l’orthographe incorrecte.</Text>}
+      <Text style={s.discret}>Expression Française :</Text>
+      <Text style={s.texteClair}>« {c.frenchText} »</Text>
+      <Text style={s.texte}>Texte initial Myènè : <Text style={{ fontWeight: '800', color: couleurs.ambre }}>{c.originalMyeneText}</Text></Text>
+      <Text style={s.nom}>{c.userDisplayName}</Text>
+      <Text style={s.discret}>{c.userTribe ? `Tribu ${c.userTribe}` : 'Tribu non renseignée'} • {new Date(c.createdAt).toLocaleDateString()}</Text>
 
-      {c.audioUrl && <Ecoute valeur={c.audioUrl} />}
+      <View style={s.colonne}>
+        <View style={s.ligneSimple}>
+          <Text style={s.etiquette}>1. Évaluation de l'Écrit & du Sens</Text>
+          <Text style={[s.pastille, { color: ortho === 'correct' ? '#34d399' : '#fb7185' }]}>{ortho === 'correct' ? 'Écrit Valide ✅' : 'Écrit Incorrect ❌'}</Text>
+        </View>
+        <Text style={s.discret}>Proposition orthographique Myènè :</Text>
+        <Text style={s.myene}>{c.proposedSpelling || c.originalMyeneText}</Text>
+        {!!c.dialectVariant && <Text style={s.discret}>Variante dialectale signalée : {tribuDuDialecte(c.dialectVariant)}</Text>}
+        {(!!c.proposedFrenchMeaning || !!c.secondaryMeaning) && (
+          <View style={{ gap: 2 }}>
+            <Text style={s.alerteOr}>💡 Précision sur la signification en français ({c.frenchMeaningType === 'autre_tournure' ? 'Autre tournure' : c.frenchMeaningType === 'sens_secondaire' ? 'Sens secondaire' : 'Signification corrigée'})</Text>
+            {!!c.proposedFrenchMeaning && <Text style={s.texte}>Sens / Tournure : « {c.proposedFrenchMeaning} »</Text>}
+            {!!c.secondaryMeaning && <Text style={s.texte}>Sens secondaire / figuré : « {c.secondaryMeaning} »</Text>}
+          </View>
+        )}
+        {!!c.comment && <Text style={s.discret}>« {c.comment} »</Text>}
+        <Choix valeurs={[['correct', "L'écrit est bon"], ['incorrect', 'Mal écrit / Faute']]} actif={ortho} onChoix={v => setOrtho(v as VerdictOrthographe)} />
+      </View>
 
-      <Text style={s.etiquette}>Orthographe</Text>
-      <Choix valeurs={[['correct', 'Correcte'], ['incorrect', 'Incorrecte']]} actif={ortho} onChoix={v => setOrtho(v as VerdictOrthographe)} />
-      <Text style={s.etiquette}>Prononciation</Text>
-      <Choix
-        valeurs={c.audioUrl ? [['correct', 'Correcte'], ['incorrect', 'Incorrecte']] : [['no_audio', 'Pas d’audio']]}
-        actif={prono} onChoix={v => setProno(v as VerdictPrononciation)}
-      />
-      <TextInput style={s.champ} placeholder="Note pour le contributeur (facultatif)" placeholderTextColor={couleurs.discret} value={notes} onChangeText={setNotes} multiline />
+      <View style={s.colonne}>
+        <View style={s.ligneSimple}>
+          <Text style={s.etiquette}>2. Évaluation de l'Oral</Text>
+          <Text style={[s.pastille, { color: !aVoix ? '#a8a29e' : prono === 'correct' ? '#34d399' : '#fb7185' }]}>
+            {!aVoix ? 'Sans Audio' : prono === 'correct' ? 'Prononciation Bonne 🎙️' : 'Mauvaise Prononciation ❌'}
+          </Text>
+        </View>
+        {aVoix ? (
+          <>
+            <Ecoute valeur={c.audioUrl!} duree={c.audioDuration} />
+            <Choix valeurs={[['correct', 'Prononciation bonne'], ['incorrect', 'À réenregistrer']]} actif={prono} onChoix={v => setProno(v as VerdictPrononciation)} />
+          </>
+        ) : <Text style={s.discret}>Aucun enregistrement vocal joint à cette proposition.</Text>}
+      </View>
+
+      <Text style={[s.verdict, { color: verdict.c, borderColor: verdict.c }]}>{verdict.t}</Text>
+      <Text style={s.etiquette}>Remarque bienveillante du validateur à l'attention du contributeur (optionnel) :</Text>
+      <TextInput style={s.champ} value={notes} onChangeText={setNotes} multiline
+        placeholder="Ex: La voyelle finale doit être allongée / Attention au ton descendant sur l'avant-dernière syllabe..." placeholderTextColor={couleurs.discret} />
       <Pressable style={[s.bouton, occupe && { opacity: 0.6 }]} onPress={valider} disabled={occupe}>
-        {occupe ? <ActivityIndicator color="#fff" /> : <Text style={s.boutonTexte}>Enregistrer l’évaluation</Text>}
+        {occupe ? <ActivityIndicator color="#fff" /> : <Text style={s.boutonTexte}>Enregistrer la décision du Validateur</Text>}
       </Pressable>
+      {occupe && <Text style={s.discret}>Validation en cours...</Text>}
     </View>
   );
 }
 
+type FiltreStatut = 'pending' | 'approved' | 'audio_approved_text_revision' | 'text_approved_audio_revision' | 'all';
+
 export function Moderation() {
+  const { profil } = useAuth();
+  const [filtre, setFiltre] = useState<FiltreStatut>('pending');
+  const [tribu, setTribu] = useState('all');
+  const [q, setQ] = useState('');
   const [file, setFile] = useState<FileModeration | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
-  const charger = useCallback(async () => {
-    try { setFile(await chargerFileModeration('pending', 20)); setErreur(null); }
+  const charger = useCallback(async (f: FiltreStatut) => {
+    setFile(null);
+    try { setFile(await chargerFileModeration(f, 30)); setErreur(null); }
     catch (e) { setErreur((e as Error).message); }
   }, []);
-  useEffect(() => { charger(); }, [charger]);
+  useEffect(() => { charger(filtre); }, [charger, filtre]);
 
-  if (erreur) return <Text style={s.erreur}>Indisponible : {erreur}</Text>;
-  if (!file) return <ActivityIndicator color={couleurs.ambre} />;
+  const visibles = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return (file?.records || []).filter(c =>
+      c.userId !== profil?.id &&
+      (tribu === 'all' || tribuDuDialecte(c.userTribe) === tribu || tribuDuDialecte(c.dialectVariant) === tribu) &&
+      (!t || `${c.frenchText} ${c.originalMyeneText} ${c.proposedSpelling} ${c.proposedFrenchMeaning} ${c.secondaryMeaning} ${c.userDisplayName} ${c.userTribe}`.toLowerCase().includes(t)));
+  }, [file, q, tribu, profil?.id]);
+
+  const n = (st: string) => (file?.counts as Record<string, number> | undefined)?.[st] || 0;
+  const total = Object.values(file?.counts || {}).reduce((a, b) => a + (b || 0), 0);
+
   return (
     <View style={{ gap: 12 }}>
-      <Text style={s.titre}>{file.counts.pending || 0} contribution(s) à évaluer</Text>
-      {file.records.length === 0 && <Text style={s.discret}>Rien en attente. Merci !</Text>}
-      {file.records.map(c => <CarteModeration key={c.id} c={c} surFait={() => setFile(f => f && { ...f, records: f.records.filter(x => x.id !== c.id), counts: { ...f.counts, pending: Math.max(0, (f.counts.pending || 0) - 1) } })} />)}
-      {(file.counts.pending || 0) > file.records.length && (
-        <Pressable onPress={charger}><Text style={s.lien}>Charger la suite ({(file.counts.pending || 0) - file.records.length} restantes)</Text></Pressable>
+      <Text style={s.discret}>Studio de Relecture & Validation des Aînés</Text>
+      <Text style={s.titre}>Validation Linguistique Myènè</Text>
+      <Text style={s.texte}>Évaluez avec nuance la justesse de l'écrit, du sens français et l'authenticité de la prononciation orale.</Text>
+      <Text style={s.titre}>En Attente d'Examen  {n('pending')}</Text>
+      <View style={s.carte}>
+        <Text style={s.etiquette}>Règle de validation nuancée (Oral vs Écrit) :</Text>
+        <Text style={s.texte}>🎙️ Cas 1 : Prononciation bonne, mais mal écrit L'enregistrement audio est clair et juste, mais la graphie comporte une faute. La voix est validée et archivée, tandis que l'écrit est renvoyé en révision.</Text>
+        <Text style={s.texte}>✍️ Cas 2 : Écrit bon, mais mauvaise prononciation L'orthographe et la variante sont impeccables, mais le ton, l'intonation ou la qualité sonore est à refaire. Le texte est validé et la voix est demandée à réenregistrer.</Text>
+      </View>
+
+      <View style={s.pile}>
+        {([['pending', `À Examiner  ${n('pending')}`], ['approved', `100% Validés (Oral + Écrit)  ${n('approved')}`],
+          ['audio_approved_text_revision', `🎙️ Voix Bonne (Écrit à corriger)  ${n('audio_approved_text_revision')}`],
+          ['text_approved_audio_revision', `✍️ Écrit Bon (Voix à refaire)  ${n('text_approved_audio_revision')}`]] as const).map(([id, nom]) => (
+          <Pressable key={id} onPress={() => setFiltre(id)} style={[s.tuile, filtre === id && s.tuileActive]}><Text style={[s.puceTexte, filtre === id && { color: '#fff' }]}>{nom}</Text></Pressable>
+        ))}
+      </View>
+
+      <TextInput style={s.champ} value={q} onChangeText={setQ} autoCapitalize="none" placeholder="Rechercher par expression française, mot Myènè, sens proposé, locuteur..." placeholderTextColor={couleurs.discret} />
+      <View style={s.pile}>
+        <Pressable onPress={() => setTribu('all')} style={[s.puce, tribu === 'all' && s.puceActive]}><Text style={[s.puceTexte, tribu === 'all' && s.puceTexteActif]}>Toutes les Tribus Myènè</Text></Pressable>
+        {['Enenga', 'Mpongwè', 'Galoa', 'Nkomi', 'Ôrungu', 'Adyumba'].map(t => (
+          <Pressable key={t} onPress={() => setTribu(t)} style={[s.puce, tribu === t && s.puceActive]}><Text style={[s.puceTexte, tribu === t && s.puceTexteActif]}>Tribu {t}</Text></Pressable>
+        ))}
+        <Pressable onPress={() => setFiltre('all')} style={[s.puce, filtre === 'all' && s.puceActive]}><Text style={[s.puceTexte, filtre === 'all' && s.puceTexteActif]}>Toutes ({total})</Text></Pressable>
+      </View>
+
+      {erreur && <Text style={s.erreur}>Indisponible : {erreur}</Text>}
+      {!file && !erreur && <ActivityIndicator color={couleurs.ambre} />}
+      {file && visibles.length === 0 && (
+        <View style={s.carte}>
+          <Text style={s.titre}>Aucune contribution en attente</Text>
+          <Text style={s.texte}>Toutes les réponses de ce filtre ont été traitées ou aucun résultat ne correspond à la recherche.</Text>
+        </View>
       )}
+      {visibles.map(c => (
+        <CarteModeration key={c.id} c={c} surFait={() => setFile(f => f && { ...f, records: f.records.filter(x => x.id !== c.id), counts: { ...f.counts, pending: Math.max(0, (f.counts.pending || 0) - 1) } })} />
+      ))}
     </View>
   );
 }
@@ -226,6 +310,14 @@ const s = StyleSheet.create({
   puce: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1 },
   puceActive: { backgroundColor: couleurs.terre, borderColor: couleurs.terre },
   puceTexte: { color: couleurs.texte, fontSize: 12, fontWeight: '600' },
+  colonne: { backgroundColor: couleurs.fond, borderRadius: 12, padding: 10, gap: 6 },
+  pastille: { fontSize: 11, fontWeight: '800' },
+  alerteOr: { color: '#fcd34d', fontSize: 12, fontWeight: '700' },
+  verdict: { fontSize: 12, fontWeight: '800', borderWidth: 1, borderRadius: 10, padding: 8 },
+  pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tuile: { padding: 10, borderRadius: 12, backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1 },
+  tuileActive: { backgroundColor: '#047857', borderColor: '#10b981' },
+  puceTexteActif: { color: '#fff', fontWeight: '700' },
   lien: { color: couleurs.ambre, fontSize: 13, fontWeight: '600', textAlign: 'center' },
   erreur: { color: '#fca5a5', fontSize: 13 },
 });

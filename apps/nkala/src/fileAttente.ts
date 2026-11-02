@@ -61,3 +61,8 @@ export async function rejouerFile(): Promise<number> {
   await ecrire(reste);
   return envoyes;
 }
+
+/** Contributions gardées sur l'appareil (affichage de la file d'attente). */
+export async function listerFile(): Promise<{ id: string; texte: string; avecVoix: boolean; date: string }[]> {
+  return (await lire()).map(e => ({ id: e.contribution.id, texte: e.contribution.originalMyeneText, avecVoix: !!e.audioUri, date: e.contribution.createdAt }));
+}

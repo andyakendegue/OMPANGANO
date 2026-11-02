@@ -15,6 +15,15 @@ export interface StockageCatalogue {
   /** Recherche paginée (Ezango). `texte` cherche dans le français, le myènè et le contexte. */
   rechercher(req: RechercheCatalogue): Promise<QuestionnaireItem[]>;
   parIds(ids: string[]): Promise<QuestionnaireItem[]>;
+  /** Identifiants des fiches à parcourir (tribu → dialectes, thème du défi) : des chaînes seulement, comme sur le web. */
+  identifiants(filtre: { dialectes?: string[]; categorie?: string }): Promise<string[]>;
+  /** Nombre de fiches par thème (catégorie), éventuellement limité à des dialectes. */
+  compteursThemes(dialectes?: string[]): Promise<Record<string, number>>;
+  /** Nombre de résultats d'une recherche (pagination). */
+  compterRecherche(req: Omit<RechercheCatalogue, 'limite' | 'decalage'>): Promise<number>;
+  /** Nombre de fiches par dialecte (compteurs du filtre par tribu). */
+  compteursDialectes(): Promise<Record<string, number>>;
+  fiche(id: string): Promise<QuestionnaireItem | null>;
   /** `n` fiches tirées au hasard (jeux). */
   aleatoires(dialecte: string | null, n: number): Promise<QuestionnaireItem[]>;
   /** Fiches au même dialecte et au même texte (lecture seule, pour l'audit). */
@@ -24,6 +33,10 @@ export interface StockageCatalogue {
 export interface RechercheCatalogue {
   dialecte?: string | null;
   texte?: string;
+  /** Thème (catégorie) exact. */
+  categorie?: string | null;
+  /** Dialectes d'une tribu (filtre de tribu). */
+  dialectes?: string[];
   limite: number;
   decalage: number;
 }
