@@ -6,14 +6,11 @@ import {
   Mic,
   Users,
   Globe,
-  Mail,
   AlertCircle,
-  CheckCircle2,
-  User,
-  KeyRound
+  CheckCircle2
 } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider, signInOrRegisterWithEmail } from '../firebase';
+import { auth, googleProvider } from '../firebase';
 import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { useOfflineShellStatus } from '../services/pwaOfflineManager';
@@ -23,11 +20,6 @@ interface AuthGateScreenProps {
 }
 
 export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }) => {
-  const [authMethod, setAuthMethod] = useState<'google' | 'email'>('google');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [userName, setUserName] = useState('');
-  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const offlineShell = useOfflineShellStatus();
@@ -62,7 +54,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
 
       if (isDomainBlocked) {
         setErrorMessage(
-          "Connexion Google indisponible sur ce domaine. Vous pouvez vous connecter par Email & Mot de passe."
+          "Connexion Google indisponible sur ce domaine. Veuillez réessayer depuis le site officiel."
         );
       } else if (isPopupBlocked) {
         setErrorMessage(
@@ -71,54 +63,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
       } else {
         setErrorMessage(
           err.message ||
-            "La connexion Google n'a pas pu aboutir. Veuillez réessayer ou utiliser la connexion par Email."
-        );
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Email & Password Login / Registration
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      setErrorMessage('Veuillez saisir une adresse email valide.');
-      return;
-    }
-    if (!password || password.length < 6) {
-      setErrorMessage('Le mot de passe doit contenir au moins 6 caractères.');
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const user = await signInOrRegisterWithEmail(cleanEmail, password, isCreatingAccount ? 'register' : 'login');
-      const displayName =
-        userName.trim() || user.displayName || cleanEmail.split('@')[0] || 'Contributeur Nkala';
-      const fullName = userName.trim() || user.displayName || 'Locuteur Myènè';
-
-      onLoginSuccess({
-        id: user.uid,
-        email: cleanEmail,
-        contact: cleanEmail,
-        displayName,
-        fullName,
-        // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
-        tribe: 'Ôrungu'
-      });
-    } catch (err: any) {
-      console.warn('Email auth notice:', err);
-      if (err?.code === 'auth/wrong-password') {
-        setErrorMessage('Mot de passe incorrect pour cette adresse email.');
-      } else if (err?.code === 'auth/email-already-in-use') {
-        setErrorMessage('Cette adresse email est déjà utilisée avec un autre mot de passe.');
-      } else {
-        setErrorMessage(
-          err?.message || "Impossible d'établir la connexion par email. Veuillez vérifier vos identifiants."
+            "La connexion Google n'a pas pu aboutir. Veuillez réessayer."
         );
       }
     } finally {
@@ -244,40 +189,6 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                 </div>
               </div>
 
-              {/* Navigation Tabs between Login Methods (Google or Email) */}
-              <div className="flex rounded-xl bg-[#140a05] p-1 border border-[#3b1d10] text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMethod('google');
-                    setErrorMessage(null);
-                  }}
-                  className={`flex-1 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all ${
-                    authMethod === 'google'
-                      ? 'bg-[#c85a32] text-white shadow'
-                      : 'text-[#a8826d] hover:text-[#fed7aa]'
-                  }`}
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Google / Gmail</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMethod('email');
-                    setErrorMessage(null);
-                  }}
-                  className={`flex-1 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all ${
-                    authMethod === 'email'
-                      ? 'bg-[#c85a32] text-white shadow'
-                      : 'text-[#a8826d] hover:text-[#fed7aa]'
-                  }`}
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>Email & Mot de passe</span>
-                </button>
-              </div>
-
               {/* Error Notice */}
               {errorMessage && (
                 <div className="p-3.5 rounded-xl bg-[#7f1d1d]/40 border border-[#ef4444]/60 text-xs text-[#fecaca] flex items-start gap-2 animate-in fade-in">
@@ -287,7 +198,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
               )}
 
               {/* TAB 1: Google OAuth Login */}
-              {authMethod === 'google' && (
+              {(
                 <div className="space-y-4">
                   <button
                     type="button"
@@ -324,82 +235,6 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                 </div>
               )}
 
-              {/* TAB 2: Email & Password Login */}
-              {authMethod === 'email' && (
-                <form onSubmit={handleEmailLogin} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
-                      Adresse Email :
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="email"
-                        required
-                        placeholder="votre.nom@exemple.com"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
-                      Mot de passe (6 caractères min.) :
-                    </label>
-                    <div className="relative">
-                      <KeyRound className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="password"
-                        required
-                        minLength={6}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#fed7aa] mb-1">
-                      Nom d'usage ou Prénom (Facultatif) :
-                    </label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-[#a8826d] absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        placeholder="Ex: Jean Onanga..."
-                        value={userName}
-                        onChange={e => setUserName(e.target.value)}
-                        className="w-full pl-9 pr-3.5 py-2.5 bg-[#140a05] border border-[#4a2412] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                      />
-                    </div>
-                  </div>
-
-                  <label className="flex items-center gap-2 text-xs text-[#fed7aa] cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={isCreatingAccount}
-                      onChange={e => setIsCreatingAccount(e.target.checked)}
-                      className="accent-[#f59e0b]"
-                    />
-                    <span>Je crée un nouveau compte (première visite)</span>
-                  </label>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-2.5 px-4 rounded-xl terracotta-gradient hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span>
-                      {isLoading ? 'Connexion en cours...' : isCreatingAccount ? 'Créer mon compte' : 'Se connecter'}
-                    </span>
-                  </button>
-                </form>
-              )}
             </div>
           </div>
         </div>

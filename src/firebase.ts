@@ -12,8 +12,6 @@ import {
   signOut as fbSignOut,
   onAuthStateChanged,
   User as FirebaseUser,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
 } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
@@ -67,37 +65,7 @@ export function convertBlobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-// Connexion OU création de compte par e-mail, selon le choix EXPLICITE de l'utilisateur.
-export async function signInOrRegisterWithEmail(
-  email: string,
-  password: string,
-  mode: 'login' | 'register' = 'login'
-): Promise<FirebaseUser> {
-  const cleanEmail = email.trim().toLowerCase();
-  try {
-    const cred = mode === 'register'
-      ? await createUserWithEmailAndPassword(auth, cleanEmail, password)
-      : await signInWithEmailAndPassword(auth, cleanEmail, password);
-    return cred.user;
-  } catch (err: any) {
-    const code = String(err?.code || '');
-    let message = "Impossible d'établir la connexion par e-mail.";
-    if (code === 'auth/email-already-in-use') {
-      message = 'Un compte existe déjà avec cette adresse. Décochez « Je crée un nouveau compte » pour vous connecter.';
-    } else if (code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
-      message = 'Adresse e-mail ou mot de passe incorrect. Pas encore de compte ? Cochez « Je crée un nouveau compte ».';
-    } else if (code === 'auth/weak-password') {
-      message = 'Mot de passe trop faible (6 caractères minimum).';
-    } else if (code === 'auth/too-many-requests') {
-      message = 'Trop de tentatives. Réessayez dans quelques minutes.';
-    } else if (code === 'auth/network-request-failed') {
-      message = 'Pas de connexion Internet.';
-    }
-    const wrapped = new Error(message) as Error & { code?: string };
-    wrapped.code = code;
-    throw wrapped;
-  }
-}
+// La connexion se fait uniquement par Google (la connexion e-mail / mot de passe a été retirée).
 
 // Attend que la session Firebase soit prête avant d'appeler l'API
 export async function ensureFirebaseAuthSession(): Promise<FirebaseUser | null> {
@@ -838,7 +806,5 @@ export async function testFirestoreConnection(): Promise<boolean> {
 export {
   signInWithPopup,
   fbSignOut,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  onAuthStateChanged
 };
