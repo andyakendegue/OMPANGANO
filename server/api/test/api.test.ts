@@ -328,7 +328,7 @@ test('synchro incrémentale : pages, suppressions logiques, curseur', async () =
   const second = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(cursor)}&epoch=${first.epoch}`, u.token)).body;
   assert.equal(second.records.length, 0);
   await call('DELETE', `/v1/items/${ids[0]}`, SUPER);
-  await call('PUT', `/v1/items/${ids[1]}`, SUPER, { myeneText: 'Modifié' });
+  await call('PUT', `/v1/items/${ids[1]}`, SUPER, { myeneText: 'Modifié', updatedAt: new Date(Date.now() + 5000).toISOString() }); // les clients envoient toujours updatedAt
   const third = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(cursor)}&epoch=${first.epoch}`, u.token)).body;
   const del = third.records.find((r: any) => r.id === ids[0]);
   assert.ok(del.deletedAt);
@@ -360,9 +360,9 @@ test('le seed initial n\'est jamais écrasé par un import CSV ni par une écrit
   assert.equal((await read()).myeneText, 'Mbôluani');
   assert.equal((await read()).createdBy, 'system_ompangano');
   // une modification manuelle d'un admin reste possible, et le seed peut se corriger lui-même
-  await call('PUT', `/v1/items/${id}`, SUPER, { myeneText: 'Mbôluani !' });
+  await call('PUT', `/v1/items/${id}`, SUPER, { myeneText: 'Mbôluani !', updatedAt: new Date(Date.now() + 5000).toISOString() });
   assert.equal((await read()).myeneText, 'Mbôluani !');
-  await call('POST', '/v1/items/batch', SUPER, { records: [{ id, myeneText: 'Mbôluani ?', createdBy: 'system_ompangano' }] });
+  await call('POST', '/v1/items/batch', SUPER, { records: [{ id, myeneText: 'Mbôluani ?', createdBy: 'system_ompangano', updatedAt: new Date(Date.now() + 10000).toISOString() }] });
   assert.equal((await read()).myeneText, 'Mbôluani ?');
   // même texte myènè que le seed, autre traduction, autre numéro : pas de doublon
   const dupId = uniq('dup');
@@ -460,4 +460,137 @@ test('GET /v1/items/annotations : seulement les contributions validées, sans id
   assert.ok(!JSON.stringify(r.body).includes(a.uid), 'aucun identifiant de contributeur');
   assert.equal((await call('GET', '/v1/items/annotations')).status, 401);
   void attente;
+});
+
+// ---------------------------------------------------------------- protection du corpus (écrasements par d'anciennes données)
+import { preparerProtection } from '../src/protection.ts';
+import { SEED_ITEMS_CORRIGES, SEED_ANCIENS_TEXTES } from '../src/seedItems.ts';
+
+const dans = (ms: number) => new Date(Date.now() + ms).toISOString();
+const journalDe = async (id: string) => (await call('GET', `/v1/admin/audit-fiches?item=${id}&limit=50`, SUPER)).body as any[];
+const texteEnBase = async (id: string) => ((await db.query<any>(`SELECT data->>'myeneText' AS m, deleted_at FROM items WHERE id = $1`, [id]))[0]);
+
+test('protection : une écriture plus ancienne que la version du serveur est refusée (PUT), la récente est acceptée', async () => {
+  const id = uniq('prot');
+  const base = { frenchText: 'Salut', dialect: 'orungu', category: 'vie' };
+  assert.equal((await call('PUT', `/v1/items/${id}`, SUPER, { ...base, myeneText: 'Texte corrigé', updatedAt: dans(-1000) })).status, 200);
+  // file hors-ligne rejouée trop tard : ancien texte, ancienne date
+  const vieux = await call('PUT', `/v1/items/${id}`, SUPER, { ...base, myeneText: 'Ancien texte', updatedAt: dans(-3_600_000) });
+  assert.equal(vieux.status, 409);
+  // sans date sur une fiche déjà présente : on ne peut pas savoir si c'est récent → refusé
+  assert.equal((await call('PUT', `/v1/items/${id}`, SUPER, { ...base, myeneText: 'Sans date' })).status, 409);
+  assert.equal((await texteEnBase(id)).m, 'Texte corrigé');
+  // version plus récente : acceptée
+  assert.equal((await call('PUT', `/v1/items/${id}`, SUPER, { ...base, myeneText: 'Texte revu', updatedAt: dans(5000) })).status, 200);
+  assert.equal((await texteEnBase(id)).m, 'Texte revu');
+  const actions = (await journalDe(id)).map(e => e.action).sort();
+  assert.deepEqual(actions, ['cree', 'modifie', 'rejete_ancien', 'rejete_ancien']);
+  const refus = (await journalDe(id)).find(e => e.action === 'rejete_ancien' && e.nouveauMyene === 'Ancien texte');
+  assert.ok(refus && refus.actor === 'capp' && refus.source === 'put' && refus.dateServeur, 'le refus note qui, d’où et la date du serveur');
+});
+
+test('protection : un lot (batch) ignore les fiches périmées et applique les autres', async () => {
+  const a = uniq('lot'), b = uniq('lot');
+  const base = { frenchText: 'x', dialect: 'orungu', category: 'vie' };
+  await call('PUT', `/v1/items/${a}`, SUPER, { ...base, myeneText: 'A corrigé', updatedAt: dans(-1000) });
+  await call('PUT', `/v1/items/${b}`, SUPER, { ...base, myeneText: 'B corrigé', updatedAt: dans(-1000) });
+  const r = await call('POST', '/v1/items/batch', SUPER, { records: [
+    { id: a, ...base, myeneText: 'A ancien', updatedAt: dans(-86_400_000) },   // périmé
+    { id: b, ...base, myeneText: 'B plus récent', updatedAt: dans(5000) },      // récent
+    { id: uniq('lot'), ...base, myeneText: 'C nouveau' },                       // nouvelle fiche sans date : acceptée
+  ] });
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { saved: 2, skipped: 1 });
+  assert.equal((await texteEnBase(a)).m, 'A corrigé');
+  assert.equal((await texteEnBase(b)).m, 'B plus récent');
+  assert.ok((await journalDe(a)).some(e => e.action === 'rejete_ancien' && e.source === 'batch'));
+});
+
+test('protection : une fiche supprimée n’est pas ressuscitée par une écriture plus ancienne', async () => {
+  const id = uniq('sup');
+  await call('PUT', `/v1/items/${id}`, SUPER, { frenchText: 'x', myeneText: 'À supprimer', dialect: 'orungu', updatedAt: dans(-5000) });
+  assert.equal((await call('DELETE', `/v1/items/${id}`, SUPER)).status, 204);
+  assert.equal((await call('PUT', `/v1/items/${id}`, SUPER, { frenchText: 'x', myeneText: 'À supprimer', dialect: 'orungu', updatedAt: dans(-3000) })).status, 409);
+  assert.ok((await texteEnBase(id)).deleted_at, 'toujours supprimée');
+});
+
+test('protection : les autres collections gardent la souplesse d’avant (sans date acceptée, date ancienne refusée)', async () => {
+  const id = uniq('th');
+  assert.equal((await call('PUT', `/v1/themes/${id}`, SUPER, { name: 'T1', updatedAt: dans(-1000) })).status, 200);
+  assert.equal((await call('PUT', `/v1/themes/${id}`, SUPER, { name: 'T2' })).status, 200);
+  assert.equal((await call('PUT', `/v1/themes/${id}`, SUPER, { name: 'T3', updatedAt: dans(-86_400_000) })).status, 409);
+});
+
+test('protection : une phrase écartée est refusée (PUT, lot, import), quelle que soit sa graphie', async () => {
+  const mauvaise = 'Irende si bendi go nongo';
+  const base = { frenchText: 'La pirogue glisse sur l\'eau', dialect: 'orungu', category: 'vie' };
+  const put = await call('PUT', `/v1/items/${uniq('ecart')}`, SUPER, { ...base, myeneText: mauvaise });
+  assert.equal(put.status, 422); assert.match(put.body.error, /écartée/);
+  const lot = await call('POST', '/v1/items/batch', SUPER, { records: [{ id: uniq('ecart'), ...base, myeneText: '  IRENDE si  bendi go nongo ' }, { id: uniq('ecart'), ...base, myeneText: 'Phrase valide lot' }] });
+  assert.deepEqual(lot.body, { saved: 1, skipped: 1 });
+  const imp = await call('POST', '/v1/items/import', SUPER, { items: [
+    { id: uniq('ecart'), sourceRef: uniq('REF'), ...base, myeneText: mauvaise, difficulty: 'debutant', status: 'active', contextNotes: '', imageUrl: '', contributionsCount: 0, recordingsCount: 0, createdBy: 'x', createdAt: dans(0) },
+    { id: uniq('ecart'), sourceRef: uniq('REF'), ...base, frenchText: 'Autre', myeneText: 'Phrase valide import', difficulty: 'debutant', status: 'active', contextNotes: '', imageUrl: '', contributionsCount: 0, recordingsCount: 0, createdBy: 'x', createdAt: dans(0) },
+  ] });
+  assert.equal(imp.status, 200); assert.equal(imp.body.refused, 1); assert.equal(imp.body.created, 1);
+  assert.equal((await db.query<any>(`SELECT count(*)::int n FROM items WHERE data->>'myeneText' ILIKE '%irende si bendi go nongo%' AND deleted_at IS NULL`))[0].n, 0, 'aucune fiche avec la phrase écartée');
+  assert.ok((await call('GET', '/v1/admin/audit-fiches?action=rejete_refusee', SUPER)).body.filter((e: any) => e.source === 'import').length >= 1, 'le refus de l’import est journalisé');
+});
+
+test('protection : les anciens textes IA des phrases de départ sont corrigés dans la base (et le CSV ne le pouvait pas)', async () => {
+  for (const [id, vieux] of Object.entries(SEED_ANCIENS_TEXTES)) {
+    await db.query(`INSERT INTO items (id, dialect, category, status, data) VALUES ($1,'enenga','x','active',$2)
+                    ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, deleted_at = NULL`, [id, JSON.stringify({ id, myeneText: vieux, frenchText: 'ancien', createdBy: 'system_ompangano' })]);
+  }
+  const r = await db.tx(q => preparerProtection(q));
+  assert.equal(r.seedCorrige, SEED_ITEMS_CORRIGES.length);
+  for (const c of SEED_ITEMS_CORRIGES) {
+    const ligne = (await db.query<any>(`SELECT data, dialect FROM items WHERE id = $1`, [c.id]))[0];
+    assert.equal(ligne.data.myeneText, c.myeneText); assert.equal(ligne.data.frenchText, c.frenchText); assert.equal(ligne.dialect, c.dialect);
+    assert.ok((await journalDe(c.id)).some(e => e.action === 'corrige_seed' && e.ancienMyene === SEED_ANCIENS_TEXTES[c.id]));
+  }
+  // idempotent : un second passage ne change plus rien
+  assert.equal((await db.tx(q => preparerProtection(q))).seedCorrige, 0);
+  // une fiche de départ déjà modifiée par un administrateur n'est pas touchée
+  await db.query(`UPDATE items SET data = data || '{"myeneText":"Texte choisi par Capp"}' WHERE id = 'nkala-enenga-01'`);
+  assert.equal((await db.tx(q => preparerProtection(q))).seedCorrige, 0);
+  assert.equal((await texteEnBase('nkala-enenga-01')).m, 'Texte choisi par Capp');
+});
+
+test('protection : le seed du serveur est identique à celui du site web (aucun écart)', async () => {
+  const web = await import('../../../src/services/seedData.ts');
+  assert.equal(SEED_ITEMS_CORRIGES.length, web.INITIAL_ENENGA_ITEMS.length);
+  for (const c of SEED_ITEMS_CORRIGES) {
+    const w: any = web.INITIAL_ENENGA_ITEMS.find((i: any) => i.id === c.id);
+    assert.ok(w, `fiche ${c.id} absente du site`);
+    for (const k of ['frenchText', 'myeneText', 'dialect', 'category', 'contextNotes', 'difficulty'] as const) assert.equal(c[k], w[k] ?? '', `${c.id}.${k}`);
+  }
+  assert.deepEqual(SEED_ANCIENS_TEXTES, web.SEED_ITEM_CORRECTIONS);
+});
+
+test('protection : gestion de la liste des phrases écartées et du journal réservée aux administrateurs', async () => {
+  const user = await newUser('prot');
+  for (const [m, u] of [['GET', '/v1/admin/phrases-ecartees'], ['POST', '/v1/admin/phrases-ecartees'], ['GET', '/v1/admin/audit-fiches'], ['DELETE', '/v1/admin/phrases-ecartees/x']] as const) {
+    assert.equal((await call(m, u, user.token, m === 'POST' ? { myeneText: 'x' } : undefined)).status, 403, `${m} ${u}`);
+  }
+  const ajout = await call('POST', '/v1/admin/phrases-ecartees', SUPER, { myeneText: 'Phrase test écartée', reason: 'essai' });
+  assert.equal(ajout.status, 201);
+  // une fiche qui la porte déjà est signalée
+  await db.query(`INSERT INTO items (id, dialect, category, status, data) VALUES ('porte_ecartee','orungu','x','active',$1)`, [JSON.stringify({ myeneText: 'phrase  TEST écartée', frenchText: 'x' })]);
+  const liste = await call('GET', '/v1/admin/phrases-ecartees', SUPER);
+  assert.ok(liste.body.phrases.some((p: any) => p.myeneText === 'Phrase test écartée'));
+  assert.ok(liste.body.fichesConcernees.some((f: any) => f.id === 'porte_ecartee'));
+  assert.equal((await call('POST', '/v1/admin/phrases-ecartees', SUPER, { myeneText: '  ' })).status, 400);
+  assert.equal((await call('DELETE', `/v1/admin/phrases-ecartees/${encodeURIComponent(ajout.body.key)}`, SUPER)).status, 204);
+  assert.ok(!(await call('GET', '/v1/admin/phrases-ecartees', SUPER)).body.phrases.some((p: any) => p.myeneText === 'Phrase test écartée'));
+});
+
+test('protection : l’import d’un CSV corrigé remplace toujours le texte d’une fiche importée (pas de régression)', async () => {
+  const ref = uniq('REFIMP');
+  const fiche = (my: string) => ({ id: ref, sourceRef: ref, frenchText: 'Il aimera l\'eau.', myeneText: my, dialect: 'orungu', category: 'vie', theme: 'vie', difficulty: 'debutant', status: 'active', contextNotes: '', imageUrl: '', contributionsCount: 0, recordingsCount: 0, createdBy: 'import-corpus', createdAt: dans(0) });
+  assert.equal((await call('POST', '/v1/items/import', SUPER, { items: [fiche('Texte ancien import')] })).body.created, 1);
+  const r = await call('POST', '/v1/items/import', SUPER, { items: [fiche('Texte corrigé import')] });
+  assert.equal(r.body.updated, 1);
+  assert.equal((await texteEnBase(ref)).m, 'Texte corrigé import');
+  assert.ok((await journalDe(ref)).some(e => e.action === 'modifie' && e.source === 'import' && e.ancienMyene === 'Texte ancien import'));
 });

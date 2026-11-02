@@ -19,7 +19,8 @@ export function loadCorpusCsv(path: string, opts: { statuts?: string[]; createdA
     if (!ref || !r.myeneText?.trim() || !r.frenchText?.trim()) continue;
     if (opts.statuts?.length && !opts.statuts.includes((r.statut || '').trim())) continue;
     const meta: Record<string, string> = {};
-    for (const [k, v] of Object.entries(r)) if (!KNOWN.has(k) && v !== '' && v != null) meta[k] = v;
+    // Les colonnes « *_gemini_origine » (texte d'origine rejeté, gardé dans les fichiers pour la traçabilité) ne sont pas copiées dans la base
+    for (const [k, v] of Object.entries(r)) if (!KNOWN.has(k) && !k.includes('gemini_origine') && v !== '' && v != null) meta[k] = v;
     const theme = (r.theme || 'vie_quotidienne').trim();
     out.push({
       id: sanitizeFirebaseRecordId(ref),

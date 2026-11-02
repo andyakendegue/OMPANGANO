@@ -15,6 +15,7 @@ import {
   type GenericTable, type SyncTable
 } from './model.ts';
 import { importItems } from './importItems.ts';
+import { chargerEcartees, cle as cleTexte, estPlusAncienne, journaliser, preparerProtection, raisonEcartee, type EntreeJournal } from './protection.ts';
 import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
 import {
   NEW_USER_PROTECTED_DEFAULTS, PROTECTED_USER_FIELDS, buildLeaderboardEntry, computeValidationReward,
@@ -74,6 +75,8 @@ const str = (v: unknown): v is string => typeof v === 'string';
 
 export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   const { db, verify, storage } = deps;
+  // Garde-fous du corpus : phrases écartées et correction des anciennes phrases de départ (idempotent)
+  await db.tx(q => preparerProtection(q));
   const app = Fastify({
     logger: deps.logger === false ? false : { level: 'info', redact: ['req.headers.authorization', 'req.headers.cookie'] },
     bodyLimit: 8 * 1024 * 1024,
@@ -228,6 +231,49 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       return (await q.query<any>(`SELECT * FROM users WHERE id = $1`, [req.auth!.uid]))[0];
     });
     return userRow(row);
+  });
+
+  // ------------------------------------------------------------------ phrases écartées et journal des fiches (administrateurs)
+  app.get('/v1/admin/phrases-ecartees', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    const liste = await db.query<any>(`SELECT key, myene_text, reason, created_by, created_at FROM rejected_phrases ORDER BY created_at, key`);
+    // Fiches de la base qui portent actuellement une phrase écartée (à corriger ou supprimer)
+    const cles = new Set(liste.map(r => r.key as string));
+    const fiches = await db.query<any>(`SELECT id, data->>'myeneText' AS m, updated_at FROM items WHERE deleted_at IS NULL AND data->>'myeneText' IS NOT NULL`);
+    const presentes = fiches.filter(f => cles.has(cleTexte(f.m))).slice(0, 200).map(f => ({ id: f.id, myeneText: f.m, updatedAt: iso(f.updated_at) }));
+    return { phrases: liste.map(r => ({ key: r.key, myeneText: r.myene_text, reason: r.reason, createdBy: r.created_by, createdAt: iso(r.created_at) })), fichesConcernees: presentes };
+  });
+
+  app.post('/v1/admin/phrases-ecartees', async (req, reply) => {
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    const b = (req.body || {}) as { myeneText?: string; reason?: string };
+    if (!str(b.myeneText) || !b.myeneText!.trim() || b.myeneText!.length > 500) fail(400, 'myeneText requis (500 caractères maximum).');
+    await db.query(`INSERT INTO rejected_phrases (key, myene_text, reason, created_by) VALUES ($1,$2,$3,$4)
+                    ON CONFLICT (key) DO UPDATE SET reason = EXCLUDED.reason`, [cleTexte(b.myeneText), b.myeneText!.trim(), String(b.reason || '').slice(0, 500), a.auth.uid]);
+    return reply.status(201).send({ ok: true, key: cleTexte(b.myeneText) });
+  });
+
+  app.delete('/v1/admin/phrases-ecartees/:key', async (req, reply) => {
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    await db.query(`DELETE FROM rejected_phrases WHERE key = $1`, [(req.params as { key: string }).key]);
+    return reply.status(204).send();
+  });
+
+  app.get('/v1/admin/audit-fiches', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    const qs = req.query as { item?: string; action?: string; limit?: string };
+    const limit = Math.min(Math.max(Number(qs.limit) || 100, 1), 500);
+    const rows = await db.query<any>(
+      `SELECT id, at, item_id, action, actor, source, old_myene, new_myene, old_french, new_french, client_updated_at, server_updated_at, detail
+         FROM item_audit WHERE ($1::text IS NULL OR item_id = $1) AND ($2::text IS NULL OR action = $2) ORDER BY at DESC, id DESC LIMIT $3`,
+      [qs.item || null, qs.action || null, limit]
+    );
+    return rows.map(r => ({ id: Number(r.id), at: iso(r.at), itemId: r.item_id, action: r.action, actor: r.actor, source: r.source, ancienMyene: r.old_myene, nouveauMyene: r.new_myene,
+      ancienFrancais: r.old_french, nouveauFrancais: r.new_french, dateClient: r.client_updated_at, dateServeur: r.server_updated_at ? iso(r.server_updated_at) : null, detail: r.detail }));
   });
 
   // Mes contributions seulement (application mobile : évite de télécharger celles des autres)
@@ -589,7 +635,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const body = (req.body || {}) as { items?: QuestionnaireItem[]; dryRun?: boolean };
     if (!Array.isArray(body.items)) fail(400, 'items attendu (tableau).');
     if (body.items!.length > 60000) fail(413, 'Trop de phrases pour un seul envoi.');
-    const report = await db.tx(q => importItems(q, body.items!, { dryRun: body.dryRun }));
+    const report = await db.tx(q => importItems(q, body.items!, { dryRun: body.dryRun, acteur: a.auth.uid }));
     if (!body.dryRun) notify('items');
     return report;
   });
@@ -597,12 +643,28 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   // ------------------------------------------------------------------ catalogues (items, clans, villages…)
   const OPEN_CREATE: GenericTable[] = ['clans', 'villages'];
 
-  async function upsertGeneric(q: Queryable, table: GenericTable, id: string, body: Record<string, unknown>, a: Actor) {
+  type Rejet = { rejet: 'ancien' | 'ecartee'; message: string };
+
+  async function upsertGeneric(q: Queryable, table: GenericTable, id: string, body: Record<string, unknown>, a: Actor): Promise<Record<string, unknown> | Rejet> {
     if (!RECORD_ID_RE.test(id)) fail(400, 'Identifiant invalide.');
-    const exists = (await q.query(`SELECT 1 FROM ${table} WHERE id = $1 AND deleted_at IS NULL`, [id])).length > 0;
+    // Ligne déjà présente, supprimée ou non : sa dernière modification sert à repérer une écriture périmée
+    const ligne = (await q.query<any>(`SELECT updated_at, deleted_at${table === 'items' ? `, data->>'myeneText' AS m, data->>'frenchText' AS f` : ''} FROM ${table} WHERE id = $1`, [id]))[0];
+    const exists = !!ligne && !ligne.deleted_at;
     if (!a.isAdmin) {
       // Un contributeur peut AJOUTER son clan / village à l'inscription, jamais modifier
       if (!OPEN_CREATE.includes(table) || exists) fail(403, 'Réservé aux administrateurs.');
+    }
+    if (table === 'items') {
+      const raison = raisonEcartee(await chargerEcartees(q), body.myeneText);
+      if (raison) {
+        await journaliser(q, [{ itemId: id, action: 'rejete_refusee', acteur: a.auth.uid, source: 'put', nouveauMyene: String(body.myeneText), dateClient: str(body.updatedAt) ? (body.updatedAt as string) : null, detail: raison }]);
+        return { rejet: 'ecartee', message: `Phrase écartée : ${raison}` };
+      }
+    }
+    const perime = ligne ? estPlusAncienne(table, body, ligne) : { refus: false, dateClient: null };
+    if (perime.refus) {
+      if (table === 'items') await journaliser(q, [{ itemId: id, action: 'rejete_ancien', acteur: a.auth.uid, source: 'put', ancienMyene: ligne.m, nouveauMyene: str(body.myeneText) ? (body.myeneText as string) : null, dateClient: perime.dateClient, dateServeur: ligne.updated_at, detail: 'Écriture plus ancienne que la version enregistrée : ignorée.' }]);
+      return { rejet: 'ancien', message: "Cette version est plus ancienne que celle du serveur : écriture ignorée. Rechargez les données avant de modifier." };
     }
     const data = cleanData(body);
     if (table === 'items') {
@@ -619,6 +681,9 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
         [id, JSON.stringify(data)]
       );
     }
+    if (table === 'items' && (!ligne || ligne.deleted_at || ligne.m !== data.myeneText || ligne.f !== data.frenchText)) {
+      await journaliser(q, [{ itemId: id, action: ligne ? 'modifie' : 'cree', acteur: a.auth.uid, source: 'put', ancienMyene: ligne?.m ?? null, nouveauMyene: str(data.myeneText) ? (data.myeneText as string) : null, ancienFrancais: ligne?.f ?? null, nouveauFrancais: str(data.frenchText) ? (data.frenchText as string) : null, dateClient: str(body.updatedAt) ? (body.updatedAt as string) : null }]);
+    }
     if (table === 'clans' || table === 'villages') {
       await q.query(`UPDATE ${table} SET data = jsonb_set(data, '{createdBy}', to_jsonb($2::text)) WHERE id = $1 AND NOT (data ? 'createdBy')`, [id, a.auth.uid]);
     }
@@ -629,12 +694,15 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   }
 
   /** Écriture en masse (administrateur) : un seul ordre SQL par lot de 500. */
-  async function bulkUpsert(q: Queryable, table: GenericTable, records: Record<string, unknown>[]): Promise<number> {
+  async function bulkUpsert(q: Queryable, table: GenericTable, records: Record<string, unknown>[], a: Actor): Promise<{ saved: number; skipped: number }> {
     const seen = new Map<string, Record<string, unknown>>();
+    // cleanData retire updatedAt (champ géré par le serveur) : on garde la date portée par l'écriture pour repérer les écritures périmées
+    const datesClient = new Map<string, unknown>();
     for (const r of records) {
       const id = String(r.id ?? '');
       if (!RECORD_ID_RE.test(id)) fail(400, `Identifiant invalide : ${id.slice(0, 40)}`);
       seen.set(id, { ...(seen.get(id) || {}), ...cleanData(r) });
+      if (r.updatedAt !== undefined) datesClient.set(id, r.updatedAt);
     }
     let entries = [...seen.entries()];
     if (table === 'items') {
@@ -647,6 +715,35 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
         return !owner || owner === id;
       });
     }
+    // Garde-fous : phrases écartées, et écritures plus anciennes que la version enregistrée (file hors-ligne rejouée trop tard)
+    const journal: EntreeJournal[] = [];
+    let ignorees = 0;
+    const existants = new Map<string, any>();
+    for (let i = 0; i < entries.length; i += 1000) {
+      const ids = entries.slice(i, i + 1000).map(([id]) => id);
+      const rows = await q.query<any>(`SELECT id, updated_at, deleted_at${table === 'items' ? `, data->>'myeneText' AS m, data->>'frenchText' AS f` : ''} FROM ${table} WHERE id = ANY($1::text[])`, [ids]);
+      rows.forEach(r => existants.set(r.id, r));
+    }
+    const ecartees = table === 'items' ? await chargerEcartees(q) : null;
+    entries = entries.filter(([id, d0]) => {
+      const d = { ...d0, updatedAt: datesClient.get(id) } as Record<string, unknown>;
+      if (ecartees) {
+        const raison = raisonEcartee(ecartees, d.myeneText);
+        if (raison) { ignorees++; journal.push({ itemId: id, action: 'rejete_refusee', acteur: a.auth.uid, source: 'batch', nouveauMyene: String(d.myeneText), dateClient: str(d.updatedAt) ? (d.updatedAt as string) : null, detail: raison }); return false; }
+      }
+      const ex = existants.get(id);
+      const perime = ex ? estPlusAncienne(table, d, ex) : { refus: false, dateClient: null };
+      if (perime.refus) {
+        ignorees++;
+        if (table === 'items') journal.push({ itemId: id, action: 'rejete_ancien', acteur: a.auth.uid, source: 'batch', ancienMyene: ex.m, nouveauMyene: str(d.myeneText) ? (d.myeneText as string) : null, dateClient: perime.dateClient, dateServeur: ex.updated_at, detail: 'Écriture plus ancienne que la version enregistrée : ignorée.' });
+        return false;
+      }
+      if (table === 'items' && (!ex || ex.deleted_at || ex.m !== d.myeneText || ex.f !== d.frenchText)) {
+        journal.push({ itemId: id, action: ex ? 'modifie' : 'cree', acteur: a.auth.uid, source: 'batch', ancienMyene: ex?.m ?? null, nouveauMyene: str(d.myeneText) ? (d.myeneText as string) : null, ancienFrancais: ex?.f ?? null, nouveauFrancais: str(d.frenchText) ? (d.frenchText as string) : null, dateClient: str(d.updatedAt) ? (d.updatedAt as string) : null });
+      }
+      return true;
+    });
+
     for (let i = 0; i < entries.length; i += 500) {
       const part = entries.slice(i, i + 500);
       const ids = part.map(([id]) => id);
@@ -670,7 +767,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
         );
       }
     }
-    return entries.length;
+    if (journal.length) await journaliser(q, journal);
+    return { saved: entries.length, skipped: ignorees };
   }
 
   app.put('/v1/:collection/:id', async (req) => {
@@ -678,6 +776,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     if (!isGenericTable(collection)) fail(404, 'Collection inconnue.');
     const a = await actorOf(req);
     const out = await db.tx(q => upsertGeneric(q, collection as GenericTable, id, (req.body || {}) as Record<string, unknown>, a));
+    if ('rejet' in out) { const r = out as Rejet; fail(r.rejet === 'ancien' ? 409 : 422, r.message); }
     notify(collection);
     return out;
   });
@@ -688,13 +787,14 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const records = ((req.body || {}) as { records?: Record<string, unknown>[] }).records;
     if (!Array.isArray(records) || records.length > 2000) fail(400, 'records attendu (2000 maximum).');
     const a = await actorOf(req);
-    const n = await db.tx(async q => {
-      if (a.isAdmin) return bulkUpsert(q, collection as GenericTable, records!);
-      for (const r of records!) await upsertGeneric(q, collection as GenericTable, String(r.id), r, a);
-      return records!.length;
+    const r = await db.tx(async q => {
+      if (a.isAdmin) return bulkUpsert(q, collection as GenericTable, records!, a);
+      let skipped = 0;
+      for (const rec of records!) { const o = await upsertGeneric(q, collection as GenericTable, String(rec.id), rec, a); if ('rejet' in o) skipped++; }
+      return { saved: records!.length - skipped, skipped };
     });
     notify(collection);
-    return { saved: n };
+    return r;
   });
 
   app.delete('/v1/:collection/:id', async (req, reply) => {
