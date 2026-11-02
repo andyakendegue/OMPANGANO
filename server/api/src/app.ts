@@ -45,6 +45,7 @@ declare module 'fastify' {
 const SEED_CREATOR = 'system_ompangano';
 const ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const RECORD_ID_RE = /^[A-Za-z0-9_.-]{1,200}$/;
+const CONTRIBUTION_STATUSES: string[] = ['pending', 'approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
 const VALIDATION_STATUSES: ContributionStatus[] = ['approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
 const ROLES = ['user', 'validator', 'admin'];
 const ACCOUNT_STATUSES = ['active', 'flagged', 'suspended'];
@@ -227,6 +228,59 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       return (await q.query<any>(`SELECT * FROM users WHERE id = $1`, [req.auth!.uid]))[0];
     });
     return userRow(row);
+  });
+
+  // Mes contributions seulement (application mobile : évite de télécharger celles des autres)
+  app.get('/v1/me/contributions', async (req) => {
+    const rows = await db.query<any>(
+      `SELECT * FROM contributions WHERE user_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1000`,
+      [req.auth!.uid]
+    );
+    return rows.map(contributionRow);
+  });
+
+  // File de modération (application mobile) : contributions par statut + compteurs, réservé au personnel
+  app.get('/v1/admin/contributions', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isStaff) fail(403, 'Réservé aux validateurs et administrateurs.');
+    const qs = req.query as { status?: string; limit?: string; offset?: string };
+    const status = qs.status || 'pending';
+    if (status !== 'all' && !CONTRIBUTION_STATUSES.includes(status)) fail(400, 'Statut invalide.');
+    const limit = Math.min(Math.max(Number(qs.limit) || 30, 1), 100);
+    const offset = Math.max(Number(qs.offset) || 0, 0);
+    const rows = await db.query<any>(
+      `SELECT * FROM contributions WHERE deleted_at IS NULL AND ($1 = 'all' OR status = $1)
+       ORDER BY created_at, id LIMIT $2 OFFSET $3`,
+      [status, limit, offset]
+    );
+    const counts: Record<string, number> = {};
+    for (const r of await db.query<any>(`SELECT status, count(*) AS n FROM contributions WHERE deleted_at IS NULL GROUP BY status`)) counts[r.status] = Number(r.n);
+    return { records: rows.map(contributionRow), counts };
+  });
+
+  // Jeux sonores : enregistrements VALIDÉS (contribution approuvée, voix non contestée) dont l'auteur n'a pas retiré
+  // son autorisation d'usage de la voix. Aucun nom de contributeur n'est renvoyé.
+  app.get('/v1/games/audio', async (req) => {
+    const qs = req.query as { dialect?: string; limit?: string };
+    const limit = Math.min(Math.max(Number(qs.limit) || 12, 1), 40);
+    const dialect = qs.dialect && /^[a-z]{3,12}$/.test(qs.dialect) ? qs.dialect : null;
+    const rows = await db.query<any>(
+      `SELECT c.id, c.item_id, c.audio_storage_path, i.dialect,
+              i.data->>'myeneText' AS myene_text, i.data->>'frenchText' AS french_text
+         FROM contributions c
+         JOIN items i ON i.id = c.item_id AND i.deleted_at IS NULL AND i.status = 'active'
+         JOIN users u ON u.id = c.user_id AND u.status = 'active'
+        WHERE c.deleted_at IS NULL AND c.status = 'approved' AND c.audio_storage_path IS NOT NULL
+          AND COALESCE(c.data->>'pronunciationVerdict', 'correct') <> 'incorrect'
+          AND COALESCE(u.data->>'consentVoiceUsage', 'true') <> 'false'
+          AND ($1::text IS NULL OR i.dialect = $1)
+        ORDER BY random() LIMIT $2`,
+      [dialect, limit]
+    );
+    return rows.map(r => ({
+      id: r.id, itemId: r.item_id, dialect: r.dialect, myeneText: r.myene_text, frenchText: r.french_text,
+      audioUrl: `media:${r.audio_storage_path}`
+    }));
   });
 
   app.get('/v1/leaderboard', async () => {

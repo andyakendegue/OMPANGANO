@@ -388,3 +388,58 @@ test('époque des données : une purge directe en base fait repartir les apparei
   const old = (await call('GET', `/v1/sync/items?since=${encodeURIComponent(first.cursor)}`, u.token)).body; // ancien client sans époque
   assert.equal(old.reset, true);
 });
+
+test('GET /v1/me/contributions : seulement les siennes, sans les supprimées', async () => {
+  const a = await newUser('mc');
+  const b = await newUser('mc');
+  const item = await newItem();
+  const mine = await call('POST', '/v1/contributions', a.token, { itemId: item, frenchText: 'x', originalMyeneText: 'y', isSpellingCorrect: true });
+  await call('POST', '/v1/contributions', b.token, { itemId: item, frenchText: 'x', originalMyeneText: 'y', isSpellingCorrect: true });
+  const list = await call('GET', '/v1/me/contributions', a.token);
+  assert.equal(list.status, 200);
+  assert.deepEqual(list.body.map((c: any) => c.id), [mine.body.id]);
+  assert.equal((await call('DELETE', `/v1/contributions/${mine.body.id}`, a.token)).status, 204);
+  assert.equal((await call('GET', '/v1/me/contributions', a.token)).body.length, 0);
+  assert.equal((await call('GET', '/v1/me/contributions')).status, 401);
+});
+
+test('GET /v1/admin/contributions : réservé au personnel, filtre par statut, compteurs', async () => {
+  const user = await newUser('adm');
+  const val = await newUser('adm', { role: 'validator' });
+  const item = await newItem();
+  const c = await call('POST', '/v1/contributions', user.token, { itemId: item, frenchText: 'x', originalMyeneText: 'y', isSpellingCorrect: true });
+  assert.equal((await call('GET', '/v1/admin/contributions', user.token)).status, 403);
+  const file = await call('GET', '/v1/admin/contributions?status=pending&limit=100', val.token);
+  assert.equal(file.status, 200);
+  assert.ok(file.body.records.some((r: any) => r.id === c.body.id));
+  assert.ok(file.body.counts.pending >= 1);
+  assert.equal((await call('GET', '/v1/admin/contributions?status=nimporte', val.token)).status, 400);
+  assert.equal((await call('GET', '/v1/admin/contributions?status=approved', val.token)).body.records.some((r: any) => r.id === c.body.id), false);
+});
+
+test('GET /v1/games/audio : seulement les voix validées, consentement respecté, sans nom de contributeur', async () => {
+  const ok = await newUser('ga');
+  const refus = await newUser('ga');
+  await call('PATCH', '/v1/me', refus.token, { consentVoiceUsage: false });
+  const val = await newUser('ga', { role: 'validator' });
+  const jouer = await newUser('ga');
+  const item = await newItem({ dialect: 'nkomi', myeneText: 'Mbolo test', frenchText: 'Bonjour test' });
+  const a = await submit(ok, item, { audioStoragePath: `recordings/${ok.uid}/a.m4a`, audioMimeType: 'audio/mp4' });
+  const b = await submit(refus, item, { audioStoragePath: `recordings/${refus.uid}/b.m4a`, audioMimeType: 'audio/mp4' });
+  const c = await submit(ok, item, { audioStoragePath: `recordings/${ok.uid}/c.m4a`, audioMimeType: 'audio/mp4' });
+  const valider = (id: string, status: string, p = 'correct') =>
+    call('POST', `/v1/contributions/${id}/validate`, val.token, { status, spellingVerdict: 'correct', pronunciationVerdict: p });
+  await valider(a, 'approved'); await valider(b, 'approved');
+  // c reste en attente
+  const r = await call('GET', '/v1/games/audio?dialect=nkomi&limit=40', jouer.token);
+  assert.equal(r.status, 200);
+  const ids = r.body.map((x: any) => x.id);
+  assert.ok(ids.includes(a), 'voix validée absente');
+  assert.ok(!ids.includes(b), 'voix sans consentement renvoyée');
+  assert.ok(!ids.includes(c), 'voix non validée renvoyée');
+  const clip = r.body.find((x: any) => x.id === a);
+  assert.deepEqual(Object.keys(clip).sort(), ['audioUrl', 'dialect', 'frenchText', 'id', 'itemId', 'myeneText']);
+  assert.equal(clip.audioUrl, `media:recordings/${ok.uid}/a.m4a`);
+  assert.equal((await call('GET', '/v1/games/audio?dialect=galoa', jouer.token)).body.some((x: any) => x.id === a), false);
+  assert.equal((await call('GET', '/v1/games/audio')).status, 401);
+});
