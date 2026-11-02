@@ -801,9 +801,9 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Mic className="w-4 h-4 text-[#f59e0b]" />
-                <span>Mes contributions ({myContributions.length})</span>
+                <span>Mes fiches enregistrées ({myContributions.length})</span>
               </h3>
-              <span className="text-[10px] text-[#a8826d]">Seules celles « en attente » peuvent être supprimées</span>
+              <span className="text-[10px] text-[#a8826d]">Une fiche enregistrée n'est plus proposée</span>
             </div>
             <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
               {[...myContributions]
@@ -814,8 +814,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     c.offlineQueued ? 'Sur l’appareil (envoi en attente)'
                     : c.status === 'pending' ? 'En attente de validation'
                     : c.status === 'approved' ? `Validée${c.rewardedXp ? ` · +${c.rewardedXp} XP` : ''}`
-                    : c.status === 'rejected' ? 'Refusée'
-                    : 'À revoir';
+                    : 'Refusée';
                   const canDelete = !!onDeleteContribution && c.status === 'pending';
                   return (
                     <div key={c.id} className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#140a05] border border-[#3b1d10]">

@@ -602,3 +602,43 @@ test('protection : la collection admins (doublon de PATCH /v1/users) et les mét
   assert.equal((await call('PUT', '/v1/metrics/summary', SUPER, { n: 1, updatedAt: dans(-1000) })).status, 200);
   assert.equal((await call('PUT', '/v1/metrics/summary', SUPER, { n: 2, updatedAt: dans(-86_400_000) })).status, 200);
 });
+
+// ---------------------------------------------------------------- tri par rareté et statistiques de visite
+test('synchro : mode « rarete » — fiches sans réponse d’abord, réponses en dernier, curseur de différences fourni', async () => {
+  const repondue = await newItem();
+  const libre = await newItem();
+  const u = await newUser();
+  await submit(u, repondue);
+  const r = await call('GET', '/v1/sync/items?order=rarete&limit=5000&offset=0', SUPER);
+  assert.equal(r.status, 200);
+  const ids: string[] = r.body.records.map((x: any) => x.id);
+  assert.ok(ids.indexOf(libre) < ids.indexOf(repondue), 'la fiche sans réponse précède la fiche répondue');
+  assert.ok(r.body.deltaCursor, 'curseur pour les synchronisations suivantes');
+  const ordre = await call('GET', '/v1/items/ordre', SUPER);
+  assert.ok(ordre.body.ids.indexOf(libre) < ordre.body.ids.indexOf(repondue));
+  const page2 = await call('GET', `/v1/sync/items?order=rarete&limit=1&offset=${ids.length}`, SUPER);
+  assert.equal(page2.body.records.length, 0);
+});
+
+test('statistiques : collecte publique, lecture réservée aux administrateurs', async () => {
+  const sid = 'sess' + Math.random().toString(36).slice(2, 12);
+  const post = (body: unknown) => app.inject({ method: 'POST', url: '/pub/collect', payload: body as any, remoteAddress: '41.158.0.1' });
+  assert.equal((await post({ sid, vid: 'visiteur123', ev: 'start', dur: 0, device: { type: 'mobile', os: 'Android', browser: 'Chrome', screen: '360x800', lang: 'fr' } })).statusCode, 204);
+  assert.equal((await post({ sid, vid: 'visiteur123', ev: 'tab', tab: 'explore', dur: 42 })).statusCode, 204);
+  assert.equal((await post({ sid: 'x', vid: 'y' })).statusCode, 204); // identifiants invalides : ignoré sans erreur
+  const user = await newUser();
+  assert.equal((await call('GET', '/v1/admin/analytics', user.token)).status, 403);
+  const s = await call('GET', '/v1/admin/analytics?days=7', SUPER);
+  assert.equal(s.status, 200);
+  assert.ok(s.body.resume.sessions >= 1);
+  assert.ok(s.body.parOnglet.some((o: any) => o.cle === 'explore'));
+  assert.ok(s.body.recentes.some((v: any) => v.ip === '41.158.0.1' && v.country === 'GA' && v.duration_s === 42));
+});
+
+test('anti-aspiration : au plus 6 téléchargements complets du catalogue par compte et par jour', async () => {
+  const u = await newUser();
+  for (let i = 0; i < 6; i++) assert.equal((await call('GET', '/v1/sync/items?order=rarete&limit=1&offset=0', u.token)).status, 200);
+  assert.equal((await call('GET', '/v1/sync/items?order=rarete&limit=1&offset=0', u.token)).status, 429);
+  // les pages suivantes d'un téléchargement en cours ne comptent pas
+  assert.equal((await call('GET', '/v1/sync/items?order=rarete&limit=1&offset=1', u.token)).status, 200);
+});

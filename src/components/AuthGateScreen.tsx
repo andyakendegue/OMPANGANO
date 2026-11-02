@@ -145,9 +145,6 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
               <span className="font-extrabold tracking-wider text-lg text-white font-serif">
                 Nkala
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30">
-                ESSAKA
-              </span>
             </div>
             <p className="text-xs text-[#d4af94]">
               Crowdsourcing & Sauvegarde de la Langue Myènè

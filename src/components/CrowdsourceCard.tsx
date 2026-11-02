@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CatalogueLoader } from './CatalogueLoader';
 import confetti from 'canvas-confetti';
 import { 
   Check, 
@@ -61,6 +62,7 @@ interface CrowdsourceCardProps {
   onSelectQuestionTribe?: (tribe: string) => void;
   tribeItemCounts?: Record<string, number>;
   totalCorpusCount?: number;
+  catalogueLoading?: boolean;
 }
 
 export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
@@ -87,7 +89,8 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
   selectedQuestionTribe = 'all',
   onSelectQuestionTribe,
   tribeItemCounts = {},
-  totalCorpusCount
+  totalCorpusCount,
+  catalogueLoading = false
 }) => {
   // Step 1: Orthography state
   const [spellingDecision, setSpellingDecision] = useState<'correct' | 'propose' | null>(null);
@@ -298,6 +301,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
             </button>
           </div>
 
+          {catalogueLoading && <CatalogueLoader compact />}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
             <button
               type="button"
@@ -308,7 +312,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                   : 'bg-[#24130a] text-[#d4af94] border-[#3b1d10] hover:border-[#f59e0b]/40'
               }`}
             >
-              🌍 Toutes les tribus ({totalCorpusCount ?? totalCount})
+              🌍 Toutes les tribus ({catalogueLoading ? '…' : (totalCorpusCount ?? totalCount)})
             </button>
 
             {MYENE_TRIBES.map(tName => {
@@ -329,7 +333,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                   }`}
                 >
                   {isMine ? '⭐ ' : ''}
-                  {tName} ({count})
+                  {tName} ({catalogueLoading ? '…' : count})
                 </button>
               );
             })}

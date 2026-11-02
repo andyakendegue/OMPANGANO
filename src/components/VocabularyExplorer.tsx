@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   Volume2,
@@ -30,6 +30,7 @@ import {
   mapDialectToTribeName
 } from '../services/seedData';
 import { useCatalogue } from '../hooks/useCatalogue';
+import { CatalogueLoader } from './CatalogueLoader';
 import { categoryOf, getAllIds, getIdsByCategory, getIdsByDialects, getItemsByIds, searchIds } from '../services/itemStore';
 
 interface VocabularyExplorerProps {
@@ -100,6 +101,16 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
     }
     return map;
   }, [contributions]);
+
+  // Fiches déjà enregistrées par l'utilisateur (quel que soit le statut, même refusées) : elles ne sont plus proposées
+  const answeredByMe = useMemo(() => {
+    const set = new Set<string>();
+    if (!currentUser?.id) return set;
+    for (const c of contributions) if (c.userId === currentUser.id && c.itemId) set.add(c.itemId);
+    return set;
+  }, [contributions, currentUser?.id]);
+  const answeredByMeRef = useRef(answeredByMe);
+  answeredByMeRef.current = answeredByMe;
 
   /** Tribus d'une fiche : celle de son dialecte + celles des contributeurs qui ont proposé une variante ou un enregistrement */
   const tribesOfItem = (item: QuestionnaireItem) => {
@@ -322,7 +333,8 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
           }
         }
         if (!cancelled) {
-          setMatchIds(ids);
+          const mine = answeredByMeRef.current;
+          setMatchIds(mine.size > 0 && ids ? ids.filter(id => !mine.has(id)) : ids);
           setCapped(isCapped);
         }
       } finally {
@@ -330,7 +342,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       }
     })();
     return () => { cancelled = true; };
-  }, [debouncedQuery, selectedTribe, selectedCategory, onlyFavorites, favoriteItemIds, extraTribeKey, catalogue.version]);
+  }, [debouncedQuery, selectedTribe, selectedCategory, onlyFavorites, favoriteItemIds, extraTribeKey, catalogue.version, answeredByMe.size]);
 
   const totalPages = Math.max(1, Math.ceil(matchIds.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -440,7 +452,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
               className="w-full pl-10 pr-8 py-3 bg-[#180d07] border border-[#4a2412] hover:border-[#d97706]/60 rounded-2xl text-xs sm:text-sm text-[#fed7aa] font-semibold focus:outline-none focus:border-[#f59e0b] transition-colors cursor-pointer"
             >
               <option value="all">
-                🌍 Toutes les 6 tribus Myènè ({catalogue.total} fiches)
+                🌍 Toutes les 6 tribus Myènè ({catalogue.loading ? '…' : catalogue.total} fiches)
               </option>
 
               {userTribe && (
@@ -636,7 +648,8 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
       </div>
 
       {/* Empty State when no item matches filters */}
-      {(matchIds.length === 0 && !isSearching) && (
+      {catalogue.loading && matchIds.length === 0 && <CatalogueLoader />}
+      {(matchIds.length === 0 && !isSearching && !catalogue.loading) && (
         <div className="warm-card-gradient rounded-3xl p-8 border border-[#4a2412] text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#180d07] border border-[#4a2412] flex items-center justify-center mx-auto text-xl">
             {onlyFavorites ? '⭐' : '🌍'}

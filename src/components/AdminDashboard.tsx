@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { resolveMediaUrl } from '../data/api';
+import { StatistiquesVisites } from './StatistiquesVisites';
 import { 
   BarChart3, 
   CheckCircle, 
@@ -67,7 +68,7 @@ interface AdminDashboardProps {
   badges?: Badge[];
   clans: ClanRegistry[];
   villages: VillageRegistry[];
-  onValidateContribution: (contributionId: string, status: 'approved' | 'rejected' | 'needs_revision', notes?: string) => Promise<void>;
+  onValidateContribution: (contributionId: string, status: 'approved' | 'rejected', notes?: string) => Promise<void>;
   onDeleteContribution?: (contributionId: string) => Promise<void>;
   onSaveQuestionnaireItem: (item: Partial<QuestionnaireItem>) => Promise<void>;
   onDeleteQuestionnaireItem: (itemId: string) => Promise<void>;
@@ -149,7 +150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   moderationSlot
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'stats' | 'users' | 'moderation' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection'
+    'stats' | 'users' | 'moderation' | 'validation' | 'clans_villages' | 'defis' | 'themes' | 'badges_manager' | 'csv_import' | 'questionnaires' | 'badges_levels' | 'fraud_detection' | 'visites'
   >('stats');
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -709,7 +710,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         type TabId = typeof activeTab;
         const groups: { id: string; label: string; icon: React.ElementType; tabs: { id: TabId; label: string; icon: React.ElementType }[] }[] = [
           { id: 'pilotage', label: 'Pilotage', icon: BarChart3, tabs: [
-            { id: 'stats', label: "Vue d'ensemble", icon: BarChart3 } ] },
+            { id: 'stats', label: "Vue d'ensemble", icon: BarChart3 },
+            { id: 'visites', label: 'Fréquentation', icon: BarChart3 } ] },
           { id: 'moderation', label: 'Modération', icon: CheckCircle, tabs: [
             { id: 'moderation', label: 'Validation vocale', icon: CheckCircle },
             { id: 'validation', label: `Réponses & Export (${contributions.length})`, icon: FileText },
@@ -774,6 +776,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       })()}
 
       {activeTab === 'moderation' && (moderationSlot ?? null)}
+      {activeTab === 'visites' && <StatistiquesVisites />}
 
       {/* ========================================================= */}
       {/* TAB: CLANS & VILLAGES (HIERARCHIE TRIBU -> CLAN -> VILLAGE) */}

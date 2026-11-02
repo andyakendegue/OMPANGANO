@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import { onAuthStateChanged, signOut as fbSignOut } from 'firebase/auth';
 import { 
   auth, 
@@ -14,6 +14,7 @@ import {
   checkIsAdminEmail,
   smartFetchCollection,
   syncItemsIntoCatalogue,
+  fetchItemsOrder,
   smartGetUserProfile,
   subscribeToCatalogSignals,
   sanitizeDataForFirebase,
@@ -80,6 +81,10 @@ import {
   getCachedUsersLocally
 } from './services/offlineStorage';
 import { NotificationService } from './services/notificationService';
+import { definirExemptionProtection } from './services/protectionCopie';
+import { appVersionService } from './services/appVersionService';
+import { purgerDonneesLocales } from './services/purgeLocale';
+import { demarrerStatistiques, definirUtilisateurStatistiques, onglet as statOnglet } from './services/statistiques';
 
 import { Navbar } from './components/Navbar';
 import { BottomNav, CrowdsourceSubNav, AppTab } from './components/BottomNav';
@@ -95,6 +100,7 @@ const StaffLoading = () => (
 import { UserProfileView } from './components/UserProfileView';
 import { AuthModal } from './components/AuthModal';
 import { AuthGateScreen } from './components/AuthGateScreen';
+import { CatalogueLoader } from './components/CatalogueLoader';
 import { useCatalogue } from './hooks/useCatalogue';
 import {
   applyItemsDelta,
@@ -206,6 +212,7 @@ function markDatabaseSeeded(): void {
 }
 
 export default function App() {
+  useEffect(() => { demarrerStatistiques(); }, []);
   const [currentTab, setCurrentTab] = useState<AppTab>('crowdsource');
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
@@ -1194,7 +1201,13 @@ export default function App() {
     }
     const audioMimeType = recording ? (recording.type || data.audioMimeType || 'audio/webm') : undefined;
 
+    if (data.itemId && contributions.some(c => c.userId === activeUser.id && c.itemId === data.itemId)) {
+      alert('Vous avez déjà enregistré cette fiche : elle ne peut pas être reprise.');
+      return false;
+    }
+
     const currentlyOnline = typeof navigator === 'undefined' ? isOnline : navigator.onLine;
+    positionedRef.current = true;
     const contributionId = `contrib-${activeUser.id.slice(0, 8)}-${Date.now()}`;
 
     const payload: Contribution = {
@@ -1668,7 +1681,7 @@ export default function App() {
   // Validation simple (console d'administration)
   const handleValidateContribution = async (
     contributionId: string,
-    status: 'approved' | 'rejected' | 'needs_revision',
+    status: 'approved' | 'rejected',
     notes?: string
   ) => {
     await applyValidationWithRewards(contributionId, { status, validatorNotes: notes || '' });
@@ -2459,10 +2472,26 @@ export default function App() {
       const seedRank = new Map(seedIds.map((id, idx) => [id, idx]));
       const head = ids.filter(id => seedRank.has(id)).sort((a, b) => seedRank.get(a)! - seedRank.get(b)!);
       const rest = head.length > 0 ? ids.filter(id => !seedRank.has(id)) : ids;
-      if (!cancelled) setDisplayedIds(head.length > 0 ? [...head, ...rest] : ids);
+      const ordered = head.length > 0 ? [...head, ...rest] : ids;
+      // Couverture rapide de la langue : les fiches ayant le moins de réponses d'abord, celles déjà répondues en dernier.
+      // Rang fourni par le serveur (tous contributeurs) ; à défaut, décompte des contributions déjà chargées.
+      // Tri stable : à égalité, l'ordre d'origine est conservé.
+      const rang = await fetchItemsOrder();
+      let cle: (id: string) => number;
+      if (rang) {
+        // Fiche absente du classement (créée depuis) : aucune réponse, donc en tête
+        cle = id => rang.get(id) ?? -1;
+      } else {
+        const counts = new Map<string, number>();
+        for (const c of contributionsRef.current) if (c.itemId) counts.set(c.itemId, (counts.get(c.itemId) || 0) + 1);
+        cle = id => counts.get(id) || 0;
+      }
+      const withIdx = ordered.map((id, i) => ({ id, i, n: cle(id) }));
+      withIdx.sort((x, y) => x.n - y.n || x.i - y.i);
+      if (!cancelled) setDisplayedIds(withIdx.map(x => x.id));
     })();
     return () => { cancelled = true; };
-  }, [catalogue.version, catalogue.total, selectedQuestionTribe, isChallengeFilterActive, challengeTheme]);
+  }, [catalogue.version, catalogue.total, selectedQuestionTribe, isChallengeFilterActive, challengeTheme, contributions.length > 0]);
 
   // Fiche choisie dans l'explorateur : on se place dessus dès que la liste est prête
   useEffect(() => {
@@ -2503,18 +2532,38 @@ export default function App() {
     return () => { cancelled = true; };
   }, [currentTab, favoriteItemIds, catalogue.version]);
 
-  // Navigation handlers
-  const handleNextExpression = () => {
-    if (currentItemIndex < displayedIds.length - 1) {
-      setCurrentItemIndex(prev => prev + 1);
-    } else {
-      setCurrentItemIndex(0);
+  // Fiches déjà enregistrées par l'utilisateur, quel que soit le statut (même refusées) : jamais reproposées.
+  const answeredItemIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!currentUser?.id) return set;
+    for (const c of contributions) {
+      if (c.userId === currentUser.id && c.itemId) set.add(c.itemId);
     }
+    return set;
+  }, [contributions, currentUser?.id]);
+
+  // Au chargement, on se place sur la première fiche non traitée (une seule fois, hors contribution de la session)
+  const positionedRef = useRef(false);
+  useEffect(() => {
+    if (positionedRef.current || pendingSelectId || displayedIds.length === 0 || answeredItemIds.size === 0) return;
+    positionedRef.current = true;
+    const idx = displayedIds.findIndex(id => !answeredItemIds.has(id));
+    if (idx > 0) setCurrentItemIndex(idx);
+  }, [answeredItemIds, displayedIds, pendingSelectId]);
+
+  // Navigation handlers : « suivante » et « précédente » sautent les fiches déjà traitées
+  const handleNextExpression = () => {
+    const n = displayedIds.length;
+    for (let step = 1; step <= n; step++) {
+      const idx = (currentItemIndex + step) % n;
+      if (!answeredItemIds.has(displayedIds[idx])) { setCurrentItemIndex(idx); return; }
+    }
+    setCurrentItemIndex(prev => (prev + 1) % Math.max(n, 1));
   };
 
   const handlePrevExpression = () => {
-    if (currentItemIndex > 0) {
-      setCurrentItemIndex(prev => prev - 1);
+    for (let idx = currentItemIndex - 1; idx >= 0; idx--) {
+      if (!answeredItemIds.has(displayedIds[idx])) { setCurrentItemIndex(idx); return; }
     }
   };
 
@@ -2523,7 +2572,7 @@ export default function App() {
     if (tab === 'admin' && currentUser?.role !== 'admin') {
       return;
     }
-    if (tab === 'validator' && currentUser?.role !== 'validator') {
+    if (tab === 'validator' && currentUser?.role !== 'admin') {
       return;
     }
     setCurrentTab(tab);
@@ -2535,11 +2584,39 @@ export default function App() {
       if (currentTab === 'admin' && currentUser.role !== 'admin') {
         setCurrentTab('crowdsource');
       }
-      if (currentTab === 'validator' && currentUser.role !== 'validator') {
+      if (currentTab === 'validator' && currentUser.role !== 'admin') {
         setCurrentTab('crowdsource');
       }
     }
   }, [currentUser?.role, currentTab]);
+
+  // Déconnexion : tout le contenu gardé sur l'appareil est supprimé (catalogue, cache, file hors ligne, clé de chiffrement),
+  // puis la page est rechargée à zéro. La prochaine connexion retélécharge tout.
+  const handleSignOut = async () => {
+    const enAttente = pendingOfflineSubmissions.length + pendingAdminMutationsCount;
+    if (enAttente > 0 && !window.confirm(
+      `${enAttente} contribution(s) ou modification(s) n'ont pas encore été envoyées. Se déconnecter les supprimera définitivement de cet appareil. Se déconnecter quand même ?`
+    )) return;
+    try { await fbSignOut(auth); } catch {}
+    currentUserRef.current = null;
+    setCurrentUser(null);
+    await purgerDonneesLocales().catch(() => {});
+    window.location.reload();
+  };
+
+  // Pas de mise à jour automatique (rechargement) pendant le premier téléchargement du catalogue
+  const enChargementInitial = !!currentUser && catalogue.initialLoading && isOnline;
+  useEffect(() => {
+    appVersionService.setBusy('chargement', enChargementInitial);
+    return () => appVersionService.setBusy('chargement', false);
+  }, [enChargementInitial]);
+
+  // Les administrateurs gardent copie, export et inspecteur
+  useEffect(() => { definirExemptionProtection(currentUser?.role === 'admin'); }, [currentUser?.role]);
+
+  // Statistiques : onglet consulté (à chaque changement) et compte connecté
+  useEffect(() => { definirUtilisateurStatistiques(currentUser?.id || null); }, [currentUser?.id]);
+  useEffect(() => { statOnglet(currentTab); }, [currentTab]);
 
   const totalPendingOfflineCount = pendingOfflineSubmissions.length + pendingAdminMutationsCount;
 
@@ -2608,6 +2685,21 @@ export default function App() {
     );
   }
 
+  // Après la connexion, l'interface n'apparaît qu'une fois le contenu chargé (premier téléchargement du catalogue)
+  if (catalogue.initialLoading && isOnline) {
+    return (
+      <div className="african-pattern-bg min-h-screen flex flex-col items-center justify-center p-6 text-[#fdfaf7]">
+        <AppUpdateBanner />
+        <div className="w-full max-w-sm text-center space-y-4">
+          <h1 className="text-2xl font-black tracking-wider">Nkala</h1>
+          <p className="text-sm text-[#c2a896]">Préparation de votre espace : téléchargement des questions…</p>
+          <CatalogueLoader />
+          <p className="text-[11px] text-[#a8826d]">Cela peut prendre un moment la première fois. Ne fermez pas l'application.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="african-pattern-bg min-h-screen text-[#fdfaf7] flex flex-col font-sans">
       {/* Code Update Banner if new version available */}
@@ -2631,14 +2723,7 @@ export default function App() {
         }}
         onOpenFaq={() => setIsFaqOpen(true)}
         onSyncOffline={syncPendingOfflineData}
-        onSignOut={() => {
-          try {
-            localStorage.removeItem('nkala_authenticated_user');
-          } catch {}
-          fbSignOut(auth).catch(() => {});
-          currentUserRef.current = null;
-          setCurrentUser(null);
-        }}
+        onSignOut={handleSignOut}
         currentTab={currentTab}
         onSelectTab={handleTabNavigation}
       />
@@ -2688,12 +2773,13 @@ export default function App() {
           <>
             {currentItem ? (
               <CrowdsourceCard
+                key={currentItem.id}
                 item={currentItem}
                 currentUser={currentUser}
                 isOnline={isOnline}
                 onNext={handleNextExpression}
                 onPrev={handlePrevExpression}
-                hasPrev={currentItemIndex > 0}
+                hasPrev={displayedIds.slice(0, currentItemIndex).some(id => !answeredItemIds.has(id))}
                 hasNext={currentItemIndex < displayedIds.length - 1}
                 currentIndex={currentItemIndex}
                 totalCount={displayedIds.length}
@@ -2721,6 +2807,7 @@ export default function App() {
                 }}
                 tribeItemCounts={tribeItemCounts}
                 totalCorpusCount={totalCorpusCount}
+                catalogueLoading={catalogue.loading}
               />
             ) : (
               <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
@@ -2769,7 +2856,7 @@ export default function App() {
         )}
 
         {/* Dedicated Validator Workspace: Oral vs Written nuance */}
-        {currentTab === 'validator' && currentUser?.role === 'validator' && (
+        {currentTab === 'validator' && currentUser?.role === 'admin' && (
           <Suspense fallback={<StaffLoading />}>
             <ValidatorWorkspace
               contributions={contributions}
@@ -2853,14 +2940,7 @@ export default function App() {
               setIsPostOnboardingGuide(false);
               setIsVisualGuideOpen(true);
             }}
-            onSignOut={() => {
-              try {
-                localStorage.removeItem('nkala_authenticated_user');
-              } catch {}
-              fbSignOut(auth).catch(() => {});
-              currentUserRef.current = null;
-              setCurrentUser(null);
-            }}
+            onSignOut={handleSignOut}
             onClearOfflineCache={() => {
               indexedDB.deleteDatabase('nkala_enenga_offline_db');
               setPendingOfflineSubmissions([]);

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { appVersionService } from '../services/appVersionService';
 import { Mic, Square, Play, Pause, RotateCcw, Volume2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface AudioRecorderProps {
@@ -33,8 +34,15 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   // Durée maximale d'un enregistrement (taille raisonnable pour Storage et pour l'entraînement)
   const MAX_RECORDING_SECONDS = 60;
 
+  // Pas de mise à jour automatique (rechargement) pendant un enregistrement
+  useEffect(() => {
+    appVersionService.setBusy('enregistrement', isRecording);
+    return () => appVersionService.setBusy('enregistrement', false);
+  }, [isRecording]);
+
   useEffect(() => {
     return () => {
+      if (audioPlayerRef.current) audioPlayerRef.current.pause();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {

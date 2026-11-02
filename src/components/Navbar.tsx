@@ -18,7 +18,7 @@ import { UserProfile } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { useOfflineShellStatus } from '../services/pwaOfflineManager';
 import { MYENE } from '../services/myeneLexique';
-import { subscribeSyncProgress, type SyncProgress } from '../firebase';
+import { subscribeSyncProgress, isCatalogueSettled, subscribeCatalogueSettled, type SyncProgress } from '../firebase';
 
 interface NavbarProps {
   currentUser: UserProfile | null;
@@ -54,6 +54,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const offlineShell = useOfflineShellStatus();
   const [sync, setSync] = React.useState<SyncProgress>({ kind: null, done: 0, total: 0 });
   React.useEffect(() => subscribeSyncProgress(setSync), []);
+  const [settled, setSettled] = React.useState(isCatalogueSettled());
+  React.useEffect(() => subscribeCatalogueSettled(() => setSettled(true)), []);
 
   return (
     <header className="sticky top-0 z-40 bg-[#170d08]/95 backdrop-blur-md border-b border-[#3d1f11] px-3.5 py-3 sm:px-6">
@@ -76,9 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="font-black text-base sm:text-lg tracking-wider text-white">
                 Nkala
-              </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#c85a32] text-white">
-                ESSAKA
               </span>
             </div>
             <p className="text-[10px] text-[#f59e0b] font-medium hidden sm:block">
@@ -164,6 +163,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? `${Math.max(sync.total - sync.done, 0)} restant${sync.total - sync.done > 1 ? 's' : ''}`
                   : `Téléchargement ${sync.done.toLocaleString('fr-FR')} / ${sync.total.toLocaleString('fr-FR')}`}
               </span>
+            </div>
+          )}
+
+          {/* Première synchronisation avant tout comptage : le haut de page n'est jamais muet */}
+          {!sync.kind && !settled && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#0f3d3a] text-[#99f6e4] border border-[#14b8a6]/40" role="status">
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              <span>Chargement…</span>
             </div>
           )}
 

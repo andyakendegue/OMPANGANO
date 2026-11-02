@@ -18,7 +18,7 @@ import {
 import firebaseConfig from '../firebase-applet-config.json';
 import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
 import { PROTECTED_USER_FIELDS } from '../shared/userSecurity';
-import { applyItemsDelta, clearCatalogue, countItems, notifyCatalogueChanged } from './services/itemStore';
+import { applyItemsDelta, clearCatalogue, countItems, notifyCatalogueChanged, flushSearchIndex } from './services/itemStore';
 import type { QuestionnaireItem } from './types';
 
 // Initialize Firebase App (Auth uniquement)
@@ -141,6 +141,16 @@ export interface SyncProgress {
 const IDLE: SyncProgress = { kind: null, done: 0, total: 0 };
 let uploadState: { done: number; total: number } | null = null;
 const downloadState = new Map<string, { done: number; total: number }>();
+const episode = { done: 0 };
+let episodeTimer: ReturnType<typeof setTimeout> | null = null;
+/** Fin d'une synchronisation : ses fiches restent comptées si une autre suit dans les 5 secondes. */
+function endDownload(collectionPath: string, fetched: number) {
+  downloadState.delete(collectionPath);
+  episode.done += fetched;
+  if (episodeTimer) clearTimeout(episodeTimer);
+  episodeTimer = setTimeout(() => { episode.done = 0; episodeTimer = null; }, 5000);
+  emitProgress();
+}
 let currentProgress: SyncProgress = IDLE;
 const progressListeners = new Set<(p: SyncProgress) => void>();
 const queueListeners = new Set<() => void>();
@@ -150,9 +160,14 @@ const MIN_DOWNLOAD_TO_SHOW = 500;
 function emitProgress() {
   if (uploadState) currentProgress = { kind: 'upload', ...uploadState };
   else {
+    // Les synchronisations qui s'enchaînent (import en cours, signaux rapprochés) forment un seul « épisode » :
+    // les fiches déjà reçues restent comptées, le total ne fait que grandir.
     let done = 0, total = 0;
     for (const d of downloadState.values()) { done += d.done; total += d.total; }
-    currentProgress = total >= MIN_DOWNLOAD_TO_SHOW ? { kind: 'download', done, total } : IDLE;
+    // Le seuil d'affichage porte sur la synchronisation en cours, pas sur l'épisode entier
+    const show = total >= MIN_DOWNLOAD_TO_SHOW;
+    if (total > 0) { done += episode.done; total += episode.done; }
+    currentProgress = show ? { kind: 'download', done, total } : IDLE;
   }
   progressListeners.forEach(cb => cb(currentProgress));
 }
@@ -549,9 +564,11 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
       );
       // Les données ont été remises à zéro côté serveur : le cache local est abandonné
       if (page.reset && !wasReset) { map.clear(); wasReset = true; }
-      if (!announcedTotal && typeof page.total === 'number') announcedTotal = page.total;
+      // `total` = fiches restantes à partir de cette page : l'estimation suit un import qui continue pendant le téléchargement
+      if (typeof page.total === 'number') announcedTotal = Math.max(announcedTotal, fetched + page.total);
       fetched += page.records.length;
-      if (announcedTotal) { downloadState.set(collectionPath, { done: Math.min(fetched, announcedTotal), total: announcedTotal }); emitProgress(); }
+      announcedTotal = Math.max(announcedTotal, fetched);
+      if (announcedTotal) { downloadState.set(collectionPath, { done: fetched, total: announcedTotal }); emitProgress(); }
       if (page.epoch) { epoch = page.epoch; sentEpoch = page.epoch; }
       for (const rec of page.records) {
         if (rec.deletedAt) map.delete(rec.id);
@@ -578,11 +595,75 @@ export async function smartFetchCollection<T extends { id: string; updatedAt?: s
  * suivante : une coupure de réseau ou un onglet fermé par le téléphone reprend là où elle s'était arrêtée.
  * `cleanPage` nettoie une page (corrections, fiches supprimées en local) avant son écriture.
  */
-export async function syncItemsIntoCatalogue(
+/** Vrai tant que la première synchronisation du catalogue de la session n'est pas terminée (réussie, échouée ou hors ligne). */
+let catalogueSettled = false;
+const settledListeners = new Set<() => void>();
+export const isCatalogueSettled = () => catalogueSettled;
+export function subscribeCatalogueSettled(cb: () => void): () => void {
+  settledListeners.add(cb);
+  return () => { settledListeners.delete(cb); };
+}
+function markCatalogueSettled() {
+  if (catalogueSettled) return;
+  catalogueSettled = true;
+  settledListeners.forEach(cb => cb());
+}
+
+/** À appeler à la déconnexion : la prochaine connexion repasse par l'écran de chargement du catalogue. */
+export function resetCatalogueSettled() {
+  catalogueSettled = false;
+}
+
+/** Vrai pendant un premier téléchargement complet du catalogue (connexion sur un appareil vide) */
+let initialDownload = false;
+export const isInitialDownload = () => initialDownload;
+
+/**
+ * Ordre de présentation des fiches : les moins répondues d'abord (tous contributeurs confondus).
+ * Mémorisé 5 minutes ; `null` si le serveur est injoignable (l'appelant se rabat sur les contributions connues).
+ */
+let ordreCache: { at: number; rang: Map<string, number> } | null = null;
+export async function fetchItemsOrder(): Promise<Map<string, number> | null> {
+  if (ordreCache && Date.now() - ordreCache.at < 5 * 60_000) return ordreCache.rang;
+  try {
+    const { ids } = await api<{ ids: string[] }>('GET', '/v1/items/ordre');
+    if (!Array.isArray(ids)) return null;
+    const rang = new Map<string, number>();
+    ids.forEach((id, i) => rang.set(id, i));
+    ordreCache = { at: Date.now(), rang };
+    return rang;
+  } catch { return null; }
+}
+export const forgetItemsOrder = () => { ordreCache = null; };
+
+const PRIO_KEY = 'ompangano_prio_download';
+let catalogueSyncRun: Promise<{ changed: number; ok: boolean }> | null = null;
+let catalogueSyncAgain = false;
+export function syncItemsIntoCatalogue(
+  cleanPage: (records: QuestionnaireItem[]) => QuestionnaireItem[]
+): Promise<{ changed: number; ok: boolean }> {
+  // Une seule synchronisation à la fois : les appels simultanés (démarrage, signal temps réel, minuteur,
+  // retour sur l'onglet) rejoignent celle en cours, suivie d'un seul passage si un signal est arrivé entre-temps.
+  if (catalogueSyncRun) { catalogueSyncAgain = true; return catalogueSyncRun; }
+  catalogueSyncRun = (async () => {
+    try {
+      let result = await runCatalogueSync(cleanPage);
+      while (catalogueSyncAgain && result.ok) {
+        catalogueSyncAgain = false;
+        const next = await runCatalogueSync(cleanPage);
+        result = { changed: result.changed + next.changed, ok: next.ok };
+      }
+      return result;
+    } finally { catalogueSyncRun = null; catalogueSyncAgain = false; initialDownload = false; markCatalogueSettled(); }
+  })();
+  return catalogueSyncRun;
+}
+
+async function runCatalogueSync(
   cleanPage: (records: QuestionnaireItem[]) => QuestionnaireItem[]
 ): Promise<{ changed: number; ok: boolean }> {
   const collectionPath = 'items';
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return { changed: 0, ok: false };
+  if (typeof navigator !== 'undefined' && !navigator.onLine) { markCatalogueSettled(); return { changed: 0, ok: false }; }
   const PAGE = 500; // pages modestes : peu de mémoire à la fois, reprise fine
   try {
     const stored = getLastCollectionSyncTimestamp(collectionPath);
@@ -593,18 +674,34 @@ export async function syncItemsIntoCatalogue(
     let fetched = 0;
     let changed = 0;
     let pagesDone = 0;
+    // Premier téléchargement (ou reprise d'un premier téléchargement interrompu) : les fiches les moins répondues d'abord.
+    // Le curseur des synchronisations par différences n'est enregistré qu'à la fin ; `prio` garde la position de reprise.
+    let prio = !cursor;
+    if (prio) initialDownload = true;
+    let prioOffset = 0;
+    let deltaCursor: string | null = null;
+    if (prio) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(PRIO_KEY) || 'null');
+        if (saved && typeof saved.offset === 'number' && saved.delta) { prioOffset = saved.offset; deltaCursor = saved.delta; fetched = prioOffset; }
+      } catch {}
+      if (!deltaCursor && (await countItems()) > 0) { prio = false; } // base partielle sans reprise connue : ordre habituel
+    }
     for (;;) {
       const qs = new URLSearchParams({ limit: String(PAGE) });
-      if (cursor) qs.set('since', cursor);
+      if (prio) { qs.set('order', 'rarete'); qs.set('offset', String(prioOffset)); }
+      else if (cursor) qs.set('since', cursor);
       if (sentEpoch) qs.set('epoch', sentEpoch);
-      const page = await api<{ records: (QuestionnaireItem & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number }>(
+      const page = await api<{ records: (QuestionnaireItem & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number; deltaCursor?: string | null; nextOffset?: number }>(
         'GET', `/v1/sync/${collectionPath}?${qs}`
       );
       // Données remises à zéro côté serveur : le catalogue local est vidé avant d'écrire
-      if (page.reset) { await clearCatalogue(); freshStore = true; setLastCollectionSyncTimestamp(collectionPath, ''); }
-      if (!announcedTotal && typeof page.total === 'number') announcedTotal = page.total;
+      if (page.reset) { await clearCatalogue({ silent: true }); freshStore = true; setLastCollectionSyncTimestamp(collectionPath, ''); }
+      // `total` = fiches restantes à partir de cette page : l'estimation suit un import qui continue pendant le téléchargement
+      if (typeof page.total === 'number') announcedTotal = Math.max(announcedTotal, fetched + page.total);
       fetched += page.records.length;
-      if (announcedTotal) { downloadState.set(collectionPath, { done: Math.min(fetched, announcedTotal), total: announcedTotal }); emitProgress(); }
+      announcedTotal = Math.max(announcedTotal, fetched);
+      if (announcedTotal) { downloadState.set(collectionPath, { done: fetched, total: announcedTotal }); emitProgress(); }
       if (page.epoch) sentEpoch = page.epoch;
 
       const removed: string[] = [];
@@ -620,21 +717,42 @@ export async function syncItemsIntoCatalogue(
       await applyItemsDelta(cleaned, removed, { silent: true, knownEmpty: freshStore && removed.length === 0 });
       changed += cleaned.length + removed.length;
 
-      if (page.cursor) cursor = page.cursor;
-      else if (page.reset) cursor = null;
-      if (page.epoch) setStoredEpoch(collectionPath, page.epoch);
-      if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
+      if (prio) {
+        if (typeof page.nextOffset === 'number' && page.deltaCursor) {
+          prioOffset = page.nextOffset;
+          if (!deltaCursor) deltaCursor = page.deltaCursor;
+          try { localStorage.setItem(PRIO_KEY, JSON.stringify({ offset: prioOffset, delta: deltaCursor })); } catch {}
+          if (page.epoch) setStoredEpoch(collectionPath, page.epoch);
+          if (!page.hasMore) {
+            cursor = deltaCursor;
+            setLastCollectionSyncTimestamp(collectionPath, cursor);
+            try { localStorage.removeItem(PRIO_KEY); } catch {}
+          }
+        } else {
+          // Ancien serveur : il a répondu dans l'ordre habituel, on continue ainsi
+          prio = false;
+          if (page.cursor) cursor = page.cursor;
+          if (page.epoch) setStoredEpoch(collectionPath, page.epoch);
+          if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
+        }
+      } else {
+        if (page.cursor) cursor = page.cursor;
+        else if (page.reset) cursor = null;
+        if (page.epoch) setStoredEpoch(collectionPath, page.epoch);
+        if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
+      }
       // Les premières fiches apparaissent à l'écran sans attendre la fin du téléchargement
       if (++pagesDone % 8 === 1) notifyCatalogueChanged(false);
       if (!page.hasMore) break;
       // Laisse respirer l'interface entre deux pages
       await new Promise(r => setTimeout(r, 0));
     }
-    downloadState.delete(collectionPath); emitProgress();
+    await flushSearchIndex();
+    endDownload(collectionPath, fetched);
     notifyCatalogueChanged(true);
     return { changed, ok: true };
   } catch (err) {
-    downloadState.delete(collectionPath); emitProgress();
+    endDownload(collectionPath, 0);
     console.warn('Synchronisation du catalogue impossible, copie locale conservée :', err);
     return { changed: 0, ok: false };
   }

@@ -134,12 +134,6 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
       finalStatus = 'approved';
     } else if (currentEval.spelling === 'correct' && currentEval.pronunciation === 'no_audio') {
       finalStatus = 'approved';
-    } else if (currentEval.spelling === 'incorrect' && currentEval.pronunciation === 'correct') {
-      // NUANCE DEMANDÉE : La prononciation est bonne mais il a mal écrit
-      finalStatus = 'audio_approved_text_revision';
-    } else if (currentEval.spelling === 'correct' && currentEval.pronunciation === 'incorrect') {
-      // NUANCE DEMANDÉE : L'écrit peut être bon mais pas la prononciation
-      finalStatus = 'text_approved_audio_revision';
     } else {
       finalStatus = 'rejected';
     }
@@ -160,8 +154,6 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
     if (currentUser && c.userId === currentUser.id) return false;
     if (filterStatus === 'pending' && c.status !== 'pending') return false;
     if (filterStatus === 'approved' && c.status !== 'approved') return false;
-    if (filterStatus === 'nuance_audio' && c.status !== 'audio_approved_text_revision') return false;
-    if (filterStatus === 'nuance_text' && c.status !== 'text_approved_audio_revision') return false;
     if (filterStatus === 'rejected' && c.status !== 'rejected') return false;
 
     if (tribeFilter !== 'all' && (c.userTribe || '').toLowerCase() !== tribeFilter.toLowerCase()) return false;
@@ -183,8 +175,6 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
   const moreContribs = useShowMore(filteredContributions.length);
 
   const pendingCount = contributions.filter(c => c.status === 'pending' && c.userId !== currentUser?.id).length;
-  const audioApprovedCount = contributions.filter(c => c.status === 'audio_approved_text_revision').length;
-  const textApprovedCount = contributions.filter(c => c.status === 'text_approved_audio_revision').length;
   const fullyApprovedCount = contributions.filter(c => c.status === 'approved').length;
 
   return (
@@ -222,27 +212,13 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
           </div>
         </div>
 
-        {/* Nuance Guide Box */}
-        <div className="p-4 rounded-2xl bg-[#180d07]/90 border border-[#4a2412] text-xs text-[#fed7aa] space-y-2">
-          <div className="flex items-center gap-2 font-bold text-amber-400">
-            <Info className="w-4 h-4" />
-            <span>Règle de validation nuancée (Oral vs Écrit) :</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-[#d4af94]">
-            <div className="p-2.5 rounded-xl bg-[#27150c] border border-[#3b1d10]">
-              <span className="text-emerald-300 font-bold block mb-0.5">🎙️ Cas 1 : Prononciation bonne, mais mal écrit</span>
-              L'enregistrement audio est clair et juste, mais la graphie comporte une faute. La voix est validée et archivée, tandis que l'écrit est renvoyé en révision.
-            </div>
-            <div className="p-2.5 rounded-xl bg-[#27150c] border border-[#3b1d10]">
-              <span className="text-sky-300 font-bold block mb-0.5">✍️ Cas 2 : Écrit bon, mais mauvaise prononciation</span>
-              L'orthographe et la variante sont impeccables, mais le ton, l'intonation ou la qualité sonore est à refaire. Le texte est validé et la voix est demandée à réenregistrer.
-            </div>
-          </div>
+        <div className="p-3 rounded-2xl bg-[#180d07]/90 border border-[#4a2412] text-xs text-[#d4af94]">
+          Une contribution est validée seulement si l'écrit et la prononciation sont justes. Sinon elle est refusée, définitivement : le contributeur ne peut pas la reprendre.
         </div>
       </div>
 
       {/* KPI Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+      <div className="grid grid-cols-2 gap-3 text-xs">
         <button
           onClick={() => setFilterStatus('pending')}
           className={`p-3.5 rounded-2xl border text-left transition ${
@@ -267,29 +243,6 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
           <span className="text-xl font-bold text-emerald-400">{fullyApprovedCount}</span>
         </button>
 
-        <button
-          onClick={() => setFilterStatus('nuance_audio')}
-          className={`p-3.5 rounded-2xl border text-left transition ${
-            filterStatus === 'nuance_audio'
-              ? 'bg-emerald-600/30 border-emerald-500 text-white'
-              : 'bg-[#180d07] border-[#3b1d10] text-[#a8826d]'
-          }`}
-        >
-          <span className="text-[11px] block">🎙️ Voix Bonne (Écrit à corriger)</span>
-          <span className="text-xl font-bold text-teal-300">{audioApprovedCount}</span>
-        </button>
-
-        <button
-          onClick={() => setFilterStatus('nuance_text')}
-          className={`p-3.5 rounded-2xl border text-left transition ${
-            filterStatus === 'nuance_text'
-              ? 'bg-sky-600/30 border-sky-500 text-white'
-              : 'bg-[#180d07] border-[#3b1d10] text-[#a8826d]'
-          }`}
-        >
-          <span className="text-[11px] block">✍️ Écrit Bon (Voix à refaire)</span>
-          <span className="text-xl font-bold text-sky-400">{textApprovedCount}</span>
-        </button>
       </div>
 
       {/* Filter & Search Bar */}

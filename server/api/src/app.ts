@@ -15,6 +15,7 @@ import {
   type GenericTable, type SyncTable
 } from './model.ts';
 import { importItems } from './importItems.ts';
+import { enregistrerVisite, lireStatistiques, tropDeRequetes } from './visites.ts';
 import { chargerEcartees, cle as cleTexte, estPlusAncienne, journaliser, preparerProtection, raisonEcartee, type EntreeJournal } from './protection.ts';
 import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
 import {
@@ -40,6 +41,18 @@ const fail = (status: number, msg: string): never => { throw new HttpError(statu
 
 declare module 'fastify' {
   interface FastifyRequest { auth?: AuthUser }
+}
+
+/** Téléchargements complets du catalogue par compte (mémoire du processus : repart de zéro au redémarrage) */
+const telechargementsComplets = new Map<string, number[]>();
+const MAX_TELECHARGEMENTS_PAR_JOUR = 6;
+function telechargementsTropNombreux(uid: string, maintenant = Date.now()): boolean {
+  const recents = (telechargementsComplets.get(uid) || []).filter(t => maintenant - t < 24 * 3600_000);
+  if (recents.length >= MAX_TELECHARGEMENTS_PAR_JOUR) { telechargementsComplets.set(uid, recents); return true; }
+  recents.push(maintenant);
+  telechargementsComplets.set(uid, recents);
+  if (telechargementsComplets.size > 10000) telechargementsComplets.clear();
+  return false;
 }
 
 /** Phrases du seed initial : un import CSV ou une écriture en masse venant d'un autre auteur ne les remplace jamais. */
@@ -423,10 +436,35 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return userRow(row);
   });
 
+  // ------------------------------------------------------------------ statistiques de fréquentation
+  // Collecte publique (visiteurs non connectés compris) ; sendBeacon envoie du text/plain pour éviter la pré-requête CORS.
+  app.addContentTypeParser('text/plain', { parseAs: 'string' }, (_req, body, done) => {
+    try { done(null, JSON.parse(String(body))); } catch { done(null, {}); }
+  });
+  app.post('/pub/collect', async (req, reply) => {
+    if (tropDeRequetes(req.ip)) return reply.status(429).send({ error: 'Trop de requêtes.' });
+    try { await enregistrerVisite(db, req.ip, req.body); } catch (err: any) { req.log.warn({ msg: err?.message }, 'collecte ignorée'); }
+    return reply.status(204).send();
+  });
+  app.get('/v1/admin/analytics', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    return lireStatistiques(db, Number((req.query as any).days) || 30);
+  });
+
+  // Ordre de présentation des fiches : les moins répondues d'abord (tous contributeurs confondus), à égalité par identifiant.
+  app.get('/v1/items/ordre', async () => {
+    const rows = await db.query<any>(
+      `SELECT t.id FROM items t
+       LEFT JOIN (SELECT item_id, count(*)::int AS n FROM contributions WHERE deleted_at IS NULL GROUP BY item_id) c ON c.item_id = t.id
+       WHERE t.deleted_at IS NULL ORDER BY COALESCE(c.n, 0), t.id`);
+    return { ids: rows.map(r => r.id as string) };
+  });
+
   // ------------------------------------------------------------------ synchronisation
   app.get('/v1/sync/:collection', async (req) => {
     const { collection } = req.params as { collection: string };
-    const qs = req.query as { since?: string; limit?: string; epoch?: string };
+    const qs = req.query as { since?: string; limit?: string; epoch?: string; order?: string; offset?: string };
     if (!isSyncTable(collection)) fail(404, 'Collection inconnue.');
     if (collection === 'users') {
       const a = await actorOf(req);
@@ -443,6 +481,32 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       if (Number.isNaN(Date.parse(ts))) fail(400, 'Paramètre since invalide.');
       sinceTs = ts;
       sinceId = id || '';
+    }
+    // Premier téléchargement des fiches : les moins répondues d'abord (couverture rapide de la langue).
+    // Pagination par position ; `deltaCursor` (pris sur la première page) sert ensuite aux synchronisations par différences.
+    if (collection === 'items' && qs.order === 'rarete') {
+      const offset = Math.max(Number(qs.offset) || 0, 0);
+      // Anti-aspiration du corpus : au plus 6 téléchargements complets par compte et par jour
+      if (offset === 0 && telechargementsTropNombreux(req.auth!.uid)) fail(429, 'Trop de téléchargements complets aujourd’hui. Réessayez demain.');
+      const rows = await db.query<any>(
+        `SELECT t.*, ${CURSOR_SQL} AS _cur FROM items t
+         LEFT JOIN (SELECT item_id, count(*)::int AS n FROM contributions WHERE deleted_at IS NULL GROUP BY item_id) c ON c.item_id = t.id
+         WHERE t.deleted_at IS NULL
+         ORDER BY COALESCE(c.n, 0), t.id OFFSET $1 LIMIT $2`, [offset, limit]);
+      const head = (await db.query<any>(
+        `SELECT ${CURSOR_SQL} AS _cur, t.id FROM items t ORDER BY t.updated_at DESC, t.id DESC LIMIT 1`))[0];
+      const n = Number((await db.query<any>(`SELECT count(*) AS n FROM items WHERE deleted_at IS NULL`))[0].n);
+      return {
+        total: Math.max(n - offset, rows.length),
+        records: rows.map(r => serializeRow('items', r)),
+        cursor: null,
+        deltaCursor: head ? `${head._cur}|${head.id}` : null,
+        nextOffset: offset + rows.length,
+        hasMore: rows.length === limit,
+        epoch,
+        reset: false,
+        serverTime: new Date().toISOString()
+      };
     }
     const rows = await db.query<any>(
       `SELECT t.*, ${CURSOR_SQL} AS _cur FROM ${collection} t

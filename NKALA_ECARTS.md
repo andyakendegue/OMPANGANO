@@ -5,7 +5,8 @@
 ## Règles de visibilité appliquées dans l'application Expo
 - Contributeur : Contribuer (fiche, Ezango, classement), Profil.
 - Validateur : idem + sous-onglet « Validation » (il valide ; il n'est pas administrateur).
-- Administrateur : en plus, onglets **Administration** et **Apprendre** (Onenji). Les futures parties Ontci (écoute) et annonces/Nkala suivront la même règle (`MODULES` dans `packages/noyau/src/modules.ts`).
+- Administrateur : en plus, onglet **Administration**.
+- **Modifié le 2 nov. 2026 (demande de Capp)** : les onglets **Apprendre** (Onenji) et **Écoute** (Ontci, page « pas encore porté ») sont visibles de tout utilisateur connecté ; le verrou administrateur ne subsiste que pour l'Administration. Audit complet des modules restants : `NKALA_AUDIT_COMPLET.md`.
 - Le serveur reste seul juge des droits (les écrans ne sont qu'une commodité).
 
 ## A. Partie contributeur : état après la mise à niveau complète (2 nov. 2026, branche `contributeur-complet`)
@@ -43,7 +44,7 @@ Le site web n'a pas été modifié (même code ; seuls les noms hachés des fich
 - **Régie publicitaire** : `REVIVE_ADSERVER.md` décrit l'installation et la passerelle ; **rien n'est installé ni codé** (ni zones, ni passerelle API, ni publicité récompensée).
 
 ## D. Onenji (spécifications `14_programme_et_jeux/`) : 4 jeux sur ≈ 60
-Développés (réservés aux administrateurs) : « Choisis la bonne phrase » (contrôle 7), « Remets les mots dans l'ordre » (contrôle 4), « Écoute et choisis » (contrôle 1), « Écoute et remets en ordre » (dictée sonore). Règle des cœurs et des points (chiffres provisoires).
+Développés (visibles de tous les utilisateurs connectés) : « Choisis la bonne phrase » (contrôle 7), « Remets les mots dans l'ordre » (contrôle 4), « Écoute et choisis » (contrôle 1), « Écoute et remets en ordre » (dictée sonore). Règle des cœurs et des points (chiffres provisoires).
 Non développé :
 - **Contrôles 2, 3, 5, 6** (image → nom, prononcer devant une image, remplir une case, glisser-déposer) : exigent des images liées aux fiches et la capture de réponses.
 - **Jeux de mots** : mots mêlés, mots fléchés, mots croisés, pendu, anagrammes, syllabes, mot-image, singulier/pluriel (classes), mots jumeaux (homonymes), familles de mots.
@@ -53,4 +54,23 @@ Non développé :
 - Jeux de référence (Itango, quiz, mots croisés, pendu) : non repris.
 
 ## E. Technique restant
+
+Erreurs rencontrées et reproduction dans Expo : voir `NKALA_ERREURS.md`.
+
 Construction EAS (`eas build`) non lancée ; icônes, écran de démarrage, identité visuelle (logo, polices) et ressources `assets/aistudio/` du site web non reprises dans l'application ; comptes Apple Developer / Google Play, clés de signature, politique de confidentialité et fiches de magasin à fournir ; tests automatisés de l'application Expo absents (seuls des tests de logique ponctuels ont été faits, hors dépôt).
+
+## D. Évolutions du site web à reporter dans l'application Expo (demandées par Capp le 2 nov. 2026, soir)
+Toutes ces évolutions sont **déployées sur le site web et sur l'API** (migration `003_statistiques_visites.sql`, 58 tests verts) mais **pas encore reprises dans `apps/nkala`**. Le serveur est déjà prêt pour Expo.
+
+1. **Une fiche déjà enregistrée ne l'est plus jamais** (quel que soit le statut, refusée comprise) : « Suivante/Précédente » les sautent, la première fiche proposée est la première non traitée, l'envoi d'une fiche déjà enregistrée est refusé. Ezango ne montre plus les fiches enregistrées par l'utilisateur ; le Profil les range dans **« Mes fiches enregistrées »** (statut : en attente, validée, refusée).
+2. **Plus de reprise de fiche** : les statuts `needs_revision`, `audio_approved_text_revision`, `text_approved_audio_revision` ne sont plus produits par les écrans ; la validation n'a que deux issues (validée / refusée, définitive). Le libellé « À revoir » est supprimé.
+3. **Validation réservée aux administrateurs** (écran web : onglet Validation visible des seuls admins). **Contredit la règle Expo « validateur = + Validation »** : à changer dans `MODULES` et les onglets. Côté serveur, le rôle validateur reste accepté (règles non durcies, à faire avec un redéploiement de l'API).
+4. **Ordre des fiches par rareté** : les moins répondues d'abord, les répondues en dernier (couverture rapide de la langue). Route `GET /v1/items/ordre` (identifiants triés, tous contributeurs) ; repli sur les contributions connues si le serveur est injoignable. **Premier téléchargement** dans le même ordre : `GET /v1/sync/items?order=rarete&offset=N` (renvoie `nextOffset` et `deltaCursor`, curseur à enregistrer à la fin pour les synchronisations suivantes ; reprise par la position). Limite serveur : 6 téléchargements complets par compte et par jour.
+5. **Statistiques de fréquentation** : collecte publique `POST /pub/collect` (session, visiteur anonyme, onglet consulté, appareil, durée active, signal de vie toutes les 30 s) ; IP et pays déduits par le serveur ; lecture `GET /v1/admin/analytics?days=` (admin) ; écran « Administration > Pilotage > Fréquentation ». Expo : envoyer les mêmes événements (type d'appareil, système, version de l'application, écran, durée), avec un identifiant de visiteur conservé après la déconnexion.
+6. **Déconnexion = purge totale** : catalogue, caches, file hors-ligne, profil, préférences, clé de chiffrement ; seul l'identifiant anonyme de visiteur est gardé ; avertissement si des envois ne sont pas encore partis ; la connexion suivante retélécharge tout.
+7. **Après connexion, l'interface attend la fin du premier téléchargement** du catalogue (écran de préparation avec progression) ; levé si hors-ligne ou en cas d'échec réseau.
+8. **Cache local chiffré** (AES-GCM 256, clé de l'appareil non exportable, supprimée à la déconnexion) : fiches et texte de recherche ; seuls l'identifiant, le dialecte et le thème restent en clair. Expo : clé dans le trousseau (`expo-secure-store`), base chiffrée équivalente. Non chiffrés côté web : profil mis en cache et file hors-ligne (purgés à la déconnexion).
+9. **Mise à jour automatique** : alerte toujours visible (« va se mettre à jour automatiquement dans N s, l'écran se coupera quelques secondes »), téléchargement en arrière-plan avec progression, **non bloquant** ; en cas de coupure, la fenêtre disparaît et la mise à jour reprend plus tard ; vérification et tentative **au plus toutes les 5 minutes** ; pas de rechargement pendant un enregistrement vocal ou le premier chargement ; « Plus tard » repousse de 5 minutes. Expo : même comportement avec EAS Update (`expo-updates`).
+10. **Protection contre la copie (web seulement)** : clic droit, copie, sélection, impression, raccourcis d'inspection bloqués ; écran masqué si l'inspecteur est ouvert (ordinateur) ; verrou de domaine ; en-têtes de sécurité ; administrateurs exemptés. Dissuasion seulement. Expo : sans objet, hors limite de téléchargement du corpus (point 4) et chiffrement (point 8).
+11. **Marque** : la pastille « ESSAKA » après « Nkala » est supprimée (barre du haut et écran d'accès du site). Expo n'en avait pas (le script de comparaison de textes comptait « Nkala » + « ESSAKA » comme artefact : mesure à relancer). Les mentions juridiques « Essaka Engineering » (conditions, charte) sont conservées.
+12. **Carte de contribution remise à zéro à chaque fiche** (choix, textes saisis, enregistrement), et lecture audio coupée en changeant de fiche.
