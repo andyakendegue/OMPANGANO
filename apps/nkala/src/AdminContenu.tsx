@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, 
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
-  codeDialecte, DIALECTES, enregistrerElement, fichesDepuisCsv, importerFiches, lireCollection, nouvelId, nouvelleFiche,
+  codeDialecte, DIALECTES, TRIBUS, enregistrerElement, fichesDepuisCsv, importerFiches, lireCollection, nouvelId, nouvelleFiche,
   supprimerElement, synchroniserCatalogue, type ClanRegistry, type QuestionnaireItem, type RapportImport, type ResultatCsv,
   type ThemeDefinition, type VillageRegistry,
 } from '@nkala/noyau';
@@ -194,7 +194,7 @@ function ClansVillages() {
   const [clans, setClans] = useState<ClanRegistry[] | null>(null);
   const [villages, setVillages] = useState<VillageRegistry[] | null>(null);
   const [nomClan, setNomClan] = useState('');
-  const [tribuClan, setTribuClan] = useState('orungu');
+  const [tribuClan, setTribuClan] = useState<string>('Ôrungu');
   const [nomVillage, setNomVillage] = useState('');
   const [clanVillage, setClanVillage] = useState('');
 
@@ -206,7 +206,7 @@ function ClansVillages() {
 
   const ajouterClan = async () => {
     const n = nomClan.trim(); if (!n) return;
-    const tribu = DIALECTES.find(d => d.code === tribuClan)?.nom || tribuClan;
+    const tribu = tribuClan;
     const id = nouvelId('clan');
     try { await enregistrerElement('clans', id, { id, name: n, tribe: tribu, createdAt: new Date().toISOString() }); setNomClan(''); charger(); }
     catch (e) { avertir('Ajout impossible', (e as Error).message); }
@@ -230,9 +230,9 @@ function ClansVillages() {
         <Text style={s.titre}>Ajouter un clan</Text>
         <TextInput style={s.champ} placeholder="Nom du clan" placeholderTextColor={couleurs.discret} value={nomClan} onChangeText={setNomClan} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {DIALECTES.map(d => (
-            <Pressable key={d.code} onPress={() => setTribuClan(d.code)} style={[s.puce, tribuClan === d.code && s.puceActive]}>
-              <Text style={[s.puceTexte, tribuClan === d.code && s.puceTexteActif]}>{d.nom}</Text>
+          {TRIBUS.map(t => (
+            <Pressable key={t} onPress={() => setTribuClan(t)} style={[s.puce, tribuClan === t && s.puceActive]}>
+              <Text style={[s.puceTexte, tribuClan === t && s.puceTexteActif]}>{t}</Text>
             </Pressable>
           ))}
         </View>

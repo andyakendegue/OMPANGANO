@@ -13,3 +13,4 @@ export * from './recompenses';
 export * from './niveaux';
 export * from './fraude';
 export * from './export';
+export * from './inscription';

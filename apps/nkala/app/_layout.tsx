@@ -11,10 +11,15 @@ function Pile() {
   }
   // Pas de connexion anonyme : sans session, seul l'écran de connexion est accessible.
   const connecte = !!profil;
+  // Le profil existe dès la première connexion ; la filiation et les consentements doivent être renseignés avant d'entrer.
+  const inscrit = connecte && !!profil?.registrationCompleted;
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={connecte}>
+      <Stack.Protected guard={inscrit}>
         <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={connecte && !inscrit}>
+        <Stack.Screen name="inscription" />
       </Stack.Protected>
       <Stack.Protected guard={!connecte}>
         <Stack.Screen name="connexion" />

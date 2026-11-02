@@ -27,7 +27,8 @@
           "microphonePermission": "Nkala utilise le micro pour enregistrer votre voix lorsque vous contribuez."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../src/AuthProvider';
+import { BoutonGoogle } from '../src/Google';
 import { couleurs } from '../src/theme';
 
 export default function Connexion() {
@@ -32,6 +33,8 @@ export default function Connexion() {
         <Pressable style={[s.bouton, occupe && { opacity: 0.6 }]} onPress={valider} disabled={occupe}>
           {occupe ? <ActivityIndicator color="#fff" /> : <Text style={s.boutonTexte}>{creer ? 'Créer mon compte' : 'Se connecter'}</Text>}
         </Pressable>
+        <Text style={s.ou}>ou</Text>
+        <BoutonGoogle surErreur={setErreur} />
         <Pressable onPress={() => { setCreer(!creer); setErreur(null); }}>
           <Text style={s.lien}>{creer ? 'J’ai déjà un compte' : 'Créer un compte'}</Text>
         </Pressable>
@@ -49,5 +52,6 @@ const s = StyleSheet.create({
   erreur: { color: '#fca5a5', fontSize: 13 },
   bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  ou: { color: couleurs.discret, textAlign: 'center', fontSize: 12 },
   lien: { color: couleurs.ambre, textAlign: 'center', fontSize: 13, fontWeight: '600' },
 });
