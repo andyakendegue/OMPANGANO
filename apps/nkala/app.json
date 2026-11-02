@@ -7,10 +7,30 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
-    "ios": { "bundleIdentifier": "engineering.essaka.nkala", "supportsTablet": true },
-    "android": { "package": "engineering.essaka.nkala" },
-    "web": { "bundler": "metro", "output": "single" },
-    "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": true }
+    "ios": {
+      "bundleIdentifier": "engineering.essaka.nkala",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "engineering.essaka.nkala"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Nkala utilise le micro pour enregistrer votre voix lorsque vous contribuez."
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

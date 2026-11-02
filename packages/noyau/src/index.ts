@@ -3,3 +3,5 @@ export * from './encodage';
 export * from './modules';
 export * from './api';
 export * from './auth';
+export * from './catalogue';
+export * from './contribution';
