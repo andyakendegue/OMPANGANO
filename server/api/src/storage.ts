@@ -13,7 +13,9 @@ export interface MediaStorage {
 }
 
 export function createS3Storage(cfg: Config['s3']): MediaStorage {
-  const base = { region: cfg.region, forcePathStyle: true, credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey } };
+  // Pas de somme de contrôle automatique : le SDK en ajoutait une (CRC32 d'un corps vide) aux URL présignées, et Garage refusait
+  // alors tout envoi réel avec « Invalid digest: Failed to validate checksum » (aucun enregistrement n'arrivait).
+  const base = { requestChecksumCalculation: 'WHEN_REQUIRED' as const, responseChecksumValidation: 'WHEN_REQUIRED' as const, region: cfg.region, forcePathStyle: true, credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey } };
   const internal = new S3Client({ ...base, endpoint: cfg.endpoint });
   // Les URL présignées doivent pointer vers l'adresse publique (media.…), pas vers le réseau Docker.
   const signer = cfg.publicEndpoint ? new S3Client({ ...base, endpoint: cfg.publicEndpoint }) : internal;
