@@ -18,6 +18,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { UserProfile, TribeName, ClanRegistry, VillageRegistry } from '../types';
+import { JE_NE_SAIS_PAS } from '../services/filiation';
 import { MYENE_TRIBES } from '../services/seedData';
 import { CURRENT_TERMS_VERSION } from './TermsConsentModal';
 import { MYENE } from '../services/myeneLexique';
@@ -116,7 +117,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const maternalClansList = clans.filter(c => c.tribe === maternalTribe);
 
   // Filter villages by paternal clan if chosen, or show all
-  const filteredVillages = paternalClan 
+  const filteredVillages = paternalClan && paternalClan !== JE_NE_SAIS_PAS
     ? villages.filter(v => v.clan === paternalClan)
     : villages;
 
@@ -402,16 +403,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       className="w-full px-3 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
                     >
                       <option value="">-- Sélectionnez le clan ({paternalTribe}) --</option>
+                      <option value={JE_NE_SAIS_PAS}>Je ne sais pas</option>
                       {paternalClansList.map((c) => (
                         <option key={c.id} value={c.name}>
                           Clan {c.name} (Tribu: {c.tribe})
                         </option>
                       ))}
-                      <option value="Non précisé">Non précisé / À définir ({paternalTribe})</option>
                     </select>
                     {paternalClansList.length === 0 && (
                       <p className="text-[10px] text-[#fde047] mt-1">
-                        Les clans {paternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau clan ».
+                        Les clans {paternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau clan ».
                       </p>
                     )}
                   </div>
@@ -486,16 +487,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       className="w-full px-3 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
                     >
                       <option value="">-- Sélectionnez le clan ({maternalTribe}) --</option>
+                      <option value={JE_NE_SAIS_PAS}>Je ne sais pas</option>
                       {maternalClansList.map((c) => (
                         <option key={c.id} value={c.name}>
                           Clan {c.name} (Tribu: {c.tribe})
                         </option>
                       ))}
-                      <option value="Non précisé">Non précisé / À définir ({maternalTribe})</option>
                     </select>
                     {maternalClansList.length === 0 && (
                       <p className="text-[10px] text-[#fde047] mt-1">
-                        Les clans {maternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau clan ».
+                        Les clans {maternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau clan ».
                       </p>
                     )}
                   </div>
@@ -553,16 +554,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     className="w-full px-3.5 py-2.5 bg-[#180d07] border border-[#522915] rounded-xl text-white text-xs focus:outline-none focus:border-[#f59e0b]"
                   >
                     <option value="">-- Sélectionnez votre village d’origine --</option>
+                    <option value={JE_NE_SAIS_PAS}>Je ne sais pas</option>
                     {filteredVillages.map((v) => (
                       <option key={v.id} value={v.name}>
                         {v.name} (Clan: {v.clan || 'Non rattaché'}, Tribu: {v.tribe})
                       </option>
                     ))}
-                    <option value="Non précisé">Non précisé / À définir</option>
                   </select>
                   {filteredVillages.length === 0 && (
                     <p className="text-[10px] text-[#fde047] mt-1">
-                      Aucun village n'est encore enregistré pour cette sélection. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau village ».
+                      Aucun village n'est encore enregistré pour cette sélection. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau village ».
                     </p>
                   )}
                 </div>

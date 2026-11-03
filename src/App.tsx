@@ -82,6 +82,7 @@ import {
 } from './services/offlineStorage';
 import { NotificationService } from './services/notificationService';
 import { definirExemptionProtection } from './services/protectionCopie';
+import { filiationIncomplete } from './services/filiation';
 import { definirContexteErreurs } from './services/erreurs';
 import { appVersionService } from './services/appVersionService';
 import { purgerDonneesLocales } from './services/purgeLocale';
@@ -2599,9 +2600,12 @@ export default function App() {
   // Déconnexion : tout le contenu gardé sur l'appareil est supprimé (catalogue, cache, file hors ligne, clé de chiffrement),
   // puis la page est rechargée à zéro. La prochaine connexion retélécharge tout.
   const handleSignOut = async () => {
-    const enAttente = pendingOfflineSubmissions.length + pendingAdminMutationsCount;
+    // Avant d'effacer l'appareil : on tente d'envoyer ce qui attend, puis on relit la vraie file (pas seulement l'affichage)
+    try { if (navigator.onLine) await syncPendingOfflineData(); } catch {}
+    let enAttente = pendingAdminMutationsCount;
+    try { enAttente = (await getPendingOfflineContributions()).length + getOfflineAdminMutations().length; } catch { enAttente += pendingOfflineSubmissions.length; }
     if (enAttente > 0 && !window.confirm(
-      `${enAttente} contribution(s) ou modification(s) n'ont pas encore été envoyées. Se déconnecter les supprimera définitivement de cet appareil. Se déconnecter quand même ?`
+      `${enAttente} contribution(s) ou modification(s) n'ont pas pu être envoyées. Se déconnecter les supprimera définitivement de cet appareil. Se déconnecter quand même ?`
     )) return;
     try { await fbSignOut(auth); } catch {}
     currentUserRef.current = null;
@@ -2632,6 +2636,11 @@ export default function App() {
     if (!currentUser) return;
     try { void navigator.storage?.persist?.(); } catch {}
   }, [currentUser?.id]);
+
+  // Filiation obligatoire : tant qu'elle n'est pas renseignée (« Je ne sais pas » compte), la fenêtre d'inscription reste ouverte
+  useEffect(() => {
+    if (currentUser && !isAuthChecking && filiationIncomplete(currentUser)) setIsOnboardingModalOpen(true);
+  }, [currentUser?.id, currentUser?.paternalClan, currentUser?.maternalClan, currentUser?.villageOfOrigin, isAuthChecking]);
 
   // Contexte joint aux signalements d'erreurs (onglet, compte)
   useEffect(() => { definirContexteErreurs(() => ({ tab: currentTab }), currentUser?.id || null); }, [currentTab, currentUser?.id]);

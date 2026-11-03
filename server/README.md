@@ -83,3 +83,7 @@ Cause d'un incident : la file de modifications hors-ligne d'un navigateur d'admi
 `backup/alertes.py` (Python 3, aucune dépendance) prévient par e-mail, avec la config SMTP de `mail-backup.py` (`/opt/ompangano/secrets/smtp.env`) : panne ou rétablissement de l'API, conteneurs arrêtés, erreurs du serveur et des navigateurs (table `app_errors`, regroupées), disque > 85 %, sauvegarde de plus de 36 h. Au plus 6 e-mails par heure.
 Installation : `chmod +x backup/alertes.py`, puis dans `/etc/cron.d/ompangano` : `*/5 * * * * root /opt/ompangano/server/backup/alertes.py >> /var/log/ompangano-alertes.log 2>&1`.
 Essais : `backup/alertes.py --test` (envoie un e-mail d'essai), `backup/alertes.py --dry-run` (affiche sans envoyer).
+
+## Courriels aux utilisateurs (noreply@)
+`backup/courriels.py` envoie le courriel de **bienvenue** (objectifs du projet + guide pratique) et le **rappel de filiation** (3 au plus, espacés de 7 jours). Il utilise `/opt/ompangano/secrets/noreply.env` (chmod 600) : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM="Nkala <noreply@essaka.engineering>"`. Le compte SMTP doit avoir le droit d'écrire depuis noreply@ (le compte de sauvegarde ne l'a pas : « Sender address rejected: not owned by user »). Sans ce fichier, rien n'est envoyé.
+Cron : `*/10 * * * * root /opt/ompangano/server/backup/courriels.py >> /var/log/ompangano-courriels.log 2>&1`. Essais : `--apercu bienvenue|filiation`, `--dry-run`, `--test adresse`.
