@@ -473,12 +473,14 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return lireStatistiques(db, Number((req.query as any).days) || 30);
   });
 
-  // Ordre de présentation des fiches : les moins répondues d'abord (tous contributeurs confondus), à égalité par identifiant.
+  // Ordre de présentation des fiches : les moins répondues d'abord (tous contributeurs confondus) ; à égalité, les 10 phrases de départ
+  // (« Mbôluani »…) d'abord, puis par identifiant.
   app.get('/v1/items/ordre', async () => {
     const rows = await db.query<any>(
       `SELECT t.id FROM items t
        LEFT JOIN (SELECT item_id, count(*)::int AS n FROM contributions WHERE deleted_at IS NULL GROUP BY item_id) c ON c.item_id = t.id
-       WHERE t.deleted_at IS NULL ORDER BY COALESCE(c.n, 0), t.id`);
+       WHERE t.deleted_at IS NULL
+       ORDER BY COALESCE(c.n, 0), COALESCE(t.data->>'createdBy' = '${SEED_CREATOR}', false) DESC, t.id`);
     return { ids: rows.map(r => r.id as string) };
   });
 
@@ -512,10 +514,10 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       const rows = await db.query<any>(
         // Le tri porte sur (identifiant, nombre de réponses) seulement ; les fiches complètes ne sont lues que pour la page demandée
         `SELECT t.*, ${CURSOR_SQL} AS _cur FROM (
-           SELECT i.id, COALESCE(c.n, 0) AS n FROM items i
+           SELECT i.id, COALESCE(c.n, 0) AS n, (i.data->>'createdBy' = '${SEED_CREATOR}') AS depart FROM items i
            LEFT JOIN (SELECT item_id, count(*)::int AS n FROM contributions WHERE deleted_at IS NULL GROUP BY item_id) c ON c.item_id = i.id
-           WHERE i.deleted_at IS NULL ORDER BY COALESCE(c.n, 0), i.id OFFSET $1 LIMIT $2
-         ) o JOIN items t ON t.id = o.id ORDER BY o.n, o.id`, [offset, limit]);
+           WHERE i.deleted_at IS NULL ORDER BY COALESCE(c.n, 0), COALESCE(i.data->>'createdBy' = '${SEED_CREATOR}', false) DESC, i.id OFFSET $1 LIMIT $2
+         ) o JOIN items t ON t.id = o.id ORDER BY o.n, COALESCE(o.depart, false) DESC, o.id`, [offset, limit]);
       const head = (await db.query<any>(
         `SELECT ${CURSOR_SQL} AS _cur, t.id FROM items t ORDER BY t.updated_at DESC, t.id DESC LIMIT 1`))[0];
       const n = Number((await db.query<any>(`SELECT count(*) AS n FROM items WHERE deleted_at IS NULL`))[0].n);

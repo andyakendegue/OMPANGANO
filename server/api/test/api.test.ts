@@ -671,3 +671,14 @@ test('erreurs : un navigateur peut signaler une erreur (champs tronqués, contex
   assert.deepEqual(avecCtx.ctx, { tab: 'explore', online: true });
   assert.equal(rows[0].source, 'navigateur');
 });
+
+test('ordre des fiches : à égalité de réponses, les 10 phrases de départ passent avant les autres', async () => {
+  const autre = await newItem(); // id « item… » créé par un administrateur
+  await db.query(`INSERT INTO items (id, dialect, category, status, data) VALUES ('nkala-enenga-zz','orungu','vie','active',$1)
+                  ON CONFLICT (id) DO NOTHING`, [JSON.stringify({ frenchText: 'Bienvenue', myeneText: 'Mbôluani', createdBy: 'system_ompangano' })]);
+  const ordre = await call('GET', '/v1/items/ordre', SUPER);
+  assert.ok(ordre.body.ids.indexOf('nkala-enenga-zz') < ordre.body.ids.indexOf(autre), 'phrase de départ avant la fiche ordinaire');
+  const sync = await call('GET', '/v1/sync/items?order=rarete&limit=5000&offset=0', SUPER);
+  const ids: string[] = sync.body.records.map((x: any) => x.id);
+  assert.ok(ids.indexOf('nkala-enenga-zz') < ids.indexOf(autre));
+});
