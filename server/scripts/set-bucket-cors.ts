@@ -9,6 +9,8 @@ const s3 = new S3Client({
 });
 await s3.send(new PutBucketCorsCommand({
   Bucket: process.env.S3_BUCKET || 'ompangano',
-  CORSConfiguration: { CORSRules: [{ AllowedOrigins: origins, AllowedMethods: ['GET', 'PUT', 'HEAD'], AllowedHeaders: ['*'], ExposeHeaders: ['ETag'], MaxAgeSeconds: 3600 }] }
+  // UNE règle par origine : avec plusieurs origines dans une seule règle, Garage répond avec la liste entière dans
+  // Access-Control-Allow-Origin, valeur invalide que les navigateurs rejettent (« Load failed » alors que le fichier est bien enregistré)
+  CORSConfiguration: { CORSRules: origins.map(o => ({ AllowedOrigins: [o], AllowedMethods: ['GET', 'PUT', 'HEAD'], AllowedHeaders: ['*'], ExposeHeaders: ['ETag'], MaxAgeSeconds: 3600 })) }
 }));
 console.log('CORS du bucket configuré pour :', origins.join(', '));
