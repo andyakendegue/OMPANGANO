@@ -633,6 +633,7 @@ async function runCatalogueSync(
   const collectionPath = 'items';
   if (typeof navigator !== 'undefined' && !navigator.onLine) { markCatalogueSettled(); return { changed: 0, ok: false }; }
   const PAGE = 500; // pages modestes : peu de mémoire à la fois, reprise fine
+  const PAGE_PRIO = 1000; // premier téléchargement : moins d'allers-retours sur un réseau lent
   try {
     let stored = getLastCollectionSyncTimestamp(collectionPath);
     let sentEpoch = getStoredEpoch(collectionPath);
@@ -669,14 +670,27 @@ async function runCatalogueSync(
     // L'interface n'attend que si cet appareil n'a encore rien : une reprise garde l'application utilisable
     // (les fiches les moins répondues, téléchargées d'abord, sont déjà là)
     if (prio && prioOffset === 0 && have === 0) initialDownload = true;
-    for (;;) {
-      const qs = new URLSearchParams({ limit: String(PAGE) });
+    type SyncPage = { records: (QuestionnaireItem & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number; deltaCursor?: string | null; nextOffset?: number };
+    const fetchPage = (): Promise<SyncPage> => {
+      const qs = new URLSearchParams({ limit: String(prio ? PAGE_PRIO : PAGE) });
       if (prio) { qs.set('order', 'rarete'); qs.set('offset', String(prioOffset)); }
       else if (cursor) qs.set('since', cursor);
       if (sentEpoch) qs.set('epoch', sentEpoch);
-      const page = await api<{ records: (QuestionnaireItem & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number; deltaCursor?: string | null; nextOffset?: number }>(
-        'GET', `/v1/sync/${collectionPath}?${qs}`
-      );
+      return api<SyncPage>('GET', `/v1/sync/${collectionPath}?${qs}`);
+    };
+    // Premier téléchargement : la page suivante est demandée pendant que la précédente est enregistrée
+    // (le réseau lent et le traitement local se recouvrent au lieu de s'additionner)
+    let ahead: Promise<SyncPage> | null = null;
+    for (;;) {
+      const page = await (ahead ?? fetchPage());
+      ahead = null;
+      if (prio && page.hasMore && typeof page.nextOffset === 'number' && page.deltaCursor) {
+        const saveOffset = prioOffset;
+        prioOffset = page.nextOffset;
+        ahead = fetchPage();
+        ahead.catch(() => {});
+        prioOffset = saveOffset;
+      }
       // Données remises à zéro côté serveur : le catalogue local est vidé avant d'écrire
       if (page.reset) { await clearCatalogue({ silent: true }); freshStore = true; setLastCollectionSyncTimestamp(collectionPath, ''); }
       // `total` = fiches restantes à partir de cette page : l'estimation suit un import qui continue pendant le téléchargement

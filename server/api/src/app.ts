@@ -103,7 +103,9 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   await app.register(cors, {
     origin: (origin, cb) => cb(null, !origin || deps.corsOrigins.includes(origin)),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type']
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    // Les navigateurs gardent la pré-requête CORS 24 h : une requête de moins avant chaque appel (réseau lent)
+    maxAge: 86400
   });
 
   app.setErrorHandler((err: any, req, reply) => {

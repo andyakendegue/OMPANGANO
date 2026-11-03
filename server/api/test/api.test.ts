@@ -642,3 +642,10 @@ test('anti-aspiration : au plus 6 téléchargements complets du catalogue par co
   // les pages suivantes d'un téléchargement en cours ne comptent pas
   assert.equal((await call('GET', '/v1/sync/items?order=rarete&limit=1&offset=1', u.token)).status, 200);
 });
+
+test('CORS : la pré-requête est mise en cache 24 h par le navigateur', async () => {
+  const r = await app.inject({ method: 'OPTIONS', url: '/v1/sync/items', headers: {
+    origin: 'http://localhost:3000', 'access-control-request-method': 'GET', 'access-control-request-headers': 'authorization' } });
+  assert.equal(r.statusCode, 204);
+  assert.equal(r.headers['access-control-max-age'], '86400');
+});

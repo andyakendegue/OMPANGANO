@@ -113,7 +113,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         : undefined;
       let recorder: MediaRecorder;
       try {
-        recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
+        // 48 kbit/s : largement suffisant pour la parole, fichiers environ 2 à 3 fois plus légers (envoi plus rapide)
+        recorder = supported
+          ? new MediaRecorder(stream, { mimeType: supported, audioBitsPerSecond: 48000 })
+          : new MediaRecorder(stream, { audioBitsPerSecond: 48000 });
       } catch {
         recorder = new MediaRecorder(stream);
       }
