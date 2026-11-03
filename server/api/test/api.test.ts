@@ -649,3 +649,25 @@ test('CORS : la pré-requête est mise en cache 24 h par le navigateur', async (
   assert.equal(r.statusCode, 204);
   assert.equal(r.headers['access-control-max-age'], '86400');
 });
+
+test('stockage : l’URL présignée d’envoi ne contient aucune somme de contrôle (Garage refusait les envois)', async () => {
+  const { createS3Storage } = await import('../src/storage.ts');
+  const st = createS3Storage({ endpoint: 'http://garage:3900', publicEndpoint: 'https://media.test', bucket: 'ompangano', region: 'garage', accessKeyId: 'k', secretAccessKey: 's' } as any);
+  const url = await st.presignPut('recordings/u/x.webm', 'audio/webm', 1234, 600);
+  assert.ok(url.startsWith('https://media.test/ompangano/recordings/u/x.webm?'));
+  assert.ok(!/checksum/i.test(url), url);
+});
+
+test('erreurs : un navigateur peut signaler une erreur (champs tronqués, contexte filtré), regroupée par empreinte', async () => {
+  const post = (body: unknown) => app.inject({ method: 'POST', url: '/pub/erreur', payload: body as any, remoteAddress: '41.158.0.9' });
+  const msg = 'TypeError: x is undefined (essai ' + Math.random() + ')';
+  assert.equal((await post({ message: msg, stack: 'TypeError\n    at f (https://x/a.js:10:5)', url: 'https://ompangano.web.app/', ctx: { tab: 'explore', secret: 'jeton123', online: true } })).statusCode, 204);
+  assert.equal((await post({ message: msg.replace(/\d+/g, '9'), stack: 'TypeError\n    at f (https://x/a.js:99:1)' })).statusCode, 204);
+  assert.equal((await post({ message: '' })).statusCode, 204); // message vide : ignoré
+  const rows = await db.query<any>(`SELECT * FROM app_errors WHERE message LIKE 'TypeError: x is undefined%' ORDER BY id DESC LIMIT 2`);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].fingerprint, rows[1].fingerprint, 'mêmes erreurs : même empreinte');
+  const avecCtx = rows.find((r: any) => r.ctx.tab);
+  assert.deepEqual(avecCtx.ctx, { tab: 'explore', online: true });
+  assert.equal(rows[0].source, 'navigateur');
+});

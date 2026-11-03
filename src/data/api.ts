@@ -2,6 +2,8 @@
  * Client de l'API OMPANGANO (VPS). Le jeton Firebase Auth est ajouté à chaque appel
  * et rafraîchi une fois en cas de 401. Le navigateur ne décide jamais des droits : le serveur tranche.
  */
+import { signalerErreur } from '../services/erreurs';
+
 const RAW_URL = (import.meta as any).env?.VITE_API_URL as string | undefined;
 const PROD_API_URL = 'https://api-ompangano.essaka.engineering';
 const isLocalHost = typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
@@ -92,9 +94,16 @@ export async function uploadMedia(path: string, blob: Blob, contentType: string)
       path, contentType, size: blob.size
     });
     const res = await fetch(uploadUrl, { method: 'PUT', headers, body: blob });
+    if (!res.ok) {
+      // Un refus du stockage (ex. 400 sur la somme de contrôle) bloquerait toutes les contributions : le propriétaire est prévenu
+      let detail = '';
+      try { detail = (await res.text()).replace(/\s+/g, ' ').slice(0, 200); } catch {}
+      signalerErreur(`Envoi audio refusé par le stockage (HTTP ${res.status}) : ${detail}`, undefined, { categorie: 'envoi-audio', status: res.status });
+    }
     return res.ok;
-  } catch (err) {
+  } catch (err: any) {
     console.warn("Envoi du fichier impossible :", err);
+    signalerErreur(`Envoi audio impossible : ${err?.message || err}`, err?.stack, { categorie: 'envoi-audio' });
     return false;
   }
 }

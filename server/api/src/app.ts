@@ -15,6 +15,7 @@ import {
   type GenericTable, type SyncTable
 } from './model.ts';
 import { importItems } from './importItems.ts';
+import { journaliserErreur } from './erreurs.ts';
 import { enregistrerVisite, lireStatistiques, tropDeRequetes } from './visites.ts';
 import { chargerEcartees, cle as cleTexte, estPlusAncienne, journaliser, preparerProtection, raisonEcartee, type EntreeJournal } from './protection.ts';
 import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
@@ -113,6 +114,12 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     if (err.statusCode && err.statusCode < 500) return reply.status(err.statusCode).send({ error: err.message });
     if (err.code === '23505') return reply.status(409).send({ error: 'Conflit : cet enregistrement existe déjà.' });
     req.log.error({ err: { message: err.message, code: err.code } }, 'erreur serveur');
+    // Journalisé pour l'alerte par e-mail (sans jamais gêner la réponse)
+    journaliserErreur(db, {
+      source: 'serveur', message: `${req.method} ${req.routeOptions?.url || req.url.split('?')[0]} : ${err.message || err.code || 'erreur'}`,
+      stack: err.stack, url: req.routeOptions?.url || req.url.split('?')[0], userId: req.auth?.uid, ip: req.ip,
+      userAgent: req.headers['user-agent'], ctx: { status: 500, methode: req.method, route: req.routeOptions?.url }
+    }).catch(() => {});
     return reply.status(500).send({ error: 'Erreur interne.' });
   });
 
@@ -446,6 +453,18 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   app.post('/pub/collect', async (req, reply) => {
     if (tropDeRequetes(req.ip)) return reply.status(429).send({ error: 'Trop de requêtes.' });
     try { await enregistrerVisite(db, req.ip, req.body); } catch (err: any) { req.log.warn({ msg: err?.message }, 'collecte ignorée'); }
+    return reply.status(204).send();
+  });
+  // Erreurs signalées par les navigateurs (script en échec, envoi audio refusé, synchronisation impossible…)
+  app.post('/pub/erreur', async (req, reply) => {
+    if (tropDeRequetes(`err:${req.ip}`)) return reply.status(429).send({ error: 'Trop de requêtes.' });
+    const b: any = req.body || {};
+    try {
+      await journaliserErreur(db, {
+        source: 'navigateur', message: b.message, stack: b.stack, url: b.url, userId: b.uid, ip: req.ip,
+        userAgent: req.headers['user-agent'], ctx: b.ctx
+      });
+    } catch (err: any) { req.log.warn({ msg: err?.message }, 'erreur navigateur ignorée'); }
     return reply.status(204).send();
   });
   app.get('/v1/admin/analytics', async (req) => {

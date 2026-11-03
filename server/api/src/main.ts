@@ -2,6 +2,7 @@ import { buildApp } from './app.ts';
 import { createFirebaseVerifier } from './auth.ts';
 import { loadConfig } from './config.ts';
 import { createPgDb, runMigrations } from './db.ts';
+import { journaliserErreur } from './erreurs.ts';
 import { createS3Storage } from './storage.ts';
 
 const cfg = loadConfig();
@@ -14,6 +15,17 @@ const app = await buildApp({
   verify: createFirebaseVerifier(),
   storage: createS3Storage(cfg.s3),
   corsOrigins: cfg.corsOrigins
+});
+
+// Exceptions non rattrapées : journalisées pour l'alerte e-mail, puis arrêt (Docker relance le conteneur)
+process.on('unhandledRejection', (raison: any) => {
+  console.error('promesse rejetée non gérée', raison);
+  journaliserErreur(db, { source: 'serveur', message: `promesse rejetée : ${raison?.message || raison}`, stack: raison?.stack }).catch(() => {});
+});
+process.on('uncaughtException', async (err: any) => {
+  console.error('exception non rattrapée', err);
+  try { await journaliserErreur(db, { source: 'serveur', message: `exception non rattrapée : ${err?.message || err}`, stack: err?.stack }); } catch {}
+  process.exit(1);
 });
 
 const stop = async () => { await app.close(); await db.close(); process.exit(0); };

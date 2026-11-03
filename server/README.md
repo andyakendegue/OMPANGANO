@@ -77,3 +77,9 @@ Cause d'un incident : la file de modifications hors-ligne d'un navigateur d'admi
 7. Bascule : annoncer une courte coupure → migration finale `--overwrite` → `VITE_API_URL=https://$API_DOMAIN npm run deploy:hosting` (depuis la racine) → vérification complète.
 8. Retour arrière : `git checkout avant-migration-vps && npm run deploy:hosting`.
 9. Après deux semaines stables et **avec l'accord du propriétaire** seulement : proposer de fermer les collections OMPANGANO dans les règles Firebase (attention au site `enenga`).
+
+
+## Alertes par e-mail
+`backup/alertes.py` (Python 3, aucune dépendance) prévient par e-mail, avec la config SMTP de `mail-backup.py` (`/opt/ompangano/secrets/smtp.env`) : panne ou rétablissement de l'API, conteneurs arrêtés, erreurs du serveur et des navigateurs (table `app_errors`, regroupées), disque > 85 %, sauvegarde de plus de 36 h. Au plus 6 e-mails par heure.
+Installation : `chmod +x backup/alertes.py`, puis dans `/etc/cron.d/ompangano` : `*/5 * * * * root /opt/ompangano/server/backup/alertes.py >> /var/log/ompangano-alertes.log 2>&1`.
+Essais : `backup/alertes.py --test` (envoie un e-mail d'essai), `backup/alertes.py --dry-run` (affiche sans envoyer).

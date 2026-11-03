@@ -14,6 +14,7 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
+import { signalerErreur } from './services/erreurs';
 import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
 import { PROTECTED_USER_FIELDS } from '../shared/userSecurity';
 import { applyItemsDelta, clearCatalogue, countItems, notifyCatalogueChanged, flushSearchIndex, getCatalogueMetaStrict, loadSyncState, saveSyncState } from './services/itemStore';
@@ -754,6 +755,7 @@ async function runCatalogueSync(
   } catch (err) {
     endDownload(collectionPath, 0);
     console.warn('Synchronisation du catalogue impossible, copie locale conservée :', err);
+    if (typeof navigator === 'undefined' || navigator.onLine) signalerErreur(`Synchronisation du catalogue impossible : ${(err as any)?.message || err}`, (err as any)?.stack, { categorie: 'synchro-catalogue' });
     return { changed: 0, ok: false };
   }
 }

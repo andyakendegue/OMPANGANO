@@ -82,6 +82,7 @@ import {
 } from './services/offlineStorage';
 import { NotificationService } from './services/notificationService';
 import { definirExemptionProtection } from './services/protectionCopie';
+import { definirContexteErreurs } from './services/erreurs';
 import { appVersionService } from './services/appVersionService';
 import { purgerDonneesLocales } from './services/purgeLocale';
 import { demarrerStatistiques, definirUtilisateurStatistiques, onglet as statOnglet } from './services/statistiques';
@@ -2631,6 +2632,9 @@ export default function App() {
     if (!currentUser) return;
     try { void navigator.storage?.persist?.(); } catch {}
   }, [currentUser?.id]);
+
+  // Contexte joint aux signalements d'erreurs (onglet, compte)
+  useEffect(() => { definirContexteErreurs(() => ({ tab: currentTab }), currentUser?.id || null); }, [currentTab, currentUser?.id]);
 
   // Statistiques : onglet consulté (à chaque changement) et compte connecté
   useEffect(() => { definirUtilisateurStatistiques(currentUser?.id || null); }, [currentUser?.id]);
