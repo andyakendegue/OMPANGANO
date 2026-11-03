@@ -122,7 +122,7 @@ def lire_erreurs(depuis_id):
     if r.returncode != 0:
         raise RuntimeError('lecture de app_errors impossible : ' + r.stderr.strip()[:200])
     lignes = []
-    for brut in r.stdout.splitlines():
+    for brut in r.stdout.split('\n'):  # pas splitlines() : il coupe aussi sur \x1e, le séparateur des lignes de pile
         p = brut.split(sep)
         if len(p) >= 10:
             lignes.append((int(p[0]), p[1], p[2], p[3], p[4], p[5].replace('\x1e', '\n'), p[6], p[7], p[8], p[9]))
