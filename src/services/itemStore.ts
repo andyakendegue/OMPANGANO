@@ -48,7 +48,28 @@ async function ouvrir(r: Scelle | undefined): Promise<QuestionnaireItem | null> 
   if (!r) return null;
   if (r.raw) return r.raw;
   if (!r.iv || !r.ct) return null;
-  try { return await dechiffrer<QuestionnaireItem>({ iv: r.iv, ct: r.ct }); } catch { return null; }
+  try { return await dechiffrer<QuestionnaireItem>({ iv: r.iv, ct: r.ct }); } catch { signalerIllisible(); return null; }
+}
+
+// Des fiches présentes mais illisibles (clé perdue, base abîmée) ne servent à rien : après quelques échecs, le catalogue local
+// est effacé et la page rechargée, ce qui retélécharge proprement. Au plus une réparation toutes les 10 minutes.
+let echecsLecture = 0;
+function signalerIllisible() { if (++echecsLecture >= 3) void reparerCatalogue('fiches illisibles'); }
+let reparation: Promise<void> | null = null;
+export function reparerCatalogue(raison: string): Promise<void> {
+  if (reparation) return reparation;
+  try {
+    const derniere = Number(sessionStorage.getItem('ompangano_reparation')) || 0;
+    if (Date.now() - derniere < 10 * 60_000) return Promise.resolve();
+    sessionStorage.setItem('ompangano_reparation', String(Date.now()));
+  } catch {}
+  console.warn('[catalogue] réparation automatique :', raison);
+  reparation = (async () => {
+    try { await clearCatalogue({ silent: true }); } catch {}
+    oublierCurseurs();
+    location.reload();
+  })();
+  return reparation;
 }
 const ouvrirTout = async (rows: Scelle[]) => (await Promise.all(rows.map(ouvrir))).filter((x): x is QuestionnaireItem => !!x);
 

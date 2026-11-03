@@ -112,6 +112,7 @@ import {
   getIdsByDialects,
   getItem,
   getItemsByIds,
+  reparerCatalogue,
   putItem
 } from './services/itemStore';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
@@ -2509,7 +2510,11 @@ export default function App() {
     let cancelled = false;
     (async () => {
       if (!currentItemId) { setCurrentItem(null); return; }
-      const stored = catalogue.total > 0 ? await getItem(currentItemId) : null;
+      let stored = catalogue.total > 0 ? await getItem(currentItemId) : null;
+      // Fiche illisible ou absente : on prend la suivante qui se lit plutôt que d'afficher « aucune fiche »
+      for (let k = 1; !stored && catalogue.total > 0 && k <= 5 && displayedIds.length > 0; k++) {
+        stored = await getItem(displayedIds[(currentItemIndex + k) % displayedIds.length]);
+      }
       const found = stored || INITIAL_ENENGA_ITEMS.find(i => i.id === currentItemId) || null;
       if (!cancelled) setCurrentItem(found);
     })();
@@ -2603,6 +2608,13 @@ export default function App() {
     await purgerDonneesLocales().catch(() => {});
     window.location.reload();
   };
+
+  // Catalogue présent mais aucune fiche affichable depuis plus de 10 s : réparation automatique (effacement + retéléchargement)
+  useEffect(() => {
+    if (!currentUser || currentTab !== 'crowdsource' || currentItem || catalogue.total === 0 || catalogue.loading) return;
+    const t = setTimeout(() => { void reparerCatalogue('aucune fiche affichable malgré un catalogue chargé'); }, 10_000);
+    return () => clearTimeout(t);
+  }, [currentUser?.id, currentTab, currentItem, catalogue.total, catalogue.loading]);
 
   // Pas de mise à jour automatique (rechargement) pendant le premier téléchargement du catalogue
   const enChargementInitial = !!currentUser && catalogue.initialLoading && isOnline;
@@ -2815,6 +2827,9 @@ export default function App() {
                 totalCorpusCount={totalCorpusCount}
                 catalogueLoading={catalogue.loading}
               />
+            ) : (catalogue.loading || catalogue.total > 0) ? (
+              // Jamais de « aucune fiche » pendant que les fiches arrivent ou tant que le catalogue en contient
+              <div className="my-8"><CatalogueLoader /></div>
             ) : (
               <div className="bg-[#1b1411]/90 border border-[#3a2a22] rounded-2xl p-8 text-center my-8">
                 <p className="text-lg font-semibold text-[#f5efe6] mb-2">Aucune fiche disponible pour le moment</p>

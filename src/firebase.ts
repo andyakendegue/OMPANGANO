@@ -582,7 +582,7 @@ export function resetCatalogueSettled() {
   catalogueSettled = false;
 }
 
-/** Vrai pendant un premier téléchargement complet du catalogue (connexion sur un appareil vide) */
+/** Vrai pendant un téléchargement complet du catalogue (appareil vide ou reprise d'un téléchargement interrompu) */
 let initialDownload = false;
 export const isInitialDownload = () => initialDownload;
 
@@ -669,7 +669,7 @@ async function runCatalogueSync(
     }
     // L'interface n'attend que si cet appareil n'a encore rien : une reprise garde l'application utilisable
     // (les fiches les moins répondues, téléchargées d'abord, sont déjà là)
-    if (prio && prioOffset === 0 && have === 0) initialDownload = true;
+    if (prio) initialDownload = true;
     type SyncPage = { records: (QuestionnaireItem & { deletedAt?: string })[]; cursor: string | null; hasMore: boolean; epoch?: string; reset?: boolean; total?: number; deltaCursor?: string | null; nextOffset?: number };
     const fetchPage = (): Promise<SyncPage> => {
       const qs = new URLSearchParams({ limit: String(prio ? PAGE_PRIO : PAGE) });

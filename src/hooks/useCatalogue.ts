@@ -39,10 +39,11 @@ export function useCatalogue() {
     return counts;
   }, [state.meta]);
 
-  // « Chargement » : copie locale pas encore lue, ou vide tant que la première synchronisation n'est pas finie.
+  // « Chargement » : copie locale pas encore lue, vide, ou téléchargement du catalogue en cours.
   // Les écrans affichent alors un indicateur au lieu de « 0 » ou d'un message « aucune fiche ».
-  const loading = !state.read || (state.meta.total === 0 && !settled);
-  // « Premier chargement » : appareil vide ou premier téléchargement complet encore en cours. L'interface attend sa fin.
-  const initialLoading = !settled && (!state.read || state.meta.total === 0 || isInitialDownload());
+  const loading = !state.read || (!settled && (state.meta.total === 0 || isInitialDownload()));
+  // Écran de préparation : seulement tant qu'il y a moins de 2 fiches. Dès que 2 fiches sont là, l'application s'affiche
+  // et le reste arrive au fur et à mesure (les moins répondues d'abord).
+  const initialLoading = !settled && (!state.read || state.meta.total < 2);
   return { loading, initialLoading, meta: state.meta, version: state.version, total: state.meta.total, tribeCounts };
 }
