@@ -2614,6 +2614,12 @@ export default function App() {
   // Les administrateurs gardent copie, export et inspecteur
   useEffect(() => { definirExemptionProtection(currentUser?.role === 'admin'); }, [currentUser?.role]);
 
+  // Demande au navigateur de ne pas effacer le stockage de l'application (catalogue hors-ligne) quand l'appareil manque de place
+  useEffect(() => {
+    if (!currentUser) return;
+    try { void navigator.storage?.persist?.(); } catch {}
+  }, [currentUser?.id]);
+
   // Statistiques : onglet consulté (à chaque changement) et compte connecté
   useEffect(() => { definirUtilisateurStatistiques(currentUser?.id || null); }, [currentUser?.id]);
   useEffect(() => { statOnglet(currentTab); }, [currentTab]);

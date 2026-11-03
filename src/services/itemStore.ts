@@ -69,6 +69,7 @@ function purgerAncienneBase() {
   } catch {}
 }
 
+let cleControlee = false;
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function open(): Promise<IDBDatabase> {
@@ -96,7 +97,10 @@ function open(): Promise<IDBDatabase> {
       db.onversionchange = () => { db.close(); dbPromise = null; };
       // Clé de chiffrement perdue ou nouvelle alors que des fiches existent : elles sont illisibles, on repart de zéro
       (chiffrementDisponible() ? obtenirCle() : Promise.resolve({ creee: false })).then(({ creee }) => {
-        if (!creee) { resolve(db); return; }
+        // La clé n'est « nouvelle » qu'au premier contrôle de la session : une réouverture de la base ne doit jamais tout effacer
+        const nouvelle = creee && !cleControlee;
+        cleControlee = true;
+        if (!nouvelle) { resolve(db); return; }
         const tx = db.transaction([STORE_ITEMS, STORE_META, STORE_SEARCH], 'readwrite');
         tx.objectStore(STORE_ITEMS).clear(); tx.objectStore(STORE_META).clear(); tx.objectStore(STORE_SEARCH).clear();
         tx.oncomplete = () => { oublierCurseurs(); resolve(db); };
@@ -187,6 +191,31 @@ async function saveMeta(meta: CatalogueMeta) {
   const tx = db.transaction(STORE_META, 'readwrite');
   tx.objectStore(STORE_META).put({ k: META_KEY, ...meta });
   await done(tx);
+}
+
+// ---------------------------------------------------------------- état de synchronisation (copie dans la base)
+// Le curseur et la reprise sont aussi gardés dans la base du catalogue : si le navigateur efface le stockage léger
+// (localStorage) mais garde la base, la synchronisation reprend au lieu de tout retélécharger.
+export interface SyncState {
+  uid: string;
+  cursor: string | null;
+  epoch: string | null;
+  prio: { offset: number; delta: string } | null;
+}
+export async function saveSyncState(state: SyncState): Promise<void> {
+  try {
+    const db = await open();
+    const tx = db.transaction(STORE_META, 'readwrite');
+    tx.objectStore(STORE_META).put({ k: 'sync', ...state });
+    await done(tx);
+  } catch {}
+}
+export async function loadSyncState(): Promise<SyncState | null> {
+  try {
+    const db = await open();
+    const r = await wrap(db.transaction(STORE_META).objectStore(STORE_META).get('sync'));
+    return r ? { uid: r.uid, cursor: r.cursor ?? null, epoch: r.epoch ?? null, prio: r.prio ?? null } : null;
+  } catch { return null; }
 }
 
 // ---------------------------------------------------------------- écriture

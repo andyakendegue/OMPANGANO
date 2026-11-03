@@ -489,10 +489,12 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       // Anti-aspiration du corpus : au plus 6 téléchargements complets par compte et par jour
       if (offset === 0 && telechargementsTropNombreux(req.auth!.uid)) fail(429, 'Trop de téléchargements complets aujourd’hui. Réessayez demain.');
       const rows = await db.query<any>(
-        `SELECT t.*, ${CURSOR_SQL} AS _cur FROM items t
-         LEFT JOIN (SELECT item_id, count(*)::int AS n FROM contributions WHERE deleted_at IS NULL GROUP BY item_id) c ON c.item_id = t.id
-         WHERE t.deleted_at IS NULL
-         ORDER BY COALESCE(c.n, 0), t.id OFFSET $1 LIMIT $2`, [offset, limit]);
+        // Le tri porte sur (identifiant, nombre de réponses) seulement ; les fiches complètes ne sont lues que pour la page demandée
+        `SELECT t.*, ${CURSOR_SQL} AS _cur FROM (
+           SELECT i.id, COALESCE(c.n, 0) AS n FROM items i
+           LEFT JOIN (SELECT item_id, count(*)::int AS n FROM contributions WHERE deleted_at IS NULL GROUP BY item_id) c ON c.item_id = i.id
+           WHERE i.deleted_at IS NULL ORDER BY COALESCE(c.n, 0), i.id OFFSET $1 LIMIT $2
+         ) o JOIN items t ON t.id = o.id ORDER BY o.n, o.id`, [offset, limit]);
       const head = (await db.query<any>(
         `SELECT ${CURSOR_SQL} AS _cur, t.id FROM items t ORDER BY t.updated_at DESC, t.id DESC LIMIT 1`))[0];
       const n = Number((await db.query<any>(`SELECT count(*) AS n FROM items WHERE deleted_at IS NULL`))[0].n);

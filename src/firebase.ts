@@ -16,7 +16,7 @@ import {
 import firebaseConfig from '../firebase-applet-config.json';
 import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
 import { PROTECTED_USER_FIELDS } from '../shared/userSecurity';
-import { applyItemsDelta, clearCatalogue, countItems, notifyCatalogueChanged, flushSearchIndex } from './services/itemStore';
+import { applyItemsDelta, clearCatalogue, countItems, notifyCatalogueChanged, flushSearchIndex, getCatalogueMetaStrict, loadSyncState, saveSyncState } from './services/itemStore';
 import type { QuestionnaireItem } from './types';
 
 // Initialize Firebase App (Auth uniquement)
@@ -634,10 +634,22 @@ async function runCatalogueSync(
   if (typeof navigator !== 'undefined' && !navigator.onLine) { markCatalogueSettled(); return { changed: 0, ok: false }; }
   const PAGE = 500; // pages modestes : peu de mémoire à la fois, reprise fine
   try {
-    const stored = getLastCollectionSyncTimestamp(collectionPath);
+    let stored = getLastCollectionSyncTimestamp(collectionPath);
     let sentEpoch = getStoredEpoch(collectionPath);
-    let cursor: string | null = stored && (await countItems()) > 0 ? stored : null;
-    let freshStore = !cursor && (await countItems()) === 0;
+    // Lecture impossible du catalogue local : on n'en déduit JAMAIS « vide » (cela déclencherait un téléchargement complet)
+    const have = (await getCatalogueMetaStrict()).total;
+    const uid = auth.currentUser?.uid || 'anon';
+    if (!stored && have > 0) {
+      // Stockage léger effacé mais catalogue présent : on reprend depuis l'état gardé dans la base
+      const st = await loadSyncState();
+      if (st && st.uid === uid) {
+        if (st.cursor) { stored = st.cursor; setLastCollectionSyncTimestamp(collectionPath, st.cursor); }
+        if (st.epoch && !sentEpoch) { sentEpoch = st.epoch; setStoredEpoch(collectionPath, st.epoch); }
+        if (!st.cursor && st.prio) { try { localStorage.setItem(PRIO_KEY, JSON.stringify(st.prio)); } catch {} }
+      }
+    }
+    let cursor: string | null = stored && have > 0 ? stored : null;
+    let freshStore = !cursor && have === 0;
     let announcedTotal = 0;
     let fetched = 0;
     let changed = 0;
@@ -645,7 +657,6 @@ async function runCatalogueSync(
     // Premier téléchargement (ou reprise d'un premier téléchargement interrompu) : les fiches les moins répondues d'abord.
     // Le curseur des synchronisations par différences n'est enregistré qu'à la fin ; `prio` garde la position de reprise.
     let prio = !cursor;
-    if (prio) initialDownload = true;
     let prioOffset = 0;
     let deltaCursor: string | null = null;
     if (prio) {
@@ -653,8 +664,11 @@ async function runCatalogueSync(
         const saved = JSON.parse(localStorage.getItem(PRIO_KEY) || 'null');
         if (saved && typeof saved.offset === 'number' && saved.delta) { prioOffset = saved.offset; deltaCursor = saved.delta; fetched = prioOffset; }
       } catch {}
-      if (!deltaCursor && (await countItems()) > 0) { prio = false; } // base partielle sans reprise connue : ordre habituel
+      if (!deltaCursor && have > 0) { prio = false; } // base partielle sans reprise connue : ordre habituel
     }
+    // L'interface n'attend que si cet appareil n'a encore rien : une reprise garde l'application utilisable
+    // (les fiches les moins répondues, téléchargées d'abord, sont déjà là)
+    if (prio && prioOffset === 0 && have === 0) initialDownload = true;
     for (;;) {
       const qs = new URLSearchParams({ limit: String(PAGE) });
       if (prio) { qs.set('order', 'rarete'); qs.set('offset', String(prioOffset)); }
@@ -709,6 +723,10 @@ async function runCatalogueSync(
         if (page.epoch) setStoredEpoch(collectionPath, page.epoch);
         if (cursor) setLastCollectionSyncTimestamp(collectionPath, cursor);
       }
+      void saveSyncState({
+        uid, cursor, epoch: sentEpoch,
+        prio: prio && deltaCursor && page.hasMore ? { offset: prioOffset, delta: deltaCursor } : null
+      });
       // Les premières fiches apparaissent à l'écran sans attendre la fin du téléchargement
       if (++pagesDone % 8 === 1) notifyCatalogueChanged(false);
       if (!page.hasMore) break;
