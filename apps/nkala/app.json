@@ -6,11 +6,15 @@
     "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "engineering.essaka.nkala",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "appleTeamId": "6F6D2P9F3P",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "engineering.essaka.nkala"
@@ -35,7 +39,8 @@
       "expo-web-browser",
       "expo-video",
       "expo-localization",
-      "expo-font"
+      "expo-font",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true

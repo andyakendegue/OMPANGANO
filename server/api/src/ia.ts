@@ -14,6 +14,7 @@ import type { Queryable } from './db.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import { clientRunpod } from './runpod.ts';
 import { vecteursParDefaut } from './vecteurs.ts';
+import { dossierEnCours, etatDossier, synchroniserDossier } from './dossier.ts';
 
 const vecteurs = vecteursParDefaut();
 
@@ -131,7 +132,8 @@ export async function indexerDocument(q: Queryable, embed: FournisseurEmbedding,
   const d = (await q.query<any>(`SELECT texte FROM ia_documents WHERE id = $1`, [id]))[0];
   if (!d) return 0;
   const morceaux = decouper(d.texte, cfg.chunkTaille, cfg.chunkChevauchement);
-  const vecteurs_ = morceaux.length ? await embed.embed(morceaux) : [];
+  const vecteurs_: number[][] = [];
+  for (let i = 0; i < morceaux.length; i += 32) vecteurs_.push(...await embed.embed(morceaux.slice(i, i + 32)));
   await q.query(`DELETE FROM ia_chunks WHERE document_id = $1`, [id]);
   const points: { id: number; vecteur: number[] }[] = [];
   for (let i = 0; i < morceaux.length; i++) {
@@ -245,6 +247,16 @@ export function registerIaAdmin(ctx: Ctx) {
   app.post('/v1/admin/ia/documents/:id/reindexer', async (req) => { await admin(req); try { return { chunks: await indexerDocument(db, embed, (req.params as any).id, await configIa(db)) }; } catch (e) { return fail(502, (e as Error).message); } });
   app.post('/v1/admin/ia/documents/:id/actif', async (req) => { await admin(req); const { actif } = (req.body || {}) as { actif?: boolean }; await db.query(`UPDATE ia_documents SET actif = $2 WHERE id = $1`, [(req.params as any).id, actif !== false]); return { ok: true }; });
   app.delete('/v1/admin/ia/documents/:id', async (req, reply) => { const a = await admin(req); await vecteurs.supprimer((req.params as any).id).catch(() => {}); await db.query(`DELETE FROM ia_documents WHERE id = $1`, [(req.params as any).id]); await journaliser(db, a.auth.uid, 'ia_document_supprime', (req.params as any).id); return reply.status(204).send(); });
+
+  // Dossier de référence (/opt/embeddings) : état, et synchronisation à la demande (en arrière-plan)
+  app.get('/v1/admin/ia/dossier', async (req) => { await admin(req); return etatDossier(db, env); });
+  app.post('/v1/admin/ia/dossier/synchroniser', async (req, reply) => {
+    const a = await admin(req);
+    if (dossierEnCours()) return fail(409, 'Une synchronisation est déjà en cours.');
+    await journaliser(db, a.auth.uid, 'ia_dossier_synchro');
+    void synchroniserDossier(db, embed, 'console', env).catch(e => { req.log.error({ err: e }, 'synchronisation du dossier RAG'); });
+    return reply.status(202).send({ ok: true });
+  });
 
   app.post('/v1/admin/ia/rag/rechercher', async (req) => {
     await admin(req);

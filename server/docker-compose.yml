@@ -94,6 +94,12 @@ services:
       VECTOR_URL: ${VECTOR_URL:-}
       VECTOR_API_KEY: ${VECTOR_API_KEY:-}
       VECTOR_COLLECTION: ${VECTOR_COLLECTION:-nkala_rag}
+      EMBEDDINGS_DIR: /data/embeddings
+      AZURACAST_URL: ${AZURACAST_URL:-}
+      AZURACAST_API_URL: ${AZURACAST_API_URL:-}
+      AZURACAST_API_KEY: ${AZURACAST_API_KEY:-}
+    volumes:
+      - ${EMBEDDINGS_HOTE:-./embeddings}:/data/embeddings:ro   # sur le VPS : /opt/embeddings
     ports:
       - "${BIND_IP:-127.0.0.1}:3001:3000"   # 3000 est pris par le serveur de dev du site ; sur le VPS BIND_IP=172.17.0.1 (passerelle Docker jointe par le Caddy)
 

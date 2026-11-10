@@ -50,7 +50,7 @@ export default function Connexion() {
             <T v="corps" style={{ textAlign: 'center' }}>Entre dans Nkala avec ton numéro de téléphone : un seul compte, sur tous tes appareils.</T>
           </View>
           <Bouton label="Continuer avec mon téléphone" icone="telephone" onPress={() => setVue('tel')} />
-          <Bouton label="Google ou e-mail" variante="fantome" icone="profil" onPress={() => setVue('classique')} />
+          <Bouton label="Continuer avec Google" variante="fantome" icone="profil" onPress={() => setVue('classique')} />
           <Pressable accessibilityRole="button" onPress={entrerInvite} style={{ alignItems: 'center', padding: 12 }}><T v="corps" couleur={c.accent} style={{ textDecorationLine: 'underline' }}>Essayer sans compte</T></Pressable>
           <T v="petit" style={{ textAlign: 'center' }}>Sans compte, tes leçons et tes parties restent sur ce téléphone. Pour contribuer, publier ou apparaître dans les classements, il faut un compte.</T>
         </>}

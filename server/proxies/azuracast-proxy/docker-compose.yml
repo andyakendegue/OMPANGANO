@@ -1,0 +1,8 @@
+services:
+  azuracast-proxy:
+    image: caddy:2-alpine
+    container_name: azuracast-proxy
+    network_mode: host
+    env_file: [.env]
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro"]
+    restart: unless-stopped

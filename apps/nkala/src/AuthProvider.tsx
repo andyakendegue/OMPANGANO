@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, signOut as fbSignOut } from 'firebase/auth';
+import { GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signInWithPopup, signOut as fbSignOut } from 'firebase/auth';
 import { api, basculerFavori, chargerProfil, definirSessionSms, enregistrerFavoris, jetonSessionSms, messageErreurAuth, verifierCodeSms, type UserProfile } from '@nkala/noyau';
 import { usePrefs } from './Prefs';
 import { auth } from './firebase';
@@ -12,7 +12,6 @@ interface Etat {
   pret: boolean;
   profil: UserProfile | null;
   erreurProfil: string | null;
-  connexion: (email: string, mdp: string, creer: boolean, nomUsage?: string) => Promise<void>;
   deconnexion: () => Promise<void>;
   /** Web : fenêtre Google de Firebase. */
   googleWeb: () => Promise<void>;
@@ -100,17 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const entrerInvite = useCallback(() => regler({ invite: true }), [regler]);
 
-  const connexion = useCallback(async (email: string, mdp: string, creer: boolean, nomUsage?: string) => {
-    const e = email.trim().toLowerCase();
-    try {
-      await (creer ? createUserWithEmailAndPassword(auth, e, mdp) : signInWithEmailAndPassword(auth, e, mdp));
-      // Nom d'usage choisi à la création du compte (facultatif)
-      if (creer && nomUsage?.trim()) await api('PATCH', '/v1/me', { displayName: nomUsage.trim() }).catch(() => {});
-    } catch (err: any) {
-      throw new Error(messageErreurAuth(String(err?.code || '')));
-    }
-  }, []);
-
   const googleWeb = useCallback(async () => {
     const p = new GoogleAuthProvider();
     p.setCustomParameters({ prompt: 'select_account' });
@@ -152,6 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [profil]);
 
-  const valeur = useMemo(() => ({ pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori, connexionSms, invite: prefs.invite, entrerInvite }), [pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori, connexionSms, prefs.invite, entrerInvite]);
+  const valeur = useMemo(() => ({ pret, profil, erreurProfil, deconnexion, googleWeb, googleJeton, recharger, favori, connexionSms, invite: prefs.invite, entrerInvite }), [pret, profil, erreurProfil, deconnexion, googleWeb, googleJeton, recharger, favori, connexionSms, prefs.invite, entrerInvite]);
   return <Ctx.Provider value={valeur}>{children}</Ctx.Provider>;
 }

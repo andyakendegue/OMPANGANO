@@ -103,6 +103,9 @@ export const adminIaActiverPrompt = (id: number | 'defaut') => (id === 'defaut' 
 export const adminIaDocuments = () => api<{ id: string; titre: string; source: string | null; actif: boolean; nb_chunks: number; taille: number }[]>('GET', '/v1/admin/ia/documents');
 export const adminIaAjouterDocument = (titre: string, texte: string, source?: string) => api<{ id: string; chunks: number }>('POST', '/v1/admin/ia/documents', { titre, texte, source });
 export const adminIaSupprimerDocument = (id: string) => api('DELETE', `/v1/admin/ia/documents/${id}`);
+export interface EtatDossierRag { dossier: string; enCours: boolean; debut?: string; fin?: string; declencheur?: string; presents: number; fichiers: number; ajoutes: number; modifies: number; inchanges: number; supprimes: number; ignores: number; morceaux: number; erreurs: { fichier: string; message: string }[]; embedding: string }
+export const adminIaDossier = () => api<EtatDossierRag>('GET', '/v1/admin/ia/dossier');
+export const adminIaSynchroniserDossier = () => api<{ ok: boolean }>('POST', '/v1/admin/ia/dossier/synchroniser', {});
 export const adminIaReindexer = (id: string) => api<{ chunks: number }>('POST', `/v1/admin/ia/documents/${id}/reindexer`);
 export const adminIaRechercher = (requete: string) => api<{ resultats: { titre: string; texte: string; score: number }[] }>('POST', '/v1/admin/ia/rag/rechercher', { requete });
 export const adminIaTester = (message: string, enfant = false) => api<{ reponse: string; usage: UsageJetonsApi; modele: string; simule: boolean; contexte: { titre: string; score: number }[]; systeme: string }>('POST', '/v1/admin/ia/tester', { message, enfant });
@@ -140,3 +143,9 @@ export const adminSupprimerExemples = () => api<{ supprimes: number }>('DELETE',
 // ------------------------------------------------------------------ un seul compte par personne
 export const envoyerCodeLien = (telephone: string) => api<{ envoye: boolean; telephone: string }>('POST', '/v1/me/telephone/envoyer', { telephone });
 export const verifierCodeLien = (telephone: string, code: string) => api<{ lie: boolean; telephone: string; fusion: boolean; xpReverse: number }>('POST', '/v1/me/telephone/verifier', { telephone, code });
+
+// ------------------------------------------------------------------ radio (AzuraCast)
+export interface StationDirect { id: string; nom: string; flux: string; hls: string | null; titre: string; artiste: string; pochette: string | null; auditeurs: number; enDirect: boolean }
+export const radioDirect = () => api<{ stations: StationDirect[]; simule: boolean }>('GET', '/v1/radio/direct');
+export const adminRadioEtat = () => api<{ url: string | null; simule: boolean; ok: boolean; stations: number; erreur?: string; serveur: unknown }>('GET', '/v1/admin/radio/etat');
+export const adminRadioSynchroniser = () => api<{ crees: number; maj: number }>('POST', '/v1/admin/radio/synchroniser', {});

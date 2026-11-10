@@ -111,3 +111,9 @@ Chaque branchement a une variable ; vide = simulation (rien ne casse). Liste com
 - **Administrateurs par numéro** : `ADMIN_TELEPHONES` donne aussi le rôle `admin` au profil (l'application affiche alors l'administration).
 - **Reste à fournir** (rien ne bloque le code) : Twilio (SMS réels), numéros marchands Airtel et Moov, clé RunPod et endpoint des embeddings (le LLM est déjà joint par le relais), projet EAS (notifications), accès Apple et Google (reçus), coturn et `react-native-webrtc` (caméra), carte routière.
 - **Non fait** : sons (le réglage existe, aucun son n'est joué), jeu d'icônes et illustrations sur mesure (Ionicons utilisées), habillage clair des écrans d'enregistrement et de validation d'Ompangano, téléchargements hors ligne et protection niveau 2 d'Ontci, test complet sur iPhone (Expo Go s'ouvre, les appuis du simulateur n'ont pas répondu).
+
+## Mise à jour du 10 novembre (soir)
+- **Dossier RAG** `/opt/embeddings` : tout fichier déposé (txt, md, csv, json, html, srt, pdf, docx) est vectorisé chaque nuit à 03 h (cron `/etc/cron.d/ompangano-rag`) et à la demande (console > IA > « Synchroniser maintenant »). Chaque question à l'assistant inclut les morceaux les plus proches.
+- **coturn** installé (`/opt/coturn`, ports 3478 et 49160-49260 UDP). À ouvrir chez l'hébergeur s'il y a un pare-feu.
+- **AzuraCast** : proxy prêt dans `server/proxies/azuracast-proxy` ; reste à créer le pod RunPod et renseigner `AZURACAST_ORIGINE`, puis `AZURACAST_URL`, `AZURACAST_API_URL`, `AZURACAST_API_KEY` dans le `.env` de l'API.
+- Connexion : Google et SMS uniquement (e-mail retiré de l'application).

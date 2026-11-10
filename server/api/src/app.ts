@@ -24,6 +24,7 @@ import { fournisseurEmbeddingParDefaut, fournisseurIaParDefaut, registerIaAdmin,
 import { registerSupervision } from './supervision.ts';
 import { registerMedia } from './media.ts';
 import { registerRegie } from './regie.ts';
+import { registerRadio } from './radio.ts';
 import { registerPush } from './push.ts';
 import { registerAchats } from './achats.ts';
 import { registerMobileMoney } from './mobilemoney.ts';
@@ -1104,6 +1105,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   registerSupervision(nk);
   registerMedia(nk, storage);
   registerRegie(nk);
+  registerRadio(nk);
   registerPush(nk);
   registerAchats(nk);
   registerMobileMoney(nk);

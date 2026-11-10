@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { enListe, type Ligne } from '@nkala/noyau';
+import { enListe, radioDirect, type Ligne, type StationDirect } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { useGlobale } from './Globale';
 import { Bouton, Carte, Champ, Chargement, Ecran, Entete, EtatVide, Ic, Onde, Pastille, Puce, Rangee, SectionTitre, T, Visuel } from './kit';
@@ -176,6 +176,9 @@ function Radios({ D, pile, jouer }: Ctx) {
   const L = useLecteur();
   const [sel, setSel] = useState(0);
   const r = D.radios[sel];
+  const [antenne, setAntenne] = useState<StationDirect[]>([]);
+  useEffect(() => { let vivant = true; const tick = () => radioDirect().then(x => vivant && setAntenne(x.stations)).catch(() => {}); tick(); const t = setInterval(tick, 20000); return () => { vivant = false; clearInterval(t); }; }, []);
+  const enCours = antenne.find(x => r && (x.id === (r as any).azuracast || x.flux === r.flux_url || x.hls === r.flux_url));
   const prog = Array.isArray(r?.programme) ? (r.programme as { heure: string; titre: string }[]) : [];
   return (
     <Ecran bas={160}>
@@ -183,7 +186,7 @@ function Radios({ D, pile, jouer }: Ctx) {
       {D.radios.length === 0 ? <EtatVide icone="radio" titre="Pas encore de radio" texte="Les webradios arrivent bientôt." /> : <>
         <Rangee>{D.radios.map((x, i) => <Puce key={x.id} label={x.nom} actif={sel === i} onPress={() => setSel(i)} />)}</Rangee>
         <Carte accent={r.couleur} style={{ padding: 20, gap: 12, alignItems: 'center' }}>
-          <Pastille label="● EN DIRECT" couleur="#FDFAF7" fond="#B91C1C" /><Visuel uri={r.image} couleur={r.couleur} taille={140} rayon={24} icone="radio" /><T v="sousTitre">{r.nom}</T><T v="petit" style={{ textAlign: 'center' }}>{r.description}</T>
+          <Pastille label="● EN DIRECT" couleur="#FDFAF7" fond="#B91C1C" /><Visuel uri={r.image} couleur={r.couleur} taille={140} rayon={24} icone="radio" /><T v="sousTitre">{r.nom}</T>{enCours?.titre ? <T v="carte" style={{ textAlign: 'center' }}>♪ {enCours.titre}{enCours.artiste ? ` · ${enCours.artiste}` : ''}</T> : null}<T v="petit" style={{ textAlign: 'center' }}>{r.description}</T>
           <Onde actif={L.enLecture && L.courant?.id === r.id} barres={20} />
           <Bouton label={L.enLecture && L.courant?.id === r.id ? 'Pause' : 'Écouter le direct'} icone={L.enLecture && L.courant?.id === r.id ? 'pause' : 'lecture'} variante="ambre" desactive={!r.flux_url} onPress={() => (L.courant?.id === r.id ? L.basculer() : jouer([{ id: r.id, titre: r.nom, artiste: 'En direct', pochette: r.image, couleur: r.couleur, audio_url: r.flux_url, niveau_acces: 'libre' }], 0))} />
           {!r.flux_url && <T v="petit">L'adresse du flux n'est pas encore renseignée.</T>}

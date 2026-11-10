@@ -7,23 +7,9 @@ import { Logo, fond, useLarge } from './Fond';
 
 /** Écran d'accès (mêmes textes que AuthGateScreen du site web). Pas de connexion anonyme. */
 export function ConnexionClassique() {
-  const { connexion, erreurProfil } = useAuth();
-  const [methode, setMethode] = useState<'google' | 'email'>('google');
-  const [email, setEmail] = useState('');
-  const [mdp, setMdp] = useState('');
-  const [usage, setUsage] = useState('');
-  const [creer, setCreer] = useState(false);
-  const [occupe, setOccupe] = useState(false);
+  const { erreurProfil } = useAuth();
   const [erreur, setErreur] = useState<string | null>(null);
   const large = useLarge();
-
-  const valider = async () => {
-    if (!email.trim() || mdp.length < 6) { setErreur('Adresse e-mail et mot de passe (6 caractères minimum) requis.'); return; }
-    setOccupe(true); setErreur(null);
-    try { await connexion(email, mdp, creer, usage); }
-    catch (e) { setErreur((e as Error).message); }
-    finally { setOccupe(false); }
-  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[{ flex: 1 }, fond]}>
@@ -43,31 +29,10 @@ export function ConnexionClassique() {
         </View>
         <View style={[s.colonne, large && s.colonneLarge]}>
         <View style={s.carte}>
-          <Text style={s.h2}>Connexion à Nkala</Text>
+          <Text style={s.h2}>Continuer avec Google</Text>
           <Text style={s.texte}>Identifiez-vous pour accéder au studio de contribution</Text>
-          <View style={s.pile}>
-            {([['google', 'Google / Gmail'], ['email', 'Email & Mot de passe']] as const).map(([id, nom]) => (
-              <Pressable key={id} onPress={() => { setMethode(id); setErreur(null); }} style={[s.onglet, methode === id && s.ongletActif]}><Text style={[s.ongletTexte, methode === id && { color: '#fff' }]}>{nom}</Text></Pressable>
-            ))}
-          </View>
-          {methode === 'google' ? (
-            <BoutonGoogle surErreur={setErreur} />
-          ) : (
-            <>
-              <Text style={s.etiquette}>Adresse Email :</Text>
-              <TextInput style={s.champ} autoCapitalize="none" keyboardType="email-address" autoComplete="email" value={email} onChangeText={setEmail} />
-              <Text style={s.etiquette}>Mot de passe (6 caractères min.) :</Text>
-              <TextInput style={s.champ} secureTextEntry autoComplete={creer ? 'new-password' : 'current-password'} value={mdp} onChangeText={setMdp} onSubmitEditing={valider} />
-              {creer && (<><Text style={s.etiquette}>Nom d'usage ou Prénom (Facultatif) :</Text><TextInput style={s.champ} value={usage} onChangeText={setUsage} /></>)}
-              <View style={s.ligne}><Switch value={creer} onValueChange={v => { setCreer(v); setErreur(null); }} trackColor={{ true: couleurs.terre }} /><Text style={s.texte}>Je crée un nouveau compte (première visite)</Text></View>
-            </>
-          )}
+          <BoutonGoogle surErreur={setErreur} />
           {(erreur || erreurProfil) && <Text style={s.erreur}>{erreur || `Profil indisponible : ${erreurProfil}`}</Text>}
-          {methode === 'email' && (
-            <Pressable style={[s.bouton, occupe && { opacity: 0.6 }]} onPress={valider} disabled={occupe}>
-              {occupe ? <><ActivityIndicator color="#fff" /><Text style={s.boutonTexte}>Connexion en cours...</Text></> : <Text style={s.boutonTexte}>{creer ? 'Créer mon compte' : 'Se connecter'}</Text>}
-            </Pressable>
-          )}
           <Text style={s.discret}>🔒 Authentification sécurisée par le protocole Nkala.</Text>
         </View>
         <Text style={s.discret}>Nkala • Sauvegarde et Vitalisation des Langues Myènè du Gabon</Text>

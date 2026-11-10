@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import {
-  adminIaActiverPrompt, adminIaAjouterDocument, adminIaAjouterPrompt, adminIaConfig, adminIaDocuments, adminIaEtat, adminIaPrompts, adminIaRechercher, adminIaReindexer, adminIaSupprimerDocument, adminIaTester,
+  adminIaActiverPrompt, adminRadioEtat, adminRadioSynchroniser, adminIaAjouterDocument, adminIaAjouterPrompt, adminIaConfig, adminIaDocuments, adminIaDossier, adminIaEtat, adminIaPrompts, adminIaRechercher, adminIaReindexer, adminIaSupprimerDocument, adminIaSynchroniserDossier, adminIaTester,
   adminPushEnvoyer, adminPushEtat, adminPushHistorique, adminRegieAjouterAnnonceur, adminRegieAjouterCampagne, adminRegieAjouterCreation, adminRegieAnnonceurs, adminRegieCampagnes, adminRegieEtat,
   adminRegieStats, adminRegieStatut, adminRegieSynchroniser, adminRunpodEtat, adminRunpodPod,
 } from '@nkala/noyau';
@@ -19,6 +19,8 @@ export function IaAdmin() {
   const toast = useToast(), ko = erreur(toast);
   const [etat, setEtat] = useState<any>(null);
   const [prompts, setPrompts] = useState<Awaited<ReturnType<typeof adminIaPrompts>> | null>(null);
+  const [radio, setRadio] = useState<Awaited<ReturnType<typeof adminRadioEtat>> | null>(null);
+  const [dossier, setDossier] = useState<Awaited<ReturnType<typeof adminIaDossier>> | null>(null);
   const [docs, setDocs] = useState<Awaited<ReturnType<typeof adminIaDocuments>>>([]);
   const [rp, setRp] = useState<Awaited<ReturnType<typeof adminRunpodEtat>> | null>(null);
   const [nom, setNom] = useState(''), [contenu, setContenu] = useState('');
@@ -28,7 +30,7 @@ export function IaAdmin() {
   const [cfg, setCfg] = useState({ modele: '', temperature: '', maxTokens: '', topK: '', seuil: '', chunkTaille: '', chunkChevauchement: '' });
   const charger = useCallback(() => {
     adminIaEtat().then(e => { setEtat(e); setCfg({ modele: e.config.modele, temperature: String(e.config.temperature), maxTokens: String(e.config.maxTokens), topK: String(e.config.topK), seuil: String(e.config.seuil), chunkTaille: String(e.config.chunkTaille), chunkChevauchement: String(e.config.chunkChevauchement) }); }).catch(ko);
-    adminIaPrompts().then(setPrompts).catch(() => {}); adminIaDocuments().then(setDocs).catch(() => {}); adminRunpodEtat().then(setRp).catch(() => {});
+    adminIaPrompts().then(setPrompts).catch(() => {}); adminIaDocuments().then(setDocs).catch(() => {}); adminIaDossier().then(setDossier).catch(() => {}); adminRadioEtat().then(setRadio).catch(() => {}); adminRunpodEtat().then(setRp).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { charger(); }, [charger]);
   if (!etat) return <Sombre><Chargement /></Sombre>;
@@ -61,6 +63,14 @@ export function IaAdmin() {
       </View>
       {(prompts?.versions ?? []).slice(0, 8).map(v => <Carte key={v.id} plat><View style={{ padding: 12, gap: 6 }}><View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}><T v="carte" style={{ flex: 1 }}>#{v.id} · {v.nom}</T>{v.actif ? <Pastille label="Actif" couleur={c.succes} fond={c.carte} /> : <Bouton label="Activer" petit large={false} variante="fantome" onPress={() => adminIaActiverPrompt(v.id).then(charger).catch(ko)} />}</View><T v="petit" numberOfLines={3}>{v.contenu}</T></View></Carte>)}
 
+      <SectionTitre titre="Dossier de référence (indexation automatique)" />
+      {!dossier ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>
+        <T v="corps">{dossier.dossier} : {dossier.presents} fichier(s) déposé(s). Chaque nuit, le serveur lit le dossier, vectorise ce qui est nouveau ou modifié, et oublie ce qui a été retiré. Chaque question posée à l'assistant s'appuie sur ces documents.</T>
+        <T v="petit">{dossier.enCours ? 'Synchronisation en cours…' : dossier.fin ? `Dernière synchronisation : ${new Date(dossier.fin).toLocaleString('fr-FR')} (${dossier.declencheur ?? '—'}) · ${dossier.ajoutes} ajouté(s), ${dossier.modifies} modifié(s), ${dossier.inchanges} inchangé(s), ${dossier.supprimes} retiré(s), ${dossier.ignores} ignoré(s) · ${dossier.morceaux} morceaux · ${dossier.embedding}` : 'Aucune synchronisation encore.'}</T>
+        {dossier.erreurs.slice(0, 5).map((e, i) => <T key={i} v="petit" couleur={c.erreur}>{e.fichier} : {e.message}</T>)}
+        <Bouton label={dossier.enCours ? 'En cours…' : 'Synchroniser maintenant'} petit large={false} desactive={dossier.enCours} onPress={() => adminIaSynchroniserDossier().then(() => { toast('Synchronisation lancée.', 'succes'); setTimeout(charger, 4000); setTimeout(charger, 15000); }).catch(ko)} />
+      </View></Carte>}
+
       <SectionTitre titre="Documents du RAG" />
       <Champ valeur={titre} onChange={setTitre} placeholder="Titre du document" auto="sentences" />
       <Champ valeur={source} onChange={setSource} placeholder="Source (document et page)" auto="sentences" />
@@ -74,6 +84,13 @@ export function IaAdmin() {
       <Champ valeur={msg} onChange={setMsg} placeholder="Message d'essai pour l'assistant" auto="sentences" />
       <Bouton label="Tester le prompt et le RAG" petit large={false} charge={occupe} desactive={!msg.trim()} onPress={async () => { setOccupe(true); try { setEssai(await adminIaTester(msg)); } catch (e) { ko(e); } finally { setOccupe(false); } }} />
       {essai && <Carte plat><View style={{ padding: 12, gap: 6 }}><T v="corps">{essai.reponse}</T><T v="petit">{essai.modele} · {essai.usage.entree} jetons entrée, {essai.usage.sortie} sortie · {essai.contexte.length} morceau(x) de contexte{essai.simule ? ' · simulation' : ''}</T></View></Carte>}
+
+      <SectionTitre titre="Web radio (AzuraCast)" />
+      {!radio ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>
+        <T v="corps">{radio.simule ? 'Mode simulation : AZURACAST_URL n\'est pas renseigné.' : `${radio.url} : ${radio.ok ? `${radio.stations} station(s) joignable(s)` : 'injoignable'}`}</T>
+        {!!radio.erreur && <T v="petit" couleur={c.erreur}>{radio.erreur}</T>}
+        <Bouton label="Importer les stations dans Ontci" petit large={false} desactive={radio.simule} onPress={() => adminRadioSynchroniser().then(r => { toast(`${r.crees} créée(s), ${r.maj} mise(s) à jour.`, 'succes'); charger(); }).catch(ko)} />
+      </View></Carte>}
 
       <SectionTitre titre="RunPod" />
       {!rp ? <Chargement lignes={1} /> : <>

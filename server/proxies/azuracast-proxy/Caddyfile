@@ -1,0 +1,32 @@
+# Relais vers AzuraCast (pod RunPod). Deux portes, toutes deux sur la passerelle Docker (jamais directement sur Internet) :
+#   172.17.0.1:8004  « publique » : le Caddy du serveur y redirige radio.essaka.engineering. N'expose que l'écoute et « à l'antenne » :
+#                     flux (/listen, /hls, /radio), titre en cours (/api/nowplaying, /api/station/*/nowplaying), pochettes (/api/station/*/art), /static.
+#   172.17.0.1:8003  « interne » : API complète (clé d'API AzuraCast requise), pour l'API Nkala et les scripts du serveur.
+# AZURACAST_ORIGINE = adresse du pod, ex. https://xxxxxxxx-80.proxy.runpod.net (ou http://IP:PORT)
+{
+	admin off
+	auto_https off
+}
+(vers_pod) {
+	reverse_proxy {env.AZURACAST_ORIGINE} {
+		flush_interval -1
+		header_up Host {upstream_hostport}
+		transport http {
+			read_timeout 0
+			dial_timeout 10s
+			response_header_timeout 60s
+		}
+	}
+}
+http://172.17.0.1:8004 {
+	bind 172.17.0.1
+	@ecoute path /listen/* /hls/* /radio/* /api/nowplaying /api/nowplaying/* /api/stations /api/station/*/nowplaying /api/station/*/art/* /api/station/*/schedule /static/* /api/station/*/history
+	handle @ecoute {
+		import vers_pod
+	}
+	respond "Introuvable" 404
+}
+http://172.17.0.1:8003 {
+	bind 172.17.0.1
+	import vers_pod
+}

@@ -1,0 +1,29 @@
+# Relais TURN/STUN pour les appels vidéo (salons de 4 au plus). Réseau « host » : le relais a besoin de ses ports UDP.
+# Secret partagé avec l'API (TURN_SECRET) : l'API fabrique des identifiants temporaires (1 h) pour chaque appel.
+services:
+  coturn:
+    image: coturn/coturn:4.6.2
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    command:
+      - -n
+      - --log-file=stdout
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49260
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET}
+      - --realm=${TURN_REALM:-essaka.engineering}
+      - --external-ip=${TURN_IP_PUBLIQUE}
+      - --fingerprint
+      - --no-cli
+      - --no-multicast-peers
+      - --no-tlsv1
+      - --no-tlsv1_1
+      - --total-quota=100
+      - --user-quota=12
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
