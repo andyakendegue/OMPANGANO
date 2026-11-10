@@ -65,3 +65,39 @@ Chaque branchement a une variable ; vide = simulation (rien ne casse). Liste com
 **Déployé le 10 nov. 2026** sur `essaka-llm` (migrations 006 et 007 appliquées, sauvegarde `backups/db-avant-nkala-20261110-063950.sql.gz` et `backups/server-avant-nkala-20261110-063950`). `SESSION_SECRET` et `MODULES_ACTIFS` ajoutés au `.env` du VPS. Retour arrière : restaurer `backups/server-avant-nkala-…` et relancer `docker compose up -d --build --no-deps api` (les nouvelles tables restent, sans effet).
 
 **Lancer en démonstration** : `./lancer.sh` (API locale + application web) ou `./lancer.sh ios`. Connexion : numéro libre et code `000000` ; administrateur : `+24100000001`.
+
+
+## Mise à jour du 10 nov. 2026 (nuit) : serveur, Revive, proxys, accès, Mobile Money, veille
+
+### Ce qui tourne sur `essaka-llm` (version versionnée dans le dépôt)
+| Élément | Où | État |
+|---|---|---|
+| API Nkala | `/opt/ompangano/server` (conteneur `ompangano-api-1`) | déployée, migrations 006 à 008 appliquées, **119 lignes d'exemple importées** (supprimables : console > Contenus > Supprimer tous les exemples) |
+| Revive Adserver 6.0.8 | `/opt/regie` (conteneurs `regie-revive-1`, `regie-revive-db-1`), écoute `172.17.0.1:3910` (interne) | **installé et configuré** ; compte administrateur `admin`, mot de passe dans `/opt/regie/.env` (`REVIVE_ADMIN_PASSWORD`) ; l'API Nkala s'y connecte en XML-RPC (`REVIVE_URL`, `REVIVE_USER`, `REVIVE_PASSWORD` déjà dans `/opt/ompangano/server/.env`) |
+| Proxy embeddings | `/opt/runpod-embedding-proxy` (conteneur `runpod-embedding-proxy`), écoute `172.17.0.1:8001` (interne) | **en simulation** (vecteurs fictifs de 128 dimensions) ; l'API l'utilise déjà (`EMBEDDING_BASE_URL`) |
+| Proxy LLM existant | `/opt/runpod-openai-proxy`, écoute `127.0.0.1:8000` | **non touché**. Il n'est pas joignable depuis le conteneur de l'API (boucle locale seulement). Pour l'utiliser : le faire écouter sur `172.17.0.1` (comme le nouveau proxy), puis `IA_FOURNISSEUR=openai` et `IA_BASE_URL=http://172.17.0.1:8000/v1` |
+| Base vectorielle | `server/vector/docker-compose.yml` (Qdrant) | **préparée, non démarrée**. Démarrer, puis `VECTOR_URL=http://172.17.0.1:6333`, puis réindexer les documents dans la console |
+| Veille des publications | `/etc/cron.d/ompangano-veille` → `server/scripts/veille_deploiement.sh` (toutes les 5 min) | **active** sur la branche `main` du dépôt public ; ne déploie rien tant que `main` n'avance pas |
+| Surveillance | `server/backup/alertes.py` (toutes les 5 min, déjà en place) | étendue : Revive, proxy d'embeddings, proxy LLM |
+
+### Ce qu'il vous reste à faire pour Revive
+1. **DNS** : enregistrement A `pub.essaka.engineering` → `169.58.226.154`. Puis ajouter `server/regie/Caddyfile.snippet` au Caddyfile de `n8n-caddy-1` et recharger Caddy. Le fichier `var/pub.essaka.engineering.conf.php` de Revive est déjà prêt.
+2. Dans Revive (via tunnel : `ssh -L 3910:172.17.0.1:3910 essaka-llm` puis `http://localhost:3910/www/admin/`), créer le site « Nkala » et les zones (mêmes noms que les zones de l'application).
+3. Console Nkala > Régie pub > Synchroniser avec Revive.
+
+### Accès par abonnement et par niveau
+- Collection **`plans`** (formules) ; **`produits`** : colonne `plan_id` (formule donnée) et `donne_acces` (`tout` = toute l'application).
+- Sur chaque contenu (leçons, parcours, unités, jeux, salles, cours d'artisans, titres, albums, radios, chaînes, magazine, bibliothèque) : colonnes **`rang_min`** (1 à 8) et **`plans`** (formules qui y donnent accès, séparées par `|`). Règles : le rang minimal est toujours exigé (un abonnement ne remplace pas le niveau) ; si `plans` est renseigné, il faut une de ces formules **ou** une formule « tout ». Le personnel (modérateurs, administrateurs) passe partout. `niveau_acces` (libre, abonnement, achat…) continue de s'appliquer en plus.
+- Appliqué par le serveur (`/v1/acces/verifier`, licences de lecture, leçons, parties) ; l'application affiche le cadenas avec le message (« Disponible à partir du rang … », « Réservé à une formule »).
+- **Utilisateurs d'Ompangano** : les comptes Firebase existants sont déjà les mêmes (même identifiant, même base, même XP) ; l'application mobile les reconnaît à la connexion Google ou e-mail. Les comptes créés par SMS (Twilio) sont distincts (`tel_241…`) : pour rattacher un même utilisateur à ses deux identités, une fusion de comptes reste à concevoir (non faite).
+
+### Paiements Mobile Money (système propre)
+- `MOBILEMONEY_FOURNISSEUR` : `manuel` (défaut, **actif en production**), `api` (agrégateur ou opérateur), `simulation` (développement).
+- **Manuel** : renseigner `MOBILEMONEY_NUMERO_AIRTEL` et `MOBILEMONEY_NUMERO_MOOV` dans `/opt/ompangano/server/.env` (numéros marchands) ; l'utilisateur envoie l'argent avec la référence `NK-…`, saisit l'identifiant de transaction, et un administrateur valide dans la console (onglet Paiements) : l'abonnement ou l'achat est accordé aussitôt. Tant que les numéros sont vides, la boutique indique « aucun moyen de paiement ouvert ».
+- **API** : `MOBILEMONEY_API_URL` et `MOBILEMONEY_API_KEY` (l'agrégateur reçoit `POST /collect`) ; webhook `POST /pay/webhook` signé en HMAC-SHA256 avec `MOBILEMONEY_WEBHOOK_SECRET` (déjà généré sur le serveur). Le contrat attendu est décrit en tête de `server/api/src/mobilemoney.ts` ; à adapter à l'agrégateur choisi.
+- Les reçus des magasins (Apple, Google) restent possibles mais ne sont plus la voie principale.
+
+### Versionnage et veille
+- Tout est dans le dépôt (`server/`, `server/regie`, `server/proxies`, `server/vector`, `server/scripts`). **Pour déployer : fusionner dans `main` et pousser** ; dans les 5 minutes le serveur sauvegarde, tire, copie, reconstruit, contrôle la santé et **revient en arrière tout seul** en cas d'échec, avec un e-mail dans les deux cas. Journal : `/var/log/ompangano-deploiement.log`. La branche actuelle `protection-ecrasement` n'est pas poussée : rien ne part sans votre action.
+- Si le dépôt devient privé : ajouter `DEPLOY_TOKEN=` dans `/opt/ompangano/secrets/deploiement.env`.
+- Sauvegardes avant ce déploiement : `/opt/ompangano/backups/db-avant-v2-20261110-081555.sql.gz`, `server-avant-v2-…` et `packages-avant-v2-…`.
