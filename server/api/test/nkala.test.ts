@@ -247,6 +247,7 @@ test('administrateur désigné par numéro (ADMIN_TELEPHONES) après connexion S
   const v = await call('POST', '/auth/sms/verifier', undefined, { telephone: '+24100000009', code: '123456' });
   assert.equal(v.status, 200);
   assert.equal((await call('GET', '/v1/admin/supervision', v.body.jeton)).status, 200);
+  assert.equal((await call('GET', '/v1/me', v.body.jeton)).body.role, 'admin', 'le profil porte le rôle pour que l\'application affiche l\'administration');
   const autre = await call('POST', '/auth/sms/verifier', undefined, { telephone: '+24100000008', code: '123456' });
   assert.equal((await call('GET', '/v1/admin/supervision', autre.body.jeton)).status, 403);
 });

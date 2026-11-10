@@ -206,6 +206,11 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     );
     if (auth.email) await q.query(`UPDATE users SET email = $2 WHERE id = $1 AND email IS DISTINCT FROM $2`, [auth.uid, auth.email]);
     if (auth.phone) await q.query(`UPDATE users SET data = data || jsonb_build_object('phone', $2::text) WHERE id = $1 AND (data->>'phone') IS DISTINCT FROM $2`, [auth.uid, auth.phone]);
+    // Administrateur désigné par numéro (ADMIN_TELEPHONES) : le rôle est écrit dans le profil pour que l'application affiche l'administration
+    if (auth.phone && (process.env.ADMIN_TELEPHONES || '').split(',').map(x => x.trim()).filter(Boolean).includes(auth.phone)) {
+      await q.query(`UPDATE users SET role = 'admin' WHERE id = $1 AND role <> 'admin'`, [auth.uid]);
+      await q.query(`INSERT INTO admins (id, data) VALUES ($1, '{"role":"admin"}') ON CONFLICT (id) DO UPDATE SET deleted_at = NULL`, [auth.uid]);
+    }
     if (superAdmin) {
       await q.query(`UPDATE users SET role = 'admin' WHERE id = $1 AND role <> 'admin'`, [auth.uid]);
       await q.query(
