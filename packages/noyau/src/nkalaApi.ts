@@ -121,3 +121,18 @@ export const adminRegieSynchroniser = () => api<any>('POST', '/v1/admin/regie/re
 export const adminPushEnvoyer = (titre: string, corps: string, cible: Record<string, unknown>) => api<{ destinataires: number; envoyes: number; simule: boolean }>('POST', '/v1/admin/push/envoyer', { titre, corps, cible });
 export const adminPushHistorique = () => api<any[]>('GET', '/v1/admin/push/historique');
 export const adminPushEtat = () => api<{ fournisseur: string; jetons: number }>('GET', '/v1/admin/push/etat');
+export const chargerProfilAcces = () => api<{ rang: number; plans: string[]; tout: boolean; abonneJusque: number | null }>('GET', '/v1/droits/acces');
+
+// ------------------------------------------------------------------ paiements Mobile Money
+export interface Paiement { id: string; reference: string; produitId: string; montant: number; operateur: string; statut: 'en_attente' | 'declare' | 'confirme' | 'echoue' | 'refuse' | 'expire'; mode: 'manuel' | 'api' | 'simulation'; instructions: { numero?: string; etapes?: string[]; montant?: number; reference?: string } }
+export const chargerModesPaiement = () => api<{ mode: string; operateurs: { id: string; nom: string }[] }>('GET', '/pub/paiements/modes');
+export const creerPaiement = (produitId: string, operateur: string, telephone: string) => api<Paiement>('POST', '/v1/paiements', { produitId, operateur, telephone });
+export const lirePaiement = (id: string) => api<Paiement>('GET', `/v1/paiements/${id}`);
+export const declarerPaiement = (id: string, transaction: string) => api<{ statut: string }>('POST', `/v1/paiements/${id}/declarer`, { transaction });
+export const simulerPaiement = (id: string, code: string) => api<{ statut: string }>('POST', `/v1/paiements/${id}/simuler`, { code });
+export const adminPaiements = (statut?: string) => api<(Paiement & { userId: string; nom: string | null; telephone: string; transaction: string | null })[]>('GET', `/v1/admin/paiements${statut ? `?statut=${statut}` : ''}`);
+export const adminValiderPaiement = (id: string) => api('POST', `/v1/admin/paiements/${id}/valider`);
+export const adminRefuserPaiement = (id: string, note?: string) => api('POST', `/v1/admin/paiements/${id}/refuser`, { note });
+export const adminExemples = () => api<{ presents: number; disponibles: boolean }>('GET', '/v1/admin/exemples');
+export const adminImporterExemples = () => api<{ collections: number; lignes: number }>('POST', '/v1/admin/exemples/importer');
+export const adminSupprimerExemples = () => api<{ supprimes: number }>('DELETE', '/v1/admin/exemples');

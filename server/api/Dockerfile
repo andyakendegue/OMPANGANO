@@ -6,6 +6,7 @@ RUN cd server && npm ci --omit=dev && npm i --no-save tsx
 COPY server ./server
 COPY shared ./shared
 COPY packages/noyau/src ./packages/noyau/src
+COPY contenu/exemples ./contenu/exemples
 COPY src/types ./src/types
 RUN chmod -R a+rX /app   # les fichiers copiés depuis un Mac peuvent être en 600
 WORKDIR /app/server

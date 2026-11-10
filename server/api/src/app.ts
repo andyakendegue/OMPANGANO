@@ -26,6 +26,8 @@ import { registerMedia } from './media.ts';
 import { registerRegie } from './regie.ts';
 import { registerPush } from './push.ts';
 import { registerAchats } from './achats.ts';
+import { registerMobileMoney } from './mobilemoney.ts';
+import { registerExemples } from './exemples.ts';
 import { enregistrerVisite, lireStatistiques, tropDeRequetes } from './visites.ts';
 import { chargerEcartees, cle as cleTexte, estPlusAncienne, journaliser, preparerProtection, raisonEcartee, type EntreeJournal } from './protection.ts';
 import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
@@ -1098,6 +1100,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   registerRegie(nk);
   registerPush(nk);
   registerAchats(nk);
+  registerMobileMoney(nk);
+  registerExemples(nk);
 
   return app;
 }

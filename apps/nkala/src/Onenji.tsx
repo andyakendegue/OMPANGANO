@@ -178,7 +178,7 @@ function LeconFlux({ e, D, pile }: { e: Extract<E, { t: 'lecon' }>; D: Donnees; 
   const { terminerLecon } = useProgres();
   const ex = D.exercices.filter(x => x.lecon_id === e.lecon.id);
   return (
-    <Verrou contenu={{ id: e.lecon.id, acces: ((e.lecon.niveau_acces as NiveauAcces) || 'libre'), roles: ['admin', 'validator'] }}>
+    <Verrou contenu={{ id: e.lecon.id, acces: ((e.lecon.niveau_acces as NiveauAcces) || 'libre'), roles: ['admin', 'validator'] }} regle={e.lecon as unknown as Record<string, any>}>
       <LeconRunner titre={e.lecon.titre} exercices={ex} onQuitter={pile.retour} onFin={async res => { const r = await terminerLecon(e.lecon, res.bonnes, res.erreurs); pile.remplacer({ t: 'fin', lecon: e.lecon, res, xp: r.xpGagne, parcoursId: e.parcours.id }); }} />
     </Verrou>
   );
@@ -220,7 +220,7 @@ function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
       <Entete titre={k.titre} sous={k.artisan} retour={pile.retour} />
       <Visuel uri={k.image} hauteur={180} largeur="100%" icone="video" />
       <T v="corps">{k.description}</T>
-      <Verrou contenu={{ id, acces: ((k.niveau_acces as NiveauAcces) || 'libre'), roles: ['admin', 'validator'] }}>
+      <Verrou contenu={{ id, acces: ((k.niveau_acces as NiveauAcces) || 'libre'), roles: ['admin', 'validator'] }} regle={k}>
         <Bouton label={k.video_url || k.protege ? 'Regarder le cours' : 'Vidéo bientôt disponible'} icone="lecture" desactive={!k.video_url && !k.protege} onPress={() => pile.pousser({ t: 'video', id })} />
         {chapitres.length > 0 && <><SectionTitre titre="Chapitres" />{chapitres.map(ch => (
           <Carte key={ch.id} plat onPress={() => (k.video_url || k.protege) && pile.pousser({ t: 'video', id, debut: num(ch.debut_s) })} label={ch.titre}><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><T v="carte" style={{ width: 28 }}>{num(ch.ordre)}</T><T v="corps" style={{ flex: 1 }} fort>{ch.titre}</T><T v="petit">{Math.floor(num(ch.debut_s) / 60)}:{String(num(ch.debut_s) % 60).padStart(2, '0')}</T></View></Carte>

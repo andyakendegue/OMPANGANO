@@ -13,6 +13,9 @@ import { MYENE } from '../../../packages/noyau/src/lexique.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import { clientRunpod } from './runpod.ts';
+import { vecteursParDefaut } from './vecteurs.ts';
+
+const vecteurs = vecteursParDefaut();
 
 // ------------------------------------------------------------------ réglages
 export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number }
@@ -128,14 +131,27 @@ export async function indexerDocument(q: Queryable, embed: FournisseurEmbedding,
   const d = (await q.query<any>(`SELECT texte FROM ia_documents WHERE id = $1`, [id]))[0];
   if (!d) return 0;
   const morceaux = decouper(d.texte, cfg.chunkTaille, cfg.chunkChevauchement);
-  const vecteurs = morceaux.length ? await embed.embed(morceaux) : [];
+  const vecteurs_ = morceaux.length ? await embed.embed(morceaux) : [];
   await q.query(`DELETE FROM ia_chunks WHERE document_id = $1`, [id]);
-  for (let i = 0; i < morceaux.length; i++) await q.query(`INSERT INTO ia_chunks (document_id, ordre, texte, embedding) VALUES ($1,$2,$3,$4)`, [id, i, morceaux[i], JSON.stringify(vecteurs[i])]);
+  const points: { id: number; vecteur: number[] }[] = [];
+  for (let i = 0; i < morceaux.length; i++) {
+    // Avec une base vectorielle, PostgreSQL ne garde que le texte (le vecteur y vit déjà) ; sinon le vecteur reste en jsonb
+    const r = await q.query<any>(`INSERT INTO ia_chunks (document_id, ordre, texte, embedding) VALUES ($1,$2,$3,$4) RETURNING id`, [id, i, morceaux[i], JSON.stringify(vecteurs.actif ? [] : vecteurs_[i])]);
+    points.push({ id: Number(r[0].id), vecteur: vecteurs_[i] });
+  }
+  if (vecteurs.actif) { if (points.length) await vecteurs.assurer(points[0].vecteur.length); await vecteurs.remplacer(id, points); }
   await q.query(`UPDATE ia_documents SET nb_chunks = $2, modele = $3, updated_at = clock_timestamp() WHERE id = $1`, [id, morceaux.length, embed.modele]);
   return morceaux.length;
 }
 
 export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number) {
+  if (vecteurs.actif) {
+    const [qv] = await embed.embed([requete]);
+    const trouves = (await vecteurs.chercher(qv, k)).filter(x => x.score >= seuil);
+    if (!trouves.length) return [];
+    const rows = await q.query<any>(`SELECT c.id, c.texte, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif WHERE c.id = ANY($1::bigint[])`, [trouves.map(x => x.id)]);
+    return trouves.map(t => { const r = rows.find(x => Number(x.id) === t.id); return r && { id: t.id, document: r.document_id, titre: r.titre, source: r.source, texte: r.texte, score: t.score }; }).filter(Boolean).slice(0, k) as any[];
+  }
   const rows = await q.query<any>(`SELECT c.id, c.texte, c.embedding, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif`);
   if (!rows.length) return [];
   const [v] = await embed.embed([requete]);
@@ -173,7 +189,7 @@ export function registerIaAdmin(ctx: Ctx) {
 
   app.get('/v1/admin/ia/etat', async (req) => {
     await admin(req);
-    return { fournisseur: ctx.ia.nom, embedding: { nom: embed.nom, modele: embed.modele }, runpod: { simule: runpod.simule }, config: await configIa(db),
+    return { fournisseur: ctx.ia.nom, baseVectorielle: vecteurs.actif ? 'qdrant' : 'postgresql', embedding: { nom: embed.nom, modele: embed.modele }, runpod: { simule: runpod.simule }, config: await configIa(db),
       documents: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents`))[0].n), chunks: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_chunks`))[0].n) };
   });
 
@@ -228,7 +244,7 @@ export function registerIaAdmin(ctx: Ctx) {
   });
   app.post('/v1/admin/ia/documents/:id/reindexer', async (req) => { await admin(req); try { return { chunks: await indexerDocument(db, embed, (req.params as any).id, await configIa(db)) }; } catch (e) { return fail(502, (e as Error).message); } });
   app.post('/v1/admin/ia/documents/:id/actif', async (req) => { await admin(req); const { actif } = (req.body || {}) as { actif?: boolean }; await db.query(`UPDATE ia_documents SET actif = $2 WHERE id = $1`, [(req.params as any).id, actif !== false]); return { ok: true }; });
-  app.delete('/v1/admin/ia/documents/:id', async (req, reply) => { const a = await admin(req); await db.query(`DELETE FROM ia_documents WHERE id = $1`, [(req.params as any).id]); await journaliser(db, a.auth.uid, 'ia_document_supprime', (req.params as any).id); return reply.status(204).send(); });
+  app.delete('/v1/admin/ia/documents/:id', async (req, reply) => { const a = await admin(req); await vecteurs.supprimer((req.params as any).id).catch(() => {}); await db.query(`DELETE FROM ia_documents WHERE id = $1`, [(req.params as any).id]); await journaliser(db, a.auth.uid, 'ia_document_supprime', (req.params as any).id); return reply.status(204).send(); });
 
   app.post('/v1/admin/ia/rag/rechercher', async (req) => {
     await admin(req);

@@ -13,6 +13,8 @@ import { Bouton, Carte, Chargement, Ecran, Entete, EtatVide, Flamme, Ic, Mascott
 import { usePile } from './Pile';
 import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
+import { useRegle } from './Droits';
+import { useGlobale } from './Globale';
 import { EmplacementPub } from './Pub';
 import { useContenus } from './useContenu';
 import { Confettis } from './Confettis';
@@ -114,6 +116,9 @@ function Hall({ D, pile, etat, dialecte, setDialecte }: { D: Donnees; pile: Pile
 
 function Salle({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
   const { c } = useTheme();
+  const juger = useRegle();
+  const { ouvrirBoutique } = useGlobale();
+  const toast = useToast();
   const { profil } = useAuth();
   const [et, setEt] = useState<Record<string, number>>({});
   useEffect(() => { AsyncStorage.getItem(clefEtoiles(profil?.id ?? 'anon')).then(v => v && setEt(JSON.parse(v))).catch(() => {}); }, [profil?.id]);
@@ -124,10 +129,10 @@ function Salle({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
       <Entete titre={s?.titre ?? 'Salle'} sous={s?.description} retour={pile.retour} />
       {jeux.length === 0 && <EtatVide mascotte titre="Salle en préparation" />}
       {jeux.map(j => (
-        <Carte key={j.id} onPress={() => pile.pousser({ t: 'jeu', jeu: j })} label={j.titre} accent={j.couleur}><View style={{ padding: 16, flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+        <Carte key={j.id} onPress={() => { const r = juger(j); if (r.ok) pile.pousser({ t: 'jeu', jeu: j }); else if (r.motif === 'rang_requis') toast(`Ce jeu s'ouvre au rang ${r.rangMin}.`, 'info'); else { toast('Ce jeu demande une formule d\'abonnement.', 'info'); ouvrirBoutique(); } }} label={j.titre} accent={j.couleur}><View style={{ padding: 16, flexDirection: 'row', gap: 14, alignItems: 'center' }}>
           <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: j.couleur ?? c.modules.azeva, alignItems: 'center', justifyContent: 'center' }}><Ic nom="jouer" taille={26} couleur="#170D08" /></View>
           <View style={{ flex: 1 }}><T v="carte">{j.titre}</T><T v="petit" numberOfLines={2}>{j.description}</T></View>
-          <View style={{ flexDirection: 'row' }}>{[1, 2, 3].map(k => <Ic key={k} nom="etoile" taille={16} couleur={(et[j.id] ?? 0) >= k ? c.modules.azeva : c.bord} />)}</View>
+          {!juger(j).ok ? <Ic nom="verrou" taille={20} couleur={c.discret} /> : <View style={{ flexDirection: 'row' }}>{[1, 2, 3].map(k => <Ic key={k} nom="etoile" taille={16} couleur={(et[j.id] ?? 0) >= k ? c.modules.azeva : c.bord} />)}</View>}
         </View></Carte>
       ))}
     </Ecran>

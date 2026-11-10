@@ -13,6 +13,7 @@ import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import { modulesActuels } from './contenus.ts';
 import { baseApi } from './media.ts';
 import { creationsServables } from './regie.ts';
+import { profilAcces, verifierRegle } from './profil_acces.ts';
 
 // ================================================================== IA (fournisseurs, RAG et prompt : ia.ts)
 export type { FournisseurIa } from './ia.ts';
@@ -98,6 +99,8 @@ export function registerServices(ctx: Ctx) {
     return { ...d, abonne: !!d.abonneJusque && d.abonneJusque > Date.now(), historique: liste };
   });
 
+  app.get('/v1/droits/acces', async (req) => { const a = await acteur(req); await ensureUser(db, a.auth); return profilAcces(db, a.auth.uid); });
+
   app.post('/v1/acces/verifier', async (req) => {
     const a = await acteur(req);
     const { collection, id } = (req.body || {}) as { collection?: string; id?: string };
@@ -106,7 +109,9 @@ export function registerServices(ctx: Ctx) {
     if (!c.length) return fail(404, 'Contenu introuvable.');
     const niveau = (c[0].data.niveau_acces || 'libre') as NiveauAcces;
     const d = peutAcceder({ id, acces: niveau, roles: ['admin', 'validator'] }, await droitsDe(db, a.auth.uid, a.role));
-    return { autorise: d.ok, avecPub: d.ok ? d.avecPub : false, motif: d.ok ? null : d.motif, niveau };
+    const r = d.ok ? await verifierRegle(db, a.auth.uid, a.isStaff, c[0].data) : null;
+    const ok = d.ok && !!r && r.ok;
+    return { autorise: ok, avecPub: ok && d.ok ? d.avecPub : false, motif: !d.ok ? d.motif : r && !r.ok ? r.motif : null, niveau, rangMin: r && !r.ok && r.motif === 'rang_requis' ? r.rangMin : null, plans: r && !r.ok && r.motif === 'plan_requis' ? r.plans : null };
   });
 
   /** Licence de lecture : jeton court à présenter au serveur de segments ; contient une empreinte du compte pour le filigrane. */
@@ -118,6 +123,8 @@ export function registerServices(ctx: Ctx) {
     if (!c.length) return fail(404, 'Contenu introuvable.');
     const d = peutAcceder({ id, acces: (c[0].data.niveau_acces || 'libre') as NiveauAcces, roles: ['admin', 'validator'] }, await droitsDe(db, a.auth.uid, a.role));
     if (!d.ok) return fail(402, 'Accès réservé : ' + d.motif);
+    const r = await verifierRegle(db, a.auth.uid, a.isStaff, c[0].data);
+    if (!r.ok) return fail(402, 'Accès réservé : ' + r.motif);
     const filigrane = createHmac('sha256', secret).update(a.auth.uid).digest('hex').slice(0, 10);
     const jeton = await new SignJWT({ c: `${collection}/${id}`, fil: filigrane }).setProtectedHeader({ alg: 'HS256' }).setSubject(a.auth.uid).setIssuer('nkala-licence').setExpirationTime('10m').sign(new TextEncoder().encode(secret));
     const protege = c[0].data.protege === true;

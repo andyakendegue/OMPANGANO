@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Platform, Pressable, Share, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import {
-  adminAccorderDroit, adminAnnulerDroit, adminCollections, adminDecider, adminDroits, adminEcrireParametre, adminExporter, adminImporter, adminImports, adminJournal, adminLignes, adminModeration,
+  adminAccorderDroit, adminExemples, adminImporterExemples, adminSupprimerExemples, adminPaiements, adminValiderPaiement, adminRefuserPaiement, adminAnnulerDroit, adminCollections, adminDecider, adminDroits, adminEcrireParametre, adminExporter, adminImporter, adminImports, adminJournal, adminLignes, adminModeration,
   adminParametres, adminSeries, adminSupprimerLigne, adminSupervision, modeleCsv, SCHEMAS, schemaDe, type InfoCollection, type RapportServeur,
 } from '@nkala/noyau';
 import { Bouton, Carte, Champ, Chargement, EtatVide, Ic, Pastille, Puce, Rangee, SectionTitre, T, useConfirmer, useToast } from './kit';
@@ -104,13 +104,24 @@ export function ContenusAdmin() {
   const [sel, setSel] = useState<InfoCollection | null>(null);
   const [mod, setMod] = useState<string>('tous');
   const [historique, setHistorique] = useState<Awaited<ReturnType<typeof adminImports>>>([]);
-  const charger = useCallback(() => { adminCollections().then(setListe).catch(e => toast((e as Error).message, 'erreur')); adminImports().then(setHistorique).catch(() => {}); }, [toast]);
+  const [ex, setEx] = useState<{ presents: number; disponibles: boolean } | null>(null);
+  const [dialogueEx, confirmerEx] = useConfirmer();
+  const charger = useCallback(() => { adminCollections().then(setListe).catch(e => toast((e as Error).message, 'erreur')); adminImports().then(setHistorique).catch(() => {}); adminExemples().then(setEx).catch(() => {}); }, [toast]);
   useEffect(() => { charger(); }, [charger]);
   if (sel) return <Collection info={liste?.find(x => x.collection === sel.collection) ?? sel} retour={() => { setSel(null); charger(); }} />;
   const modules = ['tous', ...new Set(SCHEMAS.map(s => s.module))];
   return (
     <Sombre>
       <T v="petit">Tous les jeux, cours, catalogues et listes se remplissent avec des fichiers CSV ou JSON. Choisis une collection, récupère son modèle, remplis-le, puis importe-le.</T>
+      {ex && <Carte plat><View style={{ padding: 14, gap: 8 }}>
+        {dialogueEx}
+        <T v="carte">Contenus d'exemple : {ex.presents} ligne(s) en ligne</T>
+        <T v="petit">Ils servent à essayer l'application. Supprime-les quand tes vrais contenus sont importés ; tu peux les réimporter à tout moment.</T>
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <Bouton label="Importer les exemples" petit large={false} variante="fantome" desactive={!ex.disponibles} onPress={() => adminImporterExemples().then(r => { toast(`${r.lignes} ligne(s) importée(s).`, 'succes'); charger(); }).catch(e => toast((e as Error).message, 'erreur'))} />
+          <Bouton label="Supprimer tous les exemples" petit large={false} variante="fantome" desactive={ex.presents === 0} onPress={() => confirmerEx({ titre: 'Supprimer les contenus d\'exemple ?', texte: `${ex.presents} ligne(s) marquées « exemple » seront supprimées. Tes propres contenus ne sont pas touchés.`, action: 'Supprimer les exemples', onOk: () => adminSupprimerExemples().then(r => { toast(`${r.supprimes} ligne(s) supprimée(s).`, 'succes'); charger(); }).catch(e => toast((e as Error).message, 'erreur')) })} />
+        </View>
+      </View></Carte>}
       <Rangee>{modules.map(m => <Puce key={m} label={m} actif={mod === m} onPress={() => setMod(m)} />)}</Rangee>
       {!liste ? <Chargement /> : liste.filter(i => mod === 'tous' || i.module === mod).map(i => (
         <Carte key={i.collection} onPress={() => setSel(i)} label={i.titre}><View style={{ padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -255,4 +266,26 @@ export function JournalAdmin() {
   const [l, setL] = useState<Awaited<ReturnType<typeof adminJournal>> | null>(null);
   useEffect(() => { adminJournal().then(setL).catch(() => setL([])); }, []);
   return <Sombre>{!l ? <Chargement /> : l.length === 0 ? <EtatVide icone="fichier" titre="Journal vide" /> : l.map(x => <T key={x.id} v="petit">{new Date(x.at).toLocaleString('fr-FR')} · {x.par.slice(0, 14)} · {x.action}{x.cible ? ` · ${x.cible}` : ''}</T>)}</Sombre>;
+}
+
+// ------------------------------------------------------------------ paiements Mobile Money
+export function PaiementsAdmin() {
+  const { c } = useTheme();
+  const toast = useToast();
+  const [statut, setStatut] = useState<string>('declare');
+  const [liste, setListe] = useState<Awaited<ReturnType<typeof adminPaiements>> | null>(null);
+  const charger = useCallback(() => adminPaiements(statut === 'tous' ? undefined : statut).then(setListe).catch(e => toast((e as Error).message, 'erreur')), [statut, toast]);
+  useEffect(() => { charger(); }, [charger]);
+  return (
+    <Sombre>
+      <T v="petit">Paiements Airtel Money et Moov Money. En mode manuel, vérifie sur le compte marchand que la transaction et le montant correspondent, puis valide : l'abonnement ou l'achat est accordé aussitôt.</T>
+      <Rangee>{['declare', 'en_attente', 'confirme', 'refuse', 'expire', 'tous'].map(s => <Puce key={s} label={s} actif={statut === s} onPress={() => setStatut(s)} />)}</Rangee>
+      {!liste ? <Chargement /> : liste.length === 0 ? <EtatVide icone="piece" titre="Aucun paiement" /> : liste.map(p => (
+        <Carte key={p.id} plat><View style={{ padding: 12, gap: 6 }}>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}><T v="carte" style={{ flex: 1 }}>{p.montant.toLocaleString('fr-FR')} FCFA · {p.operateur} · {p.produitId}</T><Pastille label={p.statut} couleur={p.statut === 'confirme' ? c.succes : c.accent} fond={c.carte} /></View>
+          <T v="petit">{p.nom ?? p.userId} · {p.telephone} · réf. {p.reference}{p.transaction ? ` · transaction ${p.transaction}` : ''}</T>
+          {(p.statut === 'declare' || p.statut === 'en_attente') && <View style={{ flexDirection: 'row', gap: 8 }}><Bouton label="Valider" petit large={false} onPress={() => adminValiderPaiement(p.id).then(() => { toast('Paiement validé, droit accordé.', 'succes'); charger(); }).catch(e => toast((e as Error).message, 'erreur'))} /><Bouton label="Refuser" petit large={false} variante="fantome" onPress={() => adminRefuserPaiement(p.id).then(charger).catch(e => toast((e as Error).message, 'erreur'))} /></View>}
+        </View></Carte>))}
+    </Sombre>
+  );
 }

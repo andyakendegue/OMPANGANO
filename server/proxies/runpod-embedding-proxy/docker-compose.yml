@@ -1,0 +1,7 @@
+services:
+  runpod-embedding-proxy:
+    build: .
+    container_name: runpod-embedding-proxy
+    env_file: [.env]
+    network_mode: host      # comme runpod-openai-proxy ; n'écoute que sur LISTEN_HOST (interne)
+    restart: unless-stopped

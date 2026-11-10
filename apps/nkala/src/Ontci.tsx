@@ -32,9 +32,9 @@ export function Ontci() {
 
   const D = useMemo(() => {
     const artistes = res.artistes ?? [], albums = res.albums ?? [];
-    const pistes: (Piste & { album_id?: string })[] = (res.titres ?? []).map(t => {
+    const pistes: (Piste & { album_id?: string; regle?: Record<string, any> })[] = (res.titres ?? []).map(t => {
       const al = albums.find(a => a.id === t.album_id), ar = artistes.find(a => a.id === (t.artiste_id || al?.artiste_id));
-      return { album_id: t.album_id, id: t.id, titre: t.titre, artiste: ar?.nom ?? 'Artiste', pochette: al?.pochette, couleur: al?.couleur, audio_url: t.audio_url, duree_s: t.duree_s, paroles: t.paroles, traduction: t.traduction, niveau_acces: t.niveau_acces ?? 'libre', collection: 'titres', protege: t.protege === true || t.protege === 'oui' };
+      return { album_id: t.album_id, id: t.id, titre: t.titre, artiste: ar?.nom ?? 'Artiste', pochette: al?.pochette, couleur: al?.couleur, audio_url: t.audio_url, duree_s: t.duree_s, paroles: t.paroles, traduction: t.traduction, niveau_acces: t.niveau_acces ?? 'libre', regle: { rang_min: t.rang_min, plans: t.plans }, collection: 'titres', protege: t.protege === true || t.protege === 'oui' };
     });
     return { artistes, albums, pistes, radios: res.radios ?? [], tv: res.chaines_tv ?? [], playlists: res.playlists ?? [], genres: res.genres ?? [] };
   }, [res]);
@@ -116,7 +116,7 @@ function Album({ id, D, pile, jouer, fav, basculerFav }: Ctx & { id: string }) {
       </View>
       <View style={{ flexDirection: 'row', gap: 12 }}><Bouton label="Lecture" icone="lecture" variante="ambre" onPress={() => liste.length && jouer(liste, 0)} style={{ flex: 1 }} /><Bouton label="Aléatoire" icone="aleatoire" variante="fantome" onPress={() => liste.length && jouer([...liste].sort(() => Math.random() - 0.5), 0)} style={{ flex: 1 }} /></View>
       {liste.length === 0 ? <T v="corps">Aucun titre dans cet album pour le moment.</T> : liste.map((p, i) => (
-        <Verrou key={p.id} contenu={{ id: p.id, acces: (p.niveau_acces as never) || 'libre', roles: ['admin'] }}><LigneTitre p={p} onPress={() => jouer(liste, i)} fav={fav.includes(p.id)} onFav={() => basculerFav(p.id)} /></Verrou>
+        <Verrou key={p.id} contenu={{ id: p.id, acces: (p.niveau_acces as never) || 'libre', roles: ['admin'] }} regle={(p as unknown as { regle?: Record<string, any> }).regle ?? null}><LigneTitre p={p} onPress={() => jouer(liste, i)} fav={fav.includes(p.id)} onFav={() => basculerFav(p.id)} /></Verrou>
       ))}
     </Ecran>
   );

@@ -39,10 +39,10 @@ before(async () => {
   await runMigrations(db);
   process.env.MODULES_ACTIFS = 'ompangano,onenji,azeva,ontci,nkala';
   process.env.FONCTIONS_ACTIVES = 'publicite,assistantIA';
-  Object.assign(process.env, { ACHATS_FOURNISSEUR: 'simulation', PUSH_FOURNISSEUR: 'simulation', ADMIN_TELEPHONES: '+24100000009' });
+  Object.assign(process.env, { MOBILEMONEY_FOURNISSEUR: 'simulation', MOBILEMONEY_WEBHOOK_SECRET: 'secret-webhook-test', ACHATS_FOURNISSEUR: 'simulation', PUSH_FOURNISSEUR: 'simulation', ADMIN_TELEPHONES: '+24100000009' });
   app = await buildApp({ db, verify, storage, corsOrigins: [], logger: !!process.env.DEBUG_TESTS, rateLimitMax: 100000, sms, ia, sessionSecret: 'secret-de-test-0123456789abcdef' });
 });
-after(async () => { await app.close(); await db.close(); for (const k of ['MODULES_ACTIFS', 'FONCTIONS_ACTIVES', 'ACHATS_FOURNISSEUR', 'PUSH_FOURNISSEUR', 'ADMIN_TELEPHONES']) delete process.env[k]; });
+after(async () => { await app.close(); await db.close(); for (const k of ['MODULES_ACTIFS', 'FONCTIONS_ACTIVES', 'MOBILEMONEY_FOURNISSEUR', 'MOBILEMONEY_WEBHOOK_SECRET', 'ACHATS_FOURNISSEUR', 'PUSH_FOURNISSEUR', 'ADMIN_TELEPHONES']) delete process.env[k]; });
 
 test('SMS : numéro normalisé, code vérifié, session utilisable, mauvais code refusé', async () => {
   assert.equal((await call('POST', '/auth/sms/envoyer', undefined, { telephone: 'abc' })).status, 400);
@@ -361,4 +361,90 @@ test('médias chiffrés : licence → liste HLS réécrite → clé AES-128 ; je
   assert.equal((await app.inject({ method: 'GET', url: cleUrl.replace('secret1', 'secret2') })).statusCode, 403, 'licence d\'un autre contenu');
   assert.equal((await app.inject({ method: 'GET', url: '/media/cle/titres/secret1?t=abc' })).statusCode, 403, 'jeton falsifié');
   assert.equal((await call('POST', '/v1/lecture/licence', u.token, { collection: 'titres', id: 'secret2' })).body.urlHls !== null, true);
+});
+
+test('accès par rang et par formule : plans, rang minimal, personnel exempté', async () => {
+  const j = (collection: string, lignes: unknown[]) => call('POST', `/v1/admin/contenus/${collection}/import`, ADMIN, { lignes, mode: 'ajouter', partiel: true });
+  await j('plans', [{ id: 'complet', titre: 'Complet', tout: 'oui', publie: 'oui' }, { id: 'jeux', titre: 'Jeux', publie: 'oui' }]);
+  await j('produits', [{ id: 'abo-tout', titre: 'Tout', type: 'abonnement', prix_fcfa: 2000, periode: 'mois', donne_acces: 'tout', plan_id: 'complet', publie: 'oui' }, { id: 'abo-jeux', titre: 'Jeux', type: 'abonnement', prix_fcfa: 1000, periode: 'mois', plan_id: 'jeux', publie: 'oui' }]);
+  await j('jeux', [{ id: 'jeu-rang3', salle_id: 's', titre: 'Avancé', moteur: 'pendu', rang_min: 3, publie: 'oui' }, { id: 'jeu-jeux', salle_id: 's', titre: 'Premium', moteur: 'pendu', plans: 'jeux', publie: 'oui' }, { id: 'jeu-libre', salle_id: 's', titre: 'Libre', moteur: 'pendu', publie: 'oui' }]);
+  await j('lecons', [{ id: 'lecon-plan', unite_id: 'u', titre: 'Réservée', plans: 'complet', publie: 'oui' }]);
+  const u = await user();
+  const partie = (id: string) => call('POST', '/v1/jeux/partie', u.token, { jeuId: id, bonnes: 3, erreurs: 0 });
+  assert.equal((await partie('jeu-libre')).status, 200);
+  assert.equal((await partie('jeu-rang3')).status, 402, 'rang 1 < 3');
+  assert.equal((await partie('jeu-jeux')).status, 402, 'sans formule');
+  assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 402);
+  const av = await call('POST', '/v1/acces/verifier', u.token, { collection: 'jeux', id: 'jeu-rang3' });
+  assert.equal(av.body.autorise, false); assert.equal(av.body.rangMin, 3);
+  // formule « jeux » : ouvre le jeu qui la cite, pas la leçon réservée à « complet »
+  await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo-jeux', jours: 30 });
+  assert.equal((await partie('jeu-jeux')).status, 200);
+  assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 402);
+  assert.deepEqual((await call('GET', '/v1/droits/acces', u.token)).body.plans, ['jeux']);
+  // formule complète : tout s'ouvre sauf le rang minimal (le niveau reste le niveau)
+  await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo-tout', jours: 30 });
+  assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 200);
+  assert.equal((await partie('jeu-rang3')).status, 402, 'un abonnement ne remplace pas le rang');
+  // le personnel passe partout
+  assert.equal((await call('POST', '/v1/jeux/partie', ADMIN, { jeuId: 'jeu-rang3', bonnes: 1, erreurs: 0 })).status, 200);
+});
+
+test('exemples : importés, marqués, supprimés sans toucher aux vrais contenus', async () => {
+  const { mkdtempSync, writeFileSync } = await import('node:fs'); const { tmpdir } = await import('node:os'); const { join } = await import('node:path');
+  const dossier = mkdtempSync(join(tmpdir(), 'ex-')); process.env.EXEMPLES_DIR = dossier;
+  writeFileSync(join(dossier, 'genres.json'), JSON.stringify([{ id: 'ex1', titre: 'Exemple', ordre: 1 }, { id: 'ex2', titre: 'Autre', ordre: 2 }]));
+  assert.equal((await call('GET', '/v1/admin/exemples', (await user()).token)).status, 403);
+  await call('POST', '/v1/admin/contenus/genres/import', ADMIN, { lignes: [{ id: 'vrai', titre: 'Vrai genre' }], mode: 'ajouter' });
+  const i = await call('POST', '/v1/admin/exemples/importer', ADMIN);
+  assert.equal(i.body.lignes, 2);
+  assert.equal((await call('POST', '/v1/admin/exemples/importer', ADMIN)).body.lignes, 0, 'idempotent');
+  assert.equal((await call('GET', '/pub/contenus/genres')).body.lignes.length, 3);
+  assert.equal((await call('GET', '/v1/admin/exemples', ADMIN)).body.presents >= 2, true);
+  const d = await call('DELETE', '/v1/admin/exemples', ADMIN);
+  assert.ok(d.body.supprimes >= 2);
+  assert.deepEqual((await call('GET', '/pub/contenus/genres')).body.lignes.map((l: any) => l.id), ['vrai'], 'le vrai contenu reste');
+  delete process.env.EXEMPLES_DIR;
+});
+
+test('Mobile Money : initier, déclarer, valider, doublons, expiration, webhook signé', async () => {
+  const { signerWebhook } = await import('../src/mobilemoney.ts');
+  await call('POST', '/v1/admin/contenus/produits/import', ADMIN, { lignes: [{ id: 'mm-abo', titre: 'Plus', type: 'abonnement', prix_fcfa: 1500, periode: 'mois', publie: 'oui' }, { id: 'mm-gratuit', titre: 'Gratuit', type: 'achat', publie: 'oui' }], mode: 'ajouter' });
+  const u = await user();
+  assert.equal((await call('POST', '/v1/paiements', u.token, { produitId: 'mm-abo', operateur: 'orange', telephone: '06123456' })).status, 400, 'opérateur inconnu');
+  assert.equal((await call('POST', '/v1/paiements', u.token, { produitId: 'mm-gratuit', operateur: 'airtel', telephone: '06123456' })).status, 404, 'sans prix');
+  const p = await call('POST', '/v1/paiements', u.token, { produitId: 'mm-abo', operateur: 'airtel', telephone: '06123456' });
+  assert.equal(p.status, 201, JSON.stringify(p.body)); assert.match(p.body.reference, /^NK-[0-9A-F]{6}$/); assert.equal(p.body.mode, 'simulation');
+  assert.equal((await call('POST', `/v1/paiements/${p.body.id}/simuler`, u.token, { code: '1111' })).status, 400);
+  assert.equal((await call('GET', '/v1/droits', u.token)).body.abonne, false);
+  assert.equal((await call('POST', `/v1/paiements/${p.body.id}/simuler`, u.token, { code: '0000' })).body.statut, 'confirme');
+  assert.equal((await call('GET', '/v1/droits', u.token)).body.abonne, true, 'abonnement accordé');
+  assert.equal((await call('GET', `/v1/paiements/${p.body.id}`, u.token)).body.statut, 'confirme');
+  assert.equal((await call('POST', `/v1/paiements/${p.body.id}/declarer`, u.token, { transaction: 'ABC123456' })).status, 409, 'déjà traité');
+  assert.equal((await call('GET', `/v1/paiements/${p.body.id}`, (await user()).token)).status, 404, 'le paiement d\'un autre est invisible');
+  // flux manuel : déclaration puis validation par un administrateur (le mode est simulation ici : on déclare quand même)
+  const v = await user();
+  const q = await call('POST', '/v1/paiements', v.token, { produitId: 'mm-abo', operateur: 'moov', telephone: '+24107123456' });
+  assert.equal((await call('POST', `/v1/paiements/${q.body.id}/declarer`, v.token, { transaction: 'x' })).status, 400);
+  assert.equal((await call('POST', `/v1/paiements/${q.body.id}/declarer`, v.token, { transaction: 'MP2611100001' })).body.statut, 'declare');
+  const w = await user();
+  const r = await call('POST', '/v1/paiements', w.token, { produitId: 'mm-abo', operateur: 'moov', telephone: '+24107654321' });
+  assert.equal((await call('POST', `/v1/paiements/${r.body.id}/declarer`, w.token, { transaction: 'MP2611100001' })).status, 409, 'transaction déjà utilisée');
+  assert.equal((await call('POST', `/v1/admin/paiements/${q.body.id}/valider`, v.token)).status, 403);
+  assert.equal((await call('POST', `/v1/admin/paiements/${q.body.id}/valider`, ADMIN)).body.statut, 'confirme');
+  assert.equal((await call('POST', `/v1/admin/paiements/${q.body.id}/valider`, ADMIN)).status, 409, 'une seule validation');
+  assert.equal((await call('GET', '/v1/droits', v.token)).body.abonne, true);
+  assert.equal((await call('POST', `/v1/admin/paiements/${r.body.id}/refuser`, ADMIN, { note: 'montant incorrect' })).body.statut, 'refuse');
+  assert.equal((await call('GET', '/v1/admin/paiements?statut=confirme', ADMIN)).body.length >= 2, true);
+  // webhook : signature obligatoire
+  const x = await user();
+  const s = await call('POST', '/v1/paiements', x.token, { produitId: 'mm-abo', operateur: 'airtel', telephone: '06999888' });
+  const corps = { reference: s.body.reference, statut: 'success', transaction: 'AM-777' };
+  assert.equal((await app.inject({ method: 'POST', url: '/pay/webhook', payload: corps as any, headers: { 'x-signature': 'faux' } })).statusCode, 401);
+  assert.equal((await app.inject({ method: 'POST', url: '/pay/webhook', payload: corps as any, headers: { 'x-signature': signerWebhook('secret-webhook-test', JSON.stringify(corps)) } })).statusCode, 204);
+  assert.equal((await call('GET', '/v1/droits', x.token)).body.abonne, true);
+  // trois paiements en attente au plus
+  const y = await user();
+  for (let i = 0; i < 3; i++) await call('POST', '/v1/paiements', y.token, { produitId: 'mm-abo', operateur: 'airtel', telephone: '06111222' });
+  assert.equal((await call('POST', '/v1/paiements', y.token, { produitId: 'mm-abo', operateur: 'airtel', telephone: '06111222' })).status, 429);
 });

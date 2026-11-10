@@ -50,3 +50,18 @@ export function peutAcceder(c: Contenu, d: DroitsUtilisateur | null | undefined,
     case 'reserve': return d?.role && c.roles?.includes(d.role) ? { ok: true, avecPub: false } : { ok: false, motif: 'role_requis' };
   }
 }
+
+// ------------------------------------------------------------------ accès par niveau (rang) et par formule d'abonnement
+/** Règle supplémentaire d'un contenu : rang minimal (1 à 8) et formules d'abonnement qui y donnent accès (vide = aucune contrainte de formule). */
+export interface RegleAvancee { rangMin?: number | null; plans?: readonly string[] | null }
+/** Ce que l'utilisateur possède : son rang (d'après l'XP), ses formules actives, et s'il a « tout » (formule complète). */
+export interface ProfilAcces { rang: number; plans: readonly string[]; tout: boolean }
+export type DecisionAvancee = { ok: true } | { ok: false; motif: 'rang_requis'; rangMin: number } | { ok: false; motif: 'plan_requis'; plans: string[] };
+
+export function accesAvance(r: RegleAvancee | null | undefined, p: ProfilAcces | null | undefined): DecisionAvancee {
+  const rangMin = Number(r?.rangMin) || 0;
+  if (rangMin > 1 && (p?.rang ?? 1) < rangMin) return { ok: false, motif: 'rang_requis', rangMin };
+  const plans = (r?.plans ?? []).filter(Boolean);
+  if (plans.length && !p?.tout && !plans.some(x => p?.plans?.includes(x))) return { ok: false, motif: 'plan_requis', plans: [...plans] };
+  return { ok: true };
+}

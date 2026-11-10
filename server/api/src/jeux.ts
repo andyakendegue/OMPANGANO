@@ -8,6 +8,7 @@ import { nouveauRang } from '../../../packages/noyau/src/rangs.ts';
 import { getLevelForXp } from '../../../shared/levels.ts';
 import type { Queryable } from './db.ts';
 import { parametre, str, type Ctx } from './ctx.ts';
+import { verifierRegle } from './profil_acces.ts';
 
 const PLAFOND_XP_JEUX_JOUR = 150;
 const XP_UNITE = 30;
@@ -66,6 +67,7 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
     if (!str(leconId) || !Number.isInteger(bonnes) || !Number.isInteger(erreurs) || bonnes < 0 || erreurs < 0 || bonnes + erreurs > 60) return fail(400, 'Résultat de leçon invalide.');
     const l = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'lecons' AND id = $1 AND publie AND deleted_at IS NULL`, [leconId]);
     if (!l.length) return fail(404, 'Leçon introuvable.');
+    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, l[0].data); if (!r.ok) return fail(402, 'Cette leçon demande un niveau ou un abonnement supérieur.'); }
     const out = await db.tx(async q => {
       await ensureUser(q, a.auth);
       const d = await lireProgression(q, a.auth.uid);
@@ -105,6 +107,7 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
     if (!str(b.jeuId) || !Number.isInteger(bon) || !Number.isInteger(err) || bon < 0 || err < 0 || bon > 60 || err > 60) return fail(400, 'Résultat de partie invalide.');
     const jeu = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'jeux' AND id = $1 AND publie AND deleted_at IS NULL`, [b.jeuId]);
     if (!jeu.length) return fail(404, 'Jeu introuvable.');
+    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, jeu[0].data); if (!r.ok) return fail(402, 'Ce jeu demande un niveau ou un abonnement supérieur.'); }
     const score = scorePartie({ bonnes: bon, erreurs: err, secondesRestantes: Math.min(60, Math.max(0, Number(b.secondesRestantes) || 0)), serie: Math.min(5, Math.max(0, Number(b.serie) || 0)) });
     const out = await db.tx(async q => {
       await ensureUser(q, a.auth);

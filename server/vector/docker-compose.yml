@@ -1,0 +1,11 @@
+# Base vectorielle Qdrant pour le RAG (facultative). Interne au serveur : jamais exposée sur Internet.
+#   cd /opt/vector && docker compose up -d   puis dans server/.env : VECTOR_URL=http://172.17.0.1:6333
+#   Après avoir branché Qdrant, réindexer les documents depuis la console (Assistant IA > Réindexer).
+name: vector
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports: ["172.17.0.1:6333:6333"]
+    volumes: [qdrant_data:/qdrant/storage]
+volumes: { qdrant_data: {} }

@@ -8,7 +8,7 @@ Config : /opt/ompangano/secrets/smtp.env (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_
 État : /var/lib/ompangano-alertes.json. Au plus 6 e-mails par heure ; ce qui n'a pas pu partir est envoyé au passage suivant.
 Options : --dry-run (affiche au lieu d'envoyer, n'enregistre rien), --test (envoie un e-mail d'essai).
 """
-import glob, json, os, shutil, smtplib, ssl, subprocess, sys, time, urllib.request
+import glob, json, os, shutil, smtplib, ssl, subprocess, sys, time, urllib.error, urllib.request
 from collections import OrderedDict
 from email.message import EmailMessage
 
@@ -18,6 +18,10 @@ SAUVEGARDES = '/opt/ompangano/backups'
 HEALTH = 'https://api-ompangano.essaka.engineering/health'
 MAX_MAILS_PAR_HEURE = 6
 CONTENEURS = ['ompangano-api-1', 'ompangano-postgres-1', 'ompangano-garage-1']
+# Services ajoutés pour Nkala : surveillés seulement s'ils existent (un conteneur absent n'est pas une panne tant qu'il n'a pas été installé)
+CONTENEURS_FACULTATIFS = ['regie-revive-1', 'regie-revive-db-1', 'runpod-embedding-proxy', 'runpod-openai-proxy']
+# Adresses internes à contrôler (service : url) ; toute réponse HTTP < 500 prouve que le service tourne
+SERVICES_INTERNES = {'proxy embeddings': 'http://172.17.0.1:8001/health', 'Revive': 'http://172.17.0.1:3910/www/admin/install.php'}
 DRY = '--dry-run' in sys.argv
 
 
@@ -148,6 +152,26 @@ def sante_api():
         etat = r.stdout.strip()
         if r.returncode != 0 or not etat.startswith('running') or 'unhealthy' in etat:
             problemes.append(f'conteneur {c} : {etat or r.stderr.strip()[:80]}')
+    for c in CONTENEURS_FACULTATIFS:
+        r = sh("docker inspect -f '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}' " + c)
+        if r.returncode != 0:
+            continue
+        etat = r.stdout.strip()
+        if not etat.startswith('running') or 'unhealthy' in etat:
+            problemes.append(f'conteneur {c} : {etat}')
+    for nom, url in SERVICES_INTERNES.items():
+        existe = sh("docker inspect -f '{{.Name}}' " + ('runpod-embedding-proxy' if 'proxy' in nom else 'regie-revive-1')).returncode == 0
+        if not existe:
+            continue
+        try:
+            with urllib.request.urlopen(url, timeout=10) as rep:
+                if rep.status >= 500:
+                    problemes.append(f'{nom} a répondu {rep.status}')
+        except urllib.error.HTTPError as e:
+            if e.code >= 500:
+                problemes.append(f'{nom} a répondu {e.code}')
+        except Exception as e:
+            problemes.append(f'{nom} injoignable : {e}')
     return (not problemes), '\n'.join(problemes)
 
 
@@ -168,6 +192,12 @@ def anomalies_systeme(etat):
 
 
 def main():
+    if '--message' in sys.argv:
+        # Message ponctuel (utilisé par le script de déploiement) : --message "Sujet" "Texte"
+        i = sys.argv.index('--message')
+        envoyer(sys.argv[i + 1], sys.argv[i + 2] if len(sys.argv) > i + 2 else '')
+        print('Message envoyé.')
+        return
     if '--test' in sys.argv:
         envoyer('OMPANGANO — e-mail d\'essai des alertes', 'Si vous lisez ce message, les alertes par e-mail fonctionnent.')
         print('E-mail d\'essai envoyé.')

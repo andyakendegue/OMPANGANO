@@ -24,7 +24,8 @@ export async function chargerContenu<T extends Ligne = Ligne>(collection: string
   let r: Ressource<T>;
   try {
     const rep = await avecCache(`contenu:${collection}`, () => api<{ lignes: T[] }>('GET', `/pub/contenus/${encodeURIComponent(collection)}`));
-    r = rep.lignes.length ? { lignes: trier(rep.lignes), source: 'serveur', demo: false } : demo<T>(collection);
+    // Le serveur répond : sa liste fait foi, même vide (les exemples se suppriment depuis la console). La démonstration intégrée ne sert que hors ligne sans copie locale.
+    r = { lignes: trier(rep.lignes), source: 'serveur', demo: false };
   } catch (e) {
     if (e instanceof ApiError && e.status !== 0 && e.status < 500) r = demo<T>(collection); else r = demo<T>(collection);
   }
