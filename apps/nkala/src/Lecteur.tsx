@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Platform } from 'react-native';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import * as ScreenCapture from 'expo-screen-capture';
+import { uriLocale } from './Telechargements';
 import { demanderLicence, resoudreMedia, verifierAcces } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 
@@ -52,6 +53,9 @@ export function LecteurProvider({ children }: { children: React.ReactNode }) {
     if (!courant) return;
     (async () => {
       try {
+        // Titre téléchargé : lecture locale, sans réseau ni licence
+        const locale = await uriLocale(courant.id);
+        if (locale) { if (!annule) setSource(locale); return; }
         let hls: string | null = null;
         // Média chiffré (HLS AES-128) : la licence courte donne l'adresse de la liste de lecture ; la clé n'est livrée qu'avec elle
         if (profil && courant.collection !== 'demo' && (courant.protege || (courant.niveau_acces && courant.niveau_acces !== 'libre'))) {

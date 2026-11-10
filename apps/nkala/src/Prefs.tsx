@@ -1,3 +1,4 @@
+import { jouerSon } from './sons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -42,9 +43,10 @@ export function PrefsProvider({ children }: { children: React.ReactNode }) {
 
   const regler = useCallback((p: Partial<Prefs>) => setPrefs(a => { const n = { ...a, ...p }; AsyncStorage.setItem(CLE, JSON.stringify(n)).catch(() => {}); return n; }), []);
   const vibrer = useCallback((type: 'leger' | 'succes' | 'erreur' = 'leger') => {
+    if (prefs.sons && type !== 'leger') jouerSon(type);
     if (!prefs.vibrations || Platform.OS === 'web') return;
     (type === 'leger' ? Haptics.selectionAsync() : Haptics.notificationAsync(type === 'succes' ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error)).catch(() => {});
-  }, [prefs.vibrations]);
+  }, [prefs.vibrations, prefs.sons]);
 
   const valeur = useMemo<Etat>(() => {
     const estClair = prefs.theme === 'clair' || (prefs.theme === 'auto' && schema === 'light');

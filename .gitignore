@@ -10,3 +10,7 @@ coverage/
 
 # Base de démonstration locale (PGlite)
 server/.demo-data/
+
+# Projets natifs générés par expo prebuild
+apps/nkala/ios/
+apps/nkala/android/

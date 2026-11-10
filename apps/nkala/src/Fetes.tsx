@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { Modal, View } from 'react-native';
 import type { Rang } from '@nkala/noyau';
 import { Confettis } from './Confettis';
+import { jouerSon } from './sons';
 import { Ic, Mascotte, T, Bouton } from './kit';
 import { usePrefs, useTheme } from './Prefs';
 import { mouvement } from './theme';
@@ -17,7 +18,7 @@ export function FetesProvider({ children }: { children: React.ReactNode }) {
   const courante = file[0];
   const { c } = useTheme();
   const { prefs, vibrer, reduireAnim } = usePrefs();
-  useEffect(() => { if (courante) vibrer('succes'); }, [courante]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (courante) { vibrer('succes'); if (prefs.sons) setTimeout(() => jouerSon('niveau'), 150); } }, [courante]); // eslint-disable-line react-hooks/exhaustive-deps
   const valeur = useMemo(() => ({ feter }), [feter]);
   return (
     <Ctx.Provider value={valeur}>

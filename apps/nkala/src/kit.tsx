@@ -293,12 +293,14 @@ export const useToast = () => useContext(ToastCtx);
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [liste, setListe] = useState<{ id: number; m: string; g: Gravite }[]>([]);
   const { c } = useTheme();
+  const { vibrer } = usePrefs();
   const ins = useSafeAreaInsets();
   const montrer = useCallback((m: string, g: Gravite = 'info') => {
+    if (g !== 'info') vibrer(g);
     const id = Date.now() + Math.random();
     setListe(l => [...l.slice(-2), { id, m, g }]);
     setTimeout(() => setListe(l => l.filter(x => x.id !== id)), 3200);
-  }, []);
+  }, [vibrer]);
   return (
     <ToastCtx.Provider value={montrer}>
       {children}
