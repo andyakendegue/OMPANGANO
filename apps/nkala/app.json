@@ -17,11 +17,15 @@
       }
     },
     "android": {
-      "package": "nkala.essaka.engineering"
+      "package": "nkala.essaka.engineering",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#170D08"
+      }
     },
     "web": {
       "bundler": "metro",
-      "favicon": "./assets/icon.png",
+      "favicon": "./assets/favicon.png",
       "name": "Nkala",
       "backgroundColor": "#170d08",
       "output": "single"
@@ -40,7 +44,14 @@
       "expo-video",
       "expo-localization",
       "expo-font",
-      "expo-notifications"
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#170D08",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
