@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Updates from 'expo-updates';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /** Bannière « Mise à jour disponible » (équivalent de AppUpdateBanner du site web) : mises à jour du code publiées par EAS Update. */
 export function MiseAJour() {
@@ -33,9 +33,9 @@ export function MiseAJour() {
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   banniere: { backgroundColor: '#065f46', paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
   texte: { color: '#fff', fontSize: 12, flex: 1 },
   bouton: { backgroundColor: couleurs.ambre, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   boutonTexte: { color: '#180d07', fontWeight: '900', fontSize: 12 },
-});
+}));

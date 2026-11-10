@@ -22,7 +22,15 @@ export function vecteursParDefaut(env = process.env): Vecteurs {
   let pret = 0;
   return {
     actif: true,
-    async assurer(dim) { if (pret === dim) return; await appel('PUT', `/collections/${nom}`, { vectors: { size: dim, distance: 'Cosine' } }, [409]); pret = dim; },
+    async assurer(dim) {
+      if (pret === dim) return;
+      // Changement de modèle d'embedding (simulation 128 -> bge-m3 1024) : la collection est recréée, les documents se réindexent ensuite
+      const info = await appel('GET', `/collections/${nom}`, undefined, [404]);
+      const taille = info?.result?.config?.params?.vectors?.size;
+      if (taille && taille !== dim) await appel('DELETE', `/collections/${nom}`);
+      if (!taille || taille !== dim) await appel('PUT', `/collections/${nom}`, { vectors: { size: dim, distance: 'Cosine' } }, [409]);
+      pret = dim;
+    },
     async remplacer(documentId, points) {
       await this.supprimer(documentId);
       if (points.length) await appel('PUT', `/collections/${nom}/points?wait=true`, { points: points.map(p => ({ id: p.id, vector: p.vecteur, payload: { document_id: documentId } })) });

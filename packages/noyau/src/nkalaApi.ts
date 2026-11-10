@@ -13,6 +13,7 @@ export interface ProgressionServeur {
   leconsTerminees: Record<string, { justesse: number; le: string }>; unitesValidees: string[]; xp: number; serie: number; recordSerie: number;
   derniereActivite: string | null; jours: string[]; parties: number; victoires: number; points: number; succes: string[]; avatar?: string; defisFaits: Record<string, string>; amis: string[]; contributions?: number;
   prefs?: Record<string, unknown>;
+  lectures?: Record<string, { jour: string; bonnes: number; sur: number }>;
 }
 export interface ResultatXp { xpGagne: number; xp: number; nouveauRang: { id: string; nom: string; minXp: number; description: string } | null }
 export const chargerProgression = () => api<ProgressionServeur>('GET', '/v1/progression');
@@ -21,6 +22,8 @@ export const envoyerLecon = (leconId: string, bonnes: number, erreurs: number) =
 export const envoyerUnite = (uniteId: string, bonnes: number, sur: number) => api<ResultatXp & { valide: boolean }>('POST', '/v1/progression/unite', { uniteId, bonnes, sur });
 export const envoyerPartie = (p: { jeuId: string; bonnes: number; erreurs: number; secondesRestantes?: number; serie?: number; defiId?: string }) =>
   api<ResultatXp & { score: number; succesDebloques: { id: string; titre: string; xp: number }[]; serie: number; defiRempli: boolean }>('POST', '/v1/jeux/partie', p);
+export const envoyerChapitre = (livreId: string, chapitreId: string, bonnes: number, sur: number) =>
+  api<ResultatXp & { premiereFois: boolean; succesDebloques: { id: string; titre: string; xp: number }[]; serie: number; chapitresLus: number }>('POST', '/v1/bibliotheque/chapitre', { livreId, chapitreId, bonnes, sur });
 export interface LigneClassementJeux { rang: number; id: string; nom: string; tribu: string | null; points: number; parties: number; moi: boolean }
 export const chargerClassementJeux = (portee: string, groupe: string, jeu?: string) =>
   api<{ classement: LigneClassementJeux[]; maPlace: number | null }>('GET', `/v1/jeux/classement?portee=${portee}&groupe=${groupe}${jeu ? `&jeu=${encodeURIComponent(jeu)}` : ''}`);
@@ -149,3 +152,8 @@ export interface StationDirect { id: string; nom: string; flux: string; hls: str
 export const radioDirect = () => api<{ stations: StationDirect[]; simule: boolean }>('GET', '/v1/radio/direct');
 export const adminRadioEtat = () => api<{ url: string | null; simule: boolean; ok: boolean; stations: number; erreur?: string; serveur: unknown }>('GET', '/v1/admin/radio/etat');
 export const adminRadioSynchroniser = () => api<{ crees: number; maj: number }>('POST', '/v1/admin/radio/synchroniser', {});
+
+// ------------------------------------------------------------------ bibliothèque d'Onenji (import des livres déposés sur le serveur)
+export interface EtatBibliotheque { dossier: string; enCours: boolean; fin?: string; presents: number; importes: number; livres: number; ajoutes: number; modifies: number; inchanges: number; chapitres: number; erreurs: { fichier: string; message: string }[] }
+export const adminBibliothequeEtat = () => api<EtatBibliotheque>('GET', '/v1/admin/bibliotheque/etat');
+export const adminBibliothequeImporter = () => api<{ ok: boolean }>('POST', '/v1/admin/bibliotheque/importer', {});

@@ -1,1 +1,17 @@
-[]
+[
+ {
+  "id": "exemple-conte-pirogue",
+  "titre": "Le conte de la pirogue de la lagune (exemple)",
+  "auteur": "Texte d'exemple de l'équipe Nkala",
+  "type": "livre",
+  "langue": "français",
+  "resume": "Un petit récit original, écrit pour essayer la bibliothèque : une pirogue, un vieux charpentier et une lagune au lever du jour. Remplacez-le par vos vrais livres.",
+  "categorie": "conte",
+  "annee": 2026,
+  "cycle": 2,
+  "couleur": "#B84A28",
+  "source": "Texte original de démonstration, libre d'usage",
+  "ordre": 1,
+  "publie": true
+ }
+]

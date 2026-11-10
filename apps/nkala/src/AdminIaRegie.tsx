@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import {
-  adminIaActiverPrompt, adminRadioEtat, adminRadioSynchroniser, adminIaAjouterDocument, adminIaAjouterPrompt, adminIaConfig, adminIaDocuments, adminIaDossier, adminIaEtat, adminIaPrompts, adminIaRechercher, adminIaReindexer, adminIaSupprimerDocument, adminIaSynchroniserDossier, adminIaTester,
+  adminBibliothequeEtat, adminBibliothequeImporter, adminIaActiverPrompt, adminRadioEtat, adminRadioSynchroniser, adminIaAjouterDocument, adminIaAjouterPrompt, adminIaConfig, adminIaDocuments, adminIaDossier, adminIaEtat, adminIaPrompts, adminIaRechercher, adminIaReindexer, adminIaSupprimerDocument, adminIaSynchroniserDossier, adminIaTester,
   adminPushEnvoyer, adminPushEtat, adminPushHistorique, adminRegieAjouterAnnonceur, adminRegieAjouterCampagne, adminRegieAjouterCreation, adminRegieAnnonceurs, adminRegieCampagnes, adminRegieEtat,
   adminRegieStats, adminRegieStatut, adminRegieSynchroniser, adminRunpodEtat, adminRunpodPod,
 } from '@nkala/noyau';
@@ -19,6 +19,7 @@ export function IaAdmin() {
   const toast = useToast(), ko = erreur(toast);
   const [etat, setEtat] = useState<any>(null);
   const [prompts, setPrompts] = useState<Awaited<ReturnType<typeof adminIaPrompts>> | null>(null);
+  const [biblio, setBiblio] = useState<Awaited<ReturnType<typeof adminBibliothequeEtat>> | null>(null);
   const [radio, setRadio] = useState<Awaited<ReturnType<typeof adminRadioEtat>> | null>(null);
   const [dossier, setDossier] = useState<Awaited<ReturnType<typeof adminIaDossier>> | null>(null);
   const [docs, setDocs] = useState<Awaited<ReturnType<typeof adminIaDocuments>>>([]);
@@ -30,7 +31,7 @@ export function IaAdmin() {
   const [cfg, setCfg] = useState({ modele: '', temperature: '', maxTokens: '', topK: '', seuil: '', chunkTaille: '', chunkChevauchement: '' });
   const charger = useCallback(() => {
     adminIaEtat().then(e => { setEtat(e); setCfg({ modele: e.config.modele, temperature: String(e.config.temperature), maxTokens: String(e.config.maxTokens), topK: String(e.config.topK), seuil: String(e.config.seuil), chunkTaille: String(e.config.chunkTaille), chunkChevauchement: String(e.config.chunkChevauchement) }); }).catch(ko);
-    adminIaPrompts().then(setPrompts).catch(() => {}); adminIaDocuments().then(setDocs).catch(() => {}); adminIaDossier().then(setDossier).catch(() => {}); adminRadioEtat().then(setRadio).catch(() => {}); adminRunpodEtat().then(setRp).catch(() => {});
+    adminIaPrompts().then(setPrompts).catch(() => {}); adminIaDocuments().then(setDocs).catch(() => {}); adminIaDossier().then(setDossier).catch(() => {}); adminRadioEtat().then(setRadio).catch(() => {}); adminBibliothequeEtat().then(setBiblio).catch(() => {}); adminRunpodEtat().then(setRp).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { charger(); }, [charger]);
   if (!etat) return <Sombre><Chargement /></Sombre>;
@@ -84,6 +85,14 @@ export function IaAdmin() {
       <Champ valeur={msg} onChange={setMsg} placeholder="Message d'essai pour l'assistant" auto="sentences" />
       <Bouton label="Tester le prompt et le RAG" petit large={false} charge={occupe} desactive={!msg.trim()} onPress={async () => { setOccupe(true); try { setEssai(await adminIaTester(msg)); } catch (e) { ko(e); } finally { setOccupe(false); } }} />
       {essai && <Carte plat><View style={{ padding: 12, gap: 6 }}><T v="corps">{essai.reponse}</T><T v="petit">{essai.modele} · {essai.usage.entree} jetons entrée, {essai.usage.sortie} sortie · {essai.contexte.length} morceau(x) de contexte{essai.simule ? ' · simulation' : ''}</T></View></Carte>}
+
+      <SectionTitre titre="Bibliothèque d'Onenji (livres déposés)" />
+      {!biblio ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>
+        <T v="corps">{biblio.dossier} : {biblio.presents} fichier(s) déposé(s), {biblio.importes} livre(s) publié(s). Chaque nuit à 3 h 30, les nouveaux livres sont découpés en chapitres et publiés dans Onenji ; ils alimentent aussi l'assistant.</T>
+        <T v="petit">{biblio.enCours ? 'Import en cours…' : biblio.fin ? `Dernier import : ${new Date(biblio.fin).toLocaleString('fr-FR')} · ${biblio.ajoutes} ajouté(s), ${biblio.modifies} modifié(s), ${biblio.inchanges} inchangé(s) · ${biblio.chapitres} chapitres` : 'Aucun import encore.'}</T>
+        {biblio.erreurs.slice(0, 5).map((e, i) => <T key={i} v="petit" couleur={c.erreur}>{e.fichier} : {e.message}</T>)}
+        <Bouton label={biblio.enCours ? 'En cours…' : 'Importer maintenant'} petit large={false} desactive={biblio.enCours} onPress={() => adminBibliothequeImporter().then(() => { toast('Import lancé.', 'succes'); setTimeout(charger, 5000); setTimeout(charger, 30000); }).catch(ko)} />
+      </View></Carte>}
 
       <SectionTitre titre="Web radio (AzuraCast)" />
       {!radio ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>

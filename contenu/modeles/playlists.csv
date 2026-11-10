@@ -1,2 +1,2 @@
-﻿id,titre,description,titres_ids,image,couleur,publie
-ntina-01,,,,,#F59E0B,oui
+﻿id,titre,description,titres_ids,image,couleur,publie,rang_min,plans
+ntina-01,,,,,#F59E0B,oui,1,

@@ -4,7 +4,7 @@ import { afficherTelephone, envoyerCodeSms, MYENE, normaliserTelephone } from '@
 import { useAuth } from '../src/AuthProvider';
 import { ConnexionClassique } from '../src/ConnexionClassique';
 import { Bouton, Champ, Entete, Ecran, Mascotte, T, useToast } from '../src/kit';
-import { useTheme } from '../src/Prefs';
+import { ThemeKey, useTheme } from '../src/Prefs';
 
 type Vue = 'choix' | 'tel' | 'code' | 'classique';
 
@@ -38,7 +38,7 @@ export default function Connexion() {
     catch (e) { setErreur((e as Error).message); setOccupe(false); }
   };
 
-  if (vue === 'classique') return <View style={{ flex: 1 }}><ConnexionClassique /><View style={{ position: 'absolute', top: 12, left: 12 }}><Bouton label="Retour" variante="fantome" petit large={false} icone="retour" onPress={() => setVue('choix')} /></View></View>;
+  if (vue === 'classique') return <View style={{ flex: 1 }}><ThemeKey><ConnexionClassique /></ThemeKey><View style={{ position: 'absolute', top: 12, left: 12 }}><Bouton label="Retour" variante="fantome" petit large={false} icone="retour" onPress={() => setVue('choix')} /></View></View>;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>

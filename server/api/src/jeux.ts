@@ -16,6 +16,8 @@ const XP_UNITE = 30;
 interface Donnees extends ProgressionOnenji {
   parties: number; victoires: number; points: number; succes: string[]; avatar?: string; prefs?: Record<string, unknown>;
   defisFaits: Record<string, string>; amis: string[]; contributions?: number;
+  /** Chapitres de livres terminés : identifiant -> jour et résultat du quiz (l'XP n'est donnée qu'une fois par chapitre). */
+  lectures?: Record<string, { jour: string; bonnes: number; sur: number }>;
 }
 const vide = (): Donnees => ({ ...progressionVide(), parties: 0, victoires: 0, points: 0, succes: [], defisFaits: {}, amis: [] });
 
@@ -134,6 +136,38 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
       await ecrire(q, a.auth.uid, d);
       const x = await donnerXp(q, a.auth.uid, gain);
       return { score, xpGagne: gain, xp: x.xp, nouveauRang: x.nouveauRang, succesDebloques: debloques, serie: d.serie, defiRempli: xpDefi > 0 };
+    });
+    notify('scores');
+    return out;
+  });
+
+  /** Fin d'un chapitre de la bibliothèque : XP une seule fois par chapitre (6 + 2 par bonne réponse au quiz, 16 au plus), compte dans la série. */
+  app.post('/v1/bibliotheque/chapitre', async (req) => {
+    const a = await acteur(req);
+    const b = (req.body || {}) as { livreId?: string; chapitreId?: string; bonnes?: number; sur?: number };
+    const bon = Number(b.bonnes), sur = Number(b.sur);
+    if (!str(b.livreId) || !str(b.chapitreId) || !Number.isInteger(bon) || !Number.isInteger(sur) || bon < 0 || sur < 0 || sur > 10 || bon > sur) return fail(400, 'Résultat de lecture invalide.');
+    const livre = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'bibliotheque' AND id = $1 AND publie AND deleted_at IS NULL`, [b.livreId]);
+    const chap = await db.query<any>(`SELECT 1 FROM contenus WHERE collection = 'livre_chapitres' AND id = $1 AND data->>'livre_id' = $2 AND publie AND deleted_at IS NULL`, [b.chapitreId, b.livreId]);
+    if (!livre.length || !chap.length) return fail(404, 'Chapitre introuvable.');
+    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, livre[0].data); if (!r.ok) return fail(402, 'Ce livre demande un niveau ou un abonnement supérieur.'); }
+    const out = await db.tx(async q => {
+      await ensureUser(q, a.auth);
+      const d = await lireProgression(q, a.auth.uid);
+      d.lectures ??= {};
+      const jour = jourLocal();
+      const premiere = !d.lectures[b.chapitreId!];
+      if (premiere) d.lectures[b.chapitreId!] = { jour, bonnes: bon, sur };
+      else if (bon > d.lectures[b.chapitreId!].bonnes) d.lectures[b.chapitreId!] = { jour: d.lectures[b.chapitreId!].jour, bonnes: bon, sur };
+      Object.assign(d, majSerie(d, jour));
+      const sc = await q.query<any>(`SELECT id, data FROM contenus WHERE collection = 'succes' AND publie AND deleted_at IS NULL`);
+      const compteurs: Record<string, number> = { chapitres: Object.keys(d.lectures).length, serie: d.serie, points: d.points };
+      const debloques: { id: string; titre: string; xp: number }[] = [];
+      for (const s of sc) if (s.data.condition === 'chapitres' && !d.succes.includes(s.id) && (compteurs.chapitres ?? 0) >= Number(s.data.seuil)) { d.succes.push(s.id); debloques.push({ id: s.id, titre: s.data.titre, xp: Number(s.data.xp) || 0 }); }
+      const gain = (premiere ? 6 + 2 * Math.min(bon, 5) : 0) + debloques.reduce((n, s) => n + s.xp, 0);
+      await ecrire(q, a.auth.uid, d);
+      const x = await donnerXp(q, a.auth.uid, gain);
+      return { xpGagne: gain, xp: x.xp, nouveauRang: x.nouveauRang, premiereFois: premiere, succesDebloques: debloques, serie: d.serie, chapitresLus: compteurs.chapitres };
     });
     notify('scores');
     return out;

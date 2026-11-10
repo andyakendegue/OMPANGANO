@@ -1,2 +1,2 @@
-﻿id,rubrique,titre,resume,corps,auteur,image,date,niveau_acces,publie
-ntina-01,,,,,,,,libre,oui
+﻿id,rubrique,titre,resume,corps,auteur,image,date,niveau_acces,rang_min,plans,publie
+ntina-01,,,,,,,,libre,1,,oui

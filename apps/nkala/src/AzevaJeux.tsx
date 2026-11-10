@@ -49,7 +49,7 @@ const Retour = ({ ok, texte, onSuite, libelle = 'Suivant' }: { ok: boolean; text
   return (<Carte style={{ padding: 16, gap: 10, borderColor: ok ? c.succes : c.erreur }}><T v="sousTitre" couleur={ok ? c.succes : c.erreur} accessibilityRole="alert">{ok ? 'Akéwa ! Bien joué.' : 'Pas cette fois.'}</T><T v="corps">{texte}</T><Bouton label={libelle} variante="ambre" onPress={onSuite} /></Carte>);
 };
 
-// ------------------------------------------------------------------ pendu : le feu de veillée
+// ------------------------------------------------------------------ Ogoni (le feu de veillée ; ancien « pendu »)
 function Pendu(p: PropsJeu) {
   const { c } = useTheme();
   const mots = useMemo(() => melanger(p.mots.filter(motDeLettres)).slice(0, 3), []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -58,7 +58,7 @@ function Pendu(p: PropsJeu) {
   const [res, setRes] = useState({ bonnes: 0, erreurs: 0, serie: 0 });
   const [fini, setFini] = useState<boolean | null>(null);
   const clavier = useMemo(() => (jeu ? clavierPendu(jeu, p.mots) : []), [i]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!jeu) return <Ecran><Entete titre="Le pendu" retour={p.onQuitter} /><EtatVide mascotte titre="Pas assez de mots" texte="Il faut quelques mots de 3 à 12 lettres. Ajoute-en dans la console." /></Ecran>;
+  if (!jeu) return <Ecran><Entete titre="Ogoni" retour={p.onQuitter} /><EtatVide mascotte titre="Pas assez de mots" texte="Il faut quelques mots de 3 à 12 lettres. Ajoute-en dans la console." /></Ecran>;
   const jouer = (l: string) => {
     if (fini !== null) return;
     const n = jouerLettre(jeu, l); setJeu(n);
@@ -68,7 +68,7 @@ function Pendu(p: PropsJeu) {
   const suite = () => { if (i + 1 >= mots.length) return p.onFin({ ...res, secondesRestantes: 0 }); setI(i + 1); setJeu(nouveauPendu(mots[i + 1])); setFini(null); };
   const restant = jeu.erreursMax - jeu.ratees.length;
   return (
-    <Cadre titre="Le pendu" avancement={i / mots.length} onQuitter={p.onQuitter}>
+    <Cadre titre="Ogoni" avancement={i / mots.length} onQuitter={p.onQuitter}>
       <View style={{ alignItems: 'center', gap: 6 }} accessibilityLabel={`${restant} bûche${restant > 1 ? 's' : ''} restante${restant > 1 ? 's' : ''}`}>
         <Flamme taille={22 + restant * 9} eteinte={restant <= 0} />
         {/* Les bûches du feu de veillée : une lettre ratée en retire une, le feu baisse puis s'éteint */}
@@ -266,6 +266,7 @@ export function JeuRunner(p: PropsJeu & { cases: CasePlateau[] }) {
   const { prefs } = usePrefs();
   void prefs;
   switch (p.jeu.moteur) {
+    case 'ogoni':
     case 'pendu': return <Pendu {...p} />;
     case 'anagramme': return <Anagrammes {...p} />;
     case 'mots_meles': return <MotsMelesJeu {...p} />;

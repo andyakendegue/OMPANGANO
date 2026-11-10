@@ -8,7 +8,7 @@ import {
 import { Pilotage } from './Admin';
 import { catalogue } from './catalogue';
 import { partagerFichier } from './partage';
-import { couleurs } from './theme';
+import { couleursSombres as couleurs } from './theme';
 
 const avertir = (t: string, m: string) => (Platform.OS === 'web' ? (globalThis as any).alert?.(`${t}\n${m}`) : Alert.alert(t, m));
 const confirmer = (titre: string, msg: string, ok: () => void) => {

@@ -78,10 +78,19 @@ export const SCHEMAS: SchemaContenu[] = [
     id, { nom: 'cours_id', type: 'texte', requis: true, ref: 'cours_artisans', aide: 'Cours parent.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du chapitre.' }, { nom: 'debut_s', type: 'entier', aide: 'Début dans la vidéo (secondes).' },
     { nom: 'duree_s', type: 'entier', aide: 'Durée en secondes.' }, ordre] },
-  { id: 'bibliotheque', module: 'onenji', titre: 'Bibliothèque', description: 'Livres, annales, documents libres de droits.', champs: [
+  { id: 'bibliotheque', module: 'onenji', titre: 'Bibliothèque', description: 'Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l\'application.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'auteur', type: 'texte', aide: 'Auteur.' },
     { nom: 'type', type: 'choix', choix: ['livre', 'annale', 'fiche', 'audio', 'autre'], aide: 'Type.' },
-    { nom: 'langue', type: 'texte', aide: 'Langue.' }, { nom: 'url', type: 'url', aide: 'Fichier ou page.' }, acces, rangMin, plans, image, publie] },
+    { nom: 'langue', type: 'texte', aide: 'Langue.' }, { nom: 'url', type: 'url', aide: 'Fichier ou page (facultatif si les chapitres sont dans l\'application).' },
+    { nom: 'resume', type: 'long', aide: 'Quatrième de couverture : quelques lignes.' }, { nom: 'categorie', type: 'texte', aide: 'Rayon : roman, conte, histoire, poésie, théâtre, sciences…', exemple: 'conte' },
+    { nom: 'annee', type: 'entier', aide: 'Année de première publication.' }, { nom: 'cycle', type: 'entier', aide: 'Âge de lecture conseillé : 1 = enfant (jusqu\'à 9 ans), 2 = jeune, 3 = adulte.' },
+    { nom: 'couleur', type: 'texte', aide: 'Couleur de la tranche et de la couverture #RRGGBB.', exemple: '#B84A28' },
+    { nom: 'source', type: 'texte', aide: 'Origine et licence (domaine public, adresse).' }, ordre, acces, rangMin, plans, image, publie] },
+  { id: 'livre_chapitres', module: 'onenji', titre: 'Chapitres de livres', description: 'Texte des livres de la bibliothèque, un chapitre par ligne (généré par l\'import de la bibliothèque).', champs: [
+    id, { nom: 'livre_id', type: 'texte', requis: true, ref: 'bibliotheque', aide: 'Livre parent.' }, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du chapitre.' },
+    { nom: 'texte', type: 'long', requis: true, aide: 'Texte du chapitre (paragraphes séparés par une ligne vide).' }, ordre,
+    { nom: 'glossaire', type: 'json', aide: 'Mots expliqués : [{"mot":"pirogue","sens":"barque creusée dans un tronc"}].' },
+    { nom: 'questions', type: 'json', aide: 'Quiz du chapitre (sinon généré) : [{"enonce":"…","options":["a","b","c"],"bonne":0}].' }, publie] },
   { id: 'opportunites', module: 'onenji', titre: 'Opportunités pour la jeunesse', description: 'Bourses, stages, concours.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'organisme', type: 'texte', aide: 'Organisme.' },
     { nom: 'description', type: 'long', aide: 'Description.' }, { nom: 'date_limite', type: 'date', aide: 'Date limite (AAAA-MM-JJ).' }, { nom: 'lien', type: 'url', aide: 'Lien.' }, publie] },
@@ -92,7 +101,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'description', type: 'texte', aide: 'Description courte.' }, couleur, { nom: 'icone', type: 'texte', aide: 'Nom d\'icône.' }, ordre, publie, rangMin, plans] },
   { id: 'jeux', module: 'azeva', titre: 'Jeux', description: 'Jeux du hall ; le moteur détermine le fonctionnement.', champs: [
     id, { nom: 'salle_id', type: 'texte', requis: true, ref: 'salles', aide: 'Salle.' }, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' },
-    { nom: 'moteur', type: 'choix', requis: true, choix: ['pendu', 'anagramme', 'mots_meles', 'dictee', 'qcm', 'ordre', 'plateau', 'memoire'], aide: 'Moteur de jeu.', exemple: 'pendu' },
+    { nom: 'moteur', type: 'choix', requis: true, choix: ['ogoni', 'pendu', 'anagramme', 'mots_meles', 'dictee', 'qcm', 'ordre', 'plateau', 'memoire'], aide: 'Moteur de jeu.', exemple: 'pendu' },
     { nom: 'description', type: 'texte', aide: 'Description.' }, couleur, { nom: 'duree_s', type: 'entier', aide: 'Durée de la partie (secondes, 0 = sans limite).' },
     { nom: 'mode_enfant', type: 'booleen', aide: 'oui/non : disponible en mode enfant.' }, ordre, publie, rangMin, plans] },
   { id: 'mots_jeux', module: 'azeva', titre: 'Mots des jeux', description: 'Mots supplémentaires pour les jeux (en plus des fiches validées du corpus).', champs: [
@@ -105,7 +114,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'fin', type: 'date', aide: 'Dernier jour.' }, { nom: 'objectif', type: 'entier', aide: 'Objectif (points ou nombre).' }, { nom: 'xp', type: 'entier', aide: 'XP offerts.' }, publie] },
   { id: 'succes', module: 'azeva', titre: 'Succès', description: 'Succès à débloquer.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'description', type: 'texte', aide: 'Description.' },
-    { nom: 'condition', type: 'choix', requis: true, choix: ['parties', 'victoires', 'serie', 'points', 'lecons', 'contributions'], aide: 'Compteur observé.' },
+    { nom: 'condition', type: 'choix', requis: true, choix: ['parties', 'victoires', 'serie', 'points', 'lecons', 'contributions', 'chapitres'], aide: 'Compteur observé.' },
     { nom: 'seuil', type: 'entier', requis: true, aide: 'Valeur à atteindre.' }, { nom: 'xp', type: 'entier', aide: 'XP offerts.' }, { nom: 'icone', type: 'texte', aide: 'Icône.' }, publie] },
   { id: 'avatars', module: 'azeva', titre: 'Avatars', description: 'Avatars à débloquer.', champs: [
     id, { nom: 'nom', type: 'texte', requis: true, aide: 'Nom.' }, image, { nom: 'couleur', type: 'texte', aide: 'Couleur de fond.' },

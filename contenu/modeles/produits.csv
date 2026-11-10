@@ -1,2 +1,2 @@
-﻿id,titre,type,prix_fcfa,periode,donne_acces,jetons_ia,publie
-ntina-01,,,,,,,oui
+﻿id,titre,type,prix_fcfa,periode,donne_acces,plan_id,jetons_ia,publie
+ntina-01,,,,,,,,oui

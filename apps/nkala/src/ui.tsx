@@ -1,6 +1,6 @@
 import { Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MYENE, type BlocTexte } from '@nkala/noyau';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /** Fenêtre plein écran avec titre, bouton Fermer et contenu défilant (équivalent des modales du site web). */
 export function EcranModal({ visible, titre, sousTitre, onClose, children }: {
@@ -49,7 +49,7 @@ export function BlocsTexte({ blocs, vars = {}, onBouton }: { blocs: BlocTexte[];
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   page: { flex: 1, backgroundColor: couleurs.fond },
   entete: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderBottomColor: couleurs.bord, borderBottomWidth: 1 },
   titre: { color: couleurs.texteClair, fontSize: 18, fontWeight: '800' },
@@ -60,4 +60,4 @@ const s = StyleSheet.create({
   bouton: { backgroundColor: couleurs.carte, borderColor: couleurs.terre, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   boutonTexte: { color: couleurs.ambre, fontWeight: '800', fontSize: 14 },
   etiquette: { color: couleurs.ambre, fontSize: 13, fontWeight: '700' },
-});
+}));

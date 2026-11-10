@@ -8,7 +8,7 @@ import {
   type VerdictOrthographe, type VerdictPrononciation,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
-import { couleurs } from './theme';
+import { couleursSombres as couleurs } from './theme';
 
 const alerte = (titre: string, msg: string) => (Platform.OS === 'web' ? (globalThis as any).alert?.(`${titre}\n${msg}`) : Alert.alert(titre, msg));
 

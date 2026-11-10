@@ -1,2 +1,2 @@
-﻿id,titre,artisan,metier,description,video_url,sous_titres_url,duree_min,niveau,niveau_acces,image,ordre,publie
-ntina-01,,,,,,,,,libre,,1,oui
+﻿id,titre,artisan,metier,description,video_url,protege,sous_titres_url,duree_min,niveau,niveau_acces,rang_min,plans,image,ordre,publie
+ntina-01,,,,,,,,,,libre,1,,,1,oui

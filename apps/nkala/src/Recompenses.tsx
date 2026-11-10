@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { chargerBadges, chargerDefis, conditionBadge, defisEnCours, MYENE, progressionDefi, type Badge, type WeeklyChallenge } from '@nkala/noyau';
 import { ajouterAlerte, notifierLocal } from './Alertes';
 import { useAuth } from './AuthProvider';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /** Défi hebdomadaire en cours et progression. La progression est comptée par le serveur à la validation des contributions. */
 export function BandeauDefi() {
@@ -58,7 +58,7 @@ export function MesBadges() {
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   fond: { flex: 1, backgroundColor: '#000000cc', justifyContent: 'center', padding: 20 },
   fiche: { backgroundColor: couleurs.carte, borderColor: couleurs.ambre, borderWidth: 2, borderRadius: 24, padding: 20, gap: 10 },
   sur: { color: couleurs.ambre, textAlign: 'center', fontWeight: '900', fontSize: 14 },
@@ -75,7 +75,7 @@ const s = StyleSheet.create({
   ligne: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   piste: { height: 8, borderRadius: 4, backgroundColor: couleurs.fond, overflow: 'hidden' },
   rempli: { height: 8, backgroundColor: couleurs.ambre },
-});
+}));
 
 /**
  * Annonce ce que les validateurs ont accordé depuis la dernière visite (comme announceRewardsSinceLastVisit du site web) :

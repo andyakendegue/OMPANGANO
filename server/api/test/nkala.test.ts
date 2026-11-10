@@ -475,3 +475,21 @@ test('comptes : lier son téléphone, fusion du compte SMS existant, connexion S
   assert.equal((await call('POST', '/v1/me/telephone/envoyer', autre.token, { telephone: tel })).status, 409);
   assert.equal((await call('POST', '/v1/me/telephone/envoyer', autre.token, { telephone: 'abc' })).status, 400);
 });
+
+test('bibliothèque : XP une seule fois par chapitre, résultat borné, chapitre inconnu refusé, succès « chapitres »', async () => {
+  await call('POST', '/v1/admin/contenus/bibliotheque/import', ADMIN, { lignes: [{ id: 'lv-test', titre: 'Livre test', type: 'livre', publie: 'oui' }, { id: 'lv-rang', titre: 'Livre avancé', type: 'livre', rang_min: 8, publie: 'oui' }], mode: 'ajouter', partiel: true });
+  await call('POST', '/v1/admin/contenus/livre_chapitres/import', ADMIN, { lignes: [
+    { id: 'lv-test-001', livre_id: 'lv-test', titre: 'Un', texte: 'Texte du premier chapitre, assez long pour être lu.', ordre: 1, publie: 'oui' },
+    { id: 'lv-rang-001', livre_id: 'lv-rang', titre: 'Un', texte: 'Texte réservé aux rangs élevés de la lecture.', ordre: 1, publie: 'oui' }], mode: 'ajouter', partiel: true });
+  await call('POST', '/v1/admin/contenus/succes/import', ADMIN, { lignes: [{ id: 'lecteur-1', titre: 'Premier chapitre', condition: 'chapitres', seuil: 1, xp: 5, publie: 'oui' }], mode: 'ajouter', partiel: true });
+  const u = await user();
+    const a = await call('POST', '/v1/bibliotheque/chapitre', u.token, { livreId: 'lv-test', chapitreId: 'lv-test-001', bonnes: 3, sur: 3 });
+  assert.equal(a.status, 200); assert.equal(a.body.premiereFois, true); assert.equal(a.body.xpGagne, 6 + 6 + 5); assert.equal(a.body.succesDebloques.length, 1);
+  const b = await call('POST', '/v1/bibliotheque/chapitre', u.token, { livreId: 'lv-test', chapitreId: 'lv-test-001', bonnes: 3, sur: 3 });
+  assert.equal(b.body.xpGagne, 0, 'relire ne rapporte rien');
+  assert.equal((await call('POST', '/v1/bibliotheque/chapitre', u.token, { livreId: 'lv-test', chapitreId: 'lv-test-001', bonnes: 9, sur: 3 })).status, 400);
+  assert.equal((await call('POST', '/v1/bibliotheque/chapitre', u.token, { livreId: 'lv-test', chapitreId: 'nul', bonnes: 1, sur: 3 })).status, 404);
+  assert.equal((await call('POST', '/v1/bibliotheque/chapitre', u.token, { livreId: 'lv-rang', chapitreId: 'lv-rang-001', bonnes: 1, sur: 3 })).status, 402);
+  const prog = await call('GET', '/v1/progression', u.token);
+  assert.equal(Object.keys(prog.body.lectures).length, 1);
+});

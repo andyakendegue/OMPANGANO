@@ -1,2 +1,2 @@
-﻿id,album_id,artiste_id,titre,piste,duree_s,audio_url,paroles,traduction,genre,niveau_acces,publie
-ntina-01,,,,,,,,,,libre,oui
+﻿id,album_id,artiste_id,titre,piste,duree_s,audio_url,protege,paroles,traduction,genre,niveau_acces,rang_min,plans,publie
+ntina-01,,,,,,,,,,,libre,1,,oui

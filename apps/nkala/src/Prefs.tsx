@@ -1,9 +1,9 @@
 import { jouerSon } from './sons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, Platform, useColorScheme } from 'react-native';
-import { clair, sombre, type Palette } from './theme';
+import { clair, definirPaletteCourante, sombre, type Palette } from './theme';
 
 export type ThemePref = 'auto' | 'clair' | 'sombre';
 export type ModeUsage = 'adulte' | 'enfant' | 'facile';
@@ -50,6 +50,7 @@ export function PrefsProvider({ children }: { children: React.ReactNode }) {
 
   const valeur = useMemo<Etat>(() => {
     const estClair = prefs.theme === 'clair' || (prefs.theme === 'auto' && schema === 'light');
+    definirPaletteCourante(estClair ? clair : sombre);
     return { prefs, pret, palette: estClair ? clair : sombre, clair: estClair, reduireAnim: systemeReduit || prefs.animations === 'aucune', regler, vibrer };
   }, [prefs, pret, schema, systemeReduit, regler, vibrer]);
   return <Ctx.Provider value={valeur}>{children}</Ctx.Provider>;
@@ -64,4 +65,10 @@ export function ThemeSombre({ children }: { children: React.ReactNode }) {
   const base = usePrefs();
   const v = useMemo(() => ({ ...base, palette: sombre, clair: false }), [base]);
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
+}
+
+/** Remonte ses enfants quand le thème change : les anciens écrans (styles figés à l'affichage) se redessinent avec la bonne palette. */
+export function ThemeKey({ children }: { children: React.ReactNode }) {
+  const { clair: estClair } = usePrefs();
+  return <Fragment key={estClair ? "clair" : "sombre"}>{children}</Fragment>;
 }

@@ -1,13 +1,10 @@
+import { StyleSheet } from 'react-native';
+
 /**
  * Jetons de conception de Nkala (canevas Design « Toutes les vues de l'app mobile », planche « Jetons pour le code »).
  * `couleurs` reste l'ancienne palette sombre utilisée par les écrans de contribution et d'administration ;
  * les nouveaux écrans lisent `useTheme()` (Prefs.tsx) et s'adaptent au thème clair ou sombre.
  */
-export const couleurs = {
-  fond: '#170d08', carte: '#27150c', bord: '#4a2412', terre: '#c85a32', ambre: '#f59e0b',
-  texte: '#fed7aa', texteClair: '#ffffff', discret: '#a8826d',
-};
-
 export interface Palette {
   fond: string; fond2: string; carte: string; carteHaut: string; carteBas: string; bord: string; bordAmbre: string;
   texte: string; fort: string; discret: string; accent: string; squelette: string; verre: string; succes: string; erreur: string;
@@ -29,6 +26,31 @@ export const clair: Palette = {
   verre: 'rgba(253,250,247,0.86)', succes: '#15803D', erreur: '#B91C1C', halo1: 'rgba(200,90,50,0.14)', halo2: 'rgba(245,158,11,0.18)', surAccent: '#FDFAF7',
   modules: { ompangano: '#B84A28', onenji: '#B45309', azeva: '#A16207', ontci: '#7C2D12', nkala: '#B84A28' },
 };
+
+/** Ancienne palette sombre, figée : console d'administration et espace du validateur (outils internes, toujours sombres). */
+export const couleursSombres = {
+  fond: '#170d08', carte: '#27150c', bord: '#4a2412', terre: '#c85a32', ambre: '#f59e0b',
+  texte: '#fed7aa', texteClair: '#ffffff', discret: '#a8826d',
+};
+
+// Palette courante des anciens écrans : fixée par PrefsProvider à chaque rendu, lue à l'affichage (getters) et par stylesDyn.
+let courante: Palette | null = null;
+let version = 0;
+export function definirPaletteCourante(p: Palette) { if (courante !== p) { courante = p; version++; } }
+const pal = () => courante ?? sombre;
+
+/** Anciens écrans de contribution : mêmes noms que l'ancienne palette, mais qui suivent le thème clair ou sombre. */
+export const couleurs = {
+  get fond() { return pal().fond; }, get carte() { return pal().carte; }, get bord() { return pal().bord; },
+  get terre() { return pal() === sombre ? '#c85a32' : '#B84A28'; }, get ambre() { return pal().accent; },
+  get texte() { return pal().texte; }, get texteClair() { return pal().fort; }, get discret() { return pal().discret; },
+};
+
+/** Équivalent de StyleSheet.create dont les valeurs se recalculent quand le thème change (les écrans sont remontés par ThemeKey). */
+export function stylesDyn<T extends StyleSheet.NamedStyles<T> | StyleSheet.NamedStyles<any>>(fabrique: () => T | StyleSheet.NamedStyles<T>): T {
+  let v = -1; let cache: any;
+  return new Proxy({} as T, { get(_, k) { if (v !== version) { cache = StyleSheet.create(fabrique() as any); v = version; } return cache[k as string]; } });
+}
 
 export const marque = {
   brique: '#B84A28', terre: '#C85A32', ambre: '#F59E0B', ambreFonce: '#D97706', bronze: '#B45309', rougeSombre: '#7C2D12', brun: '#3B1D10', jaune: '#FDE047', teal: '#0D9488',

@@ -9,6 +9,7 @@ import {
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { Bouton, Carte, Ecran, Entete, EtatVide, Ic, Mascotte, Pastille, Rangee, SectionTitre, T, Visuel, Champ, Barre, Chargement, Puce, useToast } from './kit';
+import { Bibliotheque } from './Bibliotheque';
 import { Certificat, ControleUnite, FinLecon, LeconRunner } from './OnenjiLecon';
 import { usePile } from './Pile';
 import { usePrefs, useTheme } from './Prefs';
@@ -62,7 +63,7 @@ export function Onenji() {
     case 'video': return <LecteurVideo id={e.id} debut={e.debut} D={D} pile={pile} />;
     case 'ozangue': return <Ozangue retour={pile.retour} />;
     case 'classe': return <ClasseDistance retour={pile.retour} />;
-    case 'biblio': return <Bibliotheque D={D} retour={pile.retour} />;
+    case 'biblio': return <Bibliotheque retour={pile.retour} />;
     default: return <Hub D={D} pile={pile} />;
   }
 }
@@ -120,7 +121,7 @@ function Hub({ D, pile }: { D: Donnees; pile: Pile }) {
         <Carte onPress={() => pile.pousser({ t: 'ozangue' })} label="Parler à Ozangué"><View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 16 }}>
           <Mascotte taille={64} humeur="parle" /><View style={{ flex: 1 }}><T v="carte">Ozangué, ton assistant</T><T v="petit">{fonctionActive('assistantIA') ? 'Pose-lui une question sur la langue.' : 'Bientôt disponible.'}</T></View><Ic nom="suivant" taille={18} couleur={c.discret} /></View></Carte>
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <Carte onPress={() => pile.pousser({ t: 'biblio' })} style={{ flex: 1 }} label="Bibliothèque"><View style={{ padding: 16, gap: 6 }}><Ic nom="livre" taille={24} couleur={c.accent} /><T v="carte">Bibliothèque</T><T v="petit">{D.biblio.length} document{D.biblio.length > 1 ? 's' : ''}</T></View></Carte>
+          <Carte onPress={() => pile.pousser({ t: 'biblio' })} style={{ flex: 1 }} label="Bibliothèque"><View style={{ padding: 16, gap: 6 }}><Ic nom="livre" taille={24} couleur={c.accent} /><T v="carte">Bibliothèque</T><T v="petit">Lire, jouer avec les mots, gagner de l'XP</T></View></Carte>
           <Carte onPress={() => pile.pousser({ t: 'classe' })} style={{ flex: 1 }} label="Cours à distance"><View style={{ padding: 16, gap: 6 }}><Ic nom="video" taille={24} couleur={c.accent} /><T v="carte">Cours à distance</T><T v="petit">Groupe de 4, chiffré</T></View></Carte>
         </View>
       </>}
@@ -265,18 +266,6 @@ function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: D
         <Pressable key={ch.id} accessibilityRole="button" onPress={() => { try { player.currentTime = num(ch.debut_s); player.play(); } catch { /* */ } }} style={{ padding: 12, borderRadius: 12, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord }}><T v="corps" fort>{ch.titre}</T></Pressable>
       ))}
       <T v="petit">Sous-titres omyènè et français : selon les fichiers fournis avec le cours.</T>
-    </Ecran>
-  );
-}
-
-// ------------------------------------------------------------------ bibliothèque
-function Bibliotheque({ D, retour }: { D: Donnees; retour: () => void }) {
-  return (
-    <Ecran bas={40}>
-      <Entete titre="Bibliothèque" retour={retour} />
-      {D.biblio.length === 0 ? <EtatVide mascotte titre="Bibliothèque en préparation" texte="Livres, annales et fiches libres de droits arriveront ici." /> :
-        D.biblio.map(b => <Carte key={b.id} onPress={() => b.url && Linking.openURL(b.url).catch(() => {})} label={b.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{b.titre}</T><T v="petit">{[b.auteur, b.type, b.langue].filter(Boolean).join(' · ')}</T></View></Carte>)}
-      {D.opportunites.length > 0 && <><SectionTitre titre="Opportunités pour la jeunesse" />{D.opportunites.map(o => <Carte key={o.id} plat onPress={() => o.lien && Linking.openURL(o.lien).catch(() => {})} label={o.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{o.titre}</T><T v="petit">{[o.organisme, o.date_limite && `avant le ${o.date_limite}`].filter(Boolean).join(' · ')}</T><T v="petit">{o.description}</T></View></Carte>)}</>}
     </Ecran>
   );
 }

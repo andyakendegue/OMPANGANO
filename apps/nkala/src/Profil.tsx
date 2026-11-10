@@ -13,7 +13,7 @@ import { ConditionsModale } from './Conditions';
 import Inscription from './Inscription';
 import { useVersionDonnees } from './donnees';
 import { contributionsEnFile, nombreEnAttente, retirerDeLaFile } from './fileAttente';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 type Section = 'apercu' | 'activite' | 'compte';
 type Plage = '7d' | '30d' | 'all';
@@ -244,14 +244,14 @@ const Stat = ({ v, t, c }: { v: number; t: string; c: string }) => (
   <View style={s.stat}><Text style={[s.statV, { color: c }]}>{v.toLocaleString('fr-FR')}</Text><Text style={s.discret}>{t}</Text></View>
 );
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
   ligneH: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   avatar: { width: 52, height: 52, borderRadius: 16, backgroundColor: couleurs.terre, alignItems: 'center', justifyContent: 'center' },
   avatarTexte: { color: '#fff', fontSize: 22, fontWeight: '900' },
   nom: { color: couleurs.texteClair, fontSize: 18, fontWeight: '800' },
-  badgeAdmin: { color: '#fcd34d', fontSize: 11, fontWeight: '800' },
+  badgeAdmin: { color: couleurs.ambre, fontSize: 11, fontWeight: '800' },
   titre: { color: couleurs.texteClair, fontSize: 15, fontWeight: '800' },
   texte: { color: couleurs.texte, fontSize: 13 },
   texteClair: { color: couleurs.texteClair, fontSize: 14 },
@@ -276,4 +276,4 @@ const s = StyleSheet.create({
   barre: { borderRadius: 2 },
   element: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: couleurs.fond, borderRadius: 12, padding: 10 },
   icone: { fontSize: 20, color: couleurs.texte },
-});
+}));

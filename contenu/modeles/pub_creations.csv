@@ -1,2 +1,2 @@
-﻿id,zone,annonceur,titre,image,lien,texte_alt,debut,fin,plafond_jour,publie
-ntina-01,,,,,,,,,,oui
+﻿id,zone,annonceur,campagne_id,format,cta,titre,image,lien,texte_alt,debut,fin,plafond_jour,publie
+ntina-01,,,,,,,,,,,,,oui

@@ -1,2 +1,2 @@
-﻿id,artiste_id,titre,annee,genre,pochette,couleur,a_la_une,publie
-ntina-01,,,,,,#F59E0B,,oui
+﻿id,artiste_id,titre,annee,genre,pochette,couleur,a_la_une,publie,rang_min,plans
+ntina-01,,,,,,#F59E0B,,oui,1,

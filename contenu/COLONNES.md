@@ -19,6 +19,8 @@ Cursus par étape de la vie (Ntina, Ogèndo, Emeno, Ikôkô) ou thématique.
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Unités — `unites`
 Une unité regroupe des leçons ; la fin d'unité se valide à 4 réponses justes sur 5.
@@ -32,6 +34,8 @@ Une unité regroupe des leçons ; la fin d'unité se valide à 4 réponses juste
 | `description` | long |  | Description. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Leçons — `lecons`
 Une leçon = une suite d'exercices courts.
@@ -46,6 +50,8 @@ Une leçon = une suite d'exercices courts.
 | `xp` | entier |  | XP gagnés à la fin (15 par défaut). |
 | `mode` | choix (tous / enfant / adulte) |  | Public. |
 | `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
@@ -79,11 +85,14 @@ Cours vidéo donnés par des artisans.
 | `artisan` | texte | oui | Nom de l'artisan. |
 | `metier` | texte |  | Métier (vin de palme, hors-bord, cuisine…). |
 | `description` | long |  | Description. |
-| `video_url` | url |  | Vidéo ou playlist HLS. |
+| `video_url` | url |  | Vidéo ou playlist HLS (inutile si protege = oui). |
+| `protege` | booleen |  | oui/non : médias chiffrés (HLS AES-128) sous media/<collection>/<id>/ ; la lecture exige une licence. |
 | `sous_titres_url` | url |  | Fichier de sous-titres (.vtt). |
 | `duree_min` | entier |  | Durée totale en minutes. |
 | `niveau` | choix (debutant / intermediaire / avance) |  | Niveau. |
 | `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
@@ -101,7 +110,7 @@ Chapitres d'un cours d'artisan.
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 
 ### Bibliothèque — `bibliotheque`
-Livres, annales, documents libres de droits.
+Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l'application.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
@@ -110,9 +119,32 @@ Livres, annales, documents libres de droits.
 | `auteur` | texte |  | Auteur. |
 | `type` | choix (livre / annale / fiche / audio / autre) |  | Type. |
 | `langue` | texte |  | Langue. |
-| `url` | url |  | Fichier ou page. |
+| `url` | url |  | Fichier ou page (facultatif si les chapitres sont dans l'application). |
+| `resume` | long |  | Quatrième de couverture : quelques lignes. |
+| `categorie` | texte |  | Rayon : roman, conte, histoire, poésie, théâtre, sciences… |
+| `annee` | entier |  | Année de première publication. |
+| `cycle` | entier |  | Âge de lecture conseillé : 1 = enfant (jusqu'à 9 ans), 2 = jeune, 3 = adulte. |
+| `couleur` | texte |  | Couleur de la tranche et de la couverture #RRGGBB. |
+| `source` | texte |  | Origine et licence (domaine public, adresse). |
+| `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
+| `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+
+### Chapitres de livres — `livre_chapitres`
+Texte des livres de la bibliothèque, un chapitre par ligne (généré par l'import de la bibliothèque).
+
+| Colonne | Type | Obligatoire | Description |
+|---|---|---|---|
+| `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
+| `livre_id` | texte → `bibliotheque` | oui | Livre parent. |
+| `titre` | texte | oui | Titre du chapitre. |
+| `texte` | long | oui | Texte du chapitre (paragraphes séparés par une ligne vide). |
+| `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
+| `glossaire` | json |  | Mots expliqués : [{"mot":"pirogue","sens":"barque creusée dans un tronc"}]. |
+| `questions` | json |  | Quiz du chapitre (sinon généré) : [{"enonce":"…","options":["a","b","c"],"bonne":0}]. |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Opportunités pour la jeunesse — `opportunites`
@@ -143,6 +175,8 @@ Salles du hall (Mots, Corps, Maison, Nature, Nombres…).
 | `icone` | texte |  | Nom d'icône. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Jeux — `jeux`
 Jeux du hall ; le moteur détermine le fonctionnement.
@@ -152,13 +186,15 @@ Jeux du hall ; le moteur détermine le fonctionnement.
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `salle_id` | texte → `salles` | oui | Salle. |
 | `titre` | texte | oui | Titre. |
-| `moteur` | choix (pendu / anagramme / mots_meles / dictee / qcm / ordre / plateau / memoire) | oui | Moteur de jeu. |
+| `moteur` | choix (ogoni / pendu / anagramme / mots_meles / dictee / qcm / ordre / plateau / memoire) | oui | Moteur de jeu. |
 | `description` | texte |  | Description. |
 | `couleur` | texte |  | Couleur d'accent #RRGGBB. |
 | `duree_s` | entier |  | Durée de la partie (secondes, 0 = sans limite). |
 | `mode_enfant` | booleen |  | oui/non : disponible en mode enfant. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Mots des jeux — `mots_jeux`
 Mots supplémentaires pour les jeux (en plus des fiches validées du corpus).
@@ -199,7 +235,7 @@ Succès à débloquer.
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `titre` | texte | oui | Titre. |
 | `description` | texte |  | Description. |
-| `condition` | choix (parties / victoires / serie / points / lecons / contributions) | oui | Compteur observé. |
+| `condition` | choix (parties / victoires / serie / points / lecons / contributions / chapitres) | oui | Compteur observé. |
 | `seuil` | entier | oui | Valeur à atteindre. |
 | `xp` | entier |  | XP offerts. |
 | `icone` | texte |  | Icône. |
@@ -259,6 +295,8 @@ Albums et singles.
 | `couleur` | texte |  | Couleur d'accent #RRGGBB. |
 | `a_la_une` | booleen |  | oui/non : en tête de l'accueil. |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Titres — `titres`
 Pistes audio.
@@ -271,11 +309,14 @@ Pistes audio.
 | `titre` | texte | oui | Titre. |
 | `piste` | entier |  | Numéro de piste. |
 | `duree_s` | entier |  | Durée en secondes. |
-| `audio_url` | url |  | Flux audio (HLS) ou fichier. |
+| `audio_url` | url |  | Flux audio (HLS) ou fichier (inutile si protege = oui). |
+| `protege` | booleen |  | oui/non : médias chiffrés (HLS AES-128) sous media/<collection>/<id>/ ; la lecture exige une licence. |
 | `paroles` | long |  | Paroles (une ligne par ligne chantée). |
 | `traduction` | long |  | Traduction ligne à ligne. |
 | `genre` | texte |  | Genre. |
 | `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Radios — `radios`
@@ -292,6 +333,8 @@ Webradios en direct.
 | `couleur` | texte |  | Couleur d'accent #RRGGBB. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Chaînes de télévision — `chaines_tv`
 Web TV en direct.
@@ -305,6 +348,8 @@ Web TV en direct.
 | `guide` | json |  | Guide : [{"heure":"20:00","titre":"…"}]. |
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
@@ -320,6 +365,8 @@ Listes proposées par l'équipe.
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `couleur` | texte |  | Couleur d'accent #RRGGBB. |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Genres — `genres`
 Genres musicaux (tuiles de recherche).
@@ -410,6 +457,8 @@ Recettes, portraits, conseils, reportages.
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `date` | date |  | Date. |
 | `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Services — `services`
@@ -477,6 +526,20 @@ Textes des rappels, encouragements et phrases d'Ozangué.
 | `ton` | choix (tu / vous) |  | Tutoiement ou vouvoiement. |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
+### Formules d'abonnement — `plans`
+Ce que chaque formule débloque : toute l'application, ou seulement les contenus qui la citent (colonne « plans »).
+
+| Colonne | Type | Obligatoire | Description |
+|---|---|---|---|
+| `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
+| `titre` | texte | oui | Nom de la formule. |
+| `description` | long |  | Ce qu'elle apporte. |
+| `tout` | booleen |  | oui = donne accès à tout (contenus soumis à une formule compris). |
+| `rang_min` | entier |  | Rang minimal conseillé (information). |
+| `sans_pub` | booleen |  | oui = plus de publicité. |
+| `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
+| `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+
 ### Produits payants — `produits`
 Abonnements et achats intégrés (aucun prix n'est fixé dans le code).
 
@@ -487,7 +550,8 @@ Abonnements et achats intégrés (aucun prix n'est fixé dans le code).
 | `type` | choix (abonnement / achat / consommable) | oui | Type. |
 | `prix_fcfa` | entier |  | Prix en FCFA. |
 | `periode` | choix (mois / an / unique) |  | Période. |
-| `donne_acces` | liste |  | Modules ou contenus débloqués, séparés par \|. |
+| `donne_acces` | liste |  | Contenus débloqués par un achat, séparés par \| ; « tout » = toute l'application. |
+| `plan_id` | texte → `plans` |  | Formule donnée par cet abonnement (collection « plans »). |
 | `jetons_ia` | entier |  | Jetons IA offerts (consommable). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
@@ -499,6 +563,9 @@ Publicités maison servies par la passerelle (en attendant ou à côté de Reviv
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `zone` | texte | oui | Zone (bandeau_accueil, recompense_coeur…). |
 | `annonceur` | texte |  | Annonceur. |
+| `campagne_id` | texte |  | Campagne de la régie (créée dans la console) ; vide = création libre. |
+| `format` | choix (bandeau / natif / plein_ecran / audio / video) |  | natif = publication sponsorisée mêlée aux listes. |
+| `cta` | texte |  | Texte du bouton (Découvrir, Appeler…). |
 | `titre` | texte |  | Texte. |
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `lien` | url |  | Lien au clic. |

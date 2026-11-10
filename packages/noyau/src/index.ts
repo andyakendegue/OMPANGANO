@@ -38,3 +38,4 @@ export * from './ressources';
 export * from './nkalaApi';
 export * from './horaires';
 export * from './fil';
+export * from './lecture';

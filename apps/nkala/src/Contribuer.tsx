@@ -10,16 +10,19 @@ import { demanderFiche, emettre } from './evenements';
 import { Anneau, Avatar, Bouton, Carte, Chargement, Ecran, Entete, EtatVide, Ic, Mascotte, Pastille, SectionTitre, T, Barre } from './kit';
 import { usePile } from './Pile';
 import { ProfilContributeur } from './Profil';
-import { ThemeSombre, useTheme } from './Prefs';
+import { ThemeKey, ThemeSombre, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 
 type E = { t: 'accueil' } | { t: 'collecte' } | { t: 'valider' } | { t: 'classement' } | { t: 'rangs' } | { t: 'defis' } | { t: 'ezango' } | { t: 'mes' };
 type Pile = ReturnType<typeof usePile<E>>;
 
 /** Habille un écran historique (palette sombre) d'un bouton retour. */
-const Historique = ({ titre, pile, children }: { titre: string; pile: Pile; children: React.ReactNode }) => (
-  <ThemeSombre><View style={{ flex: 1, backgroundColor: '#170D08' }}><View style={{ padding: 16, paddingTop: 48 }}><Entete titre={titre} retour={pile.retour} /></View><View style={{ flex: 1 }}>{children}</View></View></ThemeSombre>
-);
+const Historique = ({ titre, pile, children, sombre }: { titre: string; pile: Pile; children: React.ReactNode; sombre?: boolean }) => {
+  const { c } = useTheme();
+  // La file de validation (outil de modération) garde sa palette sombre ; les autres écrans suivent le thème
+  const corps = <View style={{ flex: 1, backgroundColor: sombre ? '#170D08' : c.fond }}><View style={{ padding: 16, paddingTop: 48 }}><Entete titre={titre} retour={pile.retour} /></View><View style={{ flex: 1 }}>{children}</View></View>;
+  return sombre ? <ThemeSombre>{corps}</ThemeSombre> : <ThemeKey>{corps}</ThemeKey>;
+};
 
 export function Contribuer({ retour }: { retour: () => void }) {
   const pile = usePile<E>({ t: 'accueil' });
@@ -27,7 +30,7 @@ export function Contribuer({ retour }: { retour: () => void }) {
   if (!profil) return <Ecran><Entete titre="Contribuer" retour={retour} /><EtatVide mascotte titre="Un compte est nécessaire" texte="Crée un compte pour enregistrer ta voix et valider des phrases." /></Ecran>;
   const e = pile.ecran;
   if (e.t === 'collecte') return <Historique titre="Enregistrer ma voix" pile={pile}><View style={{ flex: 1 }}><Collecte onGuide={() => emettre('guide')} /></View></Historique>;
-  if (e.t === 'valider') return <Historique titre="Valider" pile={pile}><Moderation /></Historique>;
+  if (e.t === 'valider') return <Historique titre="Valider" pile={pile} sombre><Moderation /></Historique>;
   if (e.t === 'ezango') return <Historique titre="Ezango" pile={pile}><Ezango onContribuer={id => { demanderFiche(id); pile.remplacer({ t: 'collecte' }); }} /></Historique>;
   if (e.t === 'mes') return <Historique titre="Mes enregistrements" pile={pile}><ProfilContributeur /></Historique>;
   if (e.t === 'classement') return <Podium pile={pile} />;

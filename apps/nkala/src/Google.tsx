@@ -4,7 +4,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from './AuthProvider';
 import config from './firebase.config.json';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -61,7 +61,7 @@ function GoogleNatif({ surErreur }: Props) {
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   bouton: { backgroundColor: '#fff', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   texte: { color: '#1f1f1f', fontWeight: '700', fontSize: 15 },
-});
+}));

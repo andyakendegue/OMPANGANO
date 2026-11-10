@@ -1,2 +1,2 @@
-﻿id,nom,flux_url,description,programme,image,couleur,ordre,publie
-ntina-01,,,,,,#F59E0B,1,oui
+﻿id,nom,flux_url,description,programme,image,couleur,ordre,publie,rang_min,plans
+ntina-01,,,,,,#F59E0B,1,oui,1,

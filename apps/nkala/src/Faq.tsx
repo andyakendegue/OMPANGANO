@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CATEGORIES_FAQ, FAQ_CONTRIBUTION, type CategorieFaq } from '@nkala/noyau';
 import { EcranModal } from './ui';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /** Foire aux questions : mêmes questions et mêmes réponses que le site web (textes générés depuis le web). */
 export function FaqModale({ visible, tribu, filtreTribu, onFiltreTribu, onClose }: {
@@ -83,7 +83,7 @@ export function FaqModale({ visible, tribu, filtreTribu, onFiltreTribu, onClose 
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   p: { color: couleurs.texte, fontSize: 14, lineHeight: 21 },
   discret: { color: couleurs.discret, fontSize: 12, marginTop: 2 },
   note: { backgroundColor: couleurs.carte, borderColor: couleurs.ambre, borderWidth: 1, borderRadius: 14, padding: 12, gap: 8 },
@@ -100,4 +100,4 @@ const s = StyleSheet.create({
   question: { color: couleurs.texteClair, fontSize: 15, fontWeight: '800' },
   exemple: { backgroundColor: couleurs.fond, borderRadius: 10, padding: 10, gap: 2 },
   exLabel: { color: couleurs.ambre, fontSize: 12, fontWeight: '800' },
-});
+}));

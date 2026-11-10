@@ -1,2 +1,2 @@
-﻿id,salle_id,titre,moteur,description,couleur,duree_s,mode_enfant,ordre,publie
-ntina-01,,,pendu,,#F59E0B,,,1,oui
+﻿id,salle_id,titre,moteur,description,couleur,duree_s,mode_enfant,ordre,publie,rang_min,plans
+ntina-01,,,pendu,,#F59E0B,,,1,oui,1,

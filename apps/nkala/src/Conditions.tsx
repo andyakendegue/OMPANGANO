@@ -4,7 +4,7 @@ import { TEXTES_CONDITIONS, VERSION_CONDITIONS } from '@nkala/noyau';
 import { api } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { BlocsTexte, EcranModal } from './ui';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 type Onglet = 'consentement' | 'conditions' | 'recompenses_badges';
 const ONGLETS: [Onglet, string][] = [
@@ -100,7 +100,7 @@ const Ligne = ({ texte, v, set }: { texte: string; v: boolean; set: (b: boolean)
   <View style={s.ligne}><Text style={[s.p, { flex: 1 }]}>{texte}</Text><Switch value={v} onValueChange={set} trackColor={{ true: couleurs.terre }} /></View>
 );
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   p: { color: couleurs.texte, fontSize: 14, lineHeight: 21 },
   h: { color: couleurs.texteClair, fontSize: 16, fontWeight: '800', marginTop: 6 },
   etiquette: { color: couleurs.ambre, fontSize: 13, fontWeight: '700' },
@@ -114,4 +114,4 @@ const s = StyleSheet.create({
   erreur: { color: '#fca5a5', fontSize: 13 },
   bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 14, paddingHorizontal: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 14, textAlign: 'center', flexShrink: 1 },
-});
+}));

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /**
  * Bouton « Installer l'App » (équivalent de PWAInstallButton du site web) : n'existe que dans la version web d'Expo.
@@ -47,7 +47,7 @@ export function InstallerApp() {
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   btn: { backgroundColor: couleurs.terre, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
   txt: { color: '#fff', fontSize: 11, fontWeight: '800' },
   fond: { flex: 1, backgroundColor: '#000000cc', justifyContent: 'center', padding: 20 },
@@ -56,4 +56,4 @@ const s = StyleSheet.create({
   texte: { color: couleurs.texte, fontSize: 13, lineHeight: 19 },
   ok: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   okTexte: { color: '#fff', fontWeight: '800' },
-});
+}));

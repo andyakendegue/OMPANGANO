@@ -58,7 +58,26 @@ export async function extraireTexte(chemin: string): Promise<string | null> {
   if (MARQUE.has(ext)) return sansBalises(await fs.readFile(chemin, 'utf8'));
   if (ext === '.pdf') { const { stdout } = await run('pdftotext', ['-layout', '-enc', 'UTF-8', chemin, '-'], { maxBuffer: 80 * 1024 * 1024, timeout: 120_000 }); return stdout; }
   if (ext === '.docx') { const { stdout } = await run('unzip', ['-p', chemin, 'word/document.xml'], { maxBuffer: 80 * 1024 * 1024, timeout: 60_000 }); return sansBalises(stdout.replace(/<\/w:p>/g, '\n')); }
+  if (ext === '.epub') return extraireEpub(chemin);
   return null;
+}
+
+/** EPUB : fichiers de contenu lus dans l'ordre de lecture (spine) du fichier OPF. */
+async function extraireEpub(chemin: string): Promise<string> {
+  const lire = async (nom: string) => (await run('unzip', ['-p', chemin, nom], { maxBuffer: 80 * 1024 * 1024, timeout: 60_000 })).stdout;
+  const conteneur = await lire('META-INF/container.xml');
+  const opfChemin = /full-path="([^"]+)"/.exec(conteneur)?.[1];
+  if (!opfChemin) throw new Error('EPUB sans fichier OPF.');
+  const opf = await lire(opfChemin);
+  const base = opfChemin.includes('/') ? opfChemin.slice(0, opfChemin.lastIndexOf('/') + 1) : '';
+  const manifeste = new Map<string, string>();
+  for (const m of opf.matchAll(/<item\b[^>]*>/g)) { const id = /\bid="([^"]+)"/.exec(m[0])?.[1], href = /\bhref="([^"]+)"/.exec(m[0])?.[1]; if (id && href) manifeste.set(id, href); }
+  const ordre = [...opf.matchAll(/<itemref\b[^>]*\bidref="([^"]+)"/g)].map(m => manifeste.get(m[1])).filter(Boolean) as string[];
+  let texte = '';
+  for (const href of ordre) {
+    try { texte += '\n\n' + sansBalises(await lire(base + decodeURIComponent(href.split('#')[0]))); } catch { /* page absente : on continue */ }
+  }
+  return texte;
 }
 
 let enCours = false;

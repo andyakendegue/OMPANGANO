@@ -5,13 +5,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  chargerProgression, envoyerLecon, envoyerPartie, envoyerUnite, jourLocal, progressionVide, rangPourXp, terminerLecon, uniteValidee, nouveauRang, XP_LECON,
+  chargerProgression, envoyerChapitre, envoyerLecon, envoyerPartie, envoyerUnite, jourLocal, progressionVide, rangPourXp, terminerLecon, uniteValidee, nouveauRang, XP_LECON,
   type EtatRang, type Lecon, type ProgressionServeur, type Rang, scorePartie,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { useFetes } from './Fetes';
 
-type Local = ProgressionServeur & { enAttente: { type: 'lecon' | 'unite' | 'partie'; payload: any }[] };
+type Local = ProgressionServeur & { enAttente: { type: 'lecon' | 'unite' | 'partie' | 'chapitre'; payload: any }[] };
 const vide = (): Local => ({ ...progressionVide(), parties: 0, victoires: 0, points: 0, succes: [], defisFaits: {}, amis: [], enAttente: [] } as unknown as Local);
 
 interface Etat {
@@ -19,6 +19,7 @@ interface Etat {
   recharger: () => Promise<void>;
   terminerLecon: (l: Lecon, bonnes: number, erreurs: number) => Promise<{ xpGagne: number; nouveauRang: Rang | null }>;
   validerUnite: (uniteId: string, bonnes: number, sur: number) => Promise<{ valide: boolean }>;
+  lireChapitre: (livreId: string, chapitreId: string, bonnes: number, sur: number) => Promise<{ xpGagne: number; premiereFois: boolean }>;
   enregistrerPartie: (p: { jeuId: string; bonnes: number; erreurs: number; secondesRestantes?: number; serie?: number; defiId?: string }) => Promise<{ score: number; xpGagne: number }>;
 }
 const Ctx = createContext<Etat | null>(null);
@@ -47,6 +48,7 @@ export function ProgresProvider({ children }: { children: React.ReactNode }) {
           try {
             if (e.type === 'lecon') await envoyerLecon(e.payload.leconId, e.payload.bonnes, e.payload.erreurs);
             else if (e.type === 'unite') await envoyerUnite(e.payload.uniteId, e.payload.bonnes, e.payload.sur);
+            else if (e.type === 'chapitre') await envoyerChapitre(e.payload.livreId, e.payload.chapitreId, e.payload.bonnes, e.payload.sur);
             else await envoyerPartie(e.payload);
           } catch (err) { if (((err as { status?: number }).status ?? 0) === 0 || ((err as { status?: number }).status ?? 0) >= 500) restes.push(e); }
         }
@@ -109,6 +111,24 @@ export function ProgresProvider({ children }: { children: React.ReactNode }) {
     return { score, xpGagne: gain };
   }, [profil, sauver]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const valeur = useMemo<Etat>(() => ({ donnees, xp: donnees.xp ?? xpBase, rang: rangPourXp(donnees.xp ?? 0), chargement, recharger, terminerLecon: lecon, validerUnite: unite, enregistrerPartie: partie }), [donnees, xpBase, chargement, recharger, lecon, unite, partie]);
+  const chapitre = useCallback(async (livreId: string, chapitreId: string, bonnes: number, sur: number) => {
+    const avant = ref.current.xp ?? 0;
+    const lectures = { ...(ref.current.lectures ?? {}) };
+    const premiereFois = !lectures[chapitreId];
+    lectures[chapitreId] = { jour: jourLocal(), bonnes: Math.max(bonnes, lectures[chapitreId]?.bonnes ?? 0), sur };
+    let local = { ...ref.current, lectures } as Local;
+    let gain = premiereFois ? 6 + 2 * Math.min(bonnes, 5) : 0, rangS: Rang | null | undefined;
+    if (profil) {
+      try {
+        const r = await envoyerChapitre(livreId, chapitreId, bonnes, sur); gain = r.xpGagne; rangS = r.nouveauRang as Rang | null; local = { ...local, xp: r.xp, serie: r.serie, succes: [...new Set([...local.succes, ...r.succesDebloques.map(s => s.id)])] };
+        r.succesDebloques.forEach(s => feter({ type: 'succes', titre: s.titre, xp: s.xp }));
+      } catch (e) { if (((e as { status?: number }).status ?? 0) === 0 || ((e as { status?: number }).status ?? 0) >= 500) local = { ...local, xp: avant + gain, enAttente: [...local.enAttente, { type: 'chapitre', payload: { livreId, chapitreId, bonnes, sur } }] }; else gain = 0; }
+    } else local = { ...local, xp: avant + gain };
+    sauver(local);
+    apresGain(avant, gain, rangS);
+    return { xpGagne: gain, premiereFois };
+  }, [profil, sauver]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const valeur = useMemo<Etat>(() => ({ donnees, xp: donnees.xp ?? xpBase, rang: rangPourXp(donnees.xp ?? 0), chargement, recharger, terminerLecon: lecon, validerUnite: unite, lireChapitre: chapitre, enregistrerPartie: partie }), [donnees, xpBase, chargement, recharger, lecon, unite, chapitre, partie]);
   return <Ctx.Provider value={valeur}>{children}</Ctx.Provider>;
 }

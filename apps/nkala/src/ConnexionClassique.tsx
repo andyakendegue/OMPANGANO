@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useAuth } from './AuthProvider';
 import { BoutonGoogle } from './Google';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 import { Logo, fond, useLarge } from './Fond';
 
 /** Écran d'accès (mêmes textes que AuthGateScreen du site web). Pas de connexion anonyme. */
@@ -46,7 +46,7 @@ const Argument = ({ t, d }: { t: string; d: string }) => (
   <View style={s.argument}><Text style={s.argTitre}>{t}</Text><Text style={[s.discret, { textAlign: 'left' }]}>{d}</Text></View>
 );
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   page: { padding: 20, gap: 12, maxWidth: 480, width: '100%', alignSelf: 'center', paddingBottom: 48 },
   // Grand écran : présentation à gauche, formulaire à droite
   pageLarge: { maxWidth: 1040, flexDirection: 'row', alignItems: 'center', gap: 40, padding: 32, minHeight: '100%' },
@@ -56,7 +56,7 @@ const s = StyleSheet.create({
   essaka: { fontSize: 11, backgroundColor: couleurs.terre, color: '#fff' },
   sous: { color: couleurs.ambre, textAlign: 'center', fontSize: 13 },
   pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-  badge: { color: '#fde68a', fontSize: 11, fontWeight: '700', borderColor: '#92400e', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  badge: { color: couleurs.ambre, fontSize: 11, fontWeight: '700', borderColor: '#92400e', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   h1: { color: couleurs.texteClair, fontSize: 22, fontWeight: '900', textAlign: 'center', marginTop: 8 },
   h2: { color: couleurs.texteClair, fontSize: 18, fontWeight: '800' },
   texte: { color: couleurs.texte, fontSize: 13, lineHeight: 19 },
@@ -73,4 +73,4 @@ const s = StyleSheet.create({
   erreur: { color: '#fca5a5', fontSize: 13 },
   bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 15 },
-});
+}));

@@ -5,7 +5,7 @@ import { synchroniserCatalogue } from '@nkala/noyau';
 import { catalogue } from './catalogue';
 import { listerFile, rejouerFile } from './fileAttente';
 import { EcranModal } from './ui';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 type Bandeau = { type: 'error' | 'success'; text: string } | null;
 
@@ -81,7 +81,7 @@ export function HorsLigneModale({ visible, onClose, onChange }: { visible: boole
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 14, padding: 12, gap: 8 },
   ligne: { flexDirection: 'row', gap: 8 },
   titre: { color: couleurs.texteClair, fontSize: 15, fontWeight: '800' },
@@ -94,4 +94,4 @@ const s = StyleSheet.create({
   bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   bouton2: { borderColor: couleurs.bord, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 13, textAlign: 'center' },
-});
+}));

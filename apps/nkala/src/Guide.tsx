@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MYENE, TEXTES_GUIDE } from '@nkala/noyau';
 import { BlocsTexte, EcranModal } from './ui';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 export const CLE_GUIDE_VU = 'nkala_guide_visuel_vu_v1';
 const ONGLETS = ['1. Objectifs', '2. Contribuer (3 étapes)', '3. Ethnies & Hors-ligne', '4. Badges & Défis'];
@@ -39,7 +39,7 @@ export function GuideModale({ visible, prenom, apresInscription, onClose, onAlle
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   onglets: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   onglet: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1 },
   ongletActif: { backgroundColor: couleurs.terre, borderColor: couleurs.terre },
@@ -48,4 +48,4 @@ const s = StyleSheet.create({
   nav: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', borderColor: couleurs.bord, borderWidth: 1 },
   navPlein: { backgroundColor: couleurs.terre, borderColor: couleurs.terre },
   navTexte: { color: couleurs.texte, fontWeight: '800', fontSize: 13 },
-});
+}));

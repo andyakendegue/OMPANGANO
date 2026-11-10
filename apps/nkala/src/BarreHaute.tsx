@@ -12,7 +12,7 @@ import { ecouter, emettre } from './evenements';
 import { nombreEnAttente } from './fileAttente';
 import { InstallerApp } from './InstallerApp';
 import { useCatalogueEnChargement, useEtatSync } from './syncEtat';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /** Barre d'actions commune (équivalent de l'en-tête du site web) : guide, FAQ, hors-ligne, état du réseau, alertes. */
 /**
@@ -78,11 +78,11 @@ export function BarreHaute({ mode = 'complet' }: { mode?: 'complet' | 'barre' | 
   return mode === 'barre' ? barre : mode === 'modales' ? modales : <>{barre}{modales}</>;
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   barre: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingBottom: 8, flexWrap: 'wrap' },
   btn: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
   progres: { backgroundColor: '#0f3d3a', borderColor: '#14b8a6' },
   sync: { backgroundColor: '#b45309', borderColor: '#b45309' },
   txt: { color: couleurs.texte, fontSize: 11, fontWeight: '700' },
   etat: { fontSize: 11, fontWeight: '700' },
-});
+}));

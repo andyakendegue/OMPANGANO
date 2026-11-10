@@ -19,6 +19,7 @@ import gardes from '../../contenu/gardes.json';
 import genres from '../../contenu/genres.json';
 import jeux from '../../contenu/jeux.json';
 import lecons from '../../contenu/lecons.json';
+import livre_chapitres from '../../contenu/livre_chapitres.json';
 import lieux from '../../contenu/lieux.json';
 import magazine from '../../contenu/magazine.json';
 import messages from '../../contenu/messages.json';
@@ -55,6 +56,7 @@ export const SEEDS: Record<string, Record<string, unknown>[]> = {
   jeux: jeux,
   lecons: lecons,
   lieux: lieux,
+  livre_chapitres: livre_chapitres,
   magazine: magazine,
   messages: messages,
   mots_jeux: mots_jeux,

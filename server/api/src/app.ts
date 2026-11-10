@@ -25,6 +25,7 @@ import { registerSupervision } from './supervision.ts';
 import { registerMedia } from './media.ts';
 import { registerRegie } from './regie.ts';
 import { registerRadio } from './radio.ts';
+import { registerLivres } from './livres.ts';
 import { registerPush } from './push.ts';
 import { registerAchats } from './achats.ts';
 import { registerMobileMoney } from './mobilemoney.ts';
@@ -1106,6 +1107,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   registerMedia(nk, storage);
   registerRegie(nk);
   registerRadio(nk);
+  registerLivres(nk);
   registerPush(nk);
   registerAchats(nk);
   registerMobileMoney(nk);

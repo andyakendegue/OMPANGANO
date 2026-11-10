@@ -3,7 +3,7 @@ import { Platform, Pressable, StyleSheet, Switch, Text, TextInput, View } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { EcranModal } from './ui';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 // Historique des alertes de l'application (équivalent de NotificationService.addInAppNotification du site web).
 const CLE = 'nkala_inapp_alerts';
@@ -95,7 +95,7 @@ export function AlertesModale({ visible, onClose, onChange }: { visible: boolean
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 14, padding: 12, gap: 8 },
   ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   titre: { color: couleurs.texteClair, fontSize: 15, fontWeight: '800', flexShrink: 1 },
@@ -107,4 +107,4 @@ const s = StyleSheet.create({
   bouton: { backgroundColor: couleurs.terre, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, alignItems: 'center' },
   bouton2: { borderColor: couleurs.bord, borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 13 },
-});
+}));

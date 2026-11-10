@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BarreHaute } from './BarreHaute';
 import { ecouter, prendreOnglet } from './evenements';
 import { Marque, Page, useLarge } from './Fond';
-import { couleurs } from './theme';
+import { couleursSombres as couleurs } from './theme';
 
 export interface SousOnglet { id: string; label: string; contenu: React.ReactNode }
 

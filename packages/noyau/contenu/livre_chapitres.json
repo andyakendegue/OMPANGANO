@@ -1,0 +1,39 @@
+[
+ {
+  "id": "exemple-conte-pirogue-1",
+  "livre_id": "exemple-conte-pirogue",
+  "titre": "Le tronc d'okoumé",
+  "texte": "Au bord de la lagune, avant que le soleil ne soit levé, un vieux charpentier marchait lentement vers la forêt. Il connaissait chaque arbre du village comme on connaît les visages de sa famille.\n\nCe matin-là, il cherchait un grand okoumé droit et solide, capable de devenir une pirogue pour les pêcheurs. Il posa la main sur l'écorce et écouta le silence de la forêt avant de décider.\n\nLes enfants du village le suivaient à distance, curieux de voir comment un simple tronc deviendrait un bateau. Le charpentier leur avait promis de leur apprendre le métier, à condition qu'ils restent patients et attentifs.\n\nQuand l'arbre fut abattu, tout le village vint aider à le traîner jusqu'au bord de l'eau. On chantait pour garder le rythme, et le chant montait au-dessus de la lagune comme une fumée légère.",
+  "ordre": 1,
+  "glossaire": [
+   {
+    "mot": "okoumé",
+    "sens": "grand arbre du Gabon au bois léger et recherché"
+   }
+  ],
+  "publie": true
+ },
+ {
+  "id": "exemple-conte-pirogue-2",
+  "livre_id": "exemple-conte-pirogue",
+  "titre": "Le travail des mains",
+  "texte": "Pendant plusieurs semaines, le charpentier creusa le tronc avec une patience infinie. Il utilisait une herminette dont le manche était usé par des années de travail, et chaque coup résonnait dans le village.\n\nLes enfants ramassaient les copeaux de bois et les rangeaient dans de grands paniers. Le plus jeune demandait sans cesse pourquoi la pirogue devait être aussi étroite, et le charpentier répondait toujours avec le sourire.\n\nIl expliquait qu'une pirogue trop large devient lourde, et qu'une pirogue trop étroite devient dangereuse. Le bon bateau, disait-il, est celui qui trouve l'équilibre entre la force et la légèreté.\n\nChaque soir, il passait sa paume sur la coque pour sentir les défauts invisibles. Quand le bois était parfaitement lisse, il s'arrêtait enfin et laissait reposer son outil jusqu'au lendemain.",
+  "ordre": 2,
+  "glossaire": [
+   {
+    "mot": "herminette",
+    "sens": "outil de charpentier à lame courbe, pour creuser le bois"
+   }
+  ],
+  "publie": true
+ },
+ {
+  "id": "exemple-conte-pirogue-3",
+  "livre_id": "exemple-conte-pirogue",
+  "titre": "La première traversée",
+  "texte": "Le jour de la mise à l'eau, tout le village se rassembla sur la plage. Les anciens avaient préparé des offrandes de fruits et de poissons grillés, et les femmes avaient tressé des guirlandes de feuilles pour décorer la proue.\n\nLe charpentier posa la pirogue sur l'eau avec précaution, comme on pose un enfant endormi. Elle flotta sans un bruit, droite et fière, et la foule applaudit longuement.\n\nLe plus jeune des enfants fut choisi pour la première traversée de la lagune. Il tenait la pagaie à deux mains, un peu tremblant, et le vieux charpentier s'assit derrière lui pour le guider doucement.\n\nAu milieu de l'eau, l'enfant comprit enfin que la pirogue n'était pas seulement du bois creusé. Elle portait le travail, la patience et les chants de tout un village, et elle les porterait encore pendant de longues années.",
+  "ordre": 3,
+  "glossaire": [],
+  "publie": true
+ }
+]

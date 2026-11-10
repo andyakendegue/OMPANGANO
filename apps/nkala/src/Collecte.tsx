@@ -22,7 +22,7 @@ import { ConditionsModale } from './Conditions';
 import { FaqModale } from './Faq';
 import { nombreEnAttente, rejouerFile, soumettre } from './fileAttente';
 import { CelebrationDefi } from './Recompenses';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 const DUREE_MAX = 60; // secondes, comme le site web
 const mmss = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
@@ -333,7 +333,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
             <Text style={s.badge}>Ethnie {tribuDuDialecte(String(fiche.dialect))}</Text>
             {!!theme && <Text style={s.badge}>{theme.icon} {theme.shortName}</Text>}
             {fiche.difficulty === 'debutant' && <Text style={[s.badge, { color: '#fde047' }]}>Débutant</Text>}
-            {fiche.difficulty === 'intermediaire' && <Text style={[s.badge, { color: '#fdba74' }]}>Intermédiaire</Text>}
+            {fiche.difficulty === 'intermediaire' && <Text style={[s.badge, { color: couleurs.ambre }]}>Intermédiaire</Text>}
             {fiche.difficulty === 'avance' && <Text style={[s.badge, { color: '#fca5a5' }]}>Avancé</Text>}
           </View>
           <Text style={s.etiquette}>SENS EN FRANÇAIS{fiche.moduleThematique ? ` (${fiche.moduleThematique})` : ''}</Text>
@@ -423,7 +423,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   titre: { color: couleurs.texteClair, fontSize: 17, fontWeight: '800' },
   carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 16, padding: 14, gap: 10 },
   defi: { backgroundColor: '#2a1608', borderColor: '#d97706', borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
@@ -451,7 +451,7 @@ const s = StyleSheet.create({
   nav: { width: 36, height: 36, borderRadius: 10, backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   navTexte: { color: '#fff', fontSize: 22, marginTop: -2 },
   image: { width: '100%', height: 180, borderRadius: 12 },
-  badge: { color: '#fde68a', fontSize: 11, fontWeight: '700', borderColor: '#92400e', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  badge: { color: couleurs.ambre, fontSize: 11, fontWeight: '700', borderColor: '#92400e', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   etiquette: { color: couleurs.texte, fontSize: 11, fontWeight: '800', letterSpacing: 0.3 },
   francais: { color: '#fff', fontSize: 22, fontWeight: '800' },
   myene: { color: couleurs.ambre, fontSize: 24, fontWeight: '900' },
@@ -479,4 +479,4 @@ const s = StyleSheet.create({
   rappelTexte: { color: '#fff', fontSize: 12, lineHeight: 18 },
   rappelBouton: { backgroundColor: '#f59e0b', borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
   rappelBoutonTexte: { color: '#180d07', fontWeight: '900', fontSize: 12 },
-});
+}));

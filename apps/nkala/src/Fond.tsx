@@ -1,5 +1,5 @@
 import { Image, Platform, StyleSheet, Text, View, useWindowDimensions, type ViewStyle } from 'react-native';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 /** Largeur au-delà de laquelle l'application passe en mise en page « grand écran » (navigateur, tablette). */
 export const LARGE = 900;
@@ -41,9 +41,9 @@ export const Marque = ({ taille = 40 }: { taille?: number }) => (
   </View>
 );
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   cadre: { backgroundColor: '#fff', padding: 3, borderWidth: 2, borderColor: couleurs.ambre, overflow: 'hidden' },
   marque: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nom: { color: couleurs.texteClair, fontSize: 18, fontWeight: '900', letterSpacing: 1 },
   essaka: { color: '#fff', backgroundColor: couleurs.terre, fontSize: 10, fontWeight: '800', overflow: 'hidden', borderRadius: 4 },
-});
+}));

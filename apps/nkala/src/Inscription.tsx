@@ -6,7 +6,7 @@ import {
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { ConditionsModale } from './Conditions';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 import { Logo, fond } from './Fond';
 
 const NP = JE_NE_SAIS_PAS;
@@ -228,7 +228,7 @@ const Ligne = ({ texte, v, set }: { texte: string; v: boolean; set: (b: boolean)
   <View style={s.ligne}><Text style={[s.texte, { flex: 1 }]}>{texte}</Text><Switch value={v} onValueChange={set} trackColor={{ true: couleurs.terre }} /></View>
 );
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   page: { padding: 16, gap: 14, paddingBottom: 48, maxWidth: 560, width: '100%', alignSelf: 'center' },
   sur: { color: couleurs.ambre, textAlign: 'center', fontSize: 11, fontWeight: '800', marginTop: 24 },
   marque: { color: couleurs.texteClair, fontSize: 24, fontWeight: '900', textAlign: 'center' },
@@ -249,4 +249,4 @@ const s = StyleSheet.create({
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 14, textAlign: 'center', flexShrink: 1 },
   erreur: { color: '#fca5a5', fontSize: 13 },
   lien: { color: couleurs.ambre, textAlign: 'center', fontSize: 12, fontWeight: '700' },
-});
+}));

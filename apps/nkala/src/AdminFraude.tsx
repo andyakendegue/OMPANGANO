@@ -5,7 +5,7 @@ import {
   type AccountStatus, type Badge, type ProfilSuspect, type UserProfile,
 } from '@nkala/noyau';
 import { Moderation } from './Admin';
-import { couleurs } from './theme';
+import { couleursSombres as couleurs } from './theme';
 
 const avertir = (t: string, m: string) => (Platform.OS === 'web' ? (globalThis as any).alert?.(`${t}\n${m}`) : Alert.alert(t, m));
 

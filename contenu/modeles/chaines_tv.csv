@@ -1,2 +1,2 @@
-﻿id,nom,flux_url,description,guide,image,niveau_acces,ordre,publie
-ntina-01,,,,,,libre,1,oui
+﻿id,nom,flux_url,description,guide,image,niveau_acces,rang_min,plans,ordre,publie
+ntina-01,,,,,,libre,1,,1,oui

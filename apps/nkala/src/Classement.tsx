@@ -4,7 +4,7 @@ import { chargerClassement, niveauPourXp, USER_LEVELS, type LigneClassement } fr
 import { useAuth } from './AuthProvider';
 import { useVersionDonnees } from './donnees';
 import { MesBadges } from './Recompenses';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 if (Platform.OS === 'android') UIManager.setLayoutAnimationEnabledExperimental?.(true);
 
@@ -146,7 +146,7 @@ export function Classement() {
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   entete: { backgroundColor: couleurs.carte, borderColor: couleurs.ambre, borderWidth: 1, borderRadius: 16, padding: 14, gap: 4 },
   niv: { color: '#451a03', backgroundColor: couleurs.ambre, alignSelf: 'flex-start', fontWeight: '900', fontSize: 11, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, overflow: 'hidden' },
   nomJoueur: { color: '#fff', fontSize: 18, fontWeight: '800' },
@@ -176,4 +176,4 @@ const s = StyleSheet.create({
   puceTexte: { color: couleurs.texte, fontSize: 12, fontWeight: '600' },
   lien: { color: couleurs.ambre, textAlign: 'center', fontSize: 13, fontWeight: '600' },
   erreur: { color: '#fca5a5', fontSize: 13 },
-});
+}));

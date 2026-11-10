@@ -1,2 +1,2 @@
-﻿id,titre,auteur,type,langue,url,niveau_acces,image,publie
-ntina-01,,,,,,libre,,oui
+﻿id,titre,auteur,type,langue,url,resume,categorie,annee,cycle,couleur,source,ordre,niveau_acces,rang_min,plans,image,publie
+ntina-01,,,,,,,conte,,,#B84A28,,1,libre,1,,,oui

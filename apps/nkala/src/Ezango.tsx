@@ -12,7 +12,7 @@ import {
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { useVersionDonnees } from './donnees';
-import { couleurs } from './theme';
+import { couleurs, stylesDyn } from './theme';
 
 const PAGE = 40; // même taille de page que le site web
 
@@ -218,13 +218,13 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
   );
 }
 
-const s = StyleSheet.create({
+const s = stylesDyn(() => ({
   titre: { color: couleurs.texteClair, fontSize: 20, fontWeight: '900' },
   titreP: { color: couleurs.texteClair, fontSize: 14, fontWeight: '800' },
   texte: { color: couleurs.texte, fontSize: 13, lineHeight: 19 },
   discret: { color: couleurs.discret, fontSize: 12 },
   etiquette: { color: couleurs.ambre, fontSize: 12, fontWeight: '800' },
-  motto: { color: '#fde68a', fontSize: 13, fontStyle: 'italic' },
+  motto: { color: couleurs.ambre, fontSize: 13, fontStyle: 'italic' },
   ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   champ: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 12, color: couleurs.texteClair, padding: 12, fontSize: 15 },
   puce: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1 },
@@ -233,12 +233,12 @@ const s = StyleSheet.create({
   actif: { color: '#fff', fontWeight: '800' },
   carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
   image: { width: '100%', height: 150, borderRadius: 12 },
-  badge: { color: '#fed7aa', fontSize: 11, fontWeight: '800', borderColor: couleurs.bord, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
+  badge: { color: couleurs.ambre, fontSize: 11, fontWeight: '800', borderColor: couleurs.bord, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
   badgeOr: { backgroundColor: couleurs.ambre, color: '#180d07', borderColor: couleurs.ambre },
   francais: { color: '#fff', fontSize: 17, fontWeight: '800' },
   myene: { color: couleurs.ambre, fontSize: 20, fontWeight: '900' },
   pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  variante: { color: '#fde68a', fontSize: 12 },
+  variante: { color: couleurs.ambre, fontSize: 12 },
   nuance: { color: '#a7f3d0', fontSize: 12 },
   petit: { borderColor: couleurs.bord, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
   petitActif: { backgroundColor: couleurs.ambre, borderColor: couleurs.ambre },
@@ -247,4 +247,4 @@ const s = StyleSheet.create({
   bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 14 },
   lien: { color: couleurs.ambre, fontSize: 12, fontWeight: '700' },
-});
+}));

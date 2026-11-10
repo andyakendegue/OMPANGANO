@@ -35,3 +35,35 @@ test('dossier : indexe, ne réindexe que le modifié, oublie le retiré, aliment
     assert.equal((await db.query<any>(`SELECT count(*)::int AS n FROM ia_documents`))[0].n, 1);
   } finally { await rm(dir, { recursive: true, force: true }); await db.close(); }
 });
+
+import { importerLivres, metaDepuisNom } from '../src/livres.ts';
+import { decouperChapitres, quizLecture } from '../../../packages/noyau/src/lecture.ts';
+
+test('bibliothèque : import d\'un livre déposé, chapitres détectés, fiche conservée à la réimportation, quiz à trous', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'bib-'));
+  const db = await createPgliteDb(); await runMigrations(db);
+  try {
+    const para = 'La pirogue glissait doucement sur la lagune pendant que les pêcheurs chantaient leurs vieilles chansons. '.repeat(6);
+    await mkdir(path.join(dir, 'conte'));
+    await writeFile(path.join(dir, 'conte', 'Anonyme - Le grand voyage.txt'), `Chapitre I\n\n${para}\n\nChapitre II\n\n${para}\n\nChapitre III\n\n${para}`);
+    assert.deepEqual(metaDepuisNom('conte/Anonyme - Le grand voyage.txt'), { auteur: 'Anonyme', titre: 'Le grand voyage', categorie: 'conte' });
+    const env = { BIBLIOTHEQUE_DIR: dir, BIBLIOTHEQUE_RAG: 'non' } as any;
+    let r = await importerLivres(db, null, env);
+    assert.equal(r.ajoutes, 1); assert.equal(r.chapitres, 3); assert.deepEqual(r.erreurs, []);
+    await db.query(`UPDATE contenus SET data = data || '{"resume":"Mon résumé"}'::jsonb WHERE collection = 'bibliotheque'`);
+    r = await importerLivres(db, null, env);
+    assert.equal(r.inchanges, 1);
+    await writeFile(path.join(dir, 'conte', 'Anonyme - Le grand voyage.txt'), `Chapitre I\n\n${para}\n\nChapitre II\n\n${para}`);
+    r = await importerLivres(db, null, env);
+    assert.equal(r.modifies, 1); assert.equal(r.chapitres, 2);
+    const fiche = (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'bibliotheque'`))[0].data;
+    assert.equal(fiche.resume, 'Mon résumé'); assert.equal(fiche.nb_chapitres, 2);
+    assert.equal((await db.query<any>(`SELECT count(*)::int AS n FROM contenus WHERE collection = 'livre_chapitres'`))[0].n, 2);
+  } finally { await rm(dir, { recursive: true, force: true }); await db.close(); }
+
+  assert.equal(decouperChapitres('x'.repeat(40) + '\n\n' + 'Une phrase assez longue pour remplir. '.repeat(400)).length > 2, true);
+  const texte = 'Le charpentier marchait lentement vers la forêt avant le lever du soleil sur la lagune. Les enfants ramassaient les copeaux de bois dans de grands paniers tressés. La pirogue flottait sans bruit, droite et fière, devant tout le village rassemblé. Chaque soir, il passait sa paume sur la coque pour sentir les défauts invisibles du bois.';
+  const q = quizLecture(texte, 3);
+  assert.ok(q.length >= 2); for (const x of q) { assert.equal(x.options.length, 4); assert.equal(x.options[x.bonne].toLowerCase(), x.mot.toLowerCase()); assert.match(x.enonce, /_____/); }
+  assert.deepEqual(quizLecture(texte, 3), q, 'déterministe');
+});

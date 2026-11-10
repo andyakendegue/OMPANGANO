@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { chargerStatsModeration, type StatsModeration } from '@nkala/noyau';
-import { couleurs } from './theme';
+import { couleursSombres as couleurs } from './theme';
 
 const LIBELLES: [string, string][] = [
   ['approved', '100 % validés'], ['audio_approved_text_revision', 'Voix bonne, écrit à corriger'],

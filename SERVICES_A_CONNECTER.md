@@ -117,3 +117,9 @@ Chaque branchement a une variable ; vide = simulation (rien ne casse). Liste com
 - **coturn** installé (`/opt/coturn`, ports 3478 et 49160-49260 UDP). À ouvrir chez l'hébergeur s'il y a un pare-feu.
 - **AzuraCast** : proxy prêt dans `server/proxies/azuracast-proxy` ; reste à créer le pod RunPod et renseigner `AZURACAST_ORIGINE`, puis `AZURACAST_URL`, `AZURACAST_API_URL`, `AZURACAST_API_KEY` dans le `.env` de l'API.
 - Connexion : Google et SMS uniquement (e-mail retiré de l'application).
+
+## Bibliothèque d'Onenji (10 novembre, soir)
+- Déposez vos livres libres de droits dans `/opt/bibliotheque` (txt, md, epub, pdf avec texte, docx, html). Nom conseillé : `Auteur - Titre.epub` ; un sous-dossier = un rayon (`conte/`, `roman/`…).
+- Import chaque nuit à 03 h 30 (`/etc/cron.d/ompangano-bibliotheque`) et à la demande : console > IA, régie > « Bibliothèque ». Chaque livre est découpé en chapitres, publié dans Onenji, et donné au RAG (`BIBLIOTHEQUE_RAG=non` pour l'éviter).
+- La fiche (résumé, couverture, couleur, rang, formule) se complète dans la console (Contenus > Bibliothèque) ; elle est conservée aux réimportations.
+- Qdrant tourne (`/opt/vector`) et l'API l'utilise (`VECTOR_URL`). Identifiant de projet EAS : `62614108-005b-4d65-809d-030abe13f67f` (dans `app.json`).
