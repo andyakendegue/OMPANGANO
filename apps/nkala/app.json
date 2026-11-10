@@ -49,9 +49,10 @@
         {
           "backgroundColor": "#170D08",
           "image": "./assets/splash-icon.png",
-          "imageWidth": 200
+          "imageWidth": 240
         }
-      ]
+      ],
+      "./plugins/sans-push-ios.js"
     ],
     "experiments": {
       "typedRoutes": true
