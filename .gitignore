@@ -7,3 +7,6 @@ coverage/
 .env*
 !.env.example
 !.env.production
+
+# Base de démonstration locale (PGlite)
+server/.demo-data/

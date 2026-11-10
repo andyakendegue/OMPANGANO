@@ -48,6 +48,9 @@ await db.query(`INSERT INTO ia_documents (id, titre, source, texte) VALUES ('dem
 const { indexerDocument, configIa, fournisseurEmbeddingParDefaut } = await import('./ia.ts');
 await indexerDocument(db, fournisseurEmbeddingParDefaut(), 'demo-doc', await configIa(db));
 
+// Compte administrateur de démonstration déjà inscrit (sans passer par le long formulaire de filiation)
+await db.query(`INSERT INTO users (id, role, data) VALUES ('tel_24100000001','user',$1) ON CONFLICT (id) DO NOTHING`, [JSON.stringify({ displayName: 'Admin démo', fullName: 'Admin démo', birthDate: '1985-01-01', registrationCompleted: true, termsAccepted: true, dataUsageAccepted: true, phone: '+24100000001', tribe: 'Ôrungu' })]);
+
 const verify = async () => { throw new Error('Firebase désactivé en démonstration : connexion par SMS'); };
 const app = await buildApp({ db, verify, storage, corsOrigins: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8081', 'http://localhost:19006'], logger: false, sessionSecret: 'demo-secret-nkala-0123456789abcdef' });
 await app.listen({ port: Number(process.env.PORT || 3001), host: '0.0.0.0' });
