@@ -13,7 +13,7 @@ import { Certificat, ControleUnite, FinLecon, LeconRunner } from './OnenjiLecon'
 import { usePile } from './Pile';
 import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
-import { EmplacementPub, useSansPublicite } from './Pub';
+import { EmplacementPub, FilAvecPubs, useSansPublicite } from './Pub';
 import { useContenus } from './useContenu';
 import { Verrou } from './Verrou';
 
@@ -203,10 +203,10 @@ function Artisans({ D, pile }: { D: Donnees; pile: Pile }) {
       <EmplacementPub zone="bandeau_apprendre" />
       {metiers.length > 0 && <Rangee>{[<Puce key="t" label="Tous" actif={!metier} onPress={() => setMetier(null)} />, ...metiers.map(m => <Puce key={m} label={m} actif={metier === m} onPress={() => setMetier(m)} />)]}</Rangee>}
       {liste.length === 0 ? <EtatVide mascotte titre="Bientôt des cours" texte="Les artisans préparent leurs premiers cours." /> :
-        liste.map(k => <Carte key={k.id} onPress={() => pile.pousser({ t: 'cours', id: k.id })} label={k.titre}>
+        <FilAvecPubs items={liste} zone="bandeau_apprendre" cle={k => k.id} rendu={k => <Carte onPress={() => pile.pousser({ t: 'cours', id: k.id })} label={k.titre}>
           <Visuel uri={k.image} hauteur={150} largeur="100%" rayon={0} icone="video" />
           <View style={{ padding: 14, gap: 4 }}><View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}><T v="carte" style={{ flex: 1 }}>{k.titre}</T>{k.niveau_acces && k.niveau_acces !== 'libre' && <Ic nom="verrou" taille={16} />}</View><T v="petit">{k.artisan}{k.metier ? ` · ${k.metier}` : ''}{num(k.duree_min) ? ` · ${k.duree_min} min` : ''}</T></View>
-        </Carte>)}
+        </Carte>} />}
     </Ecran>
   );
 }
@@ -221,9 +221,9 @@ function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
       <Visuel uri={k.image} hauteur={180} largeur="100%" icone="video" />
       <T v="corps">{k.description}</T>
       <Verrou contenu={{ id, acces: ((k.niveau_acces as NiveauAcces) || 'libre'), roles: ['admin', 'validator'] }}>
-        <Bouton label={k.video_url ? 'Regarder le cours' : 'Vidéo bientôt disponible'} icone="lecture" desactive={!k.video_url} onPress={() => pile.pousser({ t: 'video', id })} />
+        <Bouton label={k.video_url || k.protege ? 'Regarder le cours' : 'Vidéo bientôt disponible'} icone="lecture" desactive={!k.video_url && !k.protege} onPress={() => pile.pousser({ t: 'video', id })} />
         {chapitres.length > 0 && <><SectionTitre titre="Chapitres" />{chapitres.map(ch => (
-          <Carte key={ch.id} plat onPress={() => k.video_url && pile.pousser({ t: 'video', id, debut: num(ch.debut_s) })} label={ch.titre}><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><T v="carte" style={{ width: 28 }}>{num(ch.ordre)}</T><T v="corps" style={{ flex: 1 }} fort>{ch.titre}</T><T v="petit">{Math.floor(num(ch.debut_s) / 60)}:{String(num(ch.debut_s) % 60).padStart(2, '0')}</T></View></Carte>
+          <Carte key={ch.id} plat onPress={() => (k.video_url || k.protege) && pile.pousser({ t: 'video', id, debut: num(ch.debut_s) })} label={ch.titre}><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><T v="carte" style={{ width: 28 }}>{num(ch.ordre)}</T><T v="corps" style={{ flex: 1 }} fort>{ch.titre}</T><T v="petit">{Math.floor(num(ch.debut_s) / 60)}:{String(num(ch.debut_s) % 60).padStart(2, '0')}</T></View></Carte>
         ))}</>}
       </Verrou>
     </Ecran>
@@ -244,7 +244,7 @@ function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: D
   useEffect(() => {
     (async () => {
       try {
-        if (profil && protege) { const a = await verifierAcces('cours_artisans', id); if (!a.autorise) { setRefus(a.motif ?? 'refus'); return; } const l = await demanderLicence('cours_artisans', id); setFiligrane(l.filigrane); }
+        if (profil && protege) { const a = await verifierAcces('cours_artisans', id); if (!a.autorise) { setRefus(a.motif ?? 'refus'); return; } const l = await demanderLicence('cours_artisans', id); setFiligrane(l.filigrane); if (l.urlHls) { setSource(l.urlHls); return; } }
         setSource(/^https?:\/\//.test(k.video_url) ? k.video_url : await resoudreMedia(k.video_url));
       } catch { setRefus('indisponible'); }
     })();

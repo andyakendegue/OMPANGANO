@@ -44,3 +44,24 @@ Tout le code de l'application et de l'administration est écrit et testé **sans
 ## 10. Production
 - `SESSION_SECRET` obligatoire. Build iOS et Android (`eas build`), fiches des magasins, politique de confidentialité (mentionner Twilio, le modèle de langage, la régie), déclaration APDPVP.
 - **Salle des paris** : fermée, aucun code d'ouverture. Dossier de cinq pièces d'abord (`NKALA_AUDIT_COMPLET.md` §4.6).
+
+
+## Mise à jour du 10 nov. 2026 (soir) : tout est piloté par le fichier `server/.env`
+Chaque branchement a une variable ; vide = simulation (rien ne casse). Liste complète et commentée : `server/.env.example`. L'état de chaque branchement est lisible dans la console (Supervision > Branchements, Assistant IA, Régie pub, Notifications).
+
+| Service | Variables | Simulation quand vide | Reste à faire |
+|---|---|---|---|
+| SMS | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SID` ; `SMS_FOURNISSEUR=simulation` (code 000000, hors production) | oui | Créer le service Verify ; tester un numéro gabonais |
+| Administrateurs | `ADMIN_TELEPHONES=+241…` (numéros séparés par des virgules) | — | Mettre votre numéro |
+| Assistant | `IA_FOURNISSEUR` (anthropic, runpod, openai), `ANTHROPIC_API_KEY`, `RUNPOD_API_KEY` + `RUNPOD_LLM_ENDPOINT` (serverless vLLM) ou `RUNPOD_LLM_URL` (pod), `IA_MODELE`, `IA_BASE_URL`, `IA_API_KEY` | oui | Créer l'endpoint RunPod ; choisir le modèle |
+| Embeddings (RAG) | `EMBEDDING_FOURNISSEUR`, `RUNPOD_EMBED_ENDPOINT` ou `RUNPOD_EMBED_URL`, `EMBEDDING_MODELE`, `EMBEDDING_BASE_URL`, `EMBEDDING_API_KEY` | oui (vecteurs de 128 dimensions simulés) | Déployer un modèle d'embeddings (par ex. BGE-M3) sur RunPod, puis **réindexer** les documents |
+| Gestion RunPod | `RUNPOD_API_KEY`, `RUNPOD_REST_URL` | oui (pods fictifs) | Vérifier les routes REST avec votre compte (`server/api/src/runpod.ts`, une seule fonction `appel`) |
+| Régie | `REVIVE_URL`, `REVIVE_USER`, `REVIVE_PASSWORD` | oui (régie interne seule) | Installer Revive : `server/regie/README.md` (Docker absent du Mac : à faire sur le VPS) |
+| Notifications | `PUSH_FOURNISSEUR`, `EXPO_ACCESS_TOKEN` | `simulation` | Projet EAS (`eas init`) pour obtenir des jetons ; APNs pour iOS |
+| Achats | `ACHATS_FOURNISSEUR=simulation` ; `APPLE_*`, `GOOGLE_*` | oui | Écrire la vérification des reçus (`server/api/src/achats.ts`, `verifierRecu`) ; module d'achats natif (`react-native-iap` ou RevenueCat) dans une version de développement |
+| Médias chiffrés | `SESSION_SECRET` (clé dérivée), `PUBLIC_API_URL` | — | Conditionner chaque média : `scripts/chiffrer_media.ts` ; colonne `protege = oui` |
+| Relais d'appels | `TURN_URLS`, `TURN_SECRET`, `STUN_URLS` | STUN public | coturn sur le VPS ; `react-native-webrtc` |
+
+**Déployé le 10 nov. 2026** sur `essaka-llm` (migrations 006 et 007 appliquées, sauvegarde `backups/db-avant-nkala-20261110-063950.sql.gz` et `backups/server-avant-nkala-20261110-063950`). `SESSION_SECRET` et `MODULES_ACTIFS` ajoutés au `.env` du VPS. Retour arrière : restaurer `backups/server-avant-nkala-…` et relancer `docker compose up -d --build --no-deps api` (les nouvelles tables restent, sans effet).
+
+**Lancer en démonstration** : `./lancer.sh` (API locale + application web) ou `./lancer.sh ios`. Connexion : numéro libre et code `000000` ; administrateur : `+24100000001`.

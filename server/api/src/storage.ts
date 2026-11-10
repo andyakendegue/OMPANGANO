@@ -10,6 +10,8 @@ export interface MediaStorage {
   /** Envoi direct côté serveur (script de migration). */
   put(path: string, body: Uint8Array, contentType: string): Promise<void>;
   exists(path: string): Promise<boolean>;
+  /** Lecture côté serveur d'un petit objet (liste de lecture HLS). */
+  get?(path: string): Promise<Uint8Array | null>;
 }
 
 export function createS3Storage(cfg: Config['s3']): MediaStorage {
@@ -26,6 +28,12 @@ export function createS3Storage(cfg: Config['s3']): MediaStorage {
     presignGet: (path, ttl) => getSignedUrl(signer, new GetObjectCommand({ Bucket: cfg.bucket, Key: path }), { expiresIn: ttl }),
     remove: async (path) => { await internal.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: path })); },
     put: async (path, body, contentType) => { await internal.send(new PutObjectCommand({ Bucket: cfg.bucket, Key: path, Body: body, ContentType: contentType })); },
+    get: async (path) => {
+      try {
+        const r = await internal.send(new GetObjectCommand({ Bucket: cfg.bucket, Key: path }));
+        return r.Body ? await r.Body.transformToByteArray() : null;
+      } catch { return null; }
+    },
     exists: async (path) => {
       try {
         const { HeadObjectCommand } = await import('@aws-sdk/client-s3');

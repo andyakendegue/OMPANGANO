@@ -9,7 +9,8 @@
     "migrate": "tsx api/src/migrate.ts",
     "lint": "tsc --noEmit",
     "test": "tsx --test api/test/*.test.ts",
-    "migrate-from-firebase": "tsx scripts/migrate-from-firebase.ts"
+    "migrate-from-firebase": "tsx scripts/migrate-from-firebase.ts",
+    "demo": "tsx api/src/demo.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",

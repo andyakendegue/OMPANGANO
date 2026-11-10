@@ -15,12 +15,12 @@ import { usePrefs, useTheme } from './Prefs';
 import { degrades, polices } from './theme';
 
 // ------------------------------------------------------------------ état global
-const Ctx = createContext<{ plus: boolean; ouvrirPlus: () => void; fermerPlus: () => void; lecteurPlein: boolean; ouvrirLecteur: () => void; fermerLecteur: () => void }>(
-  { plus: false, ouvrirPlus() {}, fermerPlus() {}, lecteurPlein: false, ouvrirLecteur() {}, fermerLecteur() {} });
+const Ctx = createContext<{ plus: boolean; ouvrirPlus: () => void; fermerPlus: () => void; lecteurPlein: boolean; ouvrirLecteur: () => void; fermerLecteur: () => void; boutique: boolean; ouvrirBoutique: () => void; fermerBoutique: () => void }>(
+  { plus: false, ouvrirPlus() {}, fermerPlus() {}, lecteurPlein: false, ouvrirLecteur() {}, fermerLecteur() {}, boutique: false, ouvrirBoutique() {}, fermerBoutique() {} });
 export const useGlobale = () => useContext(Ctx);
 export function GlobaleProvider({ children }: { children: React.ReactNode }) {
-  const [plus, setPlus] = useState(false), [lecteurPlein, setLecteur] = useState(false);
-  const v = useMemo(() => ({ plus, ouvrirPlus: () => setPlus(true), fermerPlus: () => setPlus(false), lecteurPlein, ouvrirLecteur: () => setLecteur(true), fermerLecteur: () => setLecteur(false) }), [plus, lecteurPlein]);
+  const [plus, setPlus] = useState(false), [lecteurPlein, setLecteur] = useState(false), [boutique, setBoutique] = useState(false);
+  const v = useMemo(() => ({ plus, ouvrirPlus: () => setPlus(true), fermerPlus: () => setPlus(false), lecteurPlein, ouvrirLecteur: () => setLecteur(true), fermerLecteur: () => setLecteur(false), boutique, ouvrirBoutique: () => setBoutique(true), fermerBoutique: () => setBoutique(false) }), [plus, lecteurPlein, boutique]);
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }
 
@@ -77,7 +77,7 @@ function MiniLecteur({ onOuvrir }: { onOuvrir: () => void }) {
 
 // ------------------------------------------------------------------ menu « Plus »
 export function MenuPlus() {
-  const { plus, fermerPlus } = useGlobale();
+  const { plus, fermerPlus, ouvrirBoutique } = useGlobale();
   const { profil, deconnexion, invite } = useAuth();
   const { c } = useTheme();
   const routeur = useRouter();
@@ -85,6 +85,7 @@ export function MenuPlus() {
   const evt = (nom: 'guide' | 'faq' | 'alertes' | 'horsligne') => { fermerPlus(); setTimeout(() => emettre(nom), 120); };
   const items: { icone: string; label: string; sous?: string; action: () => void }[] = [
     { icone: 'micro', label: 'Contribuer', sous: 'Enregistrer, valider, classement', action: () => aller('/contribuer') },
+    { icone: 'couronne', label: 'Nkala Plus et achats', sous: 'Abonnement sans publicité', action: () => { fermerPlus(); setTimeout(ouvrirBoutique, 120); } },
     { icone: 'flamme', label: 'Ma série', sous: 'Calendrier et record', action: () => aller('/serie') },
     { icone: 'profil', label: 'Mon profil', sous: 'Rang, XP, anneaux par module', action: () => aller('/profil') },
     { icone: 'cloche', label: 'Notifications', action: () => evt('alertes') },

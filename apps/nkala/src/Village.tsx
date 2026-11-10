@@ -10,7 +10,8 @@ import { useAuth } from './AuthProvider';
 import { Bouton, Carte, Champ, Chargement, Ecran, Entete, EtatVide, Ic, Pastille, Puce, Rangee, SectionTitre, T, Visuel, useToast } from './kit';
 import { usePile } from './Pile';
 import { useTheme } from './Prefs';
-import { EmplacementPub } from './Pub';
+import { EmplacementPub, FilAvecPubs } from './Pub';
+import { programmerAlerteGarde } from './Notifications';
 import { useContenus } from './useContenu';
 import { Verrou } from './Verrou';
 
@@ -127,7 +128,7 @@ function Resultats({ q, cat, D, pile, P }: Ctx & { q: string; cat?: string }) {
       <Entete titre={q || D.cats.find(k => k.id === c0)?.titre || 'Résultats'} sous={`${liste.length} résultat${liste.length > 1 ? 's' : ''}`} retour={pile.retour} />
       <Rangee><Puce label="Ouvert maintenant" actif={ouvert} onPress={() => setOuvert(!ouvert)} /><Puce label={P.pos ? 'Près de moi ✓' : 'Près de moi'} icone="itineraire" actif={!!P.pos} onPress={P.localiser} /><Puce label="Carte" icone="carte" onPress={() => pile.pousser({ t: 'carte', cat: c0 })} />{D.cats.map(k => <Puce key={k.id} label={k.titre} actif={c0 === k.id} onPress={() => setC0(c0 === k.id ? undefined : k.id)} />)}</Rangee>
       {liste.length === 0 ? <EtatVide icone="chercher" titre="Aucun résultat" texte="Essaie un autre mot, ou ajoute ce lieu pour aider les autres." action="Ajouter un lieu" onAction={() => Linking.openURL('mailto:contact@essaka.engineering?subject=Ajouter%20un%20lieu%20Nkala').catch(() => {})} /> :
-        liste.map(l => <CarteLieu key={l.id} l={l} cat={D.cats.find(k => k.id === l.categorie_id)} pos={P.pos} onPress={() => pile.pousser({ t: 'lieu', id: l.id })} />)}
+        <FilAvecPubs items={liste} zone="carte_partenaire" cle={l => l.id} rendu={l => <CarteLieu l={l} cat={D.cats.find(k => k.id === l.categorie_id)} pos={P.pos} onPress={() => pile.pousser({ t: 'lieu', id: l.id })} />} />}
     </Ecran>
   );
 }
@@ -190,7 +191,7 @@ function Garde({ D, pile, P }: Ctx) {
   return (
     <Ecran bas={90}>
       <Entete titre="Pharmacies de garde" sous={new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} retour={pile.retour} />
-      <Carte plat onPress={() => { const n = !alerte; setAlerte(n); AsyncStorage.setItem('nkala_garde_alerte', n ? '1' : '0').catch(() => {}); }} label="Alerte pharmacie de garde"><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ic nom="cloche" taille={22} couleur={alerte ? c.accent : c.discret} /><View style={{ flex: 1 }}><T v="carte">Prévenez-moi chaque semaine</T><T v="petit">{alerte ? 'Alerte activée' : 'Alerte désactivée'}</T></View></View></Carte>
+      <Carte plat onPress={() => { const n = !alerte; setAlerte(n); programmerAlerteGarde(n); }} label="Alerte pharmacie de garde"><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ic nom="cloche" taille={22} couleur={alerte ? c.accent : c.discret} /><View style={{ flex: 1 }}><T v="carte">Prévenez-moi chaque semaine</T><T v="petit">{alerte ? 'Alerte activée' : 'Alerte désactivée'}</T></View></View></Carte>
       {liste.length === 0 ? <EtatVide icone="croix" titre="Pas de garde publiée" texte="Le planning n'est pas encore à jour. Appelez la pharmacie la plus proche." /> : liste.map(l => <CarteLieu key={l.id} l={l} cat={D.cats.find(k => k.id === 'pharmacie')} pos={P.pos} onPress={() => pile.pousser({ t: 'lieu', id: l.id })} />)}
     </Ecran>
   );
@@ -209,7 +210,7 @@ function Annonces({ D, pile }: Ctx) {
       <Bouton label="Publier une annonce" icone="ajouter" variante="ambre" onPress={() => pile.pousser({ t: 'publier' })} />
       <EmplacementPub zone="annonce_dans_liste" />
       {err ? <EtatVide icone="alerte" titre="Annonces indisponibles" texte="Réessaie quand tu auras du réseau." /> : !liste ? <Chargement lignes={2} /> : liste.length === 0 ? <EtatVide icone="etiquette" titre="Aucune annonce ici" texte="Sois le premier à publier." /> :
-        liste.map(a => <Carte key={a.id} onPress={() => pile.pousser({ t: 'annonce', a })} label={a.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{a.titre}</T>{num(a.prix) > 0 && <T v="sousTitre" couleur={c.accent}>{num(a.prix).toLocaleString('fr-FR')} FCFA</T>}<T v="petit">{[a.ville, a.auteur].filter(Boolean).join(' · ')}</T></View></Carte>)}
+        <FilAvecPubs items={liste} zone="annonce_dans_liste" cle={a => a.id} rendu={a => <Carte onPress={() => pile.pousser({ t: 'annonce', a })} label={a.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{a.titre}</T>{num(a.prix) > 0 && <T v="sousTitre" couleur={c.accent}>{num(a.prix).toLocaleString('fr-FR')} FCFA</T>}<T v="petit">{[a.ville, a.auteur].filter(Boolean).join(' · ')}</T></View></Carte>} />}
     </>
   );
 }
@@ -263,8 +264,8 @@ function Actus({ D, pile }: Ctx) {
   return (
     <>
       <EmplacementPub zone="annonce_en_tete" />
-      {l.length === 0 ? <EtatVide icone="magazine" titre="Pas encore d'actualité" /> : l.map(a => (
-        <Carte key={a.id} onPress={() => pile.pousser({ t: 'actu', id: a.id })} accent={a.categorie === 'alerte' ? '#EF4444' : undefined} label={a.titre}><View style={{ padding: 14, gap: 6 }}>{a.categorie === 'alerte' && <Pastille label="ALERTE" couleur="#FDFAF7" fond="#B91C1C" />}<T v="carte">{a.titre}</T><T v="petit">{a.resume}</T><T v="petit" couleur={c.discret}>{a.date}{a.source ? ` · ${a.source}` : ''}</T></View></Carte>))}
+      {l.length === 0 ? <EtatVide icone="magazine" titre="Pas encore d'actualité" /> : <FilAvecPubs items={l} zone="annonce_dans_liste" cle={a => a.id} rendu={a => (
+        <Carte onPress={() => pile.pousser({ t: 'actu', id: a.id })} accent={a.categorie === 'alerte' ? '#EF4444' : undefined} label={a.titre}><View style={{ padding: 14, gap: 6 }}>{a.categorie === 'alerte' && <Pastille label="ALERTE" couleur="#FDFAF7" fond="#B91C1C" />}<T v="carte">{a.titre}</T><T v="petit">{a.resume}</T><T v="petit" couleur={c.discret}>{a.date}{a.source ? ` · ${a.source}` : ''}</T></View></Carte>)} />}
     </>
   );
 }
@@ -274,7 +275,7 @@ function Magazine({ D, pile }: Ctx) {
   return (
     <>
       <Rangee><Puce label="Tout" actif={!rub} onPress={() => setRub(null)} />{rubs.map(r => <Puce key={r} label={r} actif={rub === r} onPress={() => setRub(r)} />)}</Rangee>
-      {D.mag.length === 0 ? <EtatVide icone="magazine" titre="Le magazine arrive" /> : D.mag.filter(m => !rub || m.rubrique === rub).map(m => <Carte key={m.id} onPress={() => pile.pousser({ t: 'article', id: m.id })} label={m.titre}><Visuel uri={m.image} hauteur={110} largeur="100%" rayon={0} icone="magazine" /><View style={{ padding: 14, gap: 4 }}><Pastille label={String(m.rubrique)} /><T v="carte">{m.titre}</T><T v="petit">{m.resume}</T></View></Carte>)}
+      {D.mag.length === 0 ? <EtatVide icone="magazine" titre="Le magazine arrive" /> : <FilAvecPubs items={D.mag.filter(m => !rub || m.rubrique === rub)} zone="annonce_dans_liste" cle={m => m.id} rendu={m => <Carte onPress={() => pile.pousser({ t: 'article', id: m.id })} label={m.titre}><Visuel uri={m.image} hauteur={110} largeur="100%" rayon={0} icone="magazine" /><View style={{ padding: 14, gap: 4 }}><Pastille label={String(m.rubrique)} /><T v="carte">{m.titre}</T><T v="petit">{m.resume}</T></View></Carte>} />}
     </>
   );
 }

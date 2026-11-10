@@ -8,7 +8,7 @@ import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { emettre } from './evenements';
 import { useGlobale } from './Globale';
-import { Anneau, Avatar, Bouton, BoutonIcone, Carte, Champ, Ecran, Entete, EtatVide, Flamme, Ic, Mascotte, Pastille, Puce, Rangee, SectionTitre, T, Barre, useToast, BandeauHorsLigne } from './kit';
+import { useConfirmer, Anneau, Avatar, Bouton, BoutonIcone, Carte, Champ, Ecran, Entete, EtatVide, Flamme, Ic, Mascotte, Pastille, Puce, Rangee, SectionTitre, T, Barre, useToast, BandeauHorsLigne } from './kit';
 import { Son } from './OnenjiLecon';
 import { usePrefs, useTheme, type NiveauAnim } from './Prefs';
 import { useProgres } from './Progres';
@@ -114,6 +114,7 @@ export function ReglagesEcran() {
   const routeur = useRouter();
   const { prefs, regler } = usePrefs();
   const { deconnexion, profil } = useAuth();
+  const [dialogue, confirmer] = useConfirmer();
   const Ligne = ({ titre, children }: { titre: string; children: React.ReactNode }) => <View style={{ gap: 8 }}><T v="libelle">{titre}</T><Rangee>{children}</Rangee></View>;
   return (
     <Ecran bas={100}>
@@ -125,7 +126,7 @@ export function ReglagesEcran() {
       <Ligne titre="Rappel doux">{[['18:00', '18 h'], ['19:00', '19 h'], ['20:00', '20 h'], [null, 'Aucun']].map(([v, l]) => <Puce key={String(l)} label={String(l)} actif={prefs.rappel === v} onPress={() => regler({ rappel: v as string | null })} />)}</Ligne>
       <Carte onPress={() => routeur.push('/parents' as never)} label="Espace parents"><View style={{ padding: 16, flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ic nom="parents" taille={22} couleur={c.accent} /><View style={{ flex: 1 }}><T v="carte">Espace parents</T><T v="petit">Temps de jeu et limites</T></View><Ic nom="suivant" taille={18} couleur={c.discret} /></View></Carte>
       <Bouton label="Hors ligne et synchronisation" icone="reseau" variante="fantome" onPress={() => emettre('horsligne')} />
-      <Bouton label={profil ? 'Me déconnecter' : 'Créer un compte ou me connecter'} variante="fantome" onPress={deconnexion} />
+      <Bouton label={profil ? 'Me déconnecter' : 'Créer un compte ou me connecter'} variante="fantome" onPress={() => (profil ? confirmer({ titre: 'Te déconnecter ?', texte: 'Tes contenus en attente d\'envoi restent sur ce téléphone. Tu pourras te reconnecter avec ton numéro.', action: 'Me déconnecter', onOk: deconnexion }) : deconnexion())} />{dialogue}
       <T v="petit" style={{ textAlign: 'center' }}>Nkala · Essaka Engineering</T>
     </Ecran>
   );

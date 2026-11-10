@@ -7,44 +7,18 @@ import { SignJWT } from 'jose';
 import { verifierQuota, estimerJetons, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
 import { peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
 import { zoneAffichable, profilAgeDepuis, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
-import { MYENE } from '../../../packages/noyau/src/lexique.ts';
+import { construireSysteme } from './ia.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import { modulesActuels } from './contenus.ts';
+import { baseApi } from './media.ts';
+import { creationsServables } from './regie.ts';
 
-// ================================================================== IA
-export interface FournisseurIa {
-  repondre(o: { systeme: string; messages: { role: 'user' | 'assistant'; content: string }[]; modele: string }): Promise<{ texte: string; usage: UsageJetons; modele: string; simule: boolean }>;
-}
-
-export function fournisseurIaParDefaut(env = process.env): FournisseurIa {
-  return {
-    async repondre({ systeme, messages, modele }) {
-      const cle = env.ANTHROPIC_API_KEY;
-      if (!cle) {
-        // Simulation : aucune clé n'est branchée (à faire à la fin) ; le comptage et les quotas fonctionnent quand même.
-        const q = messages[messages.length - 1]?.content ?? '';
-        const texte = 'Mbolo ! Je suis Ozangué. Le service d\'IA n\'est pas encore branché : cette réponse est un essai. Tu m\'as écrit : « ' + q.slice(0, 120) + ' ».';
-        return { texte, usage: { entree: estimerJetons(systeme + messages.map(m => m.content).join('')), sortie: estimerJetons(texte) }, modele: 'simulation', simule: true };
-      }
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'x-api-key': cle, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: modele, max_tokens: 700, system: systeme, messages })
-      });
-      if (!r.ok) throw new Error(`Service IA indisponible (${r.status})`);
-      const j: any = await r.json();
-      return { texte: (j.content ?? []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n'), usage: { entree: j.usage?.input_tokens ?? 0, sortie: j.usage?.output_tokens ?? 0, cache: j.usage?.cache_read_input_tokens ?? 0 }, modele: j.model ?? modele, simule: false };
-    }
-  };
-}
+// ================================================================== IA (fournisseurs, RAG et prompt : ia.ts)
+export type { FournisseurIa } from './ia.ts';
+export { fournisseurIaParDefaut } from './ia.ts';
 
 const QUOTA_DEFAUT: QuotaJetons = { parJour: 20_000, parMois: 300_000, parConversation: 8_000 };
-const LEXIQUE = Object.values(MYENE).map(m => `- ${m.mot} : ${m.sens}`).join('\n');
-const SYSTEME = `Tu es Ozangué (« la lumière »), l'assistant d'apprentissage de la langue myènè et de la culture ôrungu dans l'application Nkala. Réponds en français, avec chaleur et simplicité, en tutoyant.
-RÈGLE ABSOLUE : n'écris en myènè que les mots de la liste ci-dessous. Si un mot n'y est pas, dis que tu ne le connais pas encore et propose de demander à un locuteur : n'invente jamais un mot, une conjugaison ou une traduction.
-Mots vérifiés :\n${LEXIQUE}
-Reste bref (6 phrases au plus). Ne donne aucun conseil médical, juridique ou financier.`;
-const SYSTEME_ENFANT = `\nL'utilisateur est un enfant : phrases très courtes, mots simples, aucun sujet inquiétant, aucune question personnelle ; ramène la conversation vers la langue.`;
 
 async function consommation(q: Queryable, uid: string, conversation: string) {
   const r = await q.query<any>(
@@ -97,12 +71,12 @@ export function registerServices(ctx: Ctx) {
     const quota: QuotaJetons = { parJour: Math.floor(base.parJour * f), parMois: Math.floor(base.parMois * f), parConversation: Math.floor(base.parConversation * f) };
     const conv = str(conversationId) && /^[A-Za-z0-9_-]{6,60}$/.test(conversationId) ? conversationId : 'c_' + randomBytes(6).toString('hex');
     const msgs = [...(Array.isArray(historique) ? historique : []).filter(m => (m.role === 'user' || m.role === 'assistant') && str(m.content)).slice(-8).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 1500) })), { role: 'user' as const, content: message.trim() }];
-    const systeme = SYSTEME + (age === 'enfant' ? SYSTEME_ENFANT : '');
-    const estimation = estimerJetons(systeme + msgs.map(m => m.content).join('')) + 700;
+    const { systeme, cfg } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant' });
+    const estimation = estimerJetons(systeme + msgs.map(m => m.content).join('')) + cfg.maxTokens;
     const verdict = verifierQuota(quota, await consommation(db, a.auth.uid, conv), estimation);
     if (!verdict.ok) return fail(429, verdict.limite === 'conversation' ? 'Cette conversation est trop longue : commence-en une nouvelle.' : verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
     let rep;
-    try { rep = await ctx.ia.repondre({ systeme, messages: msgs, modele: env.IA_MODELE || 'claude-haiku-5-5' }); }
+    try { rep = await ctx.ia.repondre({ systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }); }
     catch (e) { return fail(502, 'Ozangué ne répond pas pour le moment. Réessaie dans un instant.'); }
     await db.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule]);
@@ -146,10 +120,9 @@ export function registerServices(ctx: Ctx) {
     if (!d.ok) return fail(402, 'Accès réservé : ' + d.motif);
     const filigrane = createHmac('sha256', secret).update(a.auth.uid).digest('hex').slice(0, 10);
     const jeton = await new SignJWT({ c: `${collection}/${id}`, fil: filigrane }).setProtectedHeader({ alg: 'HS256' }).setSubject(a.auth.uid).setIssuer('nkala-licence').setExpirationTime('10m').sign(new TextEncoder().encode(secret));
-    return { jeton, filigrane, expireDans: 600, avecPub: d.avecPub, protection: { niveau: 1, enregistrementEcranInterdit: true } };
+    const protege = c[0].data.protege === true;
+    return { jeton, filigrane, expireDans: 600, avecPub: d.avecPub, protection: { niveau: 1, enregistrementEcranInterdit: true, segmentsChiffres: protege }, urlHls: protege ? `${baseApi(req, env)}/media/hls/${collection}/${id}.m3u8?t=${encodeURIComponent(jeton)}` : null };
   });
-
-  app.post('/v1/achats/recu', async () => fail(501, 'Validation des reçus des magasins : à connecter (étape E2).'));
 
   app.get('/v1/admin/droits', async (req) => {
     await staff(req);
@@ -176,6 +149,13 @@ export function registerServices(ctx: Ctx) {
   });
 
   // ---------------------------------------------------------------- publicité (passerelle ; Revive viendra derrière)
+  const servables = async (zone: string) => {
+    const plafonds = await parametre<Record<string, number>>(db, 'pub_plafonds', {});
+    const r = await creationsServables(db, zone, new Date().toISOString().slice(0, 10));
+    return r.filter(x => { const p = Number(x.data.plafond_jour) || plafonds.parCreationJour || 0; const pc = Number(x.plafond_campagne) || 0; return (!p || x.vus < p) && (!pc || x.vus_campagne < pc); });
+  };
+  const versPub = (c: any, zone: string) => ({ id: c.id, zone, image: c.data.image ?? null, lien: c.data.lien ?? null, titre: c.data.titre ?? null, texte_alt: c.data.texte_alt, annonceur: c.data.annonceur ?? null, cta: c.data.cta ?? null, format: c.data.format ?? 'bandeau' });
+
   app.get('/v1/pub', async (req) => {
     const a = await acteur(req);
     const { zone, activite } = req.query as { zone?: string; activite?: string };
@@ -185,16 +165,22 @@ export function registerServices(ctx: Ctx) {
     const profil = await profilAge(a.auth.uid);
     const ok = zoneAffichable(zone as ZonePub, { active: !!fonctions.publicite, abonne: !!droits.abonneJusque && droits.abonneJusque > Date.now(), profil, enLigne: true, activiteEnCours: activite === '1' });
     if (!ok) return { pub: null };
-    const plafonds = await parametre<Record<string, number>>(db, 'pub_plafonds', {});
-    const aujourdhui = new Date().toISOString().slice(0, 10);
-    const r = await db.query<any>(
-      `SELECT c.id, c.data, (SELECT count(*) FROM pub_evenements e WHERE e.creation_id = c.id AND e.jour = current_date AND e.type = 'affichage')::int AS vus
-       FROM contenus c WHERE c.collection = 'pub_creations' AND c.publie AND c.deleted_at IS NULL AND c.data->>'zone' = $1
-         AND (c.data->>'debut' IS NULL OR c.data->>'debut' <= $2) AND (c.data->>'fin' IS NULL OR c.data->>'fin' >= $2)`, [zone, aujourdhui]);
-    const dispo = r.filter(x => { const p = Number(x.data.plafond_jour) || plafonds.parCreationJour || 0; return !p || x.vus < p; });
+    const dispo = await servables(zone);
     if (!dispo.length) return { pub: null };
-    const c = dispo[Math.floor(Math.random() * dispo.length)];
-    return { pub: { id: c.id, zone, image: c.data.image ?? null, lien: c.data.lien ?? null, titre: c.data.titre ?? null, texte_alt: c.data.texte_alt, annonceur: c.data.annonceur ?? null } };
+    return { pub: versPub(dispo[Math.floor(Math.random() * dispo.length)], zone) };
+  });
+
+  /** Fil : plusieurs créations différentes pour les glisser dans une liste (publication sponsorisée, mention « Publicité » côté application). */
+  app.get('/v1/pub/fil', async (req) => {
+    const a = await acteur(req);
+    const { zone, n } = req.query as { zone?: string; n?: string };
+    if (!str(zone) || !(zone in ZONES)) return fail(400, 'Zone inconnue.');
+    const { fonctions } = await modulesActuels(db, env);
+    const droits = await droitsDe(db, a.auth.uid, a.role);
+    const ok = zoneAffichable(zone as ZonePub, { active: !!fonctions.publicite, abonne: !!droits.abonneJusque && droits.abonneJusque > Date.now(), profil: await profilAge(a.auth.uid), enLigne: true, activiteEnCours: false });
+    if (!ok) return { pubs: [] };
+    const dispo = (await servables(zone)).sort(() => Math.random() - 0.5).slice(0, Math.min(6, Math.max(1, Number(n) || 3)));
+    return { pubs: dispo.map(c => versPub(c, zone)) };
   });
 
   app.post('/v1/pub/evenement', async (req, reply) => {

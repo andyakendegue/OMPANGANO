@@ -357,3 +357,16 @@ export function Visuel({ uri, couleur, taille, largeur, hauteur, rayon = 16, ico
 }
 
 export const rayonsKit = rayons;
+
+/** Confirmation d'une action destructive (écran 97) : `const [dialogue, confirmer] = useConfirmer();` puis `confirmer({ titre, texte, action, onOk })` et `{dialogue}` dans le rendu. */
+export function useConfirmer() {
+  const [d, setD] = useState<{ titre: string; texte?: string; action: string; onOk: () => void } | null>(null);
+  const dialogue = (
+    <Feuille visible={!!d} onClose={() => setD(null)} titre={d?.titre}>
+      {!!d?.texte && <T v="corps">{d.texte}</T>}
+      <Bouton label={d?.action ?? 'Confirmer'} onPress={() => { const f = d?.onOk; setD(null); f?.(); }} />
+      <Bouton label="Annuler" variante="fantome" onPress={() => setD(null)} />
+    </Feuille>
+  );
+  return [dialogue, setD] as const;
+}

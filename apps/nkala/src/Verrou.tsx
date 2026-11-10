@@ -1,5 +1,6 @@
 import { fonctionActive, peutAcceder, type Contenu, type MotifRefus } from '@nkala/noyau';
 import { useDroits } from './Droits';
+import { useGlobale } from './Globale';
 import { Bouton, Carte, Ic, T } from './kit';
 import { useTheme } from './Prefs';
 import { View } from 'react-native';
@@ -17,6 +18,7 @@ const MESSAGES: Record<MotifRefus, string> = {
  */
 export function Verrou({ contenu, children, onVoirOffres }: { contenu: Contenu; children: React.ReactNode; onVoirOffres?: () => void }) {
   const droits = useDroits();
+  const { ouvrirBoutique } = useGlobale();
   const { c } = useTheme();
   const decision = peutAcceder(contenu, droits);
   if (decision.ok) return <>{children}</>;
@@ -28,7 +30,7 @@ export function Verrou({ contenu, children, onVoirOffres }: { contenu: Contenu; 
         <T v="sousTitre" style={{ textAlign: 'center' }}>{MESSAGES[decision.motif]}</T>
         {!achatsOuverts && <T v="petit" style={{ textAlign: 'center' }}>Les offres arrivent bientôt.</T>}
       </View>
-      {decision.motif !== 'role_requis' && <Bouton label={achatsOuverts ? 'Voir les offres' : 'Bientôt disponible'} desactive={!achatsOuverts} onPress={onVoirOffres} variante="ambre" />}
+      {decision.motif !== 'role_requis' && <Bouton label={achatsOuverts ? 'Voir les offres' : 'Bientôt disponible'} desactive={!achatsOuverts} onPress={onVoirOffres ?? ouvrirBoutique} variante="ambre" />}
     </Carte>
   );
 }

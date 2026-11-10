@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { moduleActif } from '@nkala/noyau';
 import { BarreHaute } from '../../src/BarreHaute';
+import { BoutiqueFeuille } from '../../src/Boutique';
 import { BarreOnglets, FinEnfant, GlobaleProvider, MenuPlus } from '../../src/Globale';
 import { LecteurPlein } from '../../src/OntciLecteur';
 import { useTheme } from '../../src/Prefs';
@@ -27,6 +28,7 @@ export default function Onglets() {
         <Tabs.Screen name="validation" options={cache} />
       </Tabs>
       <MenuPlus />
+      <BoutiqueFeuille />
       <BarreHaute mode="modales" />
       <LecteurPlein />
       <FinEnfant />

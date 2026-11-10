@@ -11,6 +11,7 @@ import { FetesProvider } from '../src/Fetes';
 import { ToastProvider } from '../src/kit';
 import { LecteurProvider } from '../src/Lecteur';
 import { MiseAJour } from '../src/MiseAJour';
+import { Notifications_ } from '../src/Notifications';
 import { PrefsProvider, usePrefs } from '../src/Prefs';
 import { ProgresProvider } from '../src/Progres';
 import { TempsReel } from '../src/TempsReel';
@@ -55,6 +56,7 @@ export default function Racine() {
             <ProgresProvider>
               <LecteurProvider>
                 <TempsReel />
+                <Notifications_ />
                 <MiseAJour />
                 <Pile />
               </LecteurProvider>

@@ -1,0 +1,23 @@
+# Régie publicitaire Revive Adserver (projet Docker séparé « regie »), à côté de la pile OMPANGANO.
+#   cd server/regie && cp .env.example .env && docker compose up -d --build
+name: regie
+services:
+  revive-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: revive
+      POSTGRES_PASSWORD: ${REVIVE_DB_PASSWORD:?définir REVIVE_DB_PASSWORD dans .env}
+      POSTGRES_DB: revive
+    volumes: [revive_pg:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U revive"], interval: 5s, retries: 10 }
+  revive:
+    build: .
+    restart: unless-stopped
+    depends_on: { revive-db: { condition: service_healthy } }
+    environment: { REVIVE_HOST: "${REVIVE_HOST:-pub.essaka.engineering}" }
+    ports: ["${BIND_IP:-127.0.0.1}:3910:80"]
+    volumes:
+      - revive_var:/var/www/html/var
+      - revive_images:/var/www/html/www/images
+volumes: { revive_pg: {}, revive_var: {}, revive_images: {} }

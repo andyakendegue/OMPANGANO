@@ -69,7 +69,14 @@ function Pendu(p: PropsJeu) {
   const restant = jeu.erreursMax - jeu.ratees.length;
   return (
     <Cadre titre="Le pendu" avancement={i / mots.length} onQuitter={p.onQuitter}>
-      <View style={{ alignItems: 'center', gap: 6 }}><Flamme taille={28 + restant * 10} eteinte={restant <= 0} /><T v="petit">{restant} essai{restant > 1 ? 's' : ''} avant que le feu s'éteigne</T></View>
+      <View style={{ alignItems: 'center', gap: 6 }} accessibilityLabel={`${restant} bûche${restant > 1 ? 's' : ''} restante${restant > 1 ? 's' : ''}`}>
+        <Flamme taille={22 + restant * 9} eteinte={restant <= 0} />
+        {/* Les bûches du feu de veillée : une lettre ratée en retire une, le feu baisse puis s'éteint */}
+        <View style={{ flexDirection: 'row', gap: 4, height: 18, alignItems: 'flex-end' }}>
+          {Array.from({ length: jeu.erreursMax }, (_, k) => <View key={k} style={{ width: 34, height: 14, borderRadius: 7, backgroundColor: k < restant ? '#7C2D12' : 'transparent', borderWidth: k < restant ? 0 : 1, borderStyle: 'dashed', borderColor: c.bord, transform: [{ rotate: k % 2 ? '-5deg' : '5deg' }] }} />)}
+        </View>
+        <T v="petit">{restant} bûche{restant > 1 ? 's' : ''} avant que le feu s'éteigne</T>
+      </View>
       <T v="corps" style={{ textAlign: 'center' }}>{jeu.mot.francais}</T>
       <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
         {penduMasque(jeu).map((l, k) => <View key={k} style={{ width: 34, height: 44, borderBottomWidth: 3, borderBottomColor: c.accent, alignItems: 'center', justifyContent: 'flex-end' }}><T v="sousTitre">{l === '_' ? '' : l}</T></View>)}

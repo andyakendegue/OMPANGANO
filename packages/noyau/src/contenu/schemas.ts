@@ -67,7 +67,9 @@ export const SCHEMAS: SchemaContenu[] = [
   { id: 'cours_artisans', module: 'onenji', titre: 'Cours d\'artisans', description: 'Cours vidéo donnés par des artisans.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du cours.' }, { nom: 'artisan', type: 'texte', requis: true, aide: 'Nom de l\'artisan.' },
     { nom: 'metier', type: 'texte', aide: 'Métier (vin de palme, hors-bord, cuisine…).' }, { nom: 'description', type: 'long', aide: 'Description.' },
-    { nom: 'video_url', type: 'url', aide: 'Vidéo ou playlist HLS.' }, { nom: 'sous_titres_url', type: 'url', aide: 'Fichier de sous-titres (.vtt).' },
+    { nom: 'video_url', type: 'url', aide: 'Vidéo ou playlist HLS (inutile si protege = oui).' },
+{ nom: 'protege', type: 'booleen', aide: 'oui/non : médias chiffrés (HLS AES-128) sous media/<collection>/<id>/ ; la lecture exige une licence.' },
+     { nom: 'sous_titres_url', type: 'url', aide: 'Fichier de sous-titres (.vtt).' },
     { nom: 'duree_min', type: 'entier', aide: 'Durée totale en minutes.' }, { nom: 'niveau', type: 'choix', choix: ['debutant', 'intermediaire', 'avance'], aide: 'Niveau.' },
     acces, image, ordre, publie] },
   { id: 'chapitres', module: 'onenji', titre: 'Chapitres de cours', description: 'Chapitres d\'un cours d\'artisan.', champs: [
@@ -121,7 +123,9 @@ export const SCHEMAS: SchemaContenu[] = [
   { id: 'titres', module: 'ontci', titre: 'Titres', description: 'Pistes audio.', champs: [
     id, { nom: 'album_id', type: 'texte', requis: true, ref: 'albums', aide: 'Album.' }, { nom: 'artiste_id', type: 'texte', ref: 'artistes', aide: 'Artiste (si différent de l\'album).' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'piste', type: 'entier', aide: 'Numéro de piste.' }, { nom: 'duree_s', type: 'entier', aide: 'Durée en secondes.' },
-    { nom: 'audio_url', type: 'url', aide: 'Flux audio (HLS) ou fichier.' }, { nom: 'paroles', type: 'long', aide: 'Paroles (une ligne par ligne chantée).' },
+    { nom: 'audio_url', type: 'url', aide: 'Flux audio (HLS) ou fichier (inutile si protege = oui).' },
+{ nom: 'protege', type: 'booleen', aide: 'oui/non : médias chiffrés (HLS AES-128) sous media/<collection>/<id>/ ; la lecture exige une licence.' },
+     { nom: 'paroles', type: 'long', aide: 'Paroles (une ligne par ligne chantée).' },
     { nom: 'traduction', type: 'long', aide: 'Traduction ligne à ligne.' }, { nom: 'genre', type: 'texte', aide: 'Genre.' }, acces, publie] },
   { id: 'radios', module: 'ontci', titre: 'Radios', description: 'Webradios en direct.', champs: [
     id, { nom: 'nom', type: 'texte', requis: true, aide: 'Nom.' }, { nom: 'flux_url', type: 'url', requis: true, aide: 'Flux direct.' },
@@ -174,7 +178,8 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'prix_fcfa', type: 'entier', aide: 'Prix en FCFA.' }, { nom: 'periode', type: 'choix', choix: ['mois', 'an', 'unique'], aide: 'Période.' },
     { nom: 'donne_acces', type: 'liste', aide: 'Modules ou contenus débloqués, séparés par |.' }, { nom: 'jetons_ia', type: 'entier', aide: 'Jetons IA offerts (consommable).' }, publie] },
   { id: 'pub_creations', module: 'commun', titre: 'Créations publicitaires', description: 'Publicités maison servies par la passerelle (en attendant ou à côté de Revive).', champs: [
-    id, { nom: 'zone', type: 'texte', requis: true, aide: 'Zone (bandeau_accueil, recompense_coeur…).' }, { nom: 'annonceur', type: 'texte', aide: 'Annonceur.' },
+    id, { nom: 'zone', type: 'texte', requis: true, aide: 'Zone (bandeau_accueil, recompense_coeur…).' }, { nom: 'annonceur', type: 'texte', aide: 'Annonceur.' }, { nom: 'campagne_id', type: 'texte', aide: 'Campagne de la régie (créée dans la console) ; vide = création libre.' },
+    { nom: 'format', type: 'choix', choix: ['bandeau', 'natif', 'plein_ecran', 'audio', 'video'], aide: 'natif = publication sponsorisée mêlée aux listes.' }, { nom: 'cta', type: 'texte', aide: 'Texte du bouton (Découvrir, Appeler…).' },
     { nom: 'titre', type: 'texte', aide: 'Texte.' }, image, { nom: 'lien', type: 'url', aide: 'Lien au clic.' }, { nom: 'texte_alt', type: 'texte', requis: true, aide: 'Texte alternatif.' },
     { nom: 'debut', type: 'date', aide: 'Début.' }, { nom: 'fin', type: 'date', aide: 'Fin.' }, { nom: 'plafond_jour', type: 'entier', aide: 'Affichages par jour (0 = sans plafond).' }, publie] },
 ];

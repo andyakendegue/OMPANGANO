@@ -13,6 +13,12 @@ import {
 } from '../../../packages/noyau/src/moteurs.ts';
 import { avancerLecon, jugerReponse, justesse, majSerie, nouvelleLecon, optionsDe, progressionVide, terminerLecon, uniteValidee, leconOuverte, type Exercice } from '../../../packages/noyau/src/lecons.ts';
 
+import { melangerPubs, type PubFil } from '../../../packages/noyau/src/fil.ts';
+import { decouper, cosinus, embeddingSimule } from '../src/ia.ts';
+import { appelXmlRpc, lireReponseXmlRpc } from '../src/regie.ts';
+import { jetonExpoValide } from '../src/push.ts';
+import { verifierRecu } from '../src/achats.ts';
+
 const hasard = (suite: number[]) => { let i = 0; return () => suite[i++ % suite.length]; };
 
 test('CSV : guillemets, virgules, retours à la ligne, séparateur point-virgule, BOM', () => {
@@ -155,4 +161,46 @@ test('leçons : jugement, options, série, unité 4 sur 5, déblocage', () => {
   const lecons = [{ id: 'a', unite_id: 'u', titre: 'A', ordre: 1 }, { id: 'b', unite_id: 'u', titre: 'B', ordre: 2 }];
   assert.equal(leconOuverte(lecons, 'a', progressionVide()), true); assert.equal(leconOuverte(lecons, 'b', progressionVide()), false);
   assert.equal(leconOuverte(lecons, 'b', { ...progressionVide(), leconsTerminees: { a: { justesse: 100, le: 'x' } } }), true);
+});
+
+test('fil sponsorisé : jamais en tête ni en fin, jamais deux de suite, rythme régulier', () => {
+  const pub = (i: number): PubFil => ({ id: 'p' + i, zone: 'z', image: null, lien: null, titre: null, texte_alt: 'x', annonceur: null });
+  const items = Array.from({ length: 12 }, (_, i) => i);
+  const f = melangerPubs(items, [pub(1), pub(2)], i => 'i' + i, { premier: 2, intervalle: 5 });
+  assert.equal(f[0].type, 'item'); assert.equal(f[f.length - 1].type, 'item');
+  assert.ok(f.every((e, i) => !(e.type === 'pub' && f[i + 1]?.type === 'pub')));
+  const pos = f.map((e, i) => (e.type === 'pub' ? i : -1)).filter(i => i >= 0);
+  assert.deepEqual(pos, [2, 8], 'après 2 éléments puis tous les 5');
+  assert.equal(f.filter(e => e.type === 'item').length, 12, 'aucun élément perdu');
+  assert.equal(new Set(f.map(e => e.cle)).size, f.length, 'clés uniques');
+  assert.equal(melangerPubs(items, [], undefined, {}).length, 12, 'sans publicité : la liste seule');
+  assert.equal(melangerPubs([1, 2], [pub(1)], undefined, { premier: 2 }).length, 2, 'liste courte : pas de publicité en fin');
+  assert.equal(melangerPubs([1], [pub(1)]).length, 1); assert.equal(melangerPubs([], [pub(1)]).length, 0);
+});
+
+test('RAG : découpage, similarité, embeddings simulés', () => {
+  assert.deepEqual(decouper('', 100), []); assert.deepEqual(decouper('court', 100), ['court']);
+  const long = Array.from({ length: 30 }, (_, i) => `Phrase numéro ${i} du document.`).join(' ');
+  const m = decouper(long, 200, 40);
+  assert.ok(m.length > 3); assert.ok(m.every(x => x.length <= 200)); assert.ok(m.join(' ').includes('numéro 29'), 'rien n\'est perdu');
+  assert.ok(Math.abs(cosinus([1, 0], [1, 0]) - 1) < 1e-9); assert.equal(cosinus([1, 0], [0, 1]), 0); assert.equal(cosinus([], [1]), 0);
+  const [a, b, c] = embeddingSimule(['pêcher le poisson avec un filet', 'le poisson se pêche au filet', 'rumba guitare balafon fête']);
+  assert.ok(cosinus(a, b) > cosinus(a, c));
+  assert.equal(a.length, 128);
+});
+
+test('XML-RPC (Revive) : encodage et lecture des réponses', () => {
+  const x = appelXmlRpc('ox.addCampaign', ['sess', { campaignName: 'A & B <c>', advertiserId: 3, actif: true }]);
+  assert.match(x, /<methodName>ox.addCampaign<\/methodName>/); assert.match(x, /A &amp; B &lt;c&gt;/); assert.match(x, /<int>3<\/int>/); assert.match(x, /<boolean>1<\/boolean>/);
+  assert.equal(lireReponseXmlRpc('<methodResponse><params><param><value><int>42</int></value></param></params></methodResponse>').valeur, '42');
+  assert.equal(lireReponseXmlRpc('<methodResponse><params><param><value><string>abc</string></value></param></params></methodResponse>').valeur, 'abc');
+  assert.equal(lireReponseXmlRpc('<methodResponse><fault><value><struct><member><name>faultCode</name><value><int>1</int></value></member><member><name>faultString</name><value><string>Mauvais mot de passe</string></value></member></struct></value></fault></methodResponse>').erreur, 'Mauvais mot de passe');
+});
+
+test('notifications et achats : jetons Expo, reçus', async () => {
+  assert.equal(jetonExpoValide('ExponentPushToken[abcdefghijkl]'), true); assert.equal(jetonExpoValide('abc'), false); assert.equal(jetonExpoValide(12), false);
+  assert.equal('erreur' in (await verifierRecu({}, 'simulation', 'simule:abcd')), true, 'refusé sans ACHATS_FOURNISSEUR');
+  assert.equal('erreur' in (await verifierRecu({ ACHATS_FOURNISSEUR: 'simulation', NODE_ENV: 'production' }, 'simulation', 'simule:abcd')), true, 'jamais en production');
+  assert.deepEqual(await verifierRecu({ ACHATS_FOURNISSEUR: 'simulation' }, 'simulation', 'simule:abcd'), { reference: 'simule:abcd' });
+  assert.equal((await verifierRecu({}, 'apple', 'x') as { statut: number }).statut, 501); assert.equal((await verifierRecu({}, 'bidon', 'x') as { statut: number }).statut, 400);
 });

@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { Db, Queryable } from './db.ts';
 import type { AuthUser } from './auth.ts';
 import type { FournisseurSms } from './sms.ts';
-import type { FournisseurIa } from './services.ts';
+import type { FournisseurEmbedding, FournisseurIa } from './ia.ts';
 
 export interface Acteur { auth: AuthUser; isAdmin: boolean; isStaff: boolean; role: string; status: string }
 
@@ -17,6 +17,7 @@ export interface Ctx {
   env: NodeJS.ProcessEnv;
   sms: FournisseurSms;
   ia: FournisseurIa;
+  embed: FournisseurEmbedding;
   secret: string;
 }
 

@@ -41,7 +41,7 @@ export const reclamerRecompensePub = (creationId: string, tempsVuMs: number) => 
 export interface DroitsServeur { abonne: boolean; abonneJusque: number | null; achats: string[]; historique: { id: number; produit_id: string; type: string; fin: string | null; statut: string }[] }
 export const chargerDroits = () => api<DroitsServeur>('GET', '/v1/droits');
 export const verifierAcces = (collection: string, id: string) => api<{ autorise: boolean; avecPub: boolean; motif: string | null; niveau: string }>('POST', '/v1/acces/verifier', { collection, id });
-export const demanderLicence = (collection: string, id: string) => api<{ jeton: string; filigrane: string; expireDans: number; avecPub: boolean }>('POST', '/v1/lecture/licence', { collection, id });
+export const demanderLicence = (collection: string, id: string) => api<{ jeton: string; filigrane: string; expireDans: number; avecPub: boolean; urlHls: string | null }>('POST', '/v1/lecture/licence', { collection, id });
 
 // ------------------------------------------------------------------ contenus d'utilisateurs, annonces, sondages
 export type CollectionUtilisateur = 'annonces' | 'signalements' | 'idees' | 'taxi_demandes' | 'avis';
@@ -87,3 +87,37 @@ export interface Duel { id: string; seed: string; createur: string; scores: Reco
 export const creerDuel = () => api<{ id: string; seed: string }>('POST', '/v1/duels');
 export const lireDuel = (id: string) => api<Duel>('GET', `/v1/duels/${encodeURIComponent(id)}`);
 export const jouerDuel = (id: string, score: number) => api<Duel>('POST', `/v1/duels/${encodeURIComponent(id)}/jouer`, { score });
+
+// ------------------------------------------------------------------ publicités dans les listes, boutique, notifications
+export const demanderFilPub = (zone: string, n = 3) => api<{ pubs: import('./fil').PubFil[] }>('GET', `/v1/pub/fil?zone=${zone}&n=${n}`);
+export interface Produit { id: string; titre: string; type: 'abonnement' | 'achat' | 'consommable'; prix_fcfa?: number; periode?: string; donne_acces?: string[] }
+export const chargerProduits = () => api<{ mode: 'simulation' | 'magasins'; produits: Produit[] }>('GET', '/pub/produits');
+export const envoyerRecu = (magasin: string, produitId: string, recu: string) => api<{ ok: boolean; produitId: string; type: string }>('POST', '/v1/achats/recu', { magasin, produitId, recu });
+export const enregistrerJetonPush = (jeton: string, plateforme: string) => api('POST', '/v1/push/jeton', { jeton, plateforme });
+// administration : IA, RAG, RunPod, régie, notifications
+export const adminIaEtat = () => api<any>('GET', '/v1/admin/ia/etat');
+export const adminIaConfig = (c: Record<string, unknown>) => api<any>('PUT', '/v1/admin/ia/config', c);
+export const adminIaPrompts = () => api<{ defaut: string; versions: { id: number; nom: string; contenu: string; actif: boolean; created_at: string }[] }>('GET', '/v1/admin/ia/prompts');
+export const adminIaAjouterPrompt = (nom: string, contenu: string, activer: boolean) => api('POST', '/v1/admin/ia/prompts', { nom, contenu, activer });
+export const adminIaActiverPrompt = (id: number | 'defaut') => (id === 'defaut' ? api('POST', '/v1/admin/ia/prompts/defaut') : api('POST', `/v1/admin/ia/prompts/${id}/activer`));
+export const adminIaDocuments = () => api<{ id: string; titre: string; source: string | null; actif: boolean; nb_chunks: number; taille: number }[]>('GET', '/v1/admin/ia/documents');
+export const adminIaAjouterDocument = (titre: string, texte: string, source?: string) => api<{ id: string; chunks: number }>('POST', '/v1/admin/ia/documents', { titre, texte, source });
+export const adminIaSupprimerDocument = (id: string) => api('DELETE', `/v1/admin/ia/documents/${id}`);
+export const adminIaReindexer = (id: string) => api<{ chunks: number }>('POST', `/v1/admin/ia/documents/${id}/reindexer`);
+export const adminIaRechercher = (requete: string) => api<{ resultats: { titre: string; texte: string; score: number }[] }>('POST', '/v1/admin/ia/rag/rechercher', { requete });
+export const adminIaTester = (message: string, enfant = false) => api<{ reponse: string; usage: UsageJetonsApi; modele: string; simule: boolean; contexte: { titre: string; score: number }[]; systeme: string }>('POST', '/v1/admin/ia/tester', { message, enfant });
+export interface UsageJetonsApi { entree: number; sortie: number }
+export const adminRunpodEtat = () => api<{ simule: boolean; pods: any[]; endpoints: any[]; volumes: any[]; erreur?: string }>('GET', '/v1/admin/runpod/etat');
+export const adminRunpodPod = (id: string, action: 'start' | 'stop' | 'restart') => api('POST', `/v1/admin/runpod/pods/${encodeURIComponent(id)}/${action}`);
+export const adminRegieEtat = () => api<{ mode: string; revive: { simule: boolean; ok: boolean; erreur?: string } }>('GET', '/v1/admin/regie/etat');
+export const adminRegieAnnonceurs = () => api<any[]>('GET', '/v1/admin/regie/annonceurs');
+export const adminRegieAjouterAnnonceur = (nom: string, contact?: string) => api('POST', '/v1/admin/regie/annonceurs', { nom, contact });
+export const adminRegieCampagnes = () => api<any[]>('GET', '/v1/admin/regie/campagnes');
+export const adminRegieAjouterCampagne = (c: Record<string, unknown>) => api('POST', '/v1/admin/regie/campagnes', c);
+export const adminRegieStatut = (id: string, statut: string) => api('POST', `/v1/admin/regie/campagnes/${id}/statut`, { statut });
+export const adminRegieAjouterCreation = (c: Record<string, unknown>) => api('POST', '/v1/admin/regie/creations', c);
+export const adminRegieStats = (jours = 7) => api<any[]>('GET', `/v1/admin/regie/stats?jours=${jours}`);
+export const adminRegieSynchroniser = () => api<any>('POST', '/v1/admin/regie/revive/synchroniser');
+export const adminPushEnvoyer = (titre: string, corps: string, cible: Record<string, unknown>) => api<{ destinataires: number; envoyes: number; simule: boolean }>('POST', '/v1/admin/push/envoyer', { titre, corps, cible });
+export const adminPushHistorique = () => api<any[]>('GET', '/v1/admin/push/historique');
+export const adminPushEtat = () => api<{ fournisseur: string; jetons: number }>('GET', '/v1/admin/push/etat');

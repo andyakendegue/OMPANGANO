@@ -37,3 +37,4 @@ export * from './lecons';
 export * from './ressources';
 export * from './nkalaApi';
 export * from './horaires';
+export * from './fil';

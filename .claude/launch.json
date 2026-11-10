@@ -4,7 +4,19 @@
     {
       "name": "nkala-expo-web",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd apps/nkala && npx expo start --web --port 5173"],
+      "runtimeArgs": [
+        "-c",
+        "cd apps/nkala && npx expo start --web --port 5173"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "nkala-demo",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3001 npx expo start --web --port 5173"
+      ],
       "port": 5173
     }
   ]

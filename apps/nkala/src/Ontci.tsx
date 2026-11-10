@@ -34,7 +34,7 @@ export function Ontci() {
     const artistes = res.artistes ?? [], albums = res.albums ?? [];
     const pistes: (Piste & { album_id?: string })[] = (res.titres ?? []).map(t => {
       const al = albums.find(a => a.id === t.album_id), ar = artistes.find(a => a.id === (t.artiste_id || al?.artiste_id));
-      return { album_id: t.album_id, id: t.id, titre: t.titre, artiste: ar?.nom ?? 'Artiste', pochette: al?.pochette, couleur: al?.couleur, audio_url: t.audio_url, duree_s: t.duree_s, paroles: t.paroles, traduction: t.traduction, niveau_acces: t.niveau_acces ?? 'libre', collection: 'titres' };
+      return { album_id: t.album_id, id: t.id, titre: t.titre, artiste: ar?.nom ?? 'Artiste', pochette: al?.pochette, couleur: al?.couleur, audio_url: t.audio_url, duree_s: t.duree_s, paroles: t.paroles, traduction: t.traduction, niveau_acces: t.niveau_acces ?? 'libre', collection: 'titres', protege: t.protege === true || t.protege === 'oui' };
     });
     return { artistes, albums, pistes, radios: res.radios ?? [], tv: res.chaines_tv ?? [], playlists: res.playlists ?? [], genres: res.genres ?? [] };
   }, [res]);

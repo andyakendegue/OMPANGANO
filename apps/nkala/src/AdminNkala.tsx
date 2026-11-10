@@ -6,10 +6,10 @@ import {
   adminAccorderDroit, adminAnnulerDroit, adminCollections, adminDecider, adminDroits, adminEcrireParametre, adminExporter, adminImporter, adminImports, adminJournal, adminLignes, adminModeration,
   adminParametres, adminSeries, adminSupprimerLigne, adminSupervision, modeleCsv, SCHEMAS, schemaDe, type InfoCollection, type RapportServeur,
 } from '@nkala/noyau';
-import { Bouton, Carte, Champ, Chargement, EtatVide, Ic, Pastille, Puce, Rangee, SectionTitre, T, useToast } from './kit';
+import { Bouton, Carte, Champ, Chargement, EtatVide, Ic, Pastille, Puce, Rangee, SectionTitre, T, useConfirmer, useToast } from './kit';
 import { ThemeSombre, useTheme } from './Prefs';
 
-const Sombre = ({ children }: { children: React.ReactNode }) => <ThemeSombre><View style={{ gap: 14 }}>{children}</View></ThemeSombre>;
+export const Sombre = ({ children }: { children: React.ReactNode }) => <ThemeSombre><View style={{ gap: 14 }}>{children}</View></ThemeSombre>;
 
 function telecharger(nom: string, texte: string, mime: string) {
   if (Platform.OS === 'web') {
@@ -23,6 +23,7 @@ function Collection({ info, retour }: { info: InfoCollection; retour: () => void
   const { c } = useTheme();
   const toast = useToast();
   const schema = schemaDe(info.collection)!;
+  const [dialogue, confirmer] = useConfirmer();
   const [texte, setTexte] = useState('');
   const [nom, setNom] = useState('');
   const [rapport, setRapport] = useState<RapportServeur | null>(null);
@@ -50,6 +51,7 @@ function Collection({ info, retour }: { info: InfoCollection; retour: () => void
   };
   return (
     <Sombre>
+      {dialogue}
       <Bouton label="Toutes les collections" icone="retour" variante="fantome" petit large={false} onPress={retour} />
       <T v="sousTitre">{info.titre}</T><T v="petit">{info.description} · {info.total} ligne(s), {info.publies} publiée(s)</T>
       <Carte plat><View style={{ padding: 14, gap: 10 }}>
@@ -89,7 +91,7 @@ function Collection({ info, retour }: { info: InfoCollection; retour: () => void
         <Carte key={l.id} plat><View style={{ padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View style={{ flex: 1 }}><T v="carte" numberOfLines={1}>{l.titre ?? l.nom ?? l.myene ?? l.question ?? l.id}</T><T v="petit" numberOfLines={1}>{l.id}</T></View>
           <Pastille label={l.publie ? 'Publié' : 'Brouillon'} couleur={l.publie ? c.succes : c.discret} fond={c.carte} />
-          <Pressable accessibilityRole="button" accessibilityLabel="Supprimer" hitSlop={8} onPress={async () => { try { await adminSupprimerLigne(info.collection, l.id); charger(); } catch (e) { toast((e as Error).message, 'erreur'); } }}><Ic nom="supprimer" taille={18} couleur={c.erreur} /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Supprimer" hitSlop={8} onPress={() => confirmer({ titre: 'Supprimer cette ligne ?', texte: `« ${l.titre ?? l.nom ?? l.id} » ne sera plus visible dans l'application.`, action: 'Supprimer', onOk: async () => { try { await adminSupprimerLigne(info.collection, l.id); charger(); } catch (e) { toast((e as Error).message, 'erreur'); } } })}><Ic nom="supprimer" taille={18} couleur={c.erreur} /></Pressable>
         </View></Carte>))}
       {lignes && lignes.pages > 1 && <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center' }}><Bouton label="Précédent" petit large={false} variante="fantome" desactive={page <= 1} onPress={() => setPage(page - 1)} /><T v="petit">{page} / {lignes.pages}</T><Bouton label="Suivant" petit large={false} variante="fantome" desactive={page >= lignes.pages} onPress={() => setPage(page + 1)} /></View>}
     </Sombre>

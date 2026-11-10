@@ -19,8 +19,13 @@ import { journaliserErreur } from './erreurs.ts';
 import { estJetonSession, fournisseurParDefaut, lireSession, type FournisseurSms } from './sms.ts';
 import { registerContenus } from './contenus.ts';
 import { registerJeux } from './jeux.ts';
-import { registerServices, fournisseurIaParDefaut, type FournisseurIa } from './services.ts';
+import { registerServices } from './services.ts';
+import { fournisseurEmbeddingParDefaut, fournisseurIaParDefaut, registerIaAdmin, type FournisseurEmbedding, type FournisseurIa } from './ia.ts';
 import { registerSupervision } from './supervision.ts';
+import { registerMedia } from './media.ts';
+import { registerRegie } from './regie.ts';
+import { registerPush } from './push.ts';
+import { registerAchats } from './achats.ts';
 import { enregistrerVisite, lireStatistiques, tropDeRequetes } from './visites.ts';
 import { chargerEcartees, cle as cleTexte, estPlusAncienne, journaliser, preparerProtection, raisonEcartee, type EntreeJournal } from './protection.ts';
 import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
@@ -42,6 +47,8 @@ export interface Deps {
   sms?: FournisseurSms;
   /** Assistant IA (Anthropic par défaut, simulation sans clé). */
   ia?: FournisseurIa;
+  /** Embeddings du RAG (RunPod ou compatible OpenAI ; simulation sans clé). */
+  embed?: FournisseurEmbedding;
   /** Secret de signature des sessions SMS (SESSION_SECRET). */
   sessionSecret?: string;
 }
@@ -168,7 +175,9 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const rows = await q.query<any>(`SELECT role, status FROM users WHERE id = $1 AND deleted_at IS NULL`, [auth.uid]);
     const adm = await q.query(`SELECT 1 FROM admins WHERE id = $1 AND deleted_at IS NULL`, [auth.uid]);
     const isSuper = isSuperAdmin(auth);
-    const isAdmin = isSuper || adm.length > 0;
+    // Administrateurs désignés par numéro (ADMIN_TELEPHONES=+24106123456,…) : utile avec la connexion par SMS
+    const parTel = !!auth.phone && (process.env.ADMIN_TELEPHONES || '').split(',').map(x => x.trim()).filter(Boolean).includes(auth.phone);
+    const isAdmin = isSuper || parTel || adm.length > 0;
     const role = isAdmin ? 'admin' : rows[0]?.role || 'user';
     return { auth, isSuper, isAdmin, isStaff: isAdmin || role === 'validator', role, status: rows[0]?.status || 'active', exists: rows.length > 0 };
   }
@@ -1078,12 +1087,17 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   const nk = {
     app, db, fail,
     acteur: async (req: FastifyRequest) => { const a = await actorOf(req); return { auth: a.auth, isAdmin: a.isAdmin, isStaff: a.isStaff, role: a.role, status: a.status }; },
-    ensureUser, notify, env: process.env, sms: deps.sms ?? fournisseurParDefaut(), ia: deps.ia ?? fournisseurIaParDefaut(), secret
+    ensureUser, notify, env: process.env, sms: deps.sms ?? fournisseurParDefaut(), ia: deps.ia ?? fournisseurIaParDefaut(), embed: deps.embed ?? fournisseurEmbeddingParDefaut(), secret
   };
   registerContenus(nk);
   registerJeux(nk);
   registerServices(nk);
+  registerIaAdmin(nk);
   registerSupervision(nk);
+  registerMedia(nk, storage);
+  registerRegie(nk);
+  registerPush(nk);
+  registerAchats(nk);
 
   return app;
 }

@@ -41,9 +41,9 @@ export async function createPgDb(connectionString: string): Promise<Db> {
   };
 }
 
-export async function createPgliteDb(): Promise<Db> {
+export async function createPgliteDb(dataDir?: string): Promise<Db> {
   const { PGlite } = await import('@electric-sql/pglite');
-  const pg = new PGlite();
+  const pg = dataDir ? new PGlite(dataDir) : new PGlite();
   await pg.waitReady;
   return {
     // Sans paramètres, exec() accepte plusieurs instructions (fichiers de migration)

@@ -6,6 +6,7 @@ import { Contenu } from '../../src/AdminContenu';
 import { GroupePilotage } from '../../src/AdminOutils';
 import { GroupeModeration } from '../../src/AdminFraude';
 import { Communaute } from '../../src/AdminCommunaute';
+import { IaAdmin, PushAdmin, RegieAdmin } from '../../src/AdminIaRegie';
 import { ContenusAdmin, DroitsAdmin, InterrupteursAdmin, JournalAdmin, ModerationHabitants, SupervisionAdmin } from '../../src/AdminNkala';
 
 // Quatre groupes comme AdminDashboard.tsx. Les droits sont vérifiés par le serveur ; l'onglet n'est visible que des administrateurs.
@@ -18,6 +19,9 @@ export default function Administration() {
     <Section titre="Administration" onglets={[
       { id: 'supervision', label: 'Supervision', contenu: <SupervisionAdmin /> },
       { id: 'contenus', label: 'Contenus (CSV/JSON)', contenu: <ContenusAdmin /> },
+      { id: 'ia', label: 'Assistant IA', contenu: <IaAdmin /> },
+      { id: 'regie', label: 'Régie pub', contenu: <RegieAdmin /> },
+      { id: 'push', label: 'Notifications', contenu: <PushAdmin /> },
       { id: 'interrupteurs', label: 'Interrupteurs', contenu: <InterrupteursAdmin /> },
       { id: 'habitants', label: 'Annonces et signalements', contenu: <ModerationHabitants /> },
       { id: 'droits', label: 'Abonnements', contenu: <DroitsAdmin /> },

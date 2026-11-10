@@ -12,7 +12,7 @@ import { useAuth } from './AuthProvider';
 
 export interface Piste {
   id: string; titre: string; artiste: string; pochette?: string | null; couleur?: string | null; audio_url?: string | null; duree_s?: number | null;
-  paroles?: string | null; traduction?: string | null; niveau_acces?: string | null; collection?: string;
+  paroles?: string | null; traduction?: string | null; niveau_acces?: string | null; collection?: string; protege?: boolean;
 }
 type Boucle = 'aucune' | 'file' | 'piste';
 
@@ -52,12 +52,14 @@ export function LecteurProvider({ children }: { children: React.ReactNode }) {
     if (!courant) return;
     (async () => {
       try {
-        if (profil && courant.niveau_acces && courant.niveau_acces !== 'libre' && courant.collection !== 'demo') {
+        let hls: string | null = null;
+        // Média chiffré (HLS AES-128) : la licence courte donne l'adresse de la liste de lecture ; la clé n'est livrée qu'avec elle
+        if (profil && courant.collection !== 'demo' && (courant.protege || (courant.niveau_acces && courant.niveau_acces !== 'libre'))) {
           const a = await verifierAcces(courant.collection ?? 'titres', courant.id);
           if (!a.autorise) { if (!annule) { setRefus(a.motif ?? 'acces_refuse'); setVeutJouer(false); } return; }
-          demanderLicence(courant.collection ?? 'titres', courant.id).catch(() => {}); // jeton court + filigrane (le déchiffrement des segments s'y branche)
+          hls = (await demanderLicence(courant.collection ?? 'titres', courant.id).catch(() => null))?.urlHls ?? null;
         }
-        const u = prefetch.current?.id === courant.id ? prefetch.current.url : await resoudre(courant.audio_url);
+        const u = hls ?? (prefetch.current?.id === courant.id ? prefetch.current.url : await resoudre(courant.audio_url));
         if (!annule) setSource(u);
         if (!annule && !u) setRefus('audio_indisponible');
       } catch { if (!annule) setRefus('audio_indisponible'); }
