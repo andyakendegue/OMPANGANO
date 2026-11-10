@@ -63,6 +63,6 @@ export const estJetonSession = (token: string): boolean => { try { return decode
 
 export async function lireSession(secret: string, token: string): Promise<AuthUser> {
   const { payload } = await jwtVerify(token, cle(secret), { issuer: EMETTEUR, algorithms: ['HS256'] });
-  if (typeof payload.sub !== 'string' || !payload.sub.startsWith('tel_')) throw new Error('sub invalide');
+  if (typeof payload.sub !== 'string' || !payload.sub) throw new Error('sub invalide');
   return { uid: payload.sub, email: null, emailVerified: false, provider: 'phone', name: typeof payload.name === 'string' ? payload.name : undefined, phone: String(payload.tel || '') };
 }

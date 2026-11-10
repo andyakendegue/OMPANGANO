@@ -4,6 +4,7 @@ import { normaliserTelephone, uidTelephone } from '../../../packages/noyau/src/t
 import { creerSession } from './sms.ts';
 import { SmsIndisponible } from './sms.ts';
 import { str, type Ctx } from './ctx.ts';
+import { compteLieAuTelephone } from './comptes.ts';
 
 const empreinte = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 24);
 
@@ -40,7 +41,8 @@ export function registerSupervision(ctx: Ctx) {
     catch (e) { if (e instanceof SmsIndisponible) return fail(503, e.message); throw e; }
     await db.query(`INSERT INTO sms_essais (genre, cle, ok) VALUES ('verif',$1,$2)`, [ke, ok]);
     if (!ok) return fail(401, 'Code incorrect ou expiré.');
-    const uid = uidTelephone(tel);
+    // Numéro lié à un compte Google ou e-mail : c'est ce compte qui s'ouvre (un seul compte par personne)
+    const uid = (await compteLieAuTelephone(db, tel)) ?? uidTelephone(tel);
     await ensureUser(db, { uid, email: null, emailVerified: false, provider: 'phone', phone: tel });
     const jeton = await creerSession(secret, { uid, telephone: tel });
     return { jeton, uid, telephone: tel, expireDansJours: 30 };

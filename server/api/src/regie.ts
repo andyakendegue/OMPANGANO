@@ -40,6 +40,8 @@ export function clientRevive(env = process.env) {
     async ping() { if (simule) return { simule, ok: true }; try { await ouvrir(); return { simule, ok: true }; } catch (e) { session = null; return { simule, ok: false, erreur: (e as Error).message }; } },
     async annonceur(a: { nom: string; contact?: string | null }) { if (simule) return 'sim-' + a.nom; return rpc('ox.addAdvertiser', [await ouvrir(), { advertiserName: a.nom, contactName: a.contact || a.nom, emailAddress: 'regie@essaka.engineering' }]); },
     async campagne(c: { annonceurRevive: string; nom: string; debut?: string | null; fin?: string | null }) { if (simule) return 'sim-' + c.nom; return rpc('ox.addCampaign', [await ouvrir(), { advertiserId: Number(c.annonceurRevive), campaignName: c.nom, ...(c.debut ? { startDate: c.debut } : {}), ...(c.fin ? { endDate: c.fin } : {}), priority: 5 }]); },
+    async editeur(nom: string) { if (simule) return 'sim-site-' + nom; return rpc('ox.addPublisher', [await ouvrir(), { publisherName: nom, contactName: nom, emailAddress: 'regie@essaka.engineering' }]); },
+    async zone(z: { editeurRevive: string; nom: string; largeur: number; hauteur: number }) { if (simule) return 'sim-zone-' + z.nom; return rpc('ox.addZone', [await ouvrir(), { publisherId: Number(z.editeurRevive), zoneName: z.nom, type: 0, width: z.largeur, height: z.hauteur }]); },
     async banniere(b: { campagneRevive: string; nom: string; image: string; lien: string; alt: string; largeur: number; hauteur: number }) { if (simule) return 'sim-' + b.nom; return rpc('ox.addBanner', [await ouvrir(), { campaignId: Number(b.campagneRevive), bannerName: b.nom, storageType: 'url', imageURL: b.image, url: b.lien, altText: b.alt, width: b.largeur, height: b.hauteur }]); },
   };
 }
@@ -130,6 +132,14 @@ export function registerRegie(ctx: Ctx) {
        count(DISTINCT e.user_id)::int AS personnes FROM pub_evenements e WHERE e.jour > current_date - $1::int GROUP BY e.zone, e.creation_id ORDER BY affichages DESC LIMIT 200`, [jours]);
   });
 
+  /** Crée dans Revive le site « Nkala » et une zone par emplacement de l'application (idempotent : les identifiants sont mémorisés dans les réglages). */
+  app.post('/v1/admin/regie/revive/zones', async (req) => {
+    const a = await admin(req);
+    const r = await creerZonesRevive(db, revive);
+    await journaliser(db, a.auth.uid, 'regie_revive_zones', undefined, r);
+    return r;
+  });
+
   /** Pousse annonceurs, campagnes et créations vers Revive (simulation sans REVIVE_URL). Idempotent : un identifiant Revive déjà connu n'est pas recréé. */
   app.post('/v1/admin/regie/revive/synchroniser', async (req) => {
     const a = await admin(req);
@@ -148,4 +158,22 @@ export function registerRegie(ctx: Ctx) {
     await journaliser(db, a.auth.uid, 'regie_revive_sync', undefined, rapport);
     return rapport;
   });
+}
+
+/** Site et zones Revive pour tous les emplacements d'ZONES (tailles : bandeau 320×hauteur, plein écran 320×480). Réutilisable par script. */
+export async function creerZonesRevive(q: Queryable, revive: ReturnType<typeof clientRevive>) {
+  const { ZONES } = await import('../../../packages/noyau/src/publicite.ts');
+  const memo = ((await q.query<any>(`SELECT valeur FROM parametres WHERE cle = 'revive_zones'`))[0]?.valeur ?? { site: null, zones: {} }) as { site: string | null; zones: Record<string, string> };
+  const rapport = { simule: revive.simule, site: memo.site, creees: [] as string[], deja: 0, erreurs: [] as string[] };
+  try {
+    if (!memo.site) memo.site = await revive.editeur('Nkala');
+    rapport.site = memo.site;
+    for (const [nom, z] of Object.entries(ZONES) as [string, { format: string; hauteur?: number }][]) {
+      if (memo.zones[nom]) { rapport.deja++; continue; }
+      memo.zones[nom] = await revive.zone({ editeurRevive: memo.site!, nom, largeur: 320, hauteur: z.hauteur ?? (z.format === 'plein_ecran' ? 480 : 180) });
+      rapport.creees.push(nom);
+    }
+  } catch (e) { rapport.erreurs.push((e as Error).message); }
+  await q.query(`INSERT INTO parametres (cle, valeur, par) VALUES ('revive_zones', $1, 'systeme') ON CONFLICT (cle) DO UPDATE SET valeur = EXCLUDED.valeur, updated_at = clock_timestamp()`, [JSON.stringify(memo)]);
+  return rapport;
 }

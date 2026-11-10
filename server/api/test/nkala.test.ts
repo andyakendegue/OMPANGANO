@@ -448,3 +448,29 @@ test('Mobile Money : initier, déclarer, valider, doublons, expiration, webhook 
   for (let i = 0; i < 3; i++) await call('POST', '/v1/paiements', y.token, { produitId: 'mm-abo', operateur: 'airtel', telephone: '06111222' });
   assert.equal((await call('POST', '/v1/paiements', y.token, { produitId: 'mm-abo', operateur: 'airtel', telephone: '06111222' })).status, 429);
 });
+
+test('comptes : lier son téléphone, fusion du compte SMS existant, connexion SMS qui ouvre le compte principal', async () => {
+  const tel = '+24106555111';
+  // 1. quelqu'un se connecte d'abord par SMS et joue : compte tel_… avec de l'XP
+  const s1 = await call('POST', '/auth/sms/verifier', undefined, { telephone: tel, code: '123456' });
+  assert.match(s1.body.uid, /^tel_/);
+  await call('POST', '/v1/admin/contenus/jeux/import', ADMIN, { lignes: [{ id: 'jeu-fusion', salle_id: 's', titre: 'F', moteur: 'pendu', publie: 'oui' }], mode: 'ajouter', partiel: true });
+  const jeu = await call('POST', '/v1/jeux/partie', s1.body.jeton, { jeuId: 'jeu-fusion', bonnes: 5, erreurs: 0 });
+  const xpSms = (await call('GET', '/v1/progression', s1.body.jeton)).body.xp; assert.ok(xpSms > 0, JSON.stringify(jeu.body));
+  // 2. la même personne a un compte Google : elle lie son numéro
+  const g = await user();
+  assert.equal((await call('POST', '/v1/me/telephone/verifier', g.token, { telephone: tel, code: '000000' })).status, 401, 'mauvais code');
+  assert.equal((await call('POST', '/v1/me/telephone/envoyer', s1.body.jeton, { telephone: tel })).status, 400, 'un compte SMS ne se lie pas');
+  const lien = await call('POST', '/v1/me/telephone/verifier', g.token, { telephone: tel, code: '123456' });
+  assert.equal(lien.status, 200, JSON.stringify(lien.body)); assert.equal(lien.body.fusion, true); assert.equal(lien.body.xpReverse, xpSms);
+  assert.equal((await call('GET', '/v1/progression', g.token)).body.xp, xpSms, 'l\'XP du compte SMS est passée au compte principal');
+  // 3. l'ancien compte tel_ n'existe plus ; se connecter par SMS ouvre le compte principal
+  const s2 = await call('POST', '/auth/sms/verifier', undefined, { telephone: tel, code: '123456' });
+  assert.equal(s2.body.uid, g.uid);
+  const moi = await call('GET', '/v1/me', s2.body.jeton); assert.equal(moi.body.id, g.uid);
+  assert.equal((await call('GET', '/v1/progression', s2.body.jeton)).body.xp, xpSms);
+  // 4. un numéro déjà lié ne peut pas l'être à un autre compte
+  const autre = await user();
+  assert.equal((await call('POST', '/v1/me/telephone/envoyer', autre.token, { telephone: tel })).status, 409);
+  assert.equal((await call('POST', '/v1/me/telephone/envoyer', autre.token, { telephone: 'abc' })).status, 400);
+});

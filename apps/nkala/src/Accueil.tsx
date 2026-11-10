@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { chargerDefiDuJour, choixDuJour, jourLocal, moduleActif, RANGS, rangPourXp, type Ligne } from '@nkala/noyau';
+import { chargerDefiDuJour, choixDuJour, envoyerCodeLien, verifierCodeLien, normaliserTelephone, jourLocal, moduleActif, RANGS, rangPourXp, type Ligne } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { emettre } from './evenements';
@@ -108,6 +108,30 @@ export function ProfilEcran({ suite }: { suite: React.ReactNode }) {
   );
 }
 
+/** Lier son téléphone à un compte Google ou e-mail : même compte quelle que soit la façon de se connecter ; un éventuel compte créé par SMS est fusionné. */
+function LierTelephone() {
+  const { profil, recharger } = useAuth();
+  const toast = useToast();
+  const [etape, setEtape] = useState<'fermé' | 'numero' | 'code'>('fermé');
+  const [tel, setTel] = useState(''), [code, setCode] = useState(''), [occupe, setOccupe] = useState(false);
+  if (!profil || profil.id.startsWith('tel_')) return null;
+  const lie = !!(profil as { phone?: string }).phone;
+  return (
+    <Carte plat><View style={{ padding: 16, gap: 10 }}>
+      <T v="carte">Mon téléphone</T>
+      {etape === 'fermé' && <><T v="petit">{lie ? `Numéro lié : tu peux aussi te connecter par SMS avec ${(profil as { phone?: string }).phone}.` : 'Lie ton numéro : tu retrouveras le même compte, la même progression, en te connectant par SMS.'}</T>{!lie && <Bouton label="Lier mon numéro" petit variante="fantome" onPress={() => setEtape('numero')} />}</>}
+      {etape === 'numero' && <>
+        <Champ valeur={tel} onChange={setTel} placeholder="06 12 34 56" icone="telephone" clavier="phone-pad" />
+        <Bouton label="Recevoir le code" petit charge={occupe} onPress={async () => { const n = normaliserTelephone(tel); if (!n) { toast('Numéro invalide.', 'erreur'); return; } setOccupe(true); try { await envoyerCodeLien(n); setTel(n); setEtape('code'); } catch (e) { toast((e as Error).message, 'erreur'); } finally { setOccupe(false); } }} />
+      </>}
+      {etape === 'code' && <>
+        <Champ valeur={code} onChange={t => setCode(t.replace(/\D/g, '').slice(0, 6))} placeholder="Code reçu par SMS" clavier="number-pad" />
+        <Bouton label="Valider" petit charge={occupe} desactive={code.length < 4} onPress={async () => { setOccupe(true); try { const r = await verifierCodeLien(tel, code); toast(r.fusion ? `Numéro lié. Ta progression par SMS (${r.xpReverse} XP) a été réunie à ce compte.` : 'Numéro lié.', 'succes'); setEtape('fermé'); setCode(''); await recharger(); } catch (e) { toast((e as Error).message, 'erreur'); } finally { setOccupe(false); } }} />
+      </>}
+    </View></Carte>
+  );
+}
+
 // ------------------------------------------------------------------ réglages (18)
 export function ReglagesEcran() {
   const { c } = useTheme();
@@ -125,6 +149,7 @@ export function ReglagesEcran() {
       <Ligne titre="Sons et vibrations"><Puce label={prefs.sons ? 'Sons activés' : 'Sons coupés'} actif={prefs.sons} onPress={() => regler({ sons: !prefs.sons })} icone={prefs.sons ? 'haut_parleur' : 'muet'} /><Puce label={prefs.vibrations ? 'Vibrations activées' : 'Vibrations coupées'} actif={prefs.vibrations} onPress={() => regler({ vibrations: !prefs.vibrations })} /></Ligne>
       <Ligne titre="Rappel doux">{[['18:00', '18 h'], ['19:00', '19 h'], ['20:00', '20 h'], [null, 'Aucun']].map(([v, l]) => <Puce key={String(l)} label={String(l)} actif={prefs.rappel === v} onPress={() => regler({ rappel: v as string | null })} />)}</Ligne>
       <Carte onPress={() => routeur.push('/parents' as never)} label="Espace parents"><View style={{ padding: 16, flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ic nom="parents" taille={22} couleur={c.accent} /><View style={{ flex: 1 }}><T v="carte">Espace parents</T><T v="petit">Temps de jeu et limites</T></View><Ic nom="suivant" taille={18} couleur={c.discret} /></View></Carte>
+      <LierTelephone />
       <Bouton label="Hors ligne et synchronisation" icone="reseau" variante="fantome" onPress={() => emettre('horsligne')} />
       <Bouton label={profil ? 'Me déconnecter' : 'Créer un compte ou me connecter'} variante="fantome" onPress={() => (profil ? confirmer({ titre: 'Te déconnecter ?', texte: 'Tes contenus en attente d\'envoi restent sur ce téléphone. Tu pourras te reconnecter avec ton numéro.', action: 'Me déconnecter', onOk: deconnexion }) : deconnexion())} />{dialogue}
       <T v="petit" style={{ textAlign: 'center' }}>Nkala · Essaka Engineering</T>

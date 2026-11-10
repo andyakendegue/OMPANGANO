@@ -1,0 +1,19 @@
+# Relais vers runpod-openai-proxy (qui n'écoute que sur 127.0.0.1:8000 : Open WebUI le joint car il est en réseau « host »).
+# Ce relais écoute sur la passerelle Docker (interne au serveur, jamais Internet) et exige un jeton : les conteneurs (API Nkala) peuvent ainsi
+# utiliser le LLM sans qu'on modifie le proxy existant ni qu'un autre conteneur puisse l'appeler librement.
+{
+	admin off
+	auto_https off
+}
+http://172.17.0.1:8002 {
+	bind 172.17.0.1
+	@sansjeton not header Authorization "Bearer {env.RELAY_TOKEN}"
+	respond @sansjeton "Jeton invalide" 401
+	reverse_proxy 127.0.0.1:8000 {
+		flush_interval -1
+		transport http {
+			read_timeout 600s
+			response_header_timeout 600s
+		}
+	}
+}

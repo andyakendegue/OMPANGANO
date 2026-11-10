@@ -136,3 +136,7 @@ export const adminRefuserPaiement = (id: string, note?: string) => api('POST', `
 export const adminExemples = () => api<{ presents: number; disponibles: boolean }>('GET', '/v1/admin/exemples');
 export const adminImporterExemples = () => api<{ collections: number; lignes: number }>('POST', '/v1/admin/exemples/importer');
 export const adminSupprimerExemples = () => api<{ supprimes: number }>('DELETE', '/v1/admin/exemples');
+
+// ------------------------------------------------------------------ un seul compte par personne
+export const envoyerCodeLien = (telephone: string) => api<{ envoye: boolean; telephone: string }>('POST', '/v1/me/telephone/envoyer', { telephone });
+export const verifierCodeLien = (telephone: string, code: string) => api<{ lie: boolean; telephone: string; fusion: boolean; xpReverse: number }>('POST', '/v1/me/telephone/verifier', { telephone, code });
