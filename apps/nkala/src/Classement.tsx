@@ -9,7 +9,7 @@ import { couleurs } from './theme';
 if (Platform.OS === 'android') UIManager.setLayoutAnimationEnabledExperimental?.(true);
 
 const TRIBUS = ['Toutes', 'Ôrungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
-const nomTribu = (t: string) => (t === 'Toutes' ? 'Toutes les Tribus' : t);
+const nomTribu = (t: string) => (t === 'Toutes' ? 'Toutes les Ethnies' : t);
 interface Retour { rangGagne: number; xpGagne: number; rang: number }
 
 /** Classement : en-tête du contributeur, badges, podium, transitions de rang animées et simulation d'XP (comme LeaderboardAndRewards du site web). */
@@ -88,7 +88,7 @@ export function Classement() {
         <Text style={s.niv}>Niv. {niveau.index}</Text>
         <Text style={s.nomJoueur}>{profil?.fullName || profil?.displayName || 'Contributeur Nkala'}</Text>
         <Text style={s.discret}>{niveau.name}</Text>
-        <Text style={s.discret}>Tribu {profil?.tribe || 'Myènè'} • {profil?.villageOfOrigin || 'Village non spécifié'}</Text>
+        <Text style={s.discret}>Ethnie {profil?.tribe || 'Myènè'} • {profil?.villageOfOrigin || 'Village non spécifié'}</Text>
         <Text style={s.xpGrand}>✨ {xpMoi} Points XP</Text>
         <Text style={s.discret}>🔥 Série : {profil?.streakDays || 1} jours</Text>
         <Text style={s.discret}>Vers le niveau suivant  {suivant ? `${xpMoi} / ${suivant.minXp} XP` : 'Niveau MAX'}</Text>

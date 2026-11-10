@@ -102,7 +102,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
             {[
               { idx: 0, label: '1. Objectifs' },
               { idx: 1, label: '2. Contribuer (3 étapes)' },
-              { idx: 2, label: '3. Tribus & Hors-ligne' },
+              { idx: 2, label: '3. Ethnies & Hors-ligne' },
               { idx: 3, label: '4. Badges & Défis' }
             ].map((tab) => (
               <button
@@ -143,11 +143,11 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#f59e0b] block">Objectif 1</span>
-                    <h3 className="text-sm font-bold text-white">Préserver les 6 Tribus (Dialectes) Myènè</h3>
+                    <h3 className="text-sm font-bold text-white">Préserver les 6 Ethnies (Dialectes) Myènè</h3>
                   </div>
                 </div>
                 <p className="text-xs text-[#d4af94] leading-relaxed">
-                  Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 tribus Myènè (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu</strong>) tout en honorant la mémoire généalogique des clans.
+                  Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 ethnies Myènè (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu</strong>) tout en honorant la mémoire généalogique des clans.
                 </p>
               </div>
 
@@ -234,7 +234,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-[#d4af94] leading-relaxed">
-                    Lisez la phrase affichée en Myènè. Cliquez sur <strong className="text-emerald-300">« Oui, c'est bien écrit 👍 »</strong> ou sur <strong className="text-amber-300">« Je propose ma version ✍️ »</strong> pour corriger l'orthographe selon votre <strong>Tribu</strong> (les différences orthographiques et tonales dépendent des tribus, jamais des clans).
+                    Lisez la phrase affichée en Myènè. Cliquez sur <strong className="text-emerald-300">« Oui, c'est bien écrit 👍 »</strong> ou sur <strong className="text-amber-300">« Je propose ma version ✍️ »</strong> pour corriger l'orthographe selon votre <strong>Ethnie</strong> (les différences orthographiques et tonales dépendent des ethnies, jamais des clans).
                   </p>
                 </div>
               </div>
@@ -310,19 +310,19 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#f59e0b] block">Filtrage Linguistique</span>
-                    <h3 className="text-base font-bold text-white">Filtrer les Questions par Tribu</h3>
+                    <h3 className="text-base font-bold text-white">Filtrer les Questions par Ethnie</h3>
                   </div>
                 </div>
 
                 <p className="text-xs text-[#d4af94] leading-relaxed">
-                  En Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Tribus</strong> et jamais les clans :
+                  En Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Ethnies</strong> et jamais les clans :
                 </p>
 
                 <div className="space-y-2 text-xs">
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-amber-500/30 flex items-center gap-2">
                     <span>🌍</span>
                     <span>
-                      <strong>Votre Tribu</strong> {currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}
+                      <strong>Votre Ethnie</strong> {currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-emerald-500/30 flex items-center gap-2">
@@ -424,7 +424,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   onClick={() => handleFinish('explore')}
                   className="px-3.5 py-2 rounded-xl bg-[#180d07] hover:bg-[#24130a] text-[#fed7aa] border border-[#f59e0b]/40 text-xs font-bold transition"
                 >
-                  🌍 Explorer par Tribu
+                  🌍 Explorer par Ethnie
                 </button>
                 <button
                   type="button"

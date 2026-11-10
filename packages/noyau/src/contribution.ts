@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api, fetchAvecDelai } from './api';
 import type { Contribution, QuestionnaireItem, UserProfile } from './types';
 
 export function extensionPourMime(mime?: string): string {
@@ -75,7 +75,7 @@ export async function televerserMedia(chemin: string, corps: Blob, contentType: 
     const { uploadUrl, headers } = await api<{ uploadUrl: string; headers: Record<string, string> }>('POST', '/v1/media/upload-url', {
       path: chemin, contentType, size: corps.size,
     });
-    const res = await fetch(uploadUrl, { method: 'PUT', headers, body: corps });
+    const res = await fetchAvecDelai(uploadUrl, { method: 'PUT', headers, body: corps }, 180000);
     return res.ok;
   } catch {
     return false;

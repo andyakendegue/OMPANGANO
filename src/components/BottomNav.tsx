@@ -19,8 +19,8 @@ export const CrowdsourceSubNav: React.FC<{
     { id: 'crowdsource' as AppTab, label: 'Contribuer', icon: Mic, visible: true },
     { id: 'explore' as AppTab, label: 'Ezango', icon: BookOpen, visible: true },
     { id: 'leaderboard' as AppTab, label: 'Classement', icon: Trophy, visible: true },
-    // Seuls les administrateurs valident les contributions.
-    { id: 'validator' as AppTab, label: 'Validation', icon: CheckCircle, visible: userRole === 'admin' }
+    // Administrateurs et validateurs (et eux seuls) accèdent à la validation.
+    { id: 'validator' as AppTab, label: 'Validation', icon: CheckCircle, visible: userRole === 'admin' || userRole === 'validator' }
   ].filter(i => i.visible);
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-3 border-b border-[#3f2113]">
@@ -38,7 +38,7 @@ export const CrowdsourceSubNav: React.FC<{
           >
             <Icon className="w-4 h-4" />
             <span>{i.label}</span>
-            {i.id === 'validator' && userRole === 'admin' && pendingCount > 0 && (
+            {i.id === 'validator' && pendingCount > 0 && (
               <span className="min-w-4 h-4 px-1 rounded-full bg-[#ef4444] text-white text-[9px] font-bold flex items-center justify-center">{pendingCount}</span>
             )}
           </button>

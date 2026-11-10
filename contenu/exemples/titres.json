@@ -1,0 +1,23 @@
+[
+ {
+  "id": "demo-t1",
+  "album_id": "demo-alb-1",
+  "titre": "Titre exemple 1",
+  "piste": 1,
+  "duree_s": 200,
+  "genre": "Gabonais",
+  "niveau_acces": "libre",
+  "paroles": "Ligne 1\nLigne 2",
+  "publie": true
+ },
+ {
+  "id": "demo-t2",
+  "album_id": "demo-alb-1",
+  "titre": "Titre exemple 2",
+  "piste": 2,
+  "duree_s": 180,
+  "genre": "Gabonais",
+  "niveau_acces": "libre",
+  "publie": true
+ }
+]

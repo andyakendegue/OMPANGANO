@@ -212,7 +212,7 @@ export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
                 </span>
               </div>
               <p className="text-xs text-[#d4af94] mt-1 max-w-md">
-                Tribu {currentUser?.tribe || 'Myènè'} • {currentUser?.villageOfOrigin || 'Village non spécifié'}
+                Ethnie {currentUser?.tribe || 'Myènè'} • {currentUser?.villageOfOrigin || 'Village non spécifié'}
               </p>
               <div className="flex items-center gap-4 mt-2 text-xs">
                 <motion.span
@@ -347,7 +347,7 @@ export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
                   : 'bg-[#24130a] text-[#a8826d] hover:bg-[#341b10]'
               }`}
             >
-              Toutes les Tribus
+              Toutes les Ethnies
             </button>
             {MYENE_TRIBES.map(t => (
               <button
@@ -566,7 +566,7 @@ export const LeaderboardAndRewards: React.FC<LeaderboardAndRewardsProps> = ({
                         </div>
 
                         <div className="text-[10px] text-[#a8826d] truncate">
-                          Tribu {user.tribe || 'Myènè'} • {user.villageOfOrigin || 'Non précisé'}
+                          Ethnie {user.tribe || 'Myènè'} • {user.villageOfOrigin || 'Non précisé'}
                         </div>
                       </div>
                     </div>

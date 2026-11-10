@@ -77,9 +77,11 @@ export async function synchroniserCatalogue(
       const page = await api<PageSync>('GET', `/v1/sync/items?${qs}`);
       // Données remises à zéro côté serveur : le catalogue local repart de zéro
       if (page.reset) { await stock.vider(); curseur = null; }
-      if (!total && typeof page.total === 'number') total = page.total;
+      // `total` = fiches restantes à partir de cette page : l'estimation suit un import qui continue pendant le téléchargement
+      if (typeof page.total === 'number') total = Math.max(total, lu + page.total);
       lu += page.records.length;
-      if (total) surProgression?.({ fait: Math.min(lu, total), total });
+      total = Math.max(total, lu);
+      if (total) surProgression?.({ fait: lu, total });
       if (page.epoch) epoque = page.epoch;
       const supprimees = page.records.filter(r => r.deletedAt).map(r => r.id);
       const fiches = page.records.filter(r => !r.deletedAt);

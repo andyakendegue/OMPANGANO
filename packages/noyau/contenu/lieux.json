@@ -1,0 +1,54 @@
+[
+ {
+  "id": "demo-ph-1",
+  "categorie_id": "pharmacie",
+  "nom": "Pharmacie exemple 1",
+  "adresse": "Adresse à renseigner",
+  "quartier": "Centre",
+  "ville": "Port-Gentil",
+  "latitude": -0.7193,
+  "longitude": 8.7815,
+  "telephone": "",
+  "horaires": "lun-sam 08:00-20:00",
+  "note": 4.2,
+  "verifie": false,
+  "tags": [
+   "pharmacie"
+  ],
+  "publie": true
+ },
+ {
+  "id": "demo-ph-2",
+  "categorie_id": "pharmacie",
+  "nom": "Pharmacie exemple 2",
+  "adresse": "Adresse à renseigner",
+  "quartier": "Ntchengué",
+  "ville": "Port-Gentil",
+  "latitude": -0.705,
+  "longitude": 8.77,
+  "horaires": "lun-sam 08:00-19:00",
+  "note": 4.0,
+  "verifie": false,
+  "tags": [
+   "pharmacie"
+  ],
+  "publie": true
+ },
+ {
+  "id": "demo-mar-1",
+  "categorie_id": "marches",
+  "nom": "Marché exemple",
+  "adresse": "Adresse à renseigner",
+  "quartier": "Centre",
+  "ville": "Port-Gentil",
+  "latitude": -0.723,
+  "longitude": 8.785,
+  "horaires": "tous les jours 06:00-18:00",
+  "note": 4.5,
+  "verifie": false,
+  "tags": [
+   "marché"
+  ],
+  "publie": true
+ }
+]

@@ -128,7 +128,7 @@ export function fichesDepuisCsv(texte: string, auteur: string, dialecteParDefaut
   const iId = trouver('id', 'identifiant');
   const iFr = trouver('frenchtext', 'francais', 'traductionfrancaise', 'french', 'traduction');
   const iMy = trouver('myenetext', 'texteorunguorthographe', 'textemyene', 'myene', 'orungu', 'texte');
-  const iDia = trouver('dialect', 'dialecte', 'tribu', 'tribe');
+  const iDia = trouver('dialect', 'dialecte', 'tribu', 'ethnie', 'tribe');
   const iTh = trouver('modulethematique', 'theme', 'categorie', 'module');
   const iPh = trouver('transcriptionapitonale', 'phonetic', 'api', 'phon');
   const iNo = trouver('context', 'note');

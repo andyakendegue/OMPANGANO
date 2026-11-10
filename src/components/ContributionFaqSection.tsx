@@ -46,7 +46,7 @@ const FAQ_CATEGORIES: {
   { id: 'all', label: 'Toutes les règles', icon: <Sparkles className="w-3.5 h-3.5" /> },
   {
     id: 'tribus_vs_clans',
-    label: 'Tribus vs Clans (Règle d’Or)',
+    label: 'Ethnies vs Clans (Règle d’Or)',
     icon: <Globe className="w-3.5 h-3.5" />
   },
   {
@@ -78,24 +78,24 @@ const FAQ_CATEGORIES: {
 
 export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
   {
-    id: 'faq-tribus-vs-clans-regle-fondamentale',
+    id: 'faq-ethnies-vs-clans-regle-fondamentale',
     question:
-      'Pourquoi les questions et les variantes orthographiques ou tonales sont-elles classées par Tribu et jamais par Clan ?',
+      'Pourquoi les questions et les variantes orthographiques ou tonales sont-elles classées par Ethnie et jamais par Clan ?',
     shortSummary:
-      'Règle linguistique fondamentale : en langue Omyènè, les différences d’orthographe, de vocabulaire et de tonalité existent uniquement entre les 6 Tribus (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et non entre les Clans.',
+      'Règle linguistique fondamentale : en langue Omyènè, les différences d’orthographe, de vocabulaire et de tonalité existent uniquement entre les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et non entre les Clans.',
     answerParagraphs: [
-      'En linguistique Myènè (Omyènè), il ne faut jamais confondre la Tribu (sous-groupe dialectal et géographique) et le Clan (« mbuwé » : lignée exogamique issue d’un ancêtre commun ; le lignage se dit « ozombi »).',
-      'Les différences orthographiques, phonétiques et tonales ne concernent que les 6 Tribus Myènè : Mpongwè, Adyumba, Enenga, Nkomi, Galoa et Ôrungu. Deux personnes appartenant à deux clans différents (par exemple Abulya et Agenje chez les Ôrungu) parlent exactement la même variété tribale Ôrungu, avec la même grammaire, la même orthographe et les mêmes tons.',
-      'C’est pourquoi toutes les questions du corpus Nkala sont filtrées et catégorisées par Tribu (et par Thème culturel : pêche, faune, vie quotidienne, proverbes...), et jamais dans des « catégories claniques ». Votre clan dans votre profil sert uniquement à préserver la mémoire généalogique et coutumière.'
+      'En linguistique Myènè (Omyènè), il ne faut jamais confondre l’Ethnie (sous-groupe dialectal et géographique) et le Clan (« mbuwé » : lignée exogamique issue d’un ancêtre commun ; le lignage se dit « ozombi »).',
+      'Les différences orthographiques, phonétiques et tonales ne concernent que les 6 Ethnies Myènè : Mpongwè, Adyumba, Enenga, Nkomi, Galoa et Ôrungu. Deux personnes appartenant à deux clans différents (par exemple Abulya et Agenje chez les Ôrungu) parlent exactement la même variété ethnique Ôrungu, avec la même grammaire, la même orthographe et les mêmes tons.',
+      'C’est pourquoi toutes les questions du corpus Nkala sont filtrées et catégorisées par Ethnie (et par Thème culturel : pêche, faune, vie quotidienne, proverbes...), et jamais dans des « catégories claniques ». Votre clan dans votre profil sert uniquement à préserver la mémoire généalogique et coutumière.'
     ],
     examples: [
       {
-        label: 'Différence entre Tribus (Dialectes)',
+        label: 'Différence entre Ethnies (Dialectes)',
         detail:
           'Certaines consonnes ou inflexions tonales varient selon que l’on s’exprime en Mpongwè (Estuaire), en Ôrungu (Delta/Port-Gentil), en Nkomi (Fernan-Vaz) ou en Enenga / Galoa (Moyen-Ogooué et Lacs).'
       },
       {
-        label: 'Unité linguistique des Clans au sein d’une Tribu',
+        label: 'Unité linguistique des Clans au sein d’une Ethnie',
         detail:
           'Les 21 clans Ôrungu (Abulya, Agalikewa, Agenje, Ajena, Aziza...) partagent tous la même langue Ôrungu sans différence orthographique ni tonale entre clans.'
       }
@@ -103,6 +103,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     category: 'tribus_vs_clans',
     tags: [
       'tribu',
+      'ethnie',
       'clan',
       'dialecte',
       'orthographe',
@@ -120,15 +121,15 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     isImportantRule: true
   },
   {
-    id: 'faq-etape-1-orthographe-tribale',
+    id: 'faq-etape-1-orthographe-ethnique',
     question:
-      'Étape 1 : Comment valider l’orthographe Myènè ou proposer la variante de ma Tribu ?',
+      'Étape 1 : Comment valider l’orthographe Myènè ou proposer la variante de mon Ethnie ?',
     shortSummary:
-      'Vérifiez si l’écriture affichée correspond à l’usage de votre tribu. Si votre tribu l’écrit ou le prononce différemment, cliquez sur « Proposer ma variante » et sélectionnez votre Tribu.',
+      'Vérifiez si l’écriture affichée correspond à l’usage de votre ethnie. Si votre ethnie l’écrit ou le prononce différemment, cliquez sur « Proposer ma variante » et sélectionnez votre Ethnie.',
     answerParagraphs: [
-      'Lorsque vous consultez une fiche sur la page principale, observez attentivement la phrase en Myènè et l’étiquette de la Tribu affichée en haut de la carte.',
-      'Si l’orthographe proposée est exacte dans votre tribu, laissez sélectionné « Oui, l’orthographe est exacte ».',
-      'Si vous constatez une faute de frappe, une voyelle mal accentuée (`è`, `ô`) ou si votre Tribu emploie une tournure ou une graphie différente, sélectionnez « Non, proposer ma variante », saisissez votre orthographe corrigée et choisissez la Tribu correspondante (Ôrungu, Enenga, Mpongwè, Galoa, Nkomi ou Adyumba).'
+      'Lorsque vous consultez une fiche sur la page principale, observez attentivement la phrase en Myènè et l’étiquette de l’Ethnie affichée en haut de la carte.',
+      'Si l’orthographe proposée est exacte dans votre ethnie, laissez sélectionné « Oui, l’orthographe est exacte ».',
+      'Si vous constatez une faute de frappe, une voyelle mal accentuée (`è`, `ô`) ou si votre Ethnie emploie une tournure ou une graphie différente, sélectionnez « Non, proposer ma variante », saisissez votre orthographe corrigée et choisissez l’Ethnie correspondante (Ôrungu, Enenga, Mpongwè, Galoa, Nkomi ou Adyumba).'
     ],
     examples: [
       {
@@ -159,19 +160,19 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
   {
     id: 'faq-tons-et-prononciation-myene',
     question:
-      'Comment gérer les différences tonales et phonétiques entre les 6 Tribus Myènè ?',
+      'Comment gérer les différences tonales et phonétiques entre les 6 Ethnies Myènè ?',
     shortSummary:
-      'Le Myènè est une langue tonale (ton haut, ton bas, ton modulé). Le sens d’un mot peut changer selon la hauteur de la voix et la mélodie propre à chaque tribu.',
+      'Le Myènè est une langue tonale (ton haut, ton bas, ton modulé). Le sens d’un mot peut changer selon la hauteur de la voix et la mélodie propre à chaque ethnie.',
     answerParagraphs: [
       'En Omyènè, deux mots peuvent s’écrire avec les mêmes lettres mais avoir deux sens différents selon que les syllabes portent un ton haut, un ton bas ou un ton descendant.',
-      'De plus, la mélodie de la phrase (intonation finale et attaque consonantique) présente de subtiles variations entre les tribus maritimes/lagunaires (Mpongwè, Ôrungu, Nkomi) et les tribus fluviales/lacustres (Enenga, Galoa, Adyumba).',
-      'Si la fiche affiche une transcription phonétique (API) ou si vous souhaitez signaler une nuance tonale propre à votre tribu, mentionnez-le dans le champ commentaire culturel et surtout faites-le entendre clairement lors de votre enregistrement vocal à l’Étape 3.'
+      'De plus, la mélodie de la phrase (intonation finale et attaque consonantique) présente de subtiles variations entre les ethnies maritimes/lagunaires (Mpongwè, Ôrungu, Nkomi) et les ethnies fluviales/lacustres (Enenga, Galoa, Adyumba).',
+      'Si la fiche affiche une transcription phonétique (API) ou si vous souhaitez signaler une nuance tonale propre à votre ethnie, mentionnez-le dans le champ commentaire culturel et surtout faites-le entendre clairement lors de votre enregistrement vocal à l’Étape 3.'
     ],
     examples: [
       {
         label: 'Pourquoi l’audio complète l’écrit',
         detail:
-          'L’orthographe courante ne note pas toujours tous les tons sur chaque voyelle : c’est votre enregistrement vocal (Étape 3) rattaché à votre Tribu qui transmet à l’IA la hauteur tonale exacte.'
+          'L’orthographe courante ne note pas toujours tous les tons sur chaque voyelle : c’est votre enregistrement vocal (Étape 3) rattaché à votre Ethnie qui transmet à l’IA la hauteur tonale exacte.'
       }
     ],
     category: 'orthographe_tons',
@@ -228,7 +229,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     question:
       'Étape 3 : Quelles sont les règles d’or pour réussir son enregistrement vocal en Myènè ?',
     shortSummary:
-      'Parlez dans un endroit calme, à allure naturelle, en prononçant le texte selon l’usage authentique de votre Tribu.',
+      'Parlez dans un endroit calme, à allure naturelle, en prononçant le texte selon l’usage authentique de votre Ethnie.',
     answerParagraphs: [
       'Les enregistrements audio servent à entraîner les modèles de reconnaissance et de synthèse vocale (TTS) pour sauvegarder le patrimoine immatériel Omyènè.',
       'Placez-vous dans un lieu calme (sans télévision, musique, vent fort dans le microphone ni conversations en arrière-plan).',
@@ -239,7 +240,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
       {
         label: 'Quelle version lire au micro ?',
         detail:
-          'Si vous avez proposé une variante orthographique de votre Tribu à l’Étape 1, prononcez exactement cette variante tribale lors de votre enregistrement vocal.'
+          'Si vous avez proposé une variante orthographique de votre Ethnie à l’Étape 1, prononcez exactement cette variante ethnique lors de votre enregistrement vocal.'
       }
     ],
     category: 'audio_voix',
@@ -257,20 +258,21 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     ]
   },
   {
-    id: 'faq-filtrage-questions-par-tribu',
+    id: 'faq-filtrage-questions-par-ethnie',
     question:
-      'Comment filtrer les questions pour ne voir que celles de ma Tribu ou d’une Tribu précise ?',
+      'Comment filtrer les questions pour ne voir que celles de mon Ethnie ou d’une Ethnie précise ?',
     shortSummary:
-      'Utilisez le sélecteur de Tribu en haut de la page principale ou dans l’onglet Explorer pour filtrer par Mpongwè, Adyumba, Enenga, Nkomi, Galoa ou Ôrungu.',
+      'Utilisez le sélecteur d’Ethnie en haut de la page principale ou dans l’onglet Explorer pour filtrer par Mpongwè, Adyumba, Enenga, Nkomi, Galoa ou Ôrungu.',
     answerParagraphs: [
-      'Sur la page principale (« Contribuer ») ainsi que dans l’onglet « Explorer », une barre de filtre par Tribu vous permet de sélectionner soit « Toutes les tribus », soit directement « Ma tribu », soit l’une des 6 tribus Myènè.',
-      'Vous pouvez néanmoins contribuer sur une fiche initialement rédigée dans une autre tribu Myènè : il vous suffit d’indiquer à l’Étape 1 comment cette expression se dit ou s’écrit dans votre propre Tribu ! Cela permet justement de construire le dictionnaire comparatif inter-tribal.'
+      'Sur la page principale (« Contribuer ») ainsi que dans l’onglet « Explorer », une barre de filtre par Ethnie vous permet de sélectionner soit « Toutes les ethnies », soit directement « Mon ethnie », soit l’une des 6 ethnies Myènè.',
+      'Vous pouvez néanmoins contribuer sur une fiche initialement rédigée dans une autre ethnie Myènè : il vous suffit d’indiquer à l’Étape 1 comment cette expression se dit ou s’écrit dans votre propre Ethnie ! Cela permet justement de construire le dictionnaire comparatif inter-ethnique.'
     ],
     category: 'tribus_vs_clans',
     tags: [
       'filtre',
       'filtrer',
       'tribu',
+      'ethnie',
       'explorer',
       'question',
       'mpongwè',
@@ -289,7 +291,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
       'Chaque contribution rapporte des points XP immédiats (+15 XP écrit, +20 XP audio, +5 XP nuance française) et passe ensuite devant le collège des Validateurs.',
     answerParagraphs: [
       'Dès que vous soumettez une contribution, vous recevez des points d’expérience (XP) qui font progresser votre rang coutumier dans le Classement (Initié Curieux → Conteur des Lagunes → Gardien du Verbe → Maître de la Parole → Sage Ancien).',
-      'Les Validateurs et Aînés examinent séparément la justesse de l’écrit (orthographe de la tribu déclarée), la pertinence de la nuance française et la clarté de l’enregistrement oral.',
+      'Les Validateurs et Aînés examinent séparément la justesse de l’écrit (orthographe de l’ethnie déclarée), la pertinence de la nuance française et la clarté de l’enregistrement oral.',
       'Une prononciation orale authentique peut être validée même si l’orthographe comporte une petite hésitation, et inversement.'
     ],
     category: 'validation_xp',
@@ -344,7 +346,7 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | FaqEntry['category']>('all');
   const [openFaqIds, setOpenFaqIds] = useState<string[]>([
-    'faq-tribus-vs-clans-regle-fondamentale'
+    'faq-ethnies-vs-clans-regle-fondamentale'
   ]);
 
   const toggleFaq = (id: string) => {
@@ -411,7 +413,7 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
               Guide & Règles de Contribution en Langue Omyènè
             </h2>
             <p className="text-xs sm:text-sm text-[#c2a896] mt-0.5">
-              Consultez les règles linguistiques (Tribus vs Clans, orthographe, sens français et voix) ou recherchez un mot-clé en temps réel.
+              Consultez les règles linguistiques (Ethnies vs Clans, orthographe, sens français et voix) ou recherchez un mot-clé en temps réel.
             </p>
           </div>
         </div>
@@ -442,12 +444,12 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
           </div>
           <div className="text-xs leading-relaxed">
             <p className="font-bold text-[#fde047] uppercase tracking-wide mb-0.5">
-              Rappel Linguistique Essentiel : Tribus vs Clans
+              Rappel Linguistique Essentiel : Ethnies vs Clans
             </p>
             <p className="text-[#f5efe6]">
               Les différences <strong>orthographiques, phonétiques et tonales</strong> en Myènè concernent uniquement les{' '}
-              <strong className="text-[#f39c12]">6 Tribus</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et{' '}
-              <strong className="underline decoration-amber-400">jamais les Clans</strong>. Les questions sont donc exclusivement filtrées par <strong>Tribu</strong> et par <strong>Thème</strong>.
+              <strong className="text-[#f39c12]">6 Ethnies</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et{' '}
+              <strong className="underline decoration-amber-400">jamais les Clans</strong>. Les questions sont donc exclusivement filtrées par <strong>Ethnie</strong> et par <strong>Thème</strong>.
             </p>
           </div>
         </div>
@@ -467,8 +469,8 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
             <Globe className="w-3.5 h-3.5" />
             <span>
               {selectedTribeFilter === userTribe
-                ? `Filtre actif : Tribu ${userTribe}`
-                : `Filtrer par ma tribu (${userTribe})`}
+                ? `Filtre actif : Ethnie ${userTribe}`
+                : `Filtrer par mon ethnie (${userTribe})`}
             </span>
           </button>
         )}
@@ -496,7 +498,7 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
                 setOpenFaqIds(matchingIds);
               }
             }}
-            placeholder="Rechercher en temps réel dans la FAQ (ex: tribu, clan, ton, orthographe, sens français, micro, hors-ligne...)"
+            placeholder="Rechercher en temps réel dans la FAQ (ex: ethnie, clan, ton, orthographe, sens français, micro, hors-ligne...)"
             className="w-full pl-10 pr-24 py-3 rounded-2xl bg-[#120d0a] border border-[#3a281e] focus:border-[#e67e22] focus:outline-none text-sm text-[#fdfaf7] placeholder-[#8c7362] transition"
           />
           {searchQuery ? (
@@ -607,7 +609,7 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
                       <div className="flex flex-wrap items-center gap-2 mb-0.5">
                         {faq.isImportantRule && (
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                            Règle Fondamentale Tribus vs Clans
+                            Règle Fondamentale Ethnies vs Clans
                           </span>
                         )}
                       </div>

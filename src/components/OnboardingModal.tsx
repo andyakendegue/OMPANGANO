@@ -341,7 +341,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             {/* Tribu Principale */}
             <div>
               <label className="block text-[#fed7aa] font-medium mb-1.5">
-                Votre Tribu Myènè Principale <span className="text-[#ef4444]">*</span>
+                Votre Ethnie Myènè Principale <span className="text-[#ef4444]">*</span>
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {MYENE_TRIBES.map((t) => (
@@ -366,7 +366,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <div className="flex items-center justify-between">
                 <label className="text-[#fed7aa] font-semibold flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-[#f59e0b]" />
-                  <span>Clan Paternel (rattaché à une tribu) <span className="text-[#ef4444]">*</span></span>
+                  <span>Clan Paternel (rattaché à une ethnie) <span className="text-[#ef4444]">*</span></span>
                 </label>
                 <button
                   type="button"
@@ -381,18 +381,20 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               {!isAddingNewPaternalClan ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu du père :</label>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Ethnie du père :</label>
                     <select
                       value={paternalTribe}
                       onChange={(e) => {
                         setPaternalTribe(e.target.value as TribeName);
-                        setPaternalClan('');
+                        // « Autre » (ex. un seul parent myènè) : le clan est alors « Je ne sais pas ».
+                        setPaternalClan(e.target.value === JE_NE_SAIS_PAS ? JE_NE_SAIS_PAS : '');
                       }}
                       className="w-full px-2.5 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
                     >
                       {MYENE_TRIBES.map(t => (
                         <option key={t} value={t}>{t}</option>
                       ))}
+                      <option value={JE_NE_SAIS_PAS}>Autre</option>
                     </select>
                   </div>
                   <div className="sm:col-span-2">
@@ -406,11 +408,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       <option value={JE_NE_SAIS_PAS}>Je ne sais pas</option>
                       {paternalClansList.map((c) => (
                         <option key={c.id} value={c.name}>
-                          Clan {c.name} (Tribu: {c.tribe})
+                          Clan {c.name} (Ethnie: {c.tribe})
                         </option>
                       ))}
                     </select>
-                    {paternalClansList.length === 0 && (
+                    {paternalClansList.length === 0 && (paternalTribe as string) !== JE_NE_SAIS_PAS && (
                       <p className="text-[10px] text-[#fde047] mt-1">
                         Les clans {paternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau clan ».
                       </p>
@@ -420,7 +422,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                   <div>
-                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu de rattachement :</label>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Ethnie de rattachement :</label>
                     <select
                       value={customPaternalClanTribe}
                       onChange={(e) => setCustomPaternalClanTribe(e.target.value as TribeName)}
@@ -450,7 +452,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <div className="flex items-center justify-between">
                 <label className="text-[#fed7aa] font-semibold flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-[#c85a32]" />
-                  <span>Clan Maternel (rattaché à une tribu) <span className="text-[#ef4444]">*</span></span>
+                  <span>Clan Maternel (rattaché à une ethnie) <span className="text-[#ef4444]">*</span></span>
                 </label>
                 <button
                   type="button"
@@ -465,18 +467,20 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               {!isAddingNewMaternalClan ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu de la mère :</label>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Ethnie de la mère :</label>
                     <select
                       value={maternalTribe}
                       onChange={(e) => {
                         setMaternalTribe(e.target.value as TribeName);
-                        setMaternalClan('');
+                        // « Autre » (ex. un seul parent myènè) : le clan est alors « Je ne sais pas ».
+                        setMaternalClan(e.target.value === JE_NE_SAIS_PAS ? JE_NE_SAIS_PAS : '');
                       }}
                       className="w-full px-2.5 py-2 bg-[#180d07] border border-[#522915] rounded-lg text-white text-xs focus:outline-none focus:border-[#f59e0b]"
                     >
                       {MYENE_TRIBES.map(t => (
                         <option key={t} value={t}>{t}</option>
                       ))}
+                      <option value={JE_NE_SAIS_PAS}>Autre</option>
                     </select>
                   </div>
                   <div className="sm:col-span-2">
@@ -490,11 +494,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       <option value={JE_NE_SAIS_PAS}>Je ne sais pas</option>
                       {maternalClansList.map((c) => (
                         <option key={c.id} value={c.name}>
-                          Clan {c.name} (Tribu: {c.tribe})
+                          Clan {c.name} (Ethnie: {c.tribe})
                         </option>
                       ))}
                     </select>
-                    {maternalClansList.length === 0 && (
+                    {maternalClansList.length === 0 && (maternalTribe as string) !== JE_NE_SAIS_PAS && (
                       <p className="text-[10px] text-[#fde047] mt-1">
                         Les clans {maternalTribe} sont en cours de validation orthographique. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau clan ».
                       </p>
@@ -504,7 +508,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                   <div>
-                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Tribu de rattachement :</label>
+                    <label className="block text-[11px] text-[#a8826d] mb-0.5">Ethnie de rattachement :</label>
                     <select
                       value={customMaternalClanTribe}
                       onChange={(e) => setCustomMaternalClanTribe(e.target.value as TribeName)}
@@ -557,7 +561,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     <option value={JE_NE_SAIS_PAS}>Je ne sais pas</option>
                     {filteredVillages.map((v) => (
                       <option key={v.id} value={v.name}>
-                        {v.name} (Clan: {v.clan || 'Non rattaché'}, Tribu: {v.tribe})
+                        {v.name} (Clan: {v.clan || 'Non rattaché'}, Ethnie: {v.tribe})
                       </option>
                     ))}
                   </select>

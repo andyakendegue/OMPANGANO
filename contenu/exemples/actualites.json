@@ -1,0 +1,11 @@
+[
+ {
+  "id": "demo-actu-1",
+  "titre": "Bienvenue dans le village (exemple)",
+  "resume": "Les actualités locales apparaîtront ici.",
+  "corps": "Ajoutez des actualités depuis la console d'administration.",
+  "categorie": "actu",
+  "date": "2026-11-10",
+  "publie": true
+ }
+]

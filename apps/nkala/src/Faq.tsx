@@ -25,22 +25,22 @@ export function FaqModale({ visible, tribu, filtreTribu, onFiltreTribu, onClose 
 
   return (
     <EcranModal visible={visible} titre="Guide & Règles de Contribution en Langue Omyènè" sousTitre="Foire Aux Questions (FAQ) Règles officielles de contribution Myènè" onClose={onClose}>
-      <Text style={s.p}>Consultez les règles linguistiques (Tribus vs Clans, orthographe, sens français et voix) ou recherchez un mot-clé en temps réel.</Text>
+      <Text style={s.p}>Consultez les règles linguistiques (Ethnies vs Clans, orthographe, sens français et voix) ou recherchez un mot-clé en temps réel.</Text>
 
       <View style={s.note}>
-        <Text style={s.noteTitre}>Rappel Linguistique Essentiel : Tribus vs Clans</Text>
+        <Text style={s.noteTitre}>Rappel Linguistique Essentiel : Ethnies vs Clans</Text>
         <Text style={s.p}>
-          Les différences orthographiques, phonétiques et tonales en Myènè concernent uniquement les 6 Tribus (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et jamais les Clans. Les questions sont donc exclusivement filtrées par Tribu et par Thème.
+          Les différences orthographiques, phonétiques et tonales en Myènè concernent uniquement les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et jamais les Clans. Les questions sont donc exclusivement filtrées par Ethnie et par Thème.
         </Text>
         {!!tribu && !!onFiltreTribu && (
           <Pressable onPress={() => { onFiltreTribu(filtreTribu === tribu ? 'all' : tribu); onClose(); }} style={s.bouton}>
-            <Text style={s.boutonTexte}>{filtreTribu === tribu ? `Filtre actif : Tribu ${tribu}` : `Filtrer par ma tribu (${tribu})`}</Text>
+            <Text style={s.boutonTexte}>{filtreTribu === tribu ? `Filtre actif : Ethnie ${tribu}` : `Filtrer par mon ethnie (${tribu})`}</Text>
           </Pressable>
         )}
       </View>
 
       <TextInput style={s.champ} value={recherche} onChangeText={setRecherche} autoCapitalize="none"
-        placeholder="Rechercher en temps réel dans la FAQ (ex: tribu, clan, ton, orthographe, sens français, micro, hors-ligne...)" placeholderTextColor={couleurs.discret} />
+        placeholder="Rechercher en temps réel dans la FAQ (ex: ethnie, clan, ton, orthographe, sens français, micro, hors-ligne...)" placeholderTextColor={couleurs.discret} />
 
       <View style={s.pile}>
         {CATEGORIES_FAQ.map(c => (

@@ -1,0 +1,37 @@
+[
+ {
+  "id": "msg-rappel",
+  "type": "rappel",
+  "texte": "Ta série t'attend. Une leçon de trois minutes ?",
+  "ton": "tu",
+  "publie": true
+ },
+ {
+  "id": "msg-defaite",
+  "type": "defaite",
+  "texte": "Pas cette fois. Le mot était juste là. Réessaie !",
+  "ton": "tu",
+  "publie": true
+ },
+ {
+  "id": "msg-victoire",
+  "type": "victoire",
+  "texte": "Akéwa ! Bien joué.",
+  "ton": "tu",
+  "publie": true
+ },
+ {
+  "id": "msg-bienvenue",
+  "type": "bienvenue",
+  "texte": "Mbolo ! Bienvenue dans Nkala.",
+  "ton": "tu",
+  "publie": true
+ },
+ {
+  "id": "msg-ozangue",
+  "type": "ozangue",
+  "texte": "Je suis Ozangué. Pose-moi une question sur la langue.",
+  "ton": "tu",
+  "publie": true
+ }
+]

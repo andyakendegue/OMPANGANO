@@ -1,0 +1,38 @@
+[
+ {
+  "id": "gabonais",
+  "titre": "Gabonais",
+  "couleur": "#F59E0B",
+  "ordre": 1
+ },
+ {
+  "id": "traditionnel",
+  "titre": "Traditionnel",
+  "couleur": "#C85A32",
+  "ordre": 2
+ },
+ {
+  "id": "rumba",
+  "titre": "Rumba",
+  "couleur": "#D9693F",
+  "ordre": 3
+ },
+ {
+  "id": "gospel",
+  "titre": "Gospel",
+  "couleur": "#0D9488",
+  "ordre": 4
+ },
+ {
+  "id": "afrobeat",
+  "titre": "Afrobeat",
+  "couleur": "#FDE047",
+  "ordre": 5
+ },
+ {
+  "id": "enfants",
+  "titre": "Enfants",
+  "couleur": "#B45309",
+  "ordre": 6
+ }
+]

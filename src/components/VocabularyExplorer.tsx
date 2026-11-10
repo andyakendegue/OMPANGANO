@@ -390,7 +390,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             <div>
               <h2 className="text-xl font-bold text-white">Mémoire & Vocabulaire Myènè</h2>
               <p className="text-xs text-[#d4af94]">
-                Explorez les expressions du corpus classées par <strong>Tribu Myènè</strong> et par <strong>Thème culturel</strong>
+                Explorez les expressions du corpus classées par <strong>Ethnie Myènè</strong> et par <strong>Thème culturel</strong>
               </p>
             </div>
           </div>
@@ -434,7 +434,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Rechercher en français, en Myènè ou par tribu (ex: pirogue, Mbolo, Ôrungu, Enenga...)"
+              placeholder="Rechercher en français, en Myènè ou par ethnie (ex: pirogue, Mbolo, Ôrungu, Enenga...)"
               className="w-full pl-10 pr-4 py-3 bg-[#180d07] border border-[#4a2412] rounded-2xl text-xs sm:text-sm text-white focus:outline-none focus:border-[#f59e0b]"
             />
           </div>
@@ -443,7 +443,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
           <div className="relative md:col-span-5">
             <Globe className="w-4 h-4 text-[#f59e0b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
-              aria-label="Filtrer les questions par tribu Myènè"
+              aria-label="Filtrer les questions par ethnie Myènè"
               value={selectedTribe}
               onChange={e => {
                 setSelectedTribe(e.target.value);
@@ -452,24 +452,24 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
               className="w-full pl-10 pr-8 py-3 bg-[#180d07] border border-[#4a2412] hover:border-[#d97706]/60 rounded-2xl text-xs sm:text-sm text-[#fed7aa] font-semibold focus:outline-none focus:border-[#f59e0b] transition-colors cursor-pointer"
             >
               <option value="all">
-                🌍 Toutes les 6 tribus Myènè ({catalogue.loading ? '…' : catalogue.total} fiches)
+                🌍 Toutes les 6 ethnies Myènè ({catalogue.loading ? '…' : catalogue.total} fiches)
               </option>
 
               {userTribe && (
-                <optgroup label="⭐ Ma Tribu de Filiation">
+                <optgroup label="⭐ Mon Ethnie de Filiation">
                   <option value={userTribe}>
                     ⭐ Ma tribu : {userTribe} ({tribeCounts.get(normalizeTribeKey(userTribe)) || 0} fiches)
                   </option>
                 </optgroup>
               )}
 
-              <optgroup label="🌍 Les 6 Tribus (Variétés Dialectales Myènè)">
+              <optgroup label="🌍 Les 6 Ethnies (Variétés Dialectales Myènè)">
                 {MYENE_TRIBES.map(tName => {
                   const count = tribeCounts.get(normalizeTribeKey(tName)) || 0;
                   const isMine = normalizeTribeKey(tName) === normalizeTribeKey(userTribe);
                   return (
                     <option key={tName} value={tName}>
-                      {isMine ? '⭐ ' : ''}Tribu {tName} ({count})
+                      {isMine ? '⭐ ' : ''}Ethnie {tName} ({count})
                     </option>
                   );
                 })}
@@ -482,7 +482,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
           <span className="text-[11px] font-semibold text-[#a8826d] flex items-center gap-1">
             <Globe className="w-3.5 h-3.5 text-[#f59e0b]" />
-            Filtrer par Tribu :
+            Filtrer par Ethnie :
           </span>
 
           <button
@@ -497,7 +497,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 : 'bg-[#24130a] text-[#d4af94] border border-[#4a2412] hover:border-[#f59e0b]/50'
             }`}
           >
-            Toutes les tribus
+            Toutes les ethnies
           </button>
 
           {MYENE_TRIBES.map(tName => {
@@ -540,7 +540,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-black text-[#fde047] uppercase tracking-wider">
-                      Tribu {activeTribeInfo.tribe}
+                      Ethnie {activeTribeInfo.tribe}
                     </span>
                     <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#2b160c] text-[#f59e0b] border border-[#f59e0b]/40">
                       Variété dialectale : {activeTribeInfo.tribe}
@@ -566,7 +566,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 className="self-end sm:self-center inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#27150c] hover:bg-[#341b10] text-[#fed7aa] text-[11px] font-semibold border border-[#4a2412] shrink-0 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Toutes les tribus</span>
+                <span>Toutes les ethnies</span>
               </button>
             </div>
 
@@ -620,7 +620,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#f59e0b] shrink-0" />
               <span>
-                En langue Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Tribus</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et non les clans. Sélectionnez une tribu pour explorer ses expressions et ses particularités linguistiques.
+                En langue Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Ethnies</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et non les clans. Sélectionnez une ethnie pour explorer ses expressions et ses particularités linguistiques.
               </span>
             </div>
           </div>
@@ -663,7 +663,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             {onlyFavorites
               ? "Cliquez sur l'étoile « Favori » sur les cartes du vocabulaire pour sauvegarder vos expressions Myènè préférées et les retrouver ici ainsi que dans votre Profil."
               : `Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés (${
-                  selectedTribe !== 'all' ? `Tribu ${selectedTribe}` : 'Toutes les tribus'
+                  selectedTribe !== 'all' ? `Ethnie ${selectedTribe}` : 'Toutes les ethnies'
                 }).`}
           </p>
           <div className="flex items-center justify-center gap-2 pt-1">
@@ -760,14 +760,14 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                           setSelectedTribe(tribeLabel);
                           setCurrentPage(1);
                         }}
-                        title={`Filtrer par la tribu ${tribeLabel}`}
+                        title={`Filtrer par l’ethnie ${tribeLabel}`}
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
                           isHighlighted
                             ? 'bg-[#f59e0b] text-[#180d07] shadow'
                             : 'bg-[#180d07]/85 text-[#fed7aa] border border-[#4a2412] hover:border-[#f59e0b]'
                         }`}
                       >
-                        🌍 Tribu {tribeLabel}
+                        🌍 Ethnie {tribeLabel}
                       </span>
                     );
                   })}
@@ -782,7 +782,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-semibold text-[#f59e0b] tracking-wider">
-                      Tribu {mapDialectToTribeName(item.dialect)}
+                      Ethnie {mapDialectToTribeName(item.dialect)}
                     </span>
                     <span className="text-[10px] text-[#a8826d]">
                       {item.recordingsCount || 0} voix enregistrées
@@ -793,7 +793,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                   </div>
                   {specificTribeVariant && specificTribeVariant !== item.myeneText && (
                     <div className="mt-1 px-2.5 py-1 rounded-lg bg-[#180d07] border border-amber-500/30 text-[11px] text-[#fde047]">
-                      Variante Tribu {selectedTribe} : <strong>{specificTribeVariant}</strong>
+                      Variante Ethnie {selectedTribe} : <strong>{specificTribeVariant}</strong>
                     </div>
                   )}
                   {itemNuanceContrib && (

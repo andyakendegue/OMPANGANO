@@ -15,6 +15,8 @@ import { Confettis } from './Confettis';
 import { useVersionDonnees } from './donnees';
 import { prendreFiche } from './evenements';
 import { lancerSynchro } from './synchro';
+import { Chargement } from './Chargement';
+import { useCatalogueEnChargement } from './syncEtat';
 import { useEtatSync } from './syncEtat';
 import { ConditionsModale } from './Conditions';
 import { FaqModale } from './Faq';
@@ -44,6 +46,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
   const [index, setIndex] = useState(0);
   const [fiche, setFiche] = useState<QuestionnaireItem | null>(null);
   const [compteurs, setCompteurs] = useState<Record<string, number>>({});
+  const enChargement = useCatalogueEnChargement() && Object.keys(compteurs).length === 0;
   const etatSync = useEtatSync();
   const synchro = etatSync.genre === 'telechargement' ? { fait: etatSync.fait, total: etatSync.total } : null;
   const vDonnees = useVersionDonnees();
@@ -291,14 +294,14 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
       {/* Filtre par tribu */}
       <View style={s.carte}>
         <View style={s.ligne}>
-          <Text style={[s.defiSur, { flex: 1 }]}>Filtrer les questions par Tribu Myènè (Orthographe & Tons) :</Text>
+          <Text style={[s.defiSur, { flex: 1 }]}>Filtrer les questions par Ethnie Myènè (Orthographe & Tons) :</Text>
           <Pressable onPress={() => setFaq(true)} style={s.petit}><Text style={s.petitTexte}>FAQ & Règles de contribution</Text></Pressable>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          <Pressable onPress={() => setTribu('all')} style={[s.puce, tribu === 'all' && s.puceOr]}><Text style={[s.puceTexte, tribu === 'all' && { color: '#180d07', fontWeight: '800' }]}>🌍 Toutes les tribus ({total})</Text></Pressable>
+          <Pressable onPress={() => setTribu('all')} style={[s.puce, tribu === 'all' && s.puceOr]}><Text style={[s.puceTexte, tribu === 'all' && { color: '#180d07', fontWeight: '800' }]}>🌍 Toutes les ethnies ({total})</Text></Pressable>
           {MYENE_TRIBES.map(t => (
             <Pressable key={t} onPress={() => setTribu(t)} style={[s.puce, tribu === t && s.puceActive]}>
-              <Text style={[s.puceTexte, tribu === t && { color: '#fff', fontWeight: '800' }, profil.tribe === t && tribu !== t && { color: '#fde047' }]}>{profil.tribe === t ? '⭐ ' : ''}{t} ({compteTribu(t)})</Text>
+              <Text style={[s.puceTexte, tribu === t && { color: '#fff', fontWeight: '800' }, profil.tribe === t && tribu !== t && { color: '#fde047' }]}>{profil.tribe === t ? '⭐ ' : ''}{t} ({enChargement ? '…' : compteTribu(t)})</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -307,7 +310,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
       {synchro && <Text style={s.discret}>Téléchargement {synchro.fait.toLocaleString('fr-FR')} / {synchro.total.toLocaleString('fr-FR')}…</Text>}
       {enAttente > 0 && <Text style={s.discret}>{enAttente} contribution(s) en attente d’envoi</Text>}
 
-      {!fiche ? (
+      {!fiche && enChargement ? <Chargement /> : !fiche ? (
         <View style={s.carte}>
           {synchro && <ActivityIndicator color={couleurs.ambre} />}
           <Text style={s.titre}>Aucune fiche disponible pour le moment</Text>
@@ -327,7 +330,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
 
           {!!fiche.imageUrl && <Image source={{ uri: fiche.imageUrl }} style={s.image} accessibilityLabel={fiche.frenchText} resizeMode="cover" />}
           <View style={s.pile}>
-            <Text style={s.badge}>Tribu {tribuDuDialecte(String(fiche.dialect))}</Text>
+            <Text style={s.badge}>Ethnie {tribuDuDialecte(String(fiche.dialect))}</Text>
             {!!theme && <Text style={s.badge}>{theme.icon} {theme.shortName}</Text>}
             {fiche.difficulty === 'debutant' && <Text style={[s.badge, { color: '#fde047' }]}>Débutant</Text>}
             {fiche.difficulty === 'intermediaire' && <Text style={[s.badge, { color: '#fdba74' }]}>Intermédiaire</Text>}

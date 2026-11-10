@@ -11,3 +11,16 @@ export function useEtatSync(): EtatSync {
   useEffect(() => { abonnes.add(setE); setE(etat); return () => { abonnes.delete(setE); }; }, []);
   return e;
 }
+
+/**
+ * Vrai tant que la première synchronisation de la session n'est pas terminée (réussie ou non) : les écrans affichent
+ * alors « Chargement… » au lieu de « 0 fiche » ou d'un message « aucun résultat ».
+ */
+let regle = false;
+const abonnesRegle = new Set<(r: boolean) => void>();
+export const reglerCatalogue = () => { if (!regle) { regle = true; abonnesRegle.forEach(f => f(true)); } };
+export function useCatalogueEnChargement(): boolean {
+  const [r, setR] = useState(regle);
+  useEffect(() => { abonnesRegle.add(setR); setR(regle); return () => { abonnesRegle.delete(setR); }; }, []);
+  return !r;
+}

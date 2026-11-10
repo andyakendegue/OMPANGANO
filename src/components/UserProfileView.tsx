@@ -353,7 +353,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
             <div>
-              <span className="text-[#a8826d] block text-[11px]">Tribu Myènè :</span>
+              <span className="text-[#a8826d] block text-[11px]">Ethnie Myènè :</span>
               <span className="font-semibold text-white">{currentUser?.tribe || 'Enenga'}</span>
             </div>
             <div>
@@ -745,7 +745,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     <div>
                       <div className="flex items-start justify-between gap-1.5">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#f59e0b]">
-                          🌍 Tribu {mapDialectToTribeName(favItem.dialect)}
+                          🌍 Ethnie {mapDialectToTribeName(favItem.dialect)}
                         </span>
                         {onToggleFavorite && (
                           <button

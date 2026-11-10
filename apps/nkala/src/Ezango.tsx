@@ -1,3 +1,6 @@
+import { Chargement } from './Chargement';
+import { lancerSynchro } from './synchro';
+import { useCatalogueEnChargement } from './syncEtat';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Speech from 'expo-speech';
@@ -31,6 +34,9 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
   const [page, setPage] = useState(1);
   const [fiches, setFiches] = useState<QuestionnaireItem[]>([]);
   const [total, setTotal] = useState(0);
+  const enChargement = useCatalogueEnChargement();
+  // Même si Ezango s'ouvre en premier, la synchronisation (une seule à la fois) démarre et lève l'état « Chargement »
+  useEffect(() => { lancerSynchro(); }, []);
   const [charge, setCharge] = useState(true);
   const [themes, setThemes] = useState<ThemeDefinition[]>([]);
   const [villages, setVillages] = useState<VillageRegistry[]>([]);
@@ -110,17 +116,18 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
   return (
     <View style={{ gap: 10 }}>
       <Text style={s.titre}>Mémoire & Vocabulaire Myènè</Text>
-      <Text style={s.texte}>Explorez les expressions du corpus classées par Tribu Myènè et par Thème culturel</Text>
+      <Text style={s.texte}>Explorez les expressions du corpus classées par Ethnie Myènè et par Thème culturel</Text>
       <View style={s.ligne}>
         <Pressable onPress={() => { setSeulementFavoris(!seulementFavoris); setPage(1); }} style={[s.petit, seulementFavoris && s.petitActif]}><Text style={[s.petitTexte, seulementFavoris && { color: '#180d07' }]}>★ Mes Favoris ({favoris.length})</Text></Pressable>
-        <Text style={s.discret}>{charge ? 'Recherche…' : `${total} résultat(s)`}</Text>
+        <Text style={s.discret}>{charge || (enChargement && total === 0) ? 'Chargement…' : `${total} résultat(s)`}</Text>
       </View>
 
+      {enChargement && total === 0 && <Chargement compact />}
       <TextInput style={s.champ} placeholder="Chercher un mot (français ou myènè)" placeholderTextColor={couleurs.discret} value={texte} onChangeText={setTexte} autoCorrect={false} autoCapitalize="none" />
 
-      <Text style={s.etiquette}>Filtrer par Tribu :</Text>
+      <Text style={s.etiquette}>Filtrer par Ethnie :</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        <Pressable onPress={() => choisirTribu('all')} style={[s.puce, tribu === 'all' && s.puceActive]}><Text style={[s.puceTexte, tribu === 'all' && s.actif]}>🌍 Toutes les 6 tribus Myènè ({totalFiches} fiches)</Text></Pressable>
+        <Pressable onPress={() => choisirTribu('all')} style={[s.puce, tribu === 'all' && s.puceActive]}><Text style={[s.puceTexte, tribu === 'all' && s.actif]}>🌍 Toutes les 6 ethnies Myènè ({enChargement && totalFiches === 0 ? '…' : totalFiches} fiches)</Text></Pressable>
         {MYENE_TRIBES.map(t => (
           <Pressable key={t} onPress={() => choisirTribu(t)} style={[s.puce, tribu === t && s.puceActive]}>
             <Text style={[s.puceTexte, tribu === t && s.actif]}>{profil?.tribe === t ? '⭐ ' : '🌍 '}{t} ({compteTribu(t)})</Text>
@@ -130,16 +137,16 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
 
       {info ? (
         <View style={s.carte}>
-          <Text style={s.titreP}>Tribu {info.tribe}  ·  Variété dialectale : {info.tribe} • {total} question(s) associée(s)</Text>
+          <Text style={s.titreP}>Ethnie {info.tribe}  ·  Variété dialectale : {info.tribe} • {total} question(s) associée(s)</Text>
           <Text style={s.motto}>{info.mottoOrSymbol}</Text>
           <Text style={s.etiquette}>Spécificités Orthographiques & Tonales</Text><Text style={s.texte}>{info.orthographicAndTonalTraits}</Text>
           <Text style={s.etiquette}>Histoire & Tradition Orale</Text><Text style={s.texte}>{info.historicalOrigins}</Text>
           <Text style={s.etiquette}>Aire Géographique</Text><Text style={s.texte}>{info.geographicalZone}</Text>
           {villagesTribu.length > 0 && <Text style={s.discret}>Villages enregistrés : {villagesTribu.slice(0, 20).map(v => `📍 ${v}`).join('  ')}</Text>}
-          <Pressable onPress={() => choisirTribu('all')}><Text style={s.lien}>Toutes les tribus</Text></Pressable>
+          <Pressable onPress={() => choisirTribu('all')}><Text style={s.lien}>Toutes les ethnies</Text></Pressable>
         </View>
       ) : (
-        <Text style={s.discret}>En langue Myènè, les différences orthographiques et tonales concernent uniquement les 6 Tribus (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et non les clans. Sélectionnez une tribu pour explorer ses expressions et ses particularités linguistiques.</Text>
+        <Text style={s.discret}>En langue Myènè, les différences orthographiques et tonales concernent uniquement les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et non les clans. Sélectionnez une ethnie pour explorer ses expressions et ses particularités linguistiques.</Text>
       )}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -155,7 +162,7 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
           <Text style={s.titreP}>{seulementFavoris ? 'Aucun vocabulaire favori pour ces critères' : 'Aucune expression trouvée pour ces critères'}</Text>
           <Text style={s.texte}>{seulementFavoris
             ? "Cliquez sur l'étoile « Favori » sur les cartes du vocabulaire pour sauvegarder vos expressions Myènè préférées et les retrouver ici ainsi que dans votre Profil."
-            : `Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés (${tribu !== 'all' ? `Tribu ${tribu}` : 'Toutes les tribus'}).`}</Text>
+            : `Aucun mot ne correspond simultanément à votre recherche et aux filtres sélectionnés (${tribu !== 'all' ? `Ethnie ${tribu}` : 'Toutes les ethnies'}).`}</Text>
           <Pressable style={s.petit} onPress={() => { setTexte(''); setTribu('all'); setTheme('all'); setSeulementFavoris(false); setPage(1); }}><Text style={s.petitTexte}>Afficher tout le vocabulaire</Text></Pressable>
         </View>
       )}
@@ -172,8 +179,8 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
             <View style={s.ligne}>
               <View style={[s.pile, { flex: 1 }]}>
                 {tribusFiche.map(t => (
-                  <Pressable key={t} onPress={() => choisirTribu(t)} accessibilityLabel={`Filtrer par la tribu ${t}`}>
-                    <Text style={[s.badge, (tribu === t || profil?.tribe === t) && s.badgeOr]}>🌍 Tribu {t}</Text>
+                  <Pressable key={t} onPress={() => choisirTribu(t)} accessibilityLabel={`Filtrer par l’ethnie ${t}`}>
+                    <Text style={[s.badge, (tribu === t || profil?.tribe === t) && s.badgeOr]}>🌍 Ethnie {t}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -181,10 +188,10 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
               <Pressable onPress={() => favori(f.id)} hitSlop={10} accessibilityLabel={aime ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Text style={{ fontSize: 24, color: aime ? couleurs.ambre : couleurs.discret }}>{aime ? '★' : '☆'}</Text></Pressable>
             </View>
             <Text style={s.francais}>« {f.frenchText} »</Text>
-            <Text style={s.discret}>Tribu {tribuDuDialecte(String(f.dialect))} · {f.recordingsCount || 0} voix enregistrées</Text>
+            <Text style={s.discret}>Ethnie {tribuDuDialecte(String(f.dialect))} · {f.recordingsCount || 0} voix enregistrées</Text>
             <Text style={s.myene}>{f.myeneText}</Text>
             {!!f.phoneticApi && <Text style={s.discret}>[{f.phoneticApi}]</Text>}
-            {!!variante && variante !== f.myeneText && <Text style={s.variante}>Variante Tribu {tribu} : <Text style={{ fontWeight: '900' }}>{variante}</Text></Text>}
+            {!!variante && variante !== f.myeneText && <Text style={s.variante}>Variante Ethnie {tribu} : <Text style={{ fontWeight: '900' }}>{variante}</Text></Text>}
             {!!nuance && (
               <View style={{ gap: 2 }}>
                 {!!nuance.frenchMeaning && <Text style={s.nuance}>💡 Autre tournure / sens : <Text style={{ fontWeight: '900' }}>« {nuance.frenchMeaning} »</Text></Text>}

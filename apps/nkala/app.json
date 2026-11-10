@@ -4,7 +4,8 @@
     "slug": "nkala",
     "scheme": "nkala",
     "version": "0.1.0",
-    "orientation": "portrait",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
@@ -16,6 +17,9 @@
     },
     "web": {
       "bundler": "metro",
+      "favicon": "./assets/icon.png",
+      "name": "Nkala",
+      "backgroundColor": "#170d08",
       "output": "single"
     },
     "plugins": [
@@ -28,7 +32,10 @@
         }
       ],
       "expo-asset",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-video",
+      "expo-localization",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

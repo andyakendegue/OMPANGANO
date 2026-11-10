@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAudioPlayer } from 'expo-audio';
 import {
-  chargerFileModeration, chargerUtilisateurs, tribuDuDialecte, estAdmin, evaluerContribution, LIBELLE_COMPTE, LIBELLE_ROLE,
+  chargerFileModeration, chargerUtilisateurs, chargerUtilisateursPage, chargerSegments, chargerStatsContributions, formaterHeures, MYENE_TRIBES, TRANCHES_AGE, tribuDuDialecte, estAdmin, evaluerContribution, LIBELLE_COMPTE, LIBELLE_ROLE,
   LIBELLE_STATUT, modifierUtilisateur, resoudreMedia,
-  type AccountStatus, type Contribution, type FileModeration, type UserProfile, type UserRole,
+  type AccountStatus, type Contribution, type FileModeration, type PageUtilisateurs, type StatsContributions, type SegmentsCommunaute, type UserProfile, type UserRole,
   type VerdictOrthographe, type VerdictPrononciation,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
@@ -35,6 +35,7 @@ export function Pilotage() {
         <Stat n={total} t="Contributions" />
         <Stat n={c.pending || 0} t="À modérer" accent />
       </View>
+      <StatsContribs />
       <View style={s.carte}>
         <Text style={s.titre}>Contributions par statut</Text>
         {Object.entries(LIBELLE_STATUT).map(([k, nom]) => (
@@ -99,7 +100,7 @@ function CarteModeration({ c, surFait }: { c: Contribution; surFait: () => void 
       <Text style={s.texteClair}>« {c.frenchText} »</Text>
       <Text style={s.texte}>Texte initial Myènè : <Text style={{ fontWeight: '800', color: couleurs.ambre }}>{c.originalMyeneText}</Text></Text>
       <Text style={s.nom}>{c.userDisplayName}</Text>
-      <Text style={s.discret}>{c.userTribe ? `Tribu ${c.userTribe}` : 'Tribu non renseignée'} • {new Date(c.createdAt).toLocaleDateString()}</Text>
+      <Text style={s.discret}>{c.userTribe ? `Ethnie ${c.userTribe}` : 'Ethnie non renseignée'} • {new Date(c.createdAt).toLocaleDateString()}</Text>
 
       <View style={s.colonne}>
         <View style={s.ligneSimple}>
@@ -196,9 +197,9 @@ export function Moderation() {
 
       <TextInput style={s.champ} value={q} onChangeText={setQ} autoCapitalize="none" placeholder="Rechercher par expression française, mot Myènè, sens proposé, locuteur..." placeholderTextColor={couleurs.discret} />
       <View style={s.pile}>
-        <Pressable onPress={() => setTribu('all')} style={[s.puce, tribu === 'all' && s.puceActive]}><Text style={[s.puceTexte, tribu === 'all' && s.puceTexteActif]}>Toutes les Tribus Myènè</Text></Pressable>
+        <Pressable onPress={() => setTribu('all')} style={[s.puce, tribu === 'all' && s.puceActive]}><Text style={[s.puceTexte, tribu === 'all' && s.puceTexteActif]}>Toutes les Ethnies Myènè</Text></Pressable>
         {['Enenga', 'Mpongwè', 'Galoa', 'Nkomi', 'Ôrungu', 'Adyumba'].map(t => (
-          <Pressable key={t} onPress={() => setTribu(t)} style={[s.puce, tribu === t && s.puceActive]}><Text style={[s.puceTexte, tribu === t && s.puceTexteActif]}>Tribu {t}</Text></Pressable>
+          <Pressable key={t} onPress={() => setTribu(t)} style={[s.puce, tribu === t && s.puceActive]}><Text style={[s.puceTexte, tribu === t && s.puceTexteActif]}>Ethnie {t}</Text></Pressable>
         ))}
         <Pressable onPress={() => setFiltre('all')} style={[s.puce, filtre === 'all' && s.puceActive]}><Text style={[s.puceTexte, filtre === 'all' && s.puceTexteActif]}>Toutes ({total})</Text></Pressable>
       </View>
@@ -218,41 +219,113 @@ export function Moderation() {
   );
 }
 
+function StatsContribs() {
+  const [st, setSt] = useState<StatsContributions | null>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
+  useEffect(() => { chargerStatsContributions().then(setSt).catch(e => setErreur((e as Error).message)); }, []);
+  if (erreur) return <Text style={s.erreur}>Statistiques indisponibles : {erreur}</Text>;
+  if (!st) return <ActivityIndicator color={couleurs.ambre} />;
+  const nomE = (e: string) => (e === 'inconnue' ? 'Autre / non renseignée' : e);
+  const lignes = (m: Record<string, { contributions: number; heures: number; contributeurs: number }>) =>
+    Object.entries(m).sort((a, b) => b[1].contributions - a[1].contributions);
+  return (
+    <View style={{ gap: 12 }}>
+      <View style={s.grille}>
+        <Stat n={st.enregistrements} t="Enregistrements" />
+        <View style={s.stat}><Text style={[s.statValeur, { color: couleurs.ambre }]}>{formaterHeures(st.heures)}</Text><Text style={s.discret}>Heures enregistrées</Text></View>
+        <Stat n={st.contributeurs} t="Contributeurs" />
+      </View>
+      <View style={s.carte}>
+        <Text style={s.titre}>Questions couvertes</Text>
+        <Text style={s.texte}>{st.questions.avecContribution} sur {st.questions.total} ont au moins une contribution ; {st.questions.avecContributionApprouvee} en ont une validée.</Text>
+        <Text style={s.discret}>Contributions : {st.periode.aujourdhui} aujourd’hui · {st.periode.septJours} sur 7 jours · {st.periode.trenteJours} sur 30 jours · {formaterHeures(st.heuresApprouvees)} d’audio validé</Text>
+      </View>
+      <View style={s.carte}>
+        <Text style={s.titre}>Par ethnie</Text>
+        {lignes(st.parEthnie).map(([k, g]) => (
+          <View key={k} style={s.ligneSimple}><Text style={s.texte}>{nomE(k)}</Text><Text style={s.discret}>{g.contributions} contrib. · {formaterHeures(g.heures)} · {g.contributeurs} pers.</Text></View>
+        ))}
+      </View>
+      <View style={s.carte}>
+        <Text style={s.titre}>Par thème</Text>
+        {lignes(st.parTheme).map(([k, g]) => (
+          <View key={k} style={s.ligneSimple}><Text style={s.texte} numberOfLines={1}>{k}</Text><Text style={s.discret}>{g.contributions} contrib. · {formaterHeures(g.heures)}</Text></View>
+        ))}
+      </View>
+      <View style={s.carte}>
+        <Text style={s.titre}>Meilleurs contributeurs</Text>
+        {st.topContributeurs.map((u, i) => (
+          <View key={i} style={s.ligneSimple}><Text style={s.texte} numberOfLines={1}>{i + 1}. {u.nom}</Text><Text style={s.discret}>{u.contributions} · {formaterHeures(u.heures)}</Text></View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 // ---------------------------------------------------------------- Communauté (utilisateurs)
 
 export function Utilisateurs() {
   const { profil } = useAuth();
-  const [liste, setListe] = useState<UserProfile[] | null>(null);
+  const [donnees, setDonnees] = useState<PageUtilisateurs | null>(null);
+  const [segments, setSegments] = useState<SegmentsCommunaute | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [q, setQ] = useState('');
+  const [qEnvoye, setQEnvoye] = useState('');
+  const [ethnie, setEthnie] = useState('');
+  const [age, setAge] = useState('');
+  const [page, setPage] = useState(1);
   const [ouvert, setOuvert] = useState<string | null>(null);
 
-  useEffect(() => { chargerUtilisateurs().then(setListe).catch(e => setErreur((e as Error).message)); }, []);
-
-  const visibles = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return (liste || []).filter(u => !t || `${u.fullName} ${u.displayName} ${u.email}`.toLowerCase().includes(t));
-  }, [liste, q]);
+  // Recherche différée : une requête seulement quand la frappe s'arrête.
+  useEffect(() => { const t = setTimeout(() => { setQEnvoye(q.trim()); setPage(1); }, 400); return () => clearTimeout(t); }, [q]);
+  useEffect(() => { chargerSegments().then(setSegments).catch(() => {}); }, []);
+  useEffect(() => {
+    let actuel = true;
+    setErreur(null);
+    chargerUtilisateursPage({ page, limit: 20, q: qEnvoye, ethnie, age })
+      .then(d => { if (actuel) setDonnees(d); })
+      .catch(e => { if (actuel) setErreur((e as Error).message); });
+    return () => { actuel = false; };
+  }, [page, qEnvoye, ethnie, age]);
 
   const changer = async (u: UserProfile, patch: { role?: UserRole; status?: AccountStatus }) => {
     try {
       const maj = await modifierUtilisateur(u.id, patch);
-      setListe(l => l && l.map(x => (x.id === u.id ? { ...x, ...maj } : x)));
+      setDonnees(d => d && { ...d, items: d.items.map(x => (x.id === u.id ? { ...x, ...maj } : x)) });
     } catch (e) { alerte('Modification impossible', (e as Error).message); }
   };
+  const filtrer = (f: () => void) => { f(); setPage(1); };
 
-  if (erreur) return <Text style={s.erreur}>Indisponible : {erreur}</Text>;
-  if (!liste) return <ActivityIndicator color={couleurs.ambre} />;
+  if (erreur && !donnees) return <Text style={s.erreur}>Indisponible : {erreur}</Text>;
+  if (!donnees) return <ActivityIndicator color={couleurs.ambre} />;
   const admin = estAdmin(profil?.role);
+  const nb = (m: Record<string, number> | undefined, k: string) => (m ? m[k] || 0 : 0);
   return (
     <View style={{ gap: 10 }}>
-      <TextInput style={s.champ} placeholder={`Chercher parmi ${liste.length} utilisateurs`} placeholderTextColor={couleurs.discret} value={q} onChangeText={setQ} autoCapitalize="none" />
-      {visibles.slice(0, 60).map(u => (
+      <TextInput style={s.champ} placeholder={`Chercher parmi ${segments?.total ?? donnees.total} utilisateurs`} placeholderTextColor={couleurs.discret} value={q} onChangeText={setQ} autoCapitalize="none" />
+      <Text style={s.etiquette}>Ethnie</Text>
+      <View style={s.pile}>
+        {[['', 'Toutes'], ...MYENE_TRIBES.map(t => [t, t]), ['inconnue', 'Autre / non renseignée']].map(([v, nom]) => (
+          <Pressable key={v || 'toutes'} onPress={() => filtrer(() => setEthnie(v))} style={[s.puce, ethnie === v && s.puceActive]}>
+            <Text style={[s.puceTexte, ethnie === v && s.puceTexteActif]}>{nom}{v && segments ? ` (${nb(segments.parEthnie, v)})` : ''}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <Text style={s.etiquette}>Tranche d’âge</Text>
+      <View style={s.pile}>
+        {[['', 'Tous âges'], ...TRANCHES_AGE].map(([v, nom]) => (
+          <Pressable key={v || 'tous'} onPress={() => filtrer(() => setAge(v))} style={[s.puce, age === v && s.puceActive]}>
+            <Text style={[s.puceTexte, age === v && s.puceTexteActif]}>{nom}{v && segments ? ` (${nb(segments.parAge, v)})` : ''}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <Text style={s.discret}>{donnees.total.toLocaleString('fr-FR')} utilisateur(s) correspondant(s)</Text>
+      {donnees.items.map(u => (
         <View key={u.id} style={s.carte}>
           <Pressable onPress={() => setOuvert(ouvert === u.id ? null : u.id)} style={s.ligneSimple}>
             <View style={{ flex: 1 }}>
               <Text style={s.nom} numberOfLines={1}>{u.fullName || u.displayName}</Text>
-              <Text style={s.discret} numberOfLines={1}>{u.email} · {LIBELLE_ROLE[u.role]} · {LIBELLE_COMPTE[u.status]} · {u.xp} XP</Text>
+              <Text style={s.discret} numberOfLines={1}>{u.email} · {u.tribe || 'Autre'} · {LIBELLE_ROLE[u.role]} · {LIBELLE_COMPTE[u.status]} · {u.xp} XP</Text>
             </View>
             <Text style={s.lien}>{ouvert === u.id ? '▲' : '▼'}</Text>
           </Pressable>
@@ -266,7 +339,14 @@ export function Utilisateurs() {
           )}
         </View>
       ))}
-      {visibles.length > 60 && <Text style={s.discret}>60 premiers affichés sur {visibles.length} : affinez la recherche.</Text>}
+      {donnees.items.length === 0 && <Text style={s.discret}>Aucun utilisateur ne correspond à ces critères.</Text>}
+      {donnees.pages > 1 && (
+        <View style={s.ligneSimple}>
+          <Pressable disabled={donnees.page <= 1} onPress={() => setPage(donnees.page - 1)}><Text style={[s.lien, donnees.page <= 1 && { opacity: 0.3 }]}>‹ Précédent</Text></Pressable>
+          <Text style={s.discret}>Page {donnees.page} / {donnees.pages}</Text>
+          <Pressable disabled={donnees.page >= donnees.pages} onPress={() => setPage(donnees.page + 1)}><Text style={[s.lien, donnees.page >= donnees.pages && { opacity: 0.3 }]}>Suivant ›</Text></Pressable>
+        </View>
+      )}
     </View>
   );
 }

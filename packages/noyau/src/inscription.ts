@@ -2,6 +2,9 @@ import { api } from './api';
 import { enregistrerElement, nouvelId } from './contenu';
 import type { ClanRegistry, TribeName, UserProfile, VillageRegistry } from './types';
 
+/** Réponse valide quand on ignore un clan, une tribu de parent ou un village (ex. un seul parent myènè). Identique au site web. */
+export const JE_NE_SAIS_PAS = 'Je ne sais pas';
+
 /** Mêmes noms de tribus que le web (clans.tribe et profil.tribe). */
 export const TRIBUS: TribeName[] = ['Ôrungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
 

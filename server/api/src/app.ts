@@ -16,6 +16,11 @@ import {
 } from './model.ts';
 import { importItems } from './importItems.ts';
 import { journaliserErreur } from './erreurs.ts';
+import { estJetonSession, fournisseurParDefaut, lireSession, type FournisseurSms } from './sms.ts';
+import { registerContenus } from './contenus.ts';
+import { registerJeux } from './jeux.ts';
+import { registerServices, fournisseurIaParDefaut, type FournisseurIa } from './services.ts';
+import { registerSupervision } from './supervision.ts';
 import { enregistrerVisite, lireStatistiques, tropDeRequetes } from './visites.ts';
 import { chargerEcartees, cle as cleTexte, estPlusAncienne, journaliser, preparerProtection, raisonEcartee, type EntreeJournal } from './protection.ts';
 import { normalizePhraseComparisonKey } from '../../../shared/csvDedup.ts';
@@ -33,6 +38,12 @@ export interface Deps {
   corsOrigins: string[];
   rateLimitMax?: number;
   logger?: boolean;
+  /** Connexion par SMS (Twilio Verify par défaut). */
+  sms?: FournisseurSms;
+  /** Assistant IA (Anthropic par défaut, simulation sans clé). */
+  ia?: FournisseurIa;
+  /** Secret de signature des sessions SMS (SESSION_SECRET). */
+  sessionSecret?: string;
 }
 
 export class HttpError extends Error {
@@ -89,6 +100,8 @@ const str = (v: unknown): v is string => typeof v === 'string';
 
 export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   const { db, verify, storage } = deps;
+  const secret = deps.sessionSecret || process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'secret-de-developpement-nkala-0123456789');
+  if (!secret) throw new Error('SESSION_SECRET manquant');
   // Garde-fous du corpus : phrases écartées et correction des anciennes phrases de départ (idempotent)
   await db.tx(q => preparerProtection(q));
   const app = Fastify({
@@ -135,7 +148,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const m = /^Bearer\s+(.+)$/i.exec(header);
     if (!m) fail(401, 'Jeton manquant.');
     try {
-      req.auth = await verify(m![1]);
+      // Sessions créées par SMS (Twilio) ou jetons Firebase (Google, e-mail)
+      req.auth = estJetonSession(m![1]) ? await lireSession(secret, m![1]) : await verify(m![1]);
     } catch {
       fail(401, 'Jeton invalide ou expiré.');
     }
@@ -179,6 +193,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
         })]
     );
     if (auth.email) await q.query(`UPDATE users SET email = $2 WHERE id = $1 AND email IS DISTINCT FROM $2`, [auth.uid, auth.email]);
+    if (auth.phone) await q.query(`UPDATE users SET data = data || jsonb_build_object('phone', $2::text) WHERE id = $1 AND (data->>'phone') IS DISTINCT FROM $2`, [auth.uid, auth.phone]);
     if (superAdmin) {
       await q.query(`UPDATE users SET role = 'admin' WHERE id = $1 AND role <> 'admin'`, [auth.uid]);
       await q.query(
@@ -236,6 +251,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     }
     return 'Dossier inconnu.';
   }
+
+  // Interrupteurs de modules : route dans contenus.ts (variables du serveur puis réglages de la console)
 
   // ------------------------------------------------------------------ profil
   app.get('/v1/me', async (req) => {
@@ -305,6 +322,31 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       [req.auth!.uid]
     );
     return rows.map(contributionRow);
+  });
+
+  // Statistiques des modérations faites par le validateur connecté (lui seul y a accès ; l'administrateur voit les siennes)
+  app.get('/v1/me/moderation-stats', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isStaff) fail(403, 'Réservé aux validateurs et administrateurs.');
+    const uid = a.auth.uid;
+    const parStatut = await db.query<any>(
+      `SELECT status, count(*)::int AS n FROM contributions WHERE validator_id = $1 AND deleted_at IS NULL GROUP BY status`, [uid]);
+    const periodes = (await db.query<any>(
+      `SELECT count(*) FILTER (WHERE (data->>'validatedAt')::timestamptz >= date_trunc('day', now()))::int AS aujourdhui,
+              count(*) FILTER (WHERE (data->>'validatedAt')::timestamptz >= now() - interval '7 days')::int AS sept_jours,
+              count(*) FILTER (WHERE (data->>'validatedAt')::timestamptz >= now() - interval '30 days')::int AS trente_jours,
+              max(data->>'validatedAt') AS derniere
+         FROM contributions WHERE validator_id = $1 AND deleted_at IS NULL AND data ? 'validatedAt'`, [uid]))[0] || {};
+    const enAttente = (await db.query<any>(`SELECT count(*)::int AS n FROM contributions WHERE status = 'pending' AND deleted_at IS NULL AND user_id <> $1`, [uid]))[0]?.n || 0;
+    const compteur = (await db.query<any>(`SELECT validations_count FROM users WHERE id = $1`, [uid]))[0]?.validations_count || 0;
+    const counts: Record<string, number> = {};
+    let total = 0;
+    for (const r of parStatut) { counts[r.status] = r.n; total += r.n; }
+    return {
+      total, counts, enAttente, validationsCount: compteur,
+      aujourdhui: periodes.aujourdhui || 0, septJours: periodes.sept_jours || 0, trenteJours: periodes.trente_jours || 0,
+      derniere: periodes.derniere || null,
+    };
   });
 
   // File de modération (application mobile) : contributions par statut + compteurs, réservé au personnel
@@ -380,10 +422,105 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   });
 
   // ------------------------------------------------------------------ gestion des utilisateurs
+  const TRANCHES_AGE: [string, number, number][] = [
+    ['moins18', 0, 17], ['18-25', 18, 25], ['26-35', 26, 35], ['36-50', 36, 50], ['51-65', 51, 65], ['66plus', 66, 200],
+  ];
+  const ageDe = (d: any): number | null => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d?.birthDate || ''));
+    if (!m) return null;
+    const n = new Date();
+    let age = n.getUTCFullYear() - Number(m[1]);
+    if (n.getUTCMonth() + 1 < Number(m[2]) || (n.getUTCMonth() + 1 === Number(m[2]) && n.getUTCDate() < Number(m[3]))) age--;
+    return age >= 0 && age <= 120 ? age : null;
+  };
+  const trancheDe = (age: number | null) => (age === null ? 'inconnu' : TRANCHES_AGE.find(t => age >= t[1] && age <= t[2])![0]);
+
   app.get('/v1/users', async (req) => {
     const a = await actorOf(req);
     if (!a.isStaff) fail(403, 'Réservé aux validateurs et administrateurs.');
-    return (await db.query<any>(`SELECT * FROM users WHERE deleted_at IS NULL ORDER BY created_at, id`)).map(userRow);
+    const qs = req.query as { page?: string; limit?: string; q?: string; ethnie?: string; age?: string; role?: string; status?: string };
+    const rows = await db.query<any>(`SELECT * FROM users WHERE deleted_at IS NULL ORDER BY created_at, id`);
+    // Sans `page` : liste complète (anciens clients). Avec `page` : liste paginée et filtrée.
+    if (!qs.page) return rows.map(userRow);
+    const t = (qs.q || '').trim().toLowerCase();
+    const filtres = rows.filter(r => {
+      const d = r.data || {};
+      if (qs.role && r.role !== qs.role) return false;
+      if (qs.status && r.status !== qs.status) return false;
+      if (qs.ethnie && (d.tribe || 'inconnue') !== qs.ethnie) return false;
+      if (qs.age && trancheDe(ageDe(d)) !== qs.age) return false;
+      if (t && !`${d.fullName || ''} ${d.displayName || ''} ${r.email || ''} ${d.contact || ''}`.toLowerCase().includes(t)) return false;
+      return true;
+    });
+    const limit = Math.min(100, Math.max(1, Math.trunc(Number(qs.limit)) || 30));
+    const pages = Math.max(1, Math.ceil(filtres.length / limit));
+    const page = Math.min(pages, Math.max(1, Math.trunc(Number(qs.page)) || 1));
+    return { items: filtres.slice((page - 1) * limit, page * limit).map(userRow), total: filtres.length, page, pages, limit };
+  });
+
+  /** Statistiques des contributions : volumes, heures enregistrées, questions couvertes, par ethnie / thème / période. */
+  app.get('/v1/admin/contribution-stats', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    const rows = await db.query<any>(
+      `SELECT c.id, c.item_id, c.user_id, c.status, c.audio_storage_path, c.created_at, c.data, i.category AS theme
+         FROM contributions c LEFT JOIN items i ON i.id = c.item_id WHERE c.deleted_at IS NULL`);
+    const totalItems = Number((await db.query<any>(`SELECT count(*)::int AS n FROM items WHERE deleted_at IS NULL`))[0]?.n || 0);
+    const dec = (n: number) => Math.round(n * 100) / 100;
+    const vide = () => ({ contributions: 0, approuvees: 0, enregistrements: 0, secondes: 0, secondesApprouvees: 0, contributeurs: new Set<string>() });
+    const cumul = (g: ReturnType<typeof vide>, r: any, sec: number, audio: boolean) => {
+      g.contributions++; g.contributeurs.add(r.user_id);
+      if (r.status === 'approved') g.approuvees++;
+      if (audio) { g.enregistrements++; g.secondes += sec; if (r.status === 'approved' || r.status === 'audio_approved_text_revision') g.secondesApprouvees += sec; }
+    };
+    const sortie = (g: ReturnType<typeof vide>) => ({
+      contributions: g.contributions, approuvees: g.approuvees, enregistrements: g.enregistrements,
+      heures: dec(g.secondes / 3600), heuresApprouvees: dec(g.secondesApprouvees / 3600), contributeurs: g.contributeurs.size,
+    });
+    const global = vide(), parEthnie: Record<string, ReturnType<typeof vide>> = {}, parTheme: Record<string, ReturnType<typeof vide>> = {};
+    const parStatut: Record<string, number> = {}, parJour: Record<string, number> = {}, parUtilisateur: Record<string, { nom: string; n: number; sec: number }> = {};
+    const questions = new Set<string>(), questionsApprouvees = new Set<string>();
+    const maintenant = Date.now(), jour = 86_400_000;
+    const periode = { aujourdhui: 0, septJours: 0, trenteJours: 0 };
+    for (const r of rows) {
+      const d = r.data || {};
+      const audio = !!r.audio_storage_path;
+      const sec = audio ? Math.max(0, Number(d.audioDuration) || 0) : 0;
+      cumul(global, r, sec, audio);
+      cumul((parEthnie[d.userTribe || 'inconnue'] ||= vide()), r, sec, audio);
+      cumul((parTheme[r.theme || 'autre'] ||= vide()), r, sec, audio);
+      parStatut[r.status] = (parStatut[r.status] || 0) + 1;
+      if (r.item_id) { questions.add(r.item_id); if (r.status === 'approved') questionsApprouvees.add(r.item_id); }
+      const age = maintenant - new Date(r.created_at).getTime();
+      if (age < jour) periode.aujourdhui++;
+      if (age < 7 * jour) periode.septJours++;
+      if (age < 30 * jour) { periode.trenteJours++; const k = new Date(r.created_at).toISOString().slice(0, 10); parJour[k] = (parJour[k] || 0) + 1; }
+      const u = (parUtilisateur[r.user_id] ||= { nom: d.userDisplayName || r.user_id, n: 0, sec: 0 });
+      u.n++; u.sec += sec;
+    }
+    const mapper = (m: Record<string, ReturnType<typeof vide>>) => Object.fromEntries(Object.entries(m).map(([k, g]) => [k, sortie(g)]));
+    return {
+      ...sortie(global), parStatut, periode,
+      questions: { total: totalItems, avecContribution: questions.size, avecContributionApprouvee: questionsApprouvees.size },
+      parEthnie: mapper(parEthnie), parTheme: mapper(parTheme),
+      parJour: Object.entries(parJour).sort().map(([jour, n]) => ({ jour, n })),
+      topContributeurs: Object.values(parUtilisateur).sort((x, y) => y.n - x.n).slice(0, 10).map(u => ({ nom: u.nom, contributions: u.n, heures: dec(u.sec / 3600) })),
+    };
+  });
+
+  /** Répartition de la communauté par ethnie et par tranche d'âge (et croisement des deux). */
+  app.get('/v1/users/segments', async (req) => {
+    const a = await actorOf(req);
+    if (!a.isStaff) fail(403, 'Réservé aux validateurs et administrateurs.');
+    const rows = await db.query<any>(`SELECT data FROM users WHERE deleted_at IS NULL`);
+    const parEthnie: Record<string, number> = {}, parAge: Record<string, number> = {}, croise: Record<string, Record<string, number>> = {};
+    for (const r of rows) {
+      const e = r.data?.tribe || 'inconnue', g = trancheDe(ageDe(r.data));
+      parEthnie[e] = (parEthnie[e] || 0) + 1;
+      parAge[g] = (parAge[g] || 0) + 1;
+      (croise[e] ||= {})[g] = (croise[e][g] || 0) + 1;
+    }
+    return { total: rows.length, parEthnie, parAge, croise };
   });
 
   app.get('/v1/users/:id', async (req) => {
@@ -937,6 +1074,17 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   });
 
   app.addHook('onClose', async () => { bus.removeAllListeners(); });
+  // ------------------------------------------------------------------ Nkala : contenus, jeux, services, supervision, SMS
+  const nk = {
+    app, db, fail,
+    acteur: async (req: FastifyRequest) => { const a = await actorOf(req); return { auth: a.auth, isAdmin: a.isAdmin, isStaff: a.isStaff, role: a.role, status: a.status }; },
+    ensureUser, notify, env: process.env, sms: deps.sms ?? fournisseurParDefaut(), ia: deps.ia ?? fournisseurIaParDefaut(), secret
+  };
+  registerContenus(nk);
+  registerJeux(nk);
+  registerServices(nk);
+  registerSupervision(nk);
+
   return app;
 }
 

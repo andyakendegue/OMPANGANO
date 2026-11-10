@@ -2,7 +2,7 @@ import { api } from './api';
 import type { QuestionnaireItem } from './types';
 
 /**
- * Onenji : apprentissage par le jeu (14_programme_et_jeux/02_jeux_application_NKALA.md).
+ * Azeva (salle de jeux, ex-jeux d'Onenji) : règles des cœurs et des points (14_programme_et_jeux/02_jeux_application_NKALA.md).
  * Règle des cours : un nombre de cœurs par défaut, une mauvaise réponse en retire un, les bonnes réponses
  * rapportent des points, les points et le temps rechargent les cœurs. Les valeurs ci-dessous sont des
  * réglages provisoires (le document ne fixe pas les chiffres) : décision de Capp.

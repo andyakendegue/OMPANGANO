@@ -62,7 +62,7 @@ export function AntiFraude() {
         <Text style={s.danger}>Profils inactifs ou douteux</Text>
         <Text style={s.discret}>Nkala est réservé aux contributeurs authentiques de la communauté myènè. L’indice combine l’inactivité, les clans et le village déclarés.</Text>
       </View>
-      <TextInput style={s.champ} placeholder="Nom, tribu, village…" placeholderTextColor={couleurs.discret} value={q} onChangeText={setQ} />
+      <TextInput style={s.champ} placeholder="Nom, ethnie, village…" placeholderTextColor={couleurs.discret} value={q} onChangeText={setQ} />
       <View style={s.pile}>
         {([['tous', 'Tous'], ['modere', 'Risque modéré +'], ['critique', 'Critique']] as const).map(([id, nom]) => (
           <Pressable key={id} onPress={() => setFiltre(id)} style={[s.puce, filtre === id && s.puceActive]}><Text style={[s.puceTexte, filtre === id && s.puceTexteActif]}>{nom}</Text></Pressable>
@@ -75,7 +75,7 @@ export function AntiFraude() {
             <Text style={s.nom} numberOfLines={1}>{u.fullName || u.displayName}</Text>
             <Text style={[s.score, { color: u.scoreCalcule >= 60 ? '#ef4444' : u.scoreCalcule >= 30 ? '#f59e0b' : '#22c55e' }]}>{u.scoreCalcule}/100</Text>
           </View>
-          <Text style={s.discret}>{u.contact || u.email || 'contact non renseigné'} · {u.tribe || 'tribu inconnue'} · {LIBELLE_COMPTE[u.status]}</Text>
+          <Text style={s.discret}>{u.contact || u.email || 'contact non renseigné'} · {u.tribe || 'ethnie inconnue'} · {LIBELLE_COMPTE[u.status]}</Text>
           <Text style={s.texte}>Clans : {u.paternalClan || 'N/A'} / {u.maternalClan || 'N/A'} · Village : {u.villageOfOrigin || 'non déclaré'}</Text>
           <Text style={s.texte}>{u.contributionsCount || 0} contributions · {u.recordingsCount || 0} voix</Text>
           {u.raisons.map((r, i) => <Text key={i} style={s.alerte}>• {r}</Text>)}

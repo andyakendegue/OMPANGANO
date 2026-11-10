@@ -1,0 +1,35 @@
+[
+ {
+  "id": "ntina-l1",
+  "unite_id": "ntina-u1",
+  "titre": "Bonjour et merci",
+  "duree_min": 4,
+  "xp": 15,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "ntina-l2",
+  "unite_id": "ntina-u1",
+  "titre": "Au revoir",
+  "duree_min": 3,
+  "xp": 15,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 2,
+  "publie": true
+ },
+ {
+  "id": "ntina-l3",
+  "unite_id": "ntina-u2",
+  "titre": "Les mots de politesse",
+  "duree_min": 4,
+  "xp": 15,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ }
+]

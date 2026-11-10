@@ -126,3 +126,10 @@ Puis : DNS A `pub` → VPS ; ouvrir `https://pub.essaka.engineering/` et suivre 
 - Revive Adserver, exigences techniques : https://www.revive-adserver.com/support/requirements/
 - Revive Adserver, notes de version (v6.0.x) : https://www.revive-adserver.com/blog/
 - Modèle économique NKALA : `../15_modele_economique/01_modele_economique_application.md`
+
+## 9. Ajout du 9 nov. 2026 : zones des autres modules et principe de développement
+- **Réserver les emplacements pendant le développement** : composant `EmplacementPub` et registre des zones dans `packages/noyau` dès l'étape 0 ; rien n'est affiché si la publicité est coupée, si l'utilisateur est abonné ou enfant, hors ligne, ou pendant un exercice.
+- **Zones à ajouter** : `audio_entre_titres`, `video_entre_clips`, `bandeau_lecteur`, `bandeau_catalogue` (Ontci) ; `annonce_en_tete`, `annonce_dans_liste`, `carte_partenaire` (Nkala) ; `bandeau_apprendre` (Onenji, accueil et catalogue seulement). Tableau et règles : `NKALA_AUDIT_COMPLET.md` §10bis.1.
+- **Paris** : aucune publicité de paris vers les mineurs ni dans les salles d'apprentissage ; catégorie « jeux d'argent » bloquée hors de la salle des paris ouverte.
+- **Abonnés** : plus de publicité (règle du modèle économique) ; la passerelle interroge `peutAcceder`.
+- **Audio et vidéo publicitaires** : Revive les gère mal ; décision ouverte entre Revive seul et régie maison (§10bis.1).

@@ -1,0 +1,62 @@
+[
+ {
+  "id": "s-premiere",
+  "titre": "Première partie",
+  "description": "Joue ta première partie.",
+  "condition": "parties",
+  "seuil": 1,
+  "xp": 10,
+  "icone": "etoile",
+  "publie": true
+ },
+ {
+  "id": "s-10-victoires",
+  "titre": "Dix victoires",
+  "description": "Gagne dix parties.",
+  "condition": "victoires",
+  "seuil": 10,
+  "xp": 50,
+  "icone": "coupe",
+  "publie": true
+ },
+ {
+  "id": "s-serie-7",
+  "titre": "Une semaine de suite",
+  "description": "Sept jours consécutifs.",
+  "condition": "serie",
+  "seuil": 7,
+  "xp": 70,
+  "icone": "flamme",
+  "publie": true
+ },
+ {
+  "id": "s-5-lecons",
+  "titre": "Cinq leçons",
+  "description": "Termine cinq leçons.",
+  "condition": "lecons",
+  "seuil": 5,
+  "xp": 40,
+  "icone": "livre",
+  "publie": true
+ },
+ {
+  "id": "s-1000-points",
+  "titre": "Mille points",
+  "description": "Cumule mille points de jeu.",
+  "condition": "points",
+  "seuil": 1000,
+  "xp": 50,
+  "icone": "etoile",
+  "publie": true
+ },
+ {
+  "id": "s-voix",
+  "titre": "Première voix",
+  "description": "Envoie ta première contribution.",
+  "condition": "contributions",
+  "seuil": 1,
+  "xp": 15,
+  "icone": "micro",
+  "publie": true
+ }
+]

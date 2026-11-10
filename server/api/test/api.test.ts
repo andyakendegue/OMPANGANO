@@ -212,6 +212,43 @@ test('personne ne valide sa propre contribution (validateur ni admin)', async ()
   assert.equal((await call('POST', `/v1/contributions/${c2}/validate`, SUPER, { status: 'approved' })).status, 403);
 });
 
+test('statistiques de modération : propres au validateur, interdites aux contributeurs', async () => {
+  const a = await newUser(); const v = await newUser('v', { role: 'validator' }); const w = await newUser('w', { role: 'validator' });
+  const c = await submit(a, await newItem());
+  assert.equal((await call('GET', '/v1/me/moderation-stats', a.token)).status, 403);
+  assert.equal((await call('POST', `/v1/contributions/${c}/validate`, v.token, { status: 'approved' })).status, 200);
+  const sv = (await call('GET', '/v1/me/moderation-stats', v.token)).body;
+  assert.equal(sv.total, 1); assert.equal(sv.counts.approved, 1); assert.equal(sv.aujourdhui, 1);
+  assert.equal((await call('GET', '/v1/me/moderation-stats', w.token)).body.total, 0);
+});
+
+test('communauté : liste paginée, filtres ethnie/âge et segments', async () => {
+  const adm = await newUser('adm', { role: 'admin' });
+  const an = new Date().getUTCFullYear();
+  for (let i = 0; i < 5; i++) {
+    const u = await newUser(`seg${i}`);
+    await call('PATCH', '/v1/me', u.token, { tribe: i < 3 ? 'Nkomi' : 'Galoa', birthDate: `${an - (i < 3 ? 20 : 40)}-01-01` });
+  }
+  const tout = (await call('GET', '/v1/users', adm.token)).body;
+  assert.ok(Array.isArray(tout));
+  const p1 = (await call('GET', '/v1/users?page=1&limit=2&ethnie=Nkomi', adm.token)).body;
+  assert.equal(p1.total, 3); assert.equal(p1.pages, 2); assert.equal(p1.items.length, 2);
+  assert.equal((await call('GET', '/v1/users?page=2&limit=2&ethnie=Nkomi', adm.token)).body.items.length, 1);
+  assert.equal((await call('GET', '/v1/users?page=1&age=36-50&ethnie=Galoa', adm.token)).body.total, 2);
+  const seg = (await call('GET', '/v1/users/segments', adm.token)).body;
+  assert.equal(seg.parEthnie.Nkomi, 3); assert.ok(seg.parAge['18-25'] >= 3); assert.equal(seg.croise.Galoa['36-50'], 2);
+  assert.equal((await call('GET', '/v1/users/segments', (await newUser('x')).token)).status, 403);
+});
+
+test('statistiques des contributions : volumes, questions, accès admin', async () => {
+  const adm = await newUser('adm', { role: 'admin' }); const a = await newUser();
+  await submit(a, await newItem());
+  assert.equal((await call('GET', '/v1/admin/contribution-stats', a.token)).status, 403);
+  const st = (await call('GET', '/v1/admin/contribution-stats', adm.token)).body;
+  assert.ok(st.contributions >= 1); assert.ok(st.questions.avecContribution >= 1); assert.ok(st.questions.total >= 1);
+  assert.equal(typeof st.heures, 'number'); assert.ok(Array.isArray(st.topContributeurs)); assert.ok(st.periode.aujourdhui >= 1);
+});
+
 test('validation : points attribués au contributeur, compteur du validateur', async () => {
   const a = await newUser(); const v = await newUser('v', { role: 'validator' });
   const c = await submit(a, await newItem());
@@ -681,4 +718,25 @@ test('ordre des fiches : à égalité de réponses, les 10 phrases de départ pa
   const sync = await call('GET', '/v1/sync/items?order=rarete&limit=5000&offset=0', SUPER);
   const ids: string[] = sync.body.records.map((x: any) => x.id);
   assert.ok(ids.indexOf('nkala-enenga-zz') < ids.indexOf(autre));
+});
+
+test('GET /v1/modules : sans variable, le serveur ne dit rien ; la salle des paris n\'est jamais ouverte par la route', async () => {
+  const avant = { m: process.env.MODULES_ACTIFS, f: process.env.FONCTIONS_ACTIVES };
+  try {
+    delete process.env.MODULES_ACTIFS; delete process.env.FONCTIONS_ACTIVES;
+    const vide = await call('GET', '/v1/modules', SUPER);
+    assert.equal(vide.status, 200);
+    assert.deepEqual(vide.body, { modules: {}, fonctions: {} });
+    process.env.MODULES_ACTIFS = 'onenji,azeva';
+    process.env.FONCTIONS_ACTIVES = 'publicite,salleParis';
+    const r = await call('GET', '/v1/modules', SUPER);
+    assert.equal(r.body.modules.azeva, true);
+    assert.equal(r.body.modules.ontci, false);
+    assert.equal(r.body.fonctions.publicite, true);
+    assert.equal(r.body.fonctions.salleParis, false);
+    assert.equal((await call('GET', '/v1/modules')).status, 401);
+  } finally {
+    if (avant.m === undefined) delete process.env.MODULES_ACTIFS; else process.env.MODULES_ACTIFS = avant.m;
+    if (avant.f === undefined) delete process.env.FONCTIONS_ACTIVES; else process.env.FONCTIONS_ACTIVES = avant.f;
+  }
 });

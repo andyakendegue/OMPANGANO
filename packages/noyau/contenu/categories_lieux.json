@@ -1,0 +1,66 @@
+[
+ {
+  "id": "sante",
+  "titre": "Santé",
+  "icone": "coeur",
+  "couleur": "#D9693F",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "pharmacie",
+  "titre": "Pharmacie de garde",
+  "icone": "croix",
+  "couleur": "#0D9488",
+  "ordre": 2,
+  "publie": true
+ },
+ {
+  "id": "administration",
+  "titre": "Administration",
+  "icone": "batiment",
+  "couleur": "#B45309",
+  "ordre": 3,
+  "publie": true
+ },
+ {
+  "id": "marches",
+  "titre": "Marchés",
+  "icone": "panier",
+  "couleur": "#F59E0B",
+  "ordre": 4,
+  "publie": true
+ },
+ {
+  "id": "taxis",
+  "titre": "Taxis",
+  "icone": "voiture",
+  "couleur": "#FDE047",
+  "ordre": 5,
+  "publie": true
+ },
+ {
+  "id": "restaurants",
+  "titre": "Restaurants",
+  "icone": "couvert",
+  "couleur": "#C85A32",
+  "ordre": 6,
+  "publie": true
+ },
+ {
+  "id": "ecoles",
+  "titre": "Écoles",
+  "icone": "livre",
+  "couleur": "#B84A28",
+  "ordre": 7,
+  "publie": true
+ },
+ {
+  "id": "banques",
+  "titre": "Banques",
+  "icone": "piece",
+  "couleur": "#A16207",
+  "ordre": 8,
+  "publie": true
+ }
+]

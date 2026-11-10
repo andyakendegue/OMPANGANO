@@ -1,0 +1,128 @@
+[
+ {
+  "id": "e1",
+  "lecon_id": "ntina-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Mbolo",
+  "mot_francais": "Bonjour (à une personne)",
+  "source": "[LEC] Bonjour ; [RW] p. 284",
+  "ordre": 1
+ },
+ {
+  "id": "e2",
+  "lecon_id": "ntina-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Akéwa",
+  "mot_francais": "Merci",
+  "source": "[LEC] Formules de politesse ; [RW] « finiz'akewa »",
+  "ordre": 2
+ },
+ {
+  "id": "e3",
+  "lecon_id": "ntina-l1",
+  "type": "associer",
+  "consigne": "Que veut dire « Akéwa » ?",
+  "mot_myene": "Akéwa",
+  "options": [
+   "Bonjour (à une personne)",
+   "Merci",
+   "Au revoir",
+   "S'il te plaît"
+  ],
+  "reponse": "Merci",
+  "indice": "Akéwa se dit pour remercier.",
+  "source": "[LEC] Formules de politesse",
+  "ordre": 3
+ },
+ {
+  "id": "e4",
+  "lecon_id": "ntina-l1",
+  "type": "choix",
+  "consigne": "Comment dit-on « Bonjour » à une personne ?",
+  "options": [
+   "Mbolo",
+   "Akéwa",
+   "Kôkôlô"
+  ],
+  "reponse": "Mbolo",
+  "source": "[LEC] Bonjour ; [RW] p. 284",
+  "ordre": 4
+ },
+ {
+  "id": "e5",
+  "lecon_id": "ntina-l1",
+  "type": "dire",
+  "consigne": "Dis « Mbolo » à voix haute.",
+  "mot_myene": "Mbolo",
+  "mot_francais": "Bonjour (à une personne)",
+  "source": "[LEC] Bonjour ; [RW] p. 284",
+  "ordre": 5
+ },
+ {
+  "id": "e6",
+  "lecon_id": "ntina-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ibanga wé. Ka mènè !",
+  "mot_francais": "Au revoir",
+  "source": "[LEC] Bonjour",
+  "ordre": 1
+ },
+ {
+  "id": "e7",
+  "lecon_id": "ntina-l2",
+  "type": "ordre",
+  "consigne": "Remets la phrase dans l'ordre : « Au revoir ».",
+  "options": [
+   "Ibanga",
+   "wé.",
+   "Ka",
+   "mènè !"
+  ],
+  "reponse": "Ibanga wé. Ka mènè !",
+  "source": "[LEC] Bonjour",
+  "ordre": 2
+ },
+ {
+  "id": "e8",
+  "lecon_id": "ntina-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Kôkôlô",
+  "mot_francais": "S'il te plaît",
+  "source": "[LEC] Formules de politesse",
+  "ordre": 1
+ },
+ {
+  "id": "e9",
+  "lecon_id": "ntina-l3",
+  "type": "associer",
+  "consigne": "Que veut dire « Nyéza myè » ?",
+  "mot_myene": "Nyéza myè",
+  "options": [
+   "Excuse-moi",
+   "Viens !",
+   "Merci",
+   "Bonjour"
+  ],
+  "reponse": "Excuse-moi",
+  "source": "[LEC] Formules de politesse ; [EQ]",
+  "ordre": 2
+ },
+ {
+  "id": "e10",
+  "lecon_id": "ntina-l3",
+  "type": "choix",
+  "consigne": "Comment dit-on « Viens ! » ?",
+  "options": [
+   "Yaga",
+   "Mbolo",
+   "Akéwa"
+  ],
+  "reponse": "Yaga",
+  "source": "[LEC] Formules de politesse",
+  "ordre": 3
+ }
+]

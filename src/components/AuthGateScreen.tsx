@@ -144,7 +144,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
                 <Users className="w-5 h-5 text-[#c85a32]" />
                 <div className="font-bold text-white">Ancrage Tribal</div>
                 <div className="text-[11px] text-[#a8826d]">
-                  6 tribus Myènè, filiation et village d'origine
+                  6 ethnies Myènè, filiation et village d'origine
                 </div>
               </div>
 

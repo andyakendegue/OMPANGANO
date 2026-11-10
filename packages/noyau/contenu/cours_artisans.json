@@ -1,0 +1,26 @@
+[
+ {
+  "id": "demo-vin-palme",
+  "titre": "Le vin de palme (exemple)",
+  "artisan": "Artisan à renseigner",
+  "metier": "Vin de palme",
+  "description": "Fiche d'exemple : remplacez-la par un vrai cours depuis la console d'administration.",
+  "niveau": "debutant",
+  "niveau_acces": "libre",
+  "duree_min": 12,
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "demo-hors-bord",
+  "titre": "Entretien d'un hors-bord (exemple)",
+  "artisan": "Artisan à renseigner",
+  "metier": "Mécanique marine",
+  "description": "Fiche d'exemple.",
+  "niveau": "intermediaire",
+  "niveau_acces": "abonnement",
+  "duree_min": 20,
+  "ordre": 2,
+  "publie": true
+ }
+]

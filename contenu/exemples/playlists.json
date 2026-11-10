@@ -1,0 +1,12 @@
+[
+ {
+  "id": "demo-pl-1",
+  "titre": "À la une (exemple)",
+  "description": "Sélection de l'équipe.",
+  "titres_ids": [
+   "demo-t1",
+   "demo-t2"
+  ],
+  "publie": true
+ }
+]

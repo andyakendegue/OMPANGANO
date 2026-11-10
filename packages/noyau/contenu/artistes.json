@@ -1,0 +1,9 @@
+[
+ {
+  "id": "demo-art-1",
+  "nom": "Artiste exemple",
+  "bio": "Fiche d'exemple à remplacer.",
+  "pays": "Gabon",
+  "publie": true
+ }
+]

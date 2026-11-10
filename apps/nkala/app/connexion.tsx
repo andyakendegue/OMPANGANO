@@ -1,100 +1,75 @@
-import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { afficherTelephone, envoyerCodeSms, MYENE, normaliserTelephone } from '@nkala/noyau';
 import { useAuth } from '../src/AuthProvider';
-import { BoutonGoogle } from '../src/Google';
-import { couleurs } from '../src/theme';
+import { ConnexionClassique } from '../src/ConnexionClassique';
+import { Bouton, Champ, Entete, Ecran, Mascotte, T, useToast } from '../src/kit';
+import { useTheme } from '../src/Prefs';
 
-/** Écran d'accès (mêmes textes que AuthGateScreen du site web). Pas de connexion anonyme. */
+type Vue = 'choix' | 'tel' | 'code' | 'classique';
+
+/** Écrans 06, 07 et 10 : téléphone (compte unique par numéro, code SMS envoyé par Twilio), retour d'un membre, essai sans compte. */
 export default function Connexion() {
-  const { connexion, erreurProfil } = useAuth();
-  const [methode, setMethode] = useState<'google' | 'email'>('google');
-  const [email, setEmail] = useState('');
-  const [mdp, setMdp] = useState('');
-  const [usage, setUsage] = useState('');
-  const [creer, setCreer] = useState(false);
+  const { connexionSms, entrerInvite } = useAuth();
+  const { c } = useTheme();
+  const toast = useToast();
+  const [vue, setVue] = useState<Vue>('choix');
+  const [saisie, setSaisie] = useState('');
+  const [tel, setTel] = useState<string | null>(null);
+  const [code, setCode] = useState('');
   const [occupe, setOccupe] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [attente, setAttente] = useState(0);
 
-  const valider = async () => {
-    if (!email.trim() || mdp.length < 6) { setErreur('Adresse e-mail et mot de passe (6 caractères minimum) requis.'); return; }
+  useEffect(() => { if (attente <= 0) return; const t = setTimeout(() => setAttente(a => a - 1), 1000); return () => clearTimeout(t); }, [attente]);
+
+  const envoyer = async () => {
+    const n = normaliserTelephone(saisie);
+    if (!n) { setErreur('Ce numéro ne semble pas valide. Exemple : 06 12 34 56.'); return; }
     setOccupe(true); setErreur(null);
-    try { await connexion(email, mdp, creer, usage); }
+    try { await envoyerCodeSms(n); setTel(n); setVue('code'); setCode(''); setAttente(30); }
     catch (e) { setErreur((e as Error).message); }
     finally { setOccupe(false); }
   };
+  const verifier = async () => {
+    if (!tel || code.length < 4) return;
+    setOccupe(true); setErreur(null);
+    try { await connexionSms(tel, code); }
+    catch (e) { setErreur((e as Error).message); setOccupe(false); }
+  };
+
+  if (vue === 'classique') return <View style={{ flex: 1 }}><ConnexionClassique /><View style={{ position: 'absolute', top: 12, left: 12 }}><Bouton label="Retour" variante="fantome" petit large={false} icone="retour" onPress={() => setVue('choix')} /></View></View>;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: couleurs.fond }}>
-      <ScrollView contentContainerStyle={s.page}>
-        <Text style={s.marque}>Nkala <Text style={s.essaka}> ESSAKA </Text></Text>
-        <Text style={s.sous}>Crowdsourcing & Sauvegarde de la Langue Myènè</Text>
-        <View style={s.pile}><Text style={s.badge}>Mode Avion Prêt</Text><Text style={s.badge}>Accès Sécurisé Réservé</Text><Text style={s.badge}>Authentification Obligatoire</Text></View>
-        <Text style={s.h1}>Gardons Vivante la Parole de nos Aïeux</Text>
-        <Text style={s.texte}>Pour garantir l'authenticité patrimoniale des enregistrements oraux, l'ancrage tribal et généalogique des locuteurs et l'intégrité du corpus linguistique, l'accès à l'application est strictement réservé aux membres identifiés.</Text>
-        <Argument t="Voix Certifiées" d="Traçabilité de chaque enregistrement vocal" />
-        <Argument t="Ancrage Tribal" d="6 tribus Myènè, filiation et village d'origine" />
-        <Argument t="Titres & Badges" d="Progression de sagesse et récompenses" />
-        <Argument t="Mode Hors-Ligne" d="Collecte autonome dans les villages" />
-
-        <View style={s.carte}>
-          <Text style={s.h2}>Connexion à Nkala</Text>
-          <Text style={s.texte}>Identifiez-vous pour accéder au studio de contribution</Text>
-          <View style={s.pile}>
-            {([['google', 'Google / Gmail'], ['email', 'Email & Mot de passe']] as const).map(([id, nom]) => (
-              <Pressable key={id} onPress={() => { setMethode(id); setErreur(null); }} style={[s.onglet, methode === id && s.ongletActif]}><Text style={[s.ongletTexte, methode === id && { color: '#fff' }]}>{nom}</Text></Pressable>
-            ))}
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <Ecran>
+        {vue === 'choix' && <>
+          <View style={{ alignItems: 'center', gap: 10, marginTop: 24 }}>
+            <Mascotte taille={120} humeur="content" />
+            <T v="titre" style={{ textAlign: 'center' }}>{MYENE.MBOLO.mot} !</T>
+            <T v="corps" style={{ textAlign: 'center' }}>Entre dans Nkala avec ton numéro de téléphone : un seul compte, sur tous tes appareils.</T>
           </View>
-          {methode === 'google' ? (
-            <BoutonGoogle surErreur={setErreur} />
-          ) : (
-            <>
-              <Text style={s.etiquette}>Adresse Email :</Text>
-              <TextInput style={s.champ} autoCapitalize="none" keyboardType="email-address" autoComplete="email" value={email} onChangeText={setEmail} />
-              <Text style={s.etiquette}>Mot de passe (6 caractères min.) :</Text>
-              <TextInput style={s.champ} secureTextEntry autoComplete={creer ? 'new-password' : 'current-password'} value={mdp} onChangeText={setMdp} onSubmitEditing={valider} />
-              {creer && (<><Text style={s.etiquette}>Nom d'usage ou Prénom (Facultatif) :</Text><TextInput style={s.champ} value={usage} onChangeText={setUsage} /></>)}
-              <View style={s.ligne}><Switch value={creer} onValueChange={v => { setCreer(v); setErreur(null); }} trackColor={{ true: couleurs.terre }} /><Text style={s.texte}>Je crée un nouveau compte (première visite)</Text></View>
-            </>
-          )}
-          {(erreur || erreurProfil) && <Text style={s.erreur}>{erreur || `Profil indisponible : ${erreurProfil}`}</Text>}
-          {methode === 'email' && (
-            <Pressable style={[s.bouton, occupe && { opacity: 0.6 }]} onPress={valider} disabled={occupe}>
-              {occupe ? <><ActivityIndicator color="#fff" /><Text style={s.boutonTexte}>Connexion en cours...</Text></> : <Text style={s.boutonTexte}>{creer ? 'Créer mon compte' : 'Se connecter'}</Text>}
-            </Pressable>
-          )}
-          <Text style={s.discret}>🔒 Authentification sécurisée par le protocole Nkala.</Text>
-        </View>
-        <Text style={s.discret}>Nkala • Sauvegarde et Vitalisation des Langues Myènè du Gabon</Text>
-      </ScrollView>
+          <Bouton label="Continuer avec mon téléphone" icone="telephone" onPress={() => setVue('tel')} />
+          <Bouton label="Google ou e-mail" variante="fantome" icone="profil" onPress={() => setVue('classique')} />
+          <Pressable accessibilityRole="button" onPress={entrerInvite} style={{ alignItems: 'center', padding: 12 }}><T v="corps" couleur={c.accent} style={{ textDecorationLine: 'underline' }}>Essayer sans compte</T></Pressable>
+          <T v="petit" style={{ textAlign: 'center' }}>Sans compte, tes leçons et tes parties restent sur ce téléphone. Pour contribuer, publier ou apparaître dans les classements, il faut un compte.</T>
+        </>}
+        {vue === 'tel' && <>
+          <Entete titre="Ton numéro" sous="On t'envoie un code par SMS" retour={() => { setVue('choix'); setErreur(null); }} />
+          <T v="corps">Un numéro = un compte. Si tu as déjà un compte, tu le retrouveras.</T>
+          <Champ valeur={saisie} onChange={setSaisie} placeholder="06 12 34 56" icone="telephone" clavier="phone-pad" focus onSubmit={envoyer} label="Numéro de téléphone" />
+          <T v="petit">Indicatif +241 (Gabon) ajouté automatiquement. Pour un autre pays, commence par + et l'indicatif.</T>
+          {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
+          <Bouton label="Recevoir le code" charge={occupe} onPress={envoyer} />
+        </>}
+        {vue === 'code' && <>
+          <Entete titre="Code reçu par SMS" sous={tel ? afficherTelephone(tel) : ''} retour={() => { setVue('tel'); setErreur(null); }} />
+          <Champ valeur={code} onChange={t => setCode(t.replace(/\D/g, '').slice(0, 6))} placeholder="6 chiffres" icone="verrou" clavier="number-pad" focus onSubmit={verifier} label="Code à 6 chiffres" />
+          {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
+          <Bouton label="Valider" charge={occupe} desactive={code.length < 4} onPress={verifier} />
+          <Bouton label={attente > 0 ? `Renvoyer le code (${attente} s)` : 'Renvoyer le code'} variante="fantome" desactive={attente > 0 || occupe} onPress={async () => { try { await envoyerCodeSms(tel!); setAttente(30); toast('Code renvoyé.', 'succes'); } catch (e) { setErreur((e as Error).message); } }} />
+        </>}
+      </Ecran>
     </KeyboardAvoidingView>
   );
 }
-
-const Argument = ({ t, d }: { t: string; d: string }) => (
-  <View style={s.argument}><Text style={s.argTitre}>{t}</Text><Text style={s.discret}>{d}</Text></View>
-);
-
-const s = StyleSheet.create({
-  page: { padding: 20, gap: 12, maxWidth: 480, width: '100%', alignSelf: 'center', paddingBottom: 48 },
-  marque: { color: couleurs.texteClair, fontSize: 32, fontWeight: '900', textAlign: 'center', marginTop: 24 },
-  essaka: { fontSize: 11, backgroundColor: couleurs.terre, color: '#fff' },
-  sous: { color: couleurs.ambre, textAlign: 'center', fontSize: 13 },
-  pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-  badge: { color: '#fde68a', fontSize: 11, fontWeight: '700', borderColor: '#92400e', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  h1: { color: couleurs.texteClair, fontSize: 22, fontWeight: '900', textAlign: 'center', marginTop: 8 },
-  h2: { color: couleurs.texteClair, fontSize: 18, fontWeight: '800' },
-  texte: { color: couleurs.texte, fontSize: 13, lineHeight: 19 },
-  discret: { color: couleurs.discret, fontSize: 12, textAlign: 'center' },
-  argument: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 12, padding: 10 },
-  argTitre: { color: couleurs.ambre, fontWeight: '800', fontSize: 13 },
-  carte: { backgroundColor: couleurs.carte, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 20, padding: 16, gap: 10, marginTop: 8 },
-  onglet: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1 },
-  ongletActif: { backgroundColor: couleurs.terre, borderColor: couleurs.terre },
-  ongletTexte: { color: couleurs.texte, fontSize: 12, fontWeight: '700' },
-  etiquette: { color: couleurs.texte, fontSize: 12, fontWeight: '700' },
-  champ: { backgroundColor: couleurs.fond, borderColor: couleurs.bord, borderWidth: 1, borderRadius: 12, color: couleurs.texteClair, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
-  ligne: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  erreur: { color: '#fca5a5', fontSize: 13 },
-  bouton: { backgroundColor: couleurs.terre, borderRadius: 12, paddingVertical: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  boutonTexte: { color: '#fff', fontWeight: '800', fontSize: 15 },
-});

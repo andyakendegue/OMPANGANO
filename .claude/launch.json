@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nkala-expo-web",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd apps/nkala && npx expo start --web --port 5173"],
+      "port": 5173
+    }
+  ]
+}

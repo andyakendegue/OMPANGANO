@@ -1,23 +1,35 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { estAdmin, moduleActif } from '@nkala/noyau';
-import { useAuth } from '../../src/AuthProvider';
-import { couleurs } from '../../src/theme';
+import { moduleActif } from '@nkala/noyau';
+import { BarreHaute } from '../../src/BarreHaute';
+import { BarreOnglets, FinEnfant, GlobaleProvider, MenuPlus } from '../../src/Globale';
+import { LecteurPlein } from '../../src/OntciLecteur';
+import { useTheme } from '../../src/Prefs';
 
-// Trois entrées, comme sur le web : Contribuer, Administration, Profil.
+/** Cinq entrées : Accueil, Apprendre, Jouer, Écouter, Village. Ompangano (contribuer) et le reste sont dans le menu « Plus ». */
 export default function Onglets() {
-  const { profil } = useAuth();
+  const { c } = useTheme();
+  const cache = { href: null } as const;
   return (
-    <Tabs screenOptions={{
-      headerShown: false,
-      tabBarStyle: { backgroundColor: couleurs.fond, borderTopColor: couleurs.bord },
-      tabBarActiveTintColor: couleurs.ambre,
-      tabBarInactiveTintColor: couleurs.discret,
-    }}>
-      <Tabs.Screen name="index" options={{ title: 'Contribuer', tabBarIcon: ({ color, size }) => <Ionicons name="mic" color={color} size={size} /> }} />
-      <Tabs.Screen name="apprendre" options={{ href: estAdmin(profil?.role) && moduleActif('onenji') ? undefined : null, title: 'Apprendre', tabBarIcon: ({ color, size }) => <Ionicons name="school" color={color} size={size} /> }} />
-      <Tabs.Screen name="admin" options={{ href: estAdmin(profil?.role) ? undefined : null, title: 'Administration', tabBarIcon: ({ color, size }) => <Ionicons name="shield" color={color} size={size} /> }} />
-      <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} /> }} />
-    </Tabs>
+    <GlobaleProvider>
+      <Tabs backBehavior="history" tabBar={p => <BarreOnglets {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: c.fond } }}>
+        <Tabs.Screen name="index" options={{ title: 'Accueil' }} />
+        <Tabs.Screen name="apprendre" options={{ title: 'Apprendre', href: moduleActif('onenji') ? undefined : null }} />
+        <Tabs.Screen name="azeva" options={{ title: 'Jouer', href: moduleActif('azeva') ? undefined : null }} />
+        <Tabs.Screen name="ecoute" options={{ title: 'Écouter', href: moduleActif('ontci') ? undefined : null }} />
+        <Tabs.Screen name="village" options={{ title: 'Village', href: moduleActif('nkala') ? undefined : null }} />
+        <Tabs.Screen name="contribuer" options={cache} />
+        <Tabs.Screen name="profil" options={cache} />
+        <Tabs.Screen name="serie" options={cache} />
+        <Tabs.Screen name="reglages" options={cache} />
+        <Tabs.Screen name="parents" options={cache} />
+        <Tabs.Screen name="recherche" options={cache} />
+        <Tabs.Screen name="admin" options={cache} />
+        <Tabs.Screen name="validation" options={cache} />
+      </Tabs>
+      <MenuPlus />
+      <BarreHaute mode="modales" />
+      <LecteurPlein />
+      <FinEnfant />
+    </GlobaleProvider>
   );
 }

@@ -1,0 +1,12 @@
+[
+ {
+  "id": "demo-alb-1",
+  "artiste_id": "demo-art-1",
+  "titre": "Album exemple",
+  "annee": 2026,
+  "genre": "Gabonais",
+  "couleur": "#B84A28",
+  "a_la_une": true,
+  "publie": true
+ }
+]

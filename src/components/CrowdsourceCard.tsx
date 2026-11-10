@@ -284,7 +284,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#fde047]">
               <Globe2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-              <span>Filtrer les questions par Tribu Myènè (Orthographe & Tons) :</span>
+              <span>Filtrer les questions par Ethnie Myènè (Orthographe & Tons) :</span>
             </div>
             <button
               type="button"
@@ -312,7 +312,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                   : 'bg-[#24130a] text-[#d4af94] border-[#3b1d10] hover:border-[#f59e0b]/40'
               }`}
             >
-              🌍 Toutes les tribus ({catalogueLoading ? '…' : (totalCorpusCount ?? totalCount)})
+              🌍 Toutes les ethnies ({catalogueLoading ? '…' : (totalCorpusCount ?? totalCount)})
             </button>
 
             {MYENE_TRIBES.map(tName => {
@@ -396,7 +396,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#1c100a]/80 backdrop-blur-md text-[#fed7aa] border border-[#d97706]/40 flex items-center gap-1.5">
                 <Globe2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-                Tribu {mapDialectToTribeName(item.dialect)}
+                Ethnie {mapDialectToTribeName(item.dialect)}
               </span>
               {themeInfo && (
                 <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#1c100a]/90 backdrop-blur-md text-amber-200 border border-amber-600/40 flex items-center gap-1">
@@ -518,12 +518,12 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                       onChange={(e) => setDialectVariant(e.target.value)}
                       className="w-full px-3 py-2 bg-[#140a05] border border-[#522915] rounded-xl text-xs text-[#fed7aa] focus:outline-none focus:border-[#f59e0b]"
                     >
-                      <option value="enenga">Tribu Enenga (Lambaréné & Lacs)</option>
-                      <option value="mpongwe">Tribu Mpongwè (Estuaire / Libreville)</option>
-                      <option value="galwa">Tribu Galwa (Lambaréné fleuve)</option>
-                      <option value="nkomi">Tribu Nkomi (Fernan Vaz)</option>
-                      <option value="orungu">Tribu Ôrungu (Port-Gentil)</option>
-                      <option value="adyumba">Tribu Adyumba (Lac Azingo)</option>
+                      <option value="enenga">Ethnie Enenga (Lambaréné & Lacs)</option>
+                      <option value="mpongwe">Ethnie Mpongwè (Estuaire / Libreville)</option>
+                      <option value="galwa">Ethnie Galwa (Lambaréné fleuve)</option>
+                      <option value="nkomi">Ethnie Nkomi (Fernan Vaz)</option>
+                      <option value="orungu">Ethnie Ôrungu (Port-Gentil)</option>
+                      <option value="adyumba">Ethnie Adyumba (Lac Azingo)</option>
                     </select>
                   </div>
 

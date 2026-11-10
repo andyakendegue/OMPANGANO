@@ -3,7 +3,8 @@ import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, signOut as fbSignOut } from 'firebase/auth';
-import { api, basculerFavori, chargerProfil, enregistrerFavoris, messageErreurAuth, type UserProfile } from '@nkala/noyau';
+import { api, basculerFavori, chargerProfil, definirSessionSms, enregistrerFavoris, jetonSessionSms, messageErreurAuth, verifierCodeSms, type UserProfile } from '@nkala/noyau';
+import { usePrefs } from './Prefs';
 import { auth } from './firebase';
 
 interface Etat {
@@ -18,6 +19,11 @@ interface Etat {
   /** Mobile : jeton d'identité Google obtenu par expo-auth-session. */
   googleJeton: (idToken: string) => Promise<void>;
   recharger: () => Promise<void>;
+  /** Connexion par SMS (Twilio) : le code reçu par message ouvre une session de l'API. */
+  connexionSms: (telephone: string, code: string) => Promise<void>;
+  /** Essai sans compte : jeux, leçons et écoute en local ; contribuer, annonces et classements demandent un compte. */
+  invite: boolean;
+  entrerInvite: () => void;
   /** Ajoute ou retire une fiche des favoris (mise à jour immédiate, puis envoi au serveur). */
   favori: (itemId: string) => Promise<void>;
 }
@@ -29,15 +35,20 @@ export const useAuth = () => {
   return c;
 };
 
+const CLE_SMS = 'nkala_session_sms';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { prefs, regler } = usePrefs();
   const [pret, setPret] = useState(false);
+  const [smsPret, setSmsPret] = useState(false);
   const [profil, setProfil] = useState<UserProfile | null>(null);
   const [erreurProfil, setErreurProfil] = useState<string | null>(null);
 
   // Copie locale du profil : sans réseau au démarrage (village), la session et le profil sont restaurés comme sur le site web.
   const CLE_PROFIL = 'nkala_profil_cache';
   const recharger = useCallback(async () => {
-    if (!auth.currentUser) { setProfil(null); return; }
+    if (!auth.currentUser && !jetonSessionSms()) { setProfil(null); return; }
+    const uidCourant = auth.currentUser?.uid ?? (jetonSessionSms() ? 'sms' : '');
     try {
       let p = await chargerProfil();
       try {
@@ -53,8 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       try {
         const copie = JSON.parse((await AsyncStorage.getItem(CLE_PROFIL)) || 'null');
-        if (copie && copie.id === auth.currentUser?.uid && (((e as { status?: number }).status ?? 0) === 0 || ((e as { status?: number }).status ?? 0) >= 500)) { setProfil(prev => prev ?? copie); setErreurProfil(null); return; }
+        if (copie && (copie.id === auth.currentUser?.uid || (uidCourant === 'sms' && String(copie.id).startsWith('tel_'))) && (((e as { status?: number }).status ?? 0) === 0 || ((e as { status?: number }).status ?? 0) >= 500)) { setProfil(prev => prev ?? copie); setErreurProfil(null); return; }
       } catch { /* pas de copie */ }
+      // Session SMS expirée ou révoquée : retour à l'écran de connexion
+      if ((e as { status?: number }).status === 401 && jetonSessionSms() && !auth.currentUser) { definirSessionSms(null); AsyncStorage.removeItem(CLE_SMS).catch(() => {}); setProfil(null); return; }
       setErreurProfil((e as Error).message);
     }
   }, []);
@@ -67,10 +80,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { r(); a.remove(); };
   }, [recharger]);
 
-  useEffect(() => onAuthStateChanged(auth, async (u) => {
-    if (u) await recharger(); else setProfil(null);
+  // Session SMS restaurée au démarrage
+  useEffect(() => {
+    AsyncStorage.getItem(CLE_SMS).then(v => { if (v) definirSessionSms(JSON.parse(v).jeton); }).catch(() => {}).finally(() => setSmsPret(true));
+  }, []);
+
+  useEffect(() => { if (!smsPret) return; return onAuthStateChanged(auth, async (u) => {
+    if (u || jetonSessionSms()) await recharger(); else setProfil(null);
     setPret(true);
-  }), [recharger]);
+  }); }, [recharger, smsPret]);
+
+  const connexionSms = useCallback(async (telephone: string, code: string) => {
+    const r = await verifierCodeSms(telephone, code);
+    definirSessionSms(r.jeton);
+    await AsyncStorage.setItem(CLE_SMS, JSON.stringify({ jeton: r.jeton, uid: r.uid, telephone: r.telephone }));
+    regler({ invite: false });
+    await recharger();
+  }, [recharger, regler]);
+
+  const entrerInvite = useCallback(() => regler({ invite: true }), [regler]);
 
   const connexion = useCallback(async (email: string, mdp: string, creer: boolean, nomUsage?: string) => {
     const e = email.trim().toLowerCase();
@@ -98,7 +126,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     catch (err: any) { throw new Error(messageErreurAuth(String(err?.code || '')).replace('par e-mail', 'avec Google')); }
   }, []);
 
-  const deconnexion = useCallback(async () => { await fbSignOut(auth); setProfil(null); AsyncStorage.removeItem('nkala_profil_cache').catch(() => {}); }, []);
+  const deconnexion = useCallback(async () => {
+    if (auth.currentUser) await fbSignOut(auth);
+    definirSessionSms(null); AsyncStorage.removeItem(CLE_SMS).catch(() => {});
+    setProfil(null); regler({ invite: false }); AsyncStorage.removeItem('nkala_profil_cache').catch(() => {});
+  }, [regler]);
 
   // Favoris : mise à jour immédiate et copie locale ; si le serveur est injoignable ils sont gardés et renvoyés plus tard (comme le web).
   const cleFavoris = (uid: string) => `nkala_favoris_${uid}`;
@@ -120,6 +152,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [profil]);
 
-  const valeur = useMemo(() => ({ pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori }), [pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori]);
+  const valeur = useMemo(() => ({ pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori, connexionSms, invite: prefs.invite, entrerInvite }), [pret, profil, erreurProfil, connexion, deconnexion, googleWeb, googleJeton, recharger, favori, connexionSms, prefs.invite, entrerInvite]);
   return <Ctx.Provider value={valeur}>{children}</Ctx.Provider>;
 }

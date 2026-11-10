@@ -17,11 +17,11 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "h3",
-      "texte": "Préserver les 6 Tribus (Dialectes) Myènè"
+      "texte": "Préserver les 6 Ethnies (Dialectes) Myènè"
     },
     {
       "type": "p",
-      "texte": "Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 tribus Myènè (Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu) tout en honorant la mémoire généalogique des clans."
+      "texte": "Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 ethnies Myènè (Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu) tout en honorant la mémoire généalogique des clans."
     },
     {
       "type": "texte",
@@ -83,7 +83,7 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "p",
-      "texte": "Lisez la phrase affichée en Myènè. Cliquez sur « Oui, c'est bien écrit 👍 » ou sur « Je propose ma version ✍️ » pour corriger l'orthographe selon votre Tribu (les différences orthographiques et tonales dépendent des tribus, jamais des clans)."
+      "texte": "Lisez la phrase affichée en Myènè. Cliquez sur « Oui, c'est bien écrit 👍 » ou sur « Je propose ma version ✍️ » pour corriger l'orthographe selon votre Ethnie (les différences orthographiques et tonales dépendent des ethnies, jamais des clans)."
     },
     {
       "type": "h4",
@@ -129,15 +129,15 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "h3",
-      "texte": "Filtrer les Questions par Tribu"
+      "texte": "Filtrer les Questions par Ethnie"
     },
     {
       "type": "p",
-      "texte": "En Myènè, les différences orthographiques et tonales concernent uniquement les 6 Tribus et jamais les clans :"
+      "texte": "En Myènè, les différences orthographiques et tonales concernent uniquement les 6 Ethnies et jamais les clans :"
     },
     {
       "type": "texte",
-      "texte": "🌍 Votre Tribu {{currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}}"
+      "texte": "🌍 Votre Ethnie {{currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}}"
     },
     {
       "type": "texte",
@@ -207,7 +207,7 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "button",
-      "texte": "🌍 Explorer par Tribu"
+      "texte": "🌍 Explorer par Ethnie"
     },
     {
       "type": "button",

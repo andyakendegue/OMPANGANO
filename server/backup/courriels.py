@@ -87,12 +87,12 @@ def modele_filiation(nom):
     sujet = 'Nkala — complétez votre filiation pour continuer à contribuer'
     nom_h = escape(nom)
     p = [f'Bonjour {nom_h},',
-         'Votre <b>filiation</b> n\'est pas encore renseignée sur Nkala. Elle est désormais <b>obligatoire</b> : elle nous permet de rattacher chaque voix à sa tribu, son clan et son village, et d\'en garantir la valeur pour la langue Myènè.']
+         'Votre <b>filiation</b> n\'est pas encore renseignée sur Nkala. Elle est désormais <b>obligatoire</b> : elle nous permet de rattacher chaque voix à son ethnie, son clan et son village, et d\'en garantir la valeur pour la langue Myènè.']
     etapes = ['Ouvrez Nkala : une fenêtre vous demande votre filiation.',
               'Choisissez votre <b>clan paternel</b>, votre <b>clan maternel</b> et votre <b>village d\'origine</b>.',
               'Vous ne savez pas ? Choisissez simplement <b>« Je ne sais pas »</b> : c\'est une réponse valide. Vous pourrez la modifier plus tard dans votre Profil.']
     texte = (f'Bonjour {nom},\n\nVotre filiation n\'est pas encore renseignée sur Nkala. Elle est désormais obligatoire : elle permet de rattacher '
-             'chaque voix à sa tribu, son clan et son village.\n\n' + '\n'.join(f'{i}. ' + _brut(e) for i, e in enumerate(etapes, 1)) +
+             'chaque voix à son ethnie, son clan et son village.\n\n' + '\n'.join(f'{i}. ' + _brut(e) for i, e in enumerate(etapes, 1)) +
              f'\n\nOuvrir Nkala : {SITE}\n\nMerci !\nL\'équipe Nkala\n')
     return sujet, texte, _html('Complétez votre filiation', p, etapes, 'Ouvrir Nkala')
 

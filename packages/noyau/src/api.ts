@@ -26,8 +26,18 @@ let tokenProvider: TokenProvider = async () => null;
 export const setTokenProvider = (fn: TokenProvider) => { tokenProvider = fn; };
 export const obtenirJeton = (forceRefresh = false) => tokenProvider(forceRefresh);
 
+/** Délai maximal d'un appel : une connexion coupée en plein envoi ne doit pas laisser l'application suspendue. */
+export const DELAI_API_MS = 30000;
+export async function fetchAvecDelai(url: string, init: RequestInit, delaiMs = DELAI_API_MS): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), delaiMs);
+  try { return await fetch(url, { ...init, signal: c.signal }); }
+  catch (err) { throw c.signal.aborted ? new Error('Délai dépassé : réseau trop lent ou coupé') : err; }
+  finally { clearTimeout(t); }
+}
+
 async function rawFetch(method: string, path: string, body: unknown, token: string | null): Promise<Response> {
-  return fetch(`${apiUrl}${path}`, {
+  return fetchAvecDelai(`${apiUrl}${path}`, {
     method,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

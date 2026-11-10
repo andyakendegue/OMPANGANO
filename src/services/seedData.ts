@@ -689,7 +689,7 @@ export const SYSTEM_BADGES: Badge[] = [
   {
     id: 'badge-genealogie-verifiee',
     title: 'Filiation Nkala',
-    description: 'A renseigné avec authenticité sa tribu, ses clans paternel et maternel et son village.',
+    description: 'A renseigné avec authenticité son ethnie, ses clans paternel et maternel et son village.',
     icon: '📜',
     category: 'genealogie'
   },
@@ -794,7 +794,7 @@ export const THEMATIC_CATEGORIES: ThemeDefinition[] = [
     name: 'Histoire, Royautés, Traditions & Rites',
     shortName: 'Histoire & Rites',
     icon: '👑',
-    description: 'Souverains (Agamwinboni, Rogombé, Ndombi), ancêtre Ngwè-Myènè, histoire des 6 tribus Myènè, rites Ombwiri, danses Ivanga et Njembè, lois coutumières (ampanga).',
+    description: 'Souverains (Agamwinboni, Rogombé, Ndombi), ancêtre Ngwè-Myènè, histoire des 6 ethnies Myènè, rites Ombwiri, danses Ivanga et Njembè, lois coutumières (ampanga).',
     keywords: ['roi', 'histoire', 'ancetre', 'rite', 'rituel', 'ombwiri', 'ngombi', 'ivanga', 'njembe', 'loi', 'coutume', 'agamwinboni', 'rogombe', 'ndombi', 'orungu', 'mandji'],
     color: '#B45309'
   },
@@ -983,7 +983,7 @@ export const INITIAL_WEEKLY_CHALLENGES: WeeklyChallenge[] = [
   {
     id: 'defi-clans-histoire',
     title: 'Mémoire des Rois & Traditions',
-    description: 'Vérifier ou traduire 5 phrases portant sur l’histoire des tribus, les rois et les rites sacrés.',
+    description: 'Vérifier ou traduire 5 phrases portant sur l’histoire des ethnies, les rois et les rites sacrés.',
     theme: 'clans_histoire_rites',
     targetCount: 5,
     challengeType: 'contributions',
@@ -1307,7 +1307,7 @@ export function parseClansFromCsv(csvText: string, defaultTribe: string = 'Eneng
     h.includes('clan') ||
     h.includes('nom') ||
     h.includes('name') ||
-    h.includes('tribu') ||
+    h.includes('tribu') || h.includes('ethnie') ||
     h.includes('tribe') ||
     h.includes('signification') ||
     h.includes('origine')
@@ -1322,7 +1322,7 @@ export function parseClansFromCsv(csvText: string, defaultTribe: string = 'Eneng
 
   if (hasHeader) {
     idxName = firstRowLower.findIndex(h => h.includes('nom') || h === 'clan' || h.includes('clan_name') || h === 'name');
-    idxTribe = firstRowLower.findIndex(h => h.includes('tribu') || h.includes('tribe') || h.includes('dialect'));
+    idxTribe = firstRowLower.findIndex(h => h.includes('tribu') || h.includes('ethnie') || h.includes('tribe') || h.includes('dialect'));
     idxDesc = firstRowLower.findIndex(h => h.includes('desc'));
     idxHist = firstRowLower.findIndex(h => h.includes('hist') || h.includes('signification') || h.includes('sens'));
     idxGeo = firstRowLower.findIndex(h => h.includes('geo') || h.includes('origine') || h.includes('terroir') || h.includes('region'));
@@ -1398,7 +1398,7 @@ export function deduplicateParsedCsvClans(
 }
 
 export function generateClansCsvTemplate(): string {
-  return `Nom_Clan,Tribu,Description,Signification_Historique,Origines_Geographiques,Devise_Symbole
+  return `Nom_Clan,Ethnie,Description,Signification_Historique,Origines_Geographiques,Devise_Symbole
 "NomDuClan1","Enenga","Clan traditionnel Enenga","Lignée historique des rives de l'Ogooué","Lambaréné et Moyen-Ogooué","Gardiens du fleuve"
 "NomDuClan2","Galoa","Clan traditionnel Galoa","Orateurs et gardiens des traditions lacustres","Lacs du Sud et Moyen-Ogooué","Maîtrise du verbe"
 "NomDuClan3","Mpongwè","Clan traditionnel Mpongwè","Lignée côtière de l'Estuaire","Estuaire du Komo","Hospitalité et sagesse"`;
@@ -1418,7 +1418,7 @@ export function parseVillagesFromCsv(csvText: string, defaultTribe: string = 'Ô
     h.includes('village') ||
     h.includes('nom') ||
     h.includes('name') ||
-    h.includes('tribu') ||
+    h.includes('tribu') || h.includes('ethnie') ||
     h.includes('tribe') ||
     h.includes('clan') ||
     h.includes('region') ||
@@ -1432,7 +1432,7 @@ export function parseVillagesFromCsv(csvText: string, defaultTribe: string = 'Ô
 
   if (hasHeader) {
     idxName = firstRowLower.findIndex(h => h.includes('village') || h.includes('nom') || h === 'name');
-    idxTribe = firstRowLower.findIndex(h => h.includes('tribu') || h.includes('tribe'));
+    idxTribe = firstRowLower.findIndex(h => h.includes('tribu') || h.includes('ethnie') || h.includes('tribe'));
     idxClan = firstRowLower.findIndex(h => h.includes('clan'));
     idxRegion = firstRowLower.findIndex(h => h.includes('region') || h.includes('province') || h.includes('zone') || h.includes('localisation'));
     if (idxName === -1) idxName = 0;
@@ -1502,7 +1502,7 @@ export function deduplicateParsedCsvVillages(
 }
 
 export function generateVillagesCsvTemplate(): string {
-  return `Nom_Village,Tribu,Clan_Rattachement,Region_Province
+  return `Nom_Village,Ethnie,Clan_Rattachement,Region_Province
 "Ozouri","Ôrungu","Agenje","Ogooué-Maritime"
 "Alumbè","Ôrungu","Ajena","Ogooué-Maritime"
 "NomDuVillageEnenga","Enenga","","Moyen-Ogooué"`;

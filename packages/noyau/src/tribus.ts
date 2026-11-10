@@ -22,8 +22,8 @@ export const dialecteDeLaTribu = (tribu?: string) => CODE_DIALECTE_TRIBU[tribuDu
 
 /** Variante tribale proposée à l'étape 1 (mêmes libellés que la liste du site web). */
 export const VARIANTES_TRIBALES: [string, string][] = [
-  ['enenga', 'Tribu Enenga (Lambaréné & Lacs)'], ['mpongwe', 'Tribu Mpongwè (Estuaire / Libreville)'], ['galwa', 'Tribu Galwa (Lambaréné fleuve)'],
-  ['nkomi', 'Tribu Nkomi (Fernan Vaz)'], ['orungu', 'Tribu Ôrungu (Port-Gentil)'], ['adyumba', 'Tribu Adyumba (Lac Azingo)'],
+  ['enenga', 'Ethnie Enenga (Lambaréné & Lacs)'], ['mpongwe', 'Ethnie Mpongwè (Estuaire / Libreville)'], ['galwa', 'Ethnie Galwa (Lambaréné fleuve)'],
+  ['nkomi', 'Ethnie Nkomi (Fernan Vaz)'], ['orungu', 'Ethnie Ôrungu (Port-Gentil)'], ['adyumba', 'Ethnie Adyumba (Lac Azingo)'],
 ];
 
 /** Nuances du sens français (étape 2). */

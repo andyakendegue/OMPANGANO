@@ -261,7 +261,7 @@ export const TEXTES_CONDITIONS: Record<string, BlocTexte[]> = {
     },
     {
       "type": "texte",
-      "texte": "Ancre vos contributions dans votre tribu, clan et village"
+      "texte": "Ancre vos contributions dans votre ethnie, clan et village"
     },
     {
       "type": "texte",

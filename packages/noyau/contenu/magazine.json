@@ -1,0 +1,13 @@
+[
+ {
+  "id": "demo-mag-1",
+  "rubrique": "recette",
+  "titre": "Recette d'exemple",
+  "resume": "Une recette de chez nous.",
+  "corps": "À renseigner.",
+  "auteur": "La rédaction",
+  "date": "2026-11-10",
+  "niveau_acces": "libre",
+  "publie": true
+ }
+]

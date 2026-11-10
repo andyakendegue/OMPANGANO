@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import {
-  ajouterClan, ajouterVillage, enregistrerInscription, lireCollection, MYENE, MYENE_TRIBES, validerInscription,
+  ajouterClan, ajouterVillage, enregistrerInscription, JE_NE_SAIS_PAS, lireCollection, MYENE, MYENE_TRIBES, validerInscription,
   type ClanRegistry, type TribeName, type VillageRegistry,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { ConditionsModale } from './Conditions';
 import { couleurs } from './theme';
+import { Logo, fond } from './Fond';
 
-const NP = 'Non précisé';
+const NP = JE_NE_SAIS_PAS;
+type TribuParent = TribeName | typeof JE_NE_SAIS_PAS;
 
 /** Inscription obligatoire (identique à OnboardingModal du site web) : identité, filiation, village, consentements. */
 export default function Inscription({ modifier, onTermine }: { modifier?: boolean; onTermine?: () => void } = {}) {
@@ -19,13 +21,13 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
   const [lieu, setLieu] = useState(profil?.birthPlace || '');
   const [tribu, setTribu] = useState<TribeName>(profil?.tribe || 'Ôrungu');
 
-  const [tribuPere, setTribuPere] = useState<TribeName>(tribu);
+  const [tribuPere, setTribuPere] = useState<TribuParent>(tribu);
   const [paternel, setPaternel] = useState(profil?.paternalClan || '');
   const [nouveauP, setNouveauP] = useState(false);
   const [nomNouveauP, setNomNouveauP] = useState('');
   const [tribuNouveauP, setTribuNouveauP] = useState<TribeName>(tribu);
 
-  const [tribuMere, setTribuMere] = useState<TribeName>(tribu);
+  const [tribuMere, setTribuMere] = useState<TribuParent>(tribu);
   const [maternel, setMaternel] = useState(profil?.maternalClan || '');
   const [nouveauM, setNouveauM] = useState(false);
   const [nomNouveauM, setNomNouveauM] = useState('');
@@ -57,7 +59,7 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
 
   const clansPere = useMemo(() => (clans || []).filter(c => c.tribe === tribuPere), [clans, tribuPere]);
   const clansMere = useMemo(() => (clans || []).filter(c => c.tribe === tribuMere), [clans, tribuMere]);
-  const villagesClan = useMemo(() => (paternel ? villages.filter(v => v.clan === paternel) : villages), [villages, paternel]);
+  const villagesClan = useMemo(() => (paternel && paternel !== NP ? villages.filter(v => v.clan === paternel) : villages), [villages, paternel]);
 
   const valider = async () => {
     setErreur(null);
@@ -91,7 +93,8 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
   };
 
   return (
-    <ScrollView style={{ backgroundColor: couleurs.fond }} contentContainerStyle={s.page}>
+    <ScrollView style={fond} contentContainerStyle={s.page}>
+      <View style={{ alignItems: 'center' }}><Logo taille={64} /></View>
       <Text style={s.sur}>Enregistrement Obligatoire • Protocole Nkala</Text>
       <Text style={s.marque}>{MYENE.SALE.mot} ! Bienvenue dans Nkala</Text>
       <Text style={s.sous}>« Nkala » sauvegarde et transmet la langue Myènè ; sa première brique, Ompangano, est le programme participatif de collecte. Renseignez votre filiation clanique et vos origines territoriales pour accéder au corpus et contribuer.</Text>
@@ -110,19 +113,19 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
 
       <View style={s.carte}>
         <Text style={s.titre}>2. Filiation Généalogique & Origines</Text>
-        <Text style={s.etiquette}>Votre Tribu Myènè Principale *</Text>
+        <Text style={s.etiquette}>Votre Ethnie Myènè Principale *</Text>
         <Choix valeurs={MYENE_TRIBES.map(t => [t, t])} actif={tribu} onChoix={v => choisirTribu(v as TribeName)} />
         {!clans && <ActivityIndicator color={couleurs.ambre} />}
 
         <Bloc
-          titre="Clan Paternel (rattaché à une tribu) *" nouveau={nouveauP} setNouveau={setNouveauP}
-          libTribu="Tribu du père :" tribuListe={tribuPere} setTribuListe={t => { setTribuPere(t); setPaternel(''); }}
+          titre="Clan Paternel (rattaché à une ethnie) *" nouveau={nouveauP} setNouveau={setNouveauP}
+          libTribu="Ethnie du père :" tribuListe={tribuPere} setTribuListe={t => { setTribuPere(t); setPaternel(t === NP ? NP : ''); }}
           libClan="Clan paternel disponible :" clans={clansPere} valeur={paternel} setValeur={setPaternel}
           nom={nomNouveauP} setNom={setNomNouveauP} tribuNouveau={tribuNouveauP} setTribuNouveau={setTribuNouveauP} />
 
         <Bloc
-          titre="Clan Maternel (rattaché à une tribu) *" nouveau={nouveauM} setNouveau={setNouveauM}
-          libTribu="Tribu de la mère :" tribuListe={tribuMere} setTribuListe={t => { setTribuMere(t); setMaternel(''); }}
+          titre="Clan Maternel (rattaché à une ethnie) *" nouveau={nouveauM} setNouveau={setNouveauM}
+          libTribu="Ethnie de la mère :" tribuListe={tribuMere} setTribuListe={t => { setTribuMere(t); setMaternel(t === NP ? NP : ''); }}
           libClan="Clan maternel disponible :" clans={clansMere} valeur={maternel} setValeur={setMaternel}
           nom={nomNouveauM} setNom={setNomNouveauM} tribuNouveau={tribuNouveauM} setTribuNouveau={setTribuNouveauM} />
 
@@ -142,8 +145,8 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
         ) : (
           <>
             <Text style={s.discret}>-- Sélectionnez votre village d’origine --</Text>
-            <Choix valeurs={[...villagesClan.slice(0, 60).map(v => [v.name, `${v.name} (Clan: ${v.clan || 'Non rattaché'}, Tribu: ${v.tribe})`] as [string, string]), [NP, 'Non précisé / À définir']]} actif={village} onChoix={setVillage} />
-            {villagesClan.length === 0 && <Text style={s.discret}>Aucun village n'est encore enregistré pour cette sélection. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau village ».</Text>}
+            <Choix valeurs={[...villagesClan.slice(0, 60).map(v => [v.name, `${v.name} (Clan: ${v.clan || 'Non rattaché'}, Ethnie: ${v.tribe})`] as [string, string]), [NP, 'Je ne sais pas']]} actif={village} onChoix={setVillage} />
+            {villagesClan.length === 0 && <Text style={s.discret}>Aucun village n'est encore enregistré pour cette sélection. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau village ».</Text>}
           </>
         )}
       </View>
@@ -177,7 +180,7 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
 }
 
 function Bloc(p: {
-  titre: string; nouveau: boolean; setNouveau: (b: boolean) => void; libTribu: string; tribuListe: TribeName; setTribuListe: (t: TribeName) => void;
+  titre: string; nouveau: boolean; setNouveau: (b: boolean) => void; libTribu: string; tribuListe: TribuParent; setTribuListe: (t: TribuParent) => void;
   libClan: string; clans: ClanRegistry[]; valeur: string; setValeur: (v: string) => void; nom: string; setNom: (v: string) => void; tribuNouveau: TribeName; setTribuNouveau: (t: TribeName) => void;
 }) {
   return (
@@ -188,7 +191,7 @@ function Bloc(p: {
       </View>
       {p.nouveau ? (
         <>
-          <Text style={s.etiquette}>Tribu de rattachement :</Text>
+          <Text style={s.etiquette}>Ethnie de rattachement :</Text>
           <Choix valeurs={MYENE_TRIBES.map(t => [t, t])} actif={p.tribuNouveau} onChoix={v => p.setTribuNouveau(v as TribeName)} />
           <Text style={s.etiquette}>Nom du nouveau clan :</Text>
           <TextInput style={s.champ} value={p.nom} onChangeText={p.setNom} />
@@ -196,11 +199,13 @@ function Bloc(p: {
       ) : (
         <>
           <Text style={s.etiquette}>{p.libTribu}</Text>
-          <Choix valeurs={MYENE_TRIBES.map(t => [t, t])} actif={p.tribuListe} onChoix={v => p.setTribuListe(v as TribeName)} />
+          <Choix valeurs={[...MYENE_TRIBES.map(t => [t, t]), [NP, 'Autre']]} actif={p.tribuListe} onChoix={v => p.setTribuListe(v as TribuParent)} />
+          {p.tribuListe === NP ? <Text style={s.discret}>Autre ethnie (par exemple un seul parent myènè) : le clan est enregistré « Je ne sais pas », réponse valide.</Text> : <>
           <Text style={s.etiquette}>{p.libClan}</Text>
           <Text style={s.discret}>-- Sélectionnez le clan ({p.tribuListe}) --</Text>
-          <Choix valeurs={[...p.clans.map(c => [c.name, `Clan ${c.name} (Tribu: ${c.tribe})`] as [string, string]), [NP, `Non précisé / À définir (${p.tribuListe})`]]} actif={p.valeur} onChoix={p.setValeur} />
-          {p.clans.length === 0 && <Text style={s.discret}>Les clans {p.tribuListe} sont en cours de validation orthographique. Vous pouvez choisir « Non précisé » ou cliquer sur « Créer nouveau clan ».</Text>}
+          <Choix valeurs={[...p.clans.map(c => [c.name, `Clan ${c.name} (Ethnie: ${c.tribe})`] as [string, string]), [NP, 'Je ne sais pas']]} actif={p.valeur} onChoix={p.setValeur} />
+          {p.clans.length === 0 && <Text style={s.discret}>Les clans {p.tribuListe} sont en cours de validation orthographique. Vous pouvez choisir « Je ne sais pas » ou cliquer sur « Créer nouveau clan ».</Text>}
+          </>}
         </>
       )}
     </View>

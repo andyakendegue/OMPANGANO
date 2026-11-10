@@ -217,6 +217,31 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
         </div>
       </div>
 
+      {/* Statistiques de mes modérations */}
+      {(() => {
+        const mes = contributions.filter(c => c.validatorId === currentUser?.id && c.validatedAt);
+        const depuis = (ms: number) => mes.filter(c => Date.now() - new Date(c.validatedAt as string).getTime() < ms).length;
+        const debutJour = new Date(); debutJour.setHours(0, 0, 0, 0);
+        const cases: [string, number][] = [
+          ['Mes modérations', mes.length],
+          ["Aujourd'hui", mes.filter(c => new Date(c.validatedAt as string) >= debutJour).length],
+          ['7 jours', depuis(7 * 86400000)],
+          ['30 jours', depuis(30 * 86400000)],
+          ['Validées 100 %', mes.filter(c => c.status === 'approved').length],
+          ['Rejetées', mes.filter(c => c.status === 'rejected').length],
+        ];
+        return (
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+            {cases.map(([t, n]) => (
+              <div key={t} className="p-2.5 rounded-2xl bg-[#180d07] border border-[#3b1d10]">
+                <span className="block text-lg font-black text-amber-400 font-mono">{n}</span>
+                <span className="text-[10px] text-[#a8826d]">{t}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* KPI Counters */}
       <div className="grid grid-cols-2 gap-3 text-xs">
         <button
@@ -264,13 +289,13 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
             onChange={(e) => setTribeFilter(e.target.value)}
             className="px-3 py-2 bg-[#180d07] border border-[#4a2412] rounded-xl text-[#fed7aa] focus:outline-none"
           >
-            <option value="all">Toutes les Tribus Myènè</option>
-            <option value="Enenga">Tribu Enenga</option>
-            <option value="Mpongwè">Tribu Mpongwè</option>
-            <option value="Galoa">Tribu Galoa</option>
-            <option value="Nkomi">Tribu Nkomi</option>
-            <option value="Ôrungu">Tribu Ôrungu</option>
-            <option value="Adyumba">Tribu Adyumba</option>
+            <option value="all">Toutes les Ethnies Myènè</option>
+            <option value="Enenga">Ethnie Enenga</option>
+            <option value="Mpongwè">Ethnie Mpongwè</option>
+            <option value="Galoa">Ethnie Galoa</option>
+            <option value="Nkomi">Ethnie Nkomi</option>
+            <option value="Ôrungu">Ethnie Ôrungu</option>
+            <option value="Adyumba">Ethnie Adyumba</option>
           </select>
 
           <button
@@ -334,7 +359,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
                   <div className="text-right text-xs">
                     <span className="text-stone-300 font-semibold block">{c.userDisplayName}</span>
                     <span className="text-[11px] text-[#a8826d]">
-                      {c.userTribe ? `Tribu ${c.userTribe}` : 'Tribu non renseignée'} • {new Date(c.createdAt).toLocaleDateString()}
+                      {c.userTribe ? `Ethnie ${c.userTribe}` : 'Ethnie non renseignée'} • {new Date(c.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

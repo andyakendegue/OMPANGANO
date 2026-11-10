@@ -12,6 +12,8 @@ export interface AuthUser {
   provider: string;
   name?: string;
   picture?: string;
+  /** Numéro E.164 pour les comptes créés par SMS. */
+  phone?: string;
 }
 
 export type TokenVerifier = (token: string) => Promise<AuthUser>;

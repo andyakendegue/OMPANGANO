@@ -4,9 +4,9 @@ import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
 const COULEURS = ['#c85a32', '#d97706', '#f59e0b', '#7c2d12', '#fde047'];
 
 /** Pluie de confettis (mêmes couleurs que le site web) lancée à l'envoi d'une contribution. */
-export function Confettis({ declencheur }: { declencheur: boolean }) {
+export function Confettis({ declencheur, nombre = 60 }: { declencheur: boolean; nombre?: number }) {
   const { width, height } = Dimensions.get('window');
-  const particules = useRef(Array.from({ length: 60 }, (_, i) => ({
+  const particules = useRef(Array.from({ length: nombre }, (_, i) => ({
     x: Math.random() * width, dx: (Math.random() - 0.5) * 160, taille: 6 + Math.random() * 8, couleur: COULEURS[i % COULEURS.length],
     delai: Math.random() * 300, duree: 1600 + Math.random() * 900, v: new Animated.Value(0), rot: (Math.random() - 0.5) * 720,
   }))).current;

@@ -1,0 +1,20 @@
+[
+ {
+  "id": "defi-jour-1",
+  "type": "jour",
+  "jeu_id": "pendu",
+  "titre": "Défi du jour : le pendu",
+  "objectif": 3,
+  "xp": 20,
+  "publie": true
+ },
+ {
+  "id": "defi-semaine-1",
+  "type": "semaine",
+  "jeu_id": "quiz",
+  "titre": "5 quiz gagnés cette semaine",
+  "objectif": 5,
+  "xp": 60,
+  "publie": true
+ }
+]

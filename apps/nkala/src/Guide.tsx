@@ -6,7 +6,7 @@ import { BlocsTexte, EcranModal } from './ui';
 import { couleurs } from './theme';
 
 export const CLE_GUIDE_VU = 'nkala_guide_visuel_vu_v1';
-const ONGLETS = ['1. Objectifs', '2. Contribuer (3 étapes)', '3. Tribus & Hors-ligne', '4. Badges & Défis'];
+const ONGLETS = ['1. Objectifs', '2. Contribuer (3 étapes)', '3. Ethnies & Hors-ligne', '4. Badges & Défis'];
 
 /** Guide visuel et objectifs : quatre pages, textes repris du site web. */
 export function GuideModale({ visible, prenom, apresInscription, onClose, onAller }: {
@@ -28,7 +28,7 @@ export function GuideModale({ visible, prenom, apresInscription, onClose, onAlle
           <Pressable key={o} onPress={() => setPage(i)} style={[s.onglet, page === i && s.ongletActif]}><Text style={[s.ongletTexte, page === i && { color: '#fff' }]}>{o}</Text></Pressable>
         ))}
       </View>
-      <BlocsTexte blocs={TEXTES_GUIDE[String(page)] || []} onBouton={t => terminer(t.includes('Tribu') ? 'ezango' : 'contribuer')} />
+      <BlocsTexte blocs={TEXTES_GUIDE[String(page)] || []} onBouton={t => terminer(t.includes('Ethnie') ? 'ezango' : 'contribuer')} />
       <View style={s.pied}>
         <Pressable disabled={page === 0} onPress={() => setPage(p => p - 1)} style={[s.nav, page === 0 && { opacity: 0.4 }]}><Text style={s.navTexte}>Étape précédente</Text></Pressable>
         {page < ONGLETS.length - 1

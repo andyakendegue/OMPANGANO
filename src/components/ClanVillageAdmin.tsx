@@ -377,11 +377,11 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
             <div className="flex items-center gap-2">
               <Compass className="w-5 h-5 text-[#f59e0b]" />
               <h3 className="text-base sm:text-lg font-bold text-white">
-                Registre Généalogique : Tribus, Clans & Villages
+                Registre Généalogique : Ethnies, Clans & Villages
               </h3>
             </div>
             <p className="text-xs text-[#d4af94] mt-1 leading-relaxed">
-              Seuls les <strong>21 clans officiels Ôrungu</strong> sont pré-enregistrés par défaut. Pour les autres tribus (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba</strong>) ainsi que pour les <strong>villages</strong>, vous pouvez les ajouter manuellement ou les importer en lot par fichier <strong>CSV</strong> au fur et à mesure de la validation de leur orthographe.
+              Seuls les <strong>21 clans officiels Ôrungu</strong> sont pré-enregistrés par défaut. Pour les autres ethnies (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba</strong>) ainsi que pour les <strong>villages</strong>, vous pouvez les ajouter manuellement ou les importer en lot par fichier <strong>CSV</strong> au fur et à mesure de la validation de leur orthographe.
             </p>
           </div>
 
@@ -475,7 +475,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                   Importation CSV de Clans (avec Déduplication Automatique)
                 </h4>
                 <p className="text-[11px] text-[#d4af94]">
-                  Importez une liste de clans pour une tribu précise ou un fichier CSV complet multi-tribus.
+                  Importez une liste de clans pour une ethnie précise ou un fichier CSV complet multi-ethnies.
                 </p>
               </div>
             </div>
@@ -501,7 +501,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block text-[#fed7aa] font-semibold mb-1">
-                Tribu par défaut (si absente dans une ligne CSV) :
+                Ethnie par défaut (si absente dans une ligne CSV) :
               </label>
               <select
                 value={clanCsvDefaultTribe}
@@ -535,7 +535,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                   <span>Sélectionner un fichier CSV / TXT</span>
                 </button>
                 <span className="text-[11px] text-[#a8826d]">
-                  Colonnes : <code className="text-[#fde047]">Nom_Clan, Tribu, Description, Signification_Historique, Origines_Geographiques, Devise_Symbole</code> (ou simple liste 1 clan par ligne)
+                  Colonnes : <code className="text-[#fde047]">Nom_Clan, Ethnie, Description, Signification_Historique, Origines_Geographiques, Devise_Symbole</code> (ou simple liste 1 clan par ligne)
                 </span>
               </div>
             </div>
@@ -548,7 +548,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                 rows={5}
                 value={clanCsvText}
                 onChange={(e) => setClanCsvText(e.target.value)}
-                placeholder={`Nom_Clan,Tribu,Description,Signification_Historique,Origines_Geographiques\n"NomDuClan","Enenga","Description courte","Signification historique","Lambaréné / Moyen-Ogooué"`}
+                placeholder={`Nom_Clan,Ethnie,Description,Signification_Historique,Origines_Geographiques\n"NomDuClan","Enenga","Description courte","Signification historique","Lambaréné / Moyen-Ogooué"`}
                 className="w-full px-3.5 py-2.5 bg-[#180d07] border border-[#522915] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
               />
             </div>
@@ -641,7 +641,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                   Importation CSV de Villages (avec Déduplication Automatique)
                 </h4>
                 <p className="text-[11px] text-[#d4af94]">
-                  Importez vos villages par tribu et clan (le clan de rattachement est facultatif si la tribu n'a pas encore de clan enregistré).
+                  Importez vos villages par ethnie et clan (le clan de rattachement est facultatif si l’ethnie n'a pas encore de clan enregistré).
                 </p>
               </div>
             </div>
@@ -667,7 +667,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block text-[#fed7aa] font-semibold mb-1">
-                Tribu par défaut (si absente dans une ligne CSV) :
+                Ethnie par défaut (si absente dans une ligne CSV) :
               </label>
               <select
                 value={villageCsvDefaultTribe}
@@ -701,7 +701,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                   <span>Sélectionner un fichier CSV / TXT</span>
                 </button>
                 <span className="text-[11px] text-[#a8826d]">
-                  Colonnes : <code className="text-teal-300">Nom_Village, Tribu, Clan_Rattachement, Region_Province</code> (ou simple liste 1 village par ligne)
+                  Colonnes : <code className="text-teal-300">Nom_Village, Ethnie, Clan_Rattachement, Region_Province</code> (ou simple liste 1 village par ligne)
                 </span>
               </div>
             </div>
@@ -714,7 +714,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                 rows={5}
                 value={villageCsvText}
                 onChange={(e) => setVillageCsvText(e.target.value)}
-                placeholder={`Nom_Village,Tribu,Clan_Rattachement,Region_Province\n"Ozouri","Ôrungu","Agenje","Ogooué-Maritime"\n"Alumbè","Ôrungu","Ajena","Ogooué-Maritime"`}
+                placeholder={`Nom_Village,Ethnie,Clan_Rattachement,Region_Province\n"Ozouri","Ôrungu","Agenje","Ogooué-Maritime"\n"Alumbè","Ôrungu","Ajena","Ogooué-Maritime"`}
                 className="w-full px-3.5 py-2.5 bg-[#180d07] border border-[#522915] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-teal-500"
               />
             </div>
@@ -807,7 +807,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Arborescence Tribu → Clan → Village</span>
+            <span>Arborescence Ethnie → Clan → Village</span>
           </button>
           <button
             type="button"
@@ -841,7 +841,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher clan, village, tribu..."
+            placeholder="Rechercher clan, village, ethnie..."
             className="w-full pl-9 pr-3 py-2 bg-[#180d07] border border-[#4a2412] rounded-xl text-xs text-white focus:outline-none focus:border-[#f59e0b]"
           />
         </div>
@@ -885,7 +885,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#fed7aa] font-semibold mb-1">Tribu de rattachement * :</label>
+              <label className="block text-[#fed7aa] font-semibold mb-1">Ethnie de rattachement * :</label>
               <select
                 value={clanTribe}
                 onChange={(e) => setClanTribe(e.target.value)}
@@ -1007,7 +1007,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#fed7aa] font-semibold mb-1">Tribu * :</label>
+              <label className="block text-[#fed7aa] font-semibold mb-1">Ethnie * :</label>
               <select
                 value={villageTribe}
                 onChange={(e) => {
@@ -1116,7 +1116,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                     </span>
                     <div>
                       <h4 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
-                        <span>Tribu {tribe}</span>
+                        <span>Ethnie {tribe}</span>
                         <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#180d07] text-[#f59e0b] border border-[#4a2412]">
                           {tribeClans.length} clan{tribeClans.length > 1 ? 's' : ''} • {tribeVillages.length} village{tribeVillages.length > 1 ? 's' : ''}
                         </span>
@@ -1161,7 +1161,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                     <div className="flex items-start gap-2.5 text-xs text-[#a8826d]">
                       <Info className="w-4 h-4 text-[#f59e0b] shrink-0 mt-0.5" />
                       <div>
-                        Aucun clan n'est pré-rempli pour la tribu <strong className="text-white">{tribe}</strong> afin de garantir l'exactitude orthographique.
+                        Aucun clan n'est pré-rempli pour l’ethnie <strong className="text-white">{tribe}</strong> afin de garantir l'exactitude orthographique.
                         Vous pouvez les ajouter manuellement ou les importer en CSV.
                       </div>
                     </div>
@@ -1282,7 +1282,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                 {unattachedVillages.length > 0 && (
                   <div className="p-3.5 rounded-xl bg-[#180d07] border border-teal-500/30 space-y-2">
                     <div className="text-[11px] font-bold text-teal-300">
-                      Villages de la tribu {tribe} ({unattachedVillages.length}) :
+                      Villages de l’ethnie {tribe} ({unattachedVillages.length}) :
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {unattachedVillages.map(v => (
@@ -1344,7 +1344,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                 <div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      Tribu {clan.tribe}
+                      Ethnie {clan.tribe}
                     </span>
                     <span className="text-[11px] text-[#a8826d]">
                       {countVillages} village{countVillages > 1 ? 's' : ''}
@@ -1417,7 +1417,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                   <div>
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
-                        Tribu {village.tribe}
+                        Ethnie {village.tribe}
                       </span>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
                         Clan {village.clan || 'Non rattaché'}

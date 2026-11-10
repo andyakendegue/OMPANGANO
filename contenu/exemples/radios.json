@@ -1,0 +1,20 @@
+[
+ {
+  "id": "demo-radio",
+  "nom": "Radio exemple",
+  "description": "Ajoutez l'adresse du flux direct dans la console d'administration.",
+  "programme": [
+   {
+    "heure": "06:00",
+    "titre": "Le réveil"
+   },
+   {
+    "heure": "12:00",
+    "titre": "Le midi"
+   }
+  ],
+  "couleur": "#C85A32",
+  "ordre": 1,
+  "publie": true
+ }
+]

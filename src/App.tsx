@@ -1554,7 +1554,7 @@ export default function App() {
     setIsVisualGuideOpen(true);
 
     NotificationService.sendLocalNotification('Filiation Nkala Validée 📜', {
-      body: `${MYENE.SALE.mot} ! Bienvenue dans le programme, ${updated.fullName}, de la tribu ${updated.tribe} !`
+      body: `${MYENE.SALE.mot} ! Bienvenue dans le programme, ${updated.fullName}, de l’ethnie ${updated.tribe} !`
     });
   };
 
@@ -2579,7 +2579,7 @@ export default function App() {
     if (tab === 'admin' && currentUser?.role !== 'admin') {
       return;
     }
-    if (tab === 'validator' && currentUser?.role !== 'admin') {
+    if (tab === 'validator' && currentUser?.role !== 'admin' && currentUser?.role !== 'validator') {
       return;
     }
     setCurrentTab(tab);
@@ -2591,7 +2591,7 @@ export default function App() {
       if (currentTab === 'admin' && currentUser.role !== 'admin') {
         setCurrentTab('crowdsource');
       }
-      if (currentTab === 'validator' && currentUser.role !== 'admin') {
+      if (currentTab === 'validator' && currentUser.role !== 'admin' && currentUser.role !== 'validator') {
         setCurrentTab('crowdsource');
       }
     }
@@ -2890,7 +2890,7 @@ export default function App() {
         )}
 
         {/* Dedicated Validator Workspace: Oral vs Written nuance */}
-        {currentTab === 'validator' && currentUser?.role === 'admin' && (
+        {currentTab === 'validator' && (currentUser?.role === 'admin' || currentUser?.role === 'validator') && (
           <Suspense fallback={<StaffLoading />}>
             <ValidatorWorkspace
               contributions={contributions}

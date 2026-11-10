@@ -145,7 +145,7 @@ function Outils() {
 
       <View style={s.carte}>
         <Text style={s.titre}>Audit des doublons</Text>
-        <Text style={s.discret}>Clans et villages de même tribu et même nom ; fiches de même dialecte et même texte (dans la copie locale). Rien n’est modifié sans votre confirmation.</Text>
+        <Text style={s.discret}>Clans et villages de même ethnie et même nom ; fiches de même dialecte et même texte (dans la copie locale). Rien n’est modifié sans votre confirmation.</Text>
         <Pressable style={s.bouton} onPress={auditer} disabled={occupe}><Text style={s.boutonTexte}>Lancer l’audit</Text></Pressable>
         {audit && (
           <View style={{ gap: 6 }}>

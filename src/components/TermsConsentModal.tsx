@@ -596,7 +596,7 @@ export const TermsConsentModal: React.FC<TermsConsentModalProps> = ({
                     <tr>
                       <td className="p-2.5 font-semibold text-white">📜 Filiation & Généalogie complète vérifiée</td>
                       <td className="p-2.5 text-[#fde047] font-bold">+50 XP + Badge</td>
-                      <td className="p-2.5 text-emerald-400">Ancre vos contributions dans votre tribu, clan et village</td>
+                      <td className="p-2.5 text-emerald-400">Ancre vos contributions dans votre ethnie, clan et village</td>
                     </tr>
                     <tr>
                       <td className="p-2.5 font-semibold text-white">🏆 Défi Hebdomadaire complété</td>

@@ -26,7 +26,7 @@ export function csvReponses(l: Contribution[]): string {
 
 export const ENTETES_UTILISATEURS = [
   'ID_Utilisateur', 'Nom_Affichage', 'Nom_Complet', 'Email', 'Telephone', 'Role', 'Statut_Compte', 'Conditions_Et_Annexe1_Acceptees',
-  'Autorisation_Donnees_IA', 'Autorisation_Voix', 'Autorisation_Image', 'Association_Partenaire', 'Date_Signature_Consentement', 'Tribu',
+  'Autorisation_Donnees_IA', 'Autorisation_Voix', 'Autorisation_Image', 'Association_Partenaire', 'Date_Signature_Consentement', 'Ethnie',
   'Clan_Paternel', 'Clan_Maternel', 'Village_Origine', 'XP', 'Niveau_Sagesse', 'Nombre_Contributions', 'Nombre_Enregistrements_Audio',
   'Nombre_Validations', 'Score_Suspicion', 'Date_Inscription',
 ];

@@ -127,7 +127,7 @@ export function ProfilContributeur() {
         <>
           <View style={s.carte}>
             <Text style={s.titre}>Filiation Nkala Enregistrée  Certifiée Conforme</Text>
-            <Text style={s.texte}>Tribu Myènè : {profil.tribe || 'Enenga'}</Text>
+            <Text style={s.texte}>Ethnie Myènè : {profil.tribe || 'Enenga'}</Text>
             <Text style={s.texte}>Clan Paternel : {profil.paternalClan || 'Avandji'}</Text>
             <Text style={s.texte}>Clan Maternel : {profil.maternalClan || 'Imvona'}</Text>
             <Text style={s.texte}>Village d'Origine : {profil.villageOfOrigin || 'Lambaréné'}</Text>
@@ -189,7 +189,7 @@ export function ProfilContributeur() {
                 <View style={{ flex: 1 }}>
                   <Text style={s.myene}>{f.myeneText}</Text>
                   <Text style={s.texte}>« {f.frenchText} »</Text>
-                  <Text style={s.discret}>Tribu {f.dialect}</Text>
+                  <Text style={s.discret}>Ethnie {f.dialect}</Text>
                 </View>
                 <Pressable onPress={() => dire(f)} hitSlop={8}><Text style={s.icone}>{parole === f.id ? '⏹' : '🔊'}</Text></Pressable>
                 <Pressable onPress={() => favori(f.id)} hitSlop={8}><Text style={[s.icone, { color: couleurs.ambre }]}>★</Text></Pressable>

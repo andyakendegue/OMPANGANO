@@ -1,0 +1,18 @@
+[
+ {
+  "id": "demo-vp-1",
+  "cours_id": "demo-vin-palme",
+  "titre": "Présentation",
+  "debut_s": 0,
+  "duree_s": 180,
+  "ordre": 1
+ },
+ {
+  "id": "demo-vp-2",
+  "cours_id": "demo-vin-palme",
+  "titre": "Le matériel",
+  "debut_s": 180,
+  "duree_s": 240,
+  "ordre": 2
+ }
+]

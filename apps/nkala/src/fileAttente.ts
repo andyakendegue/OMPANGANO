@@ -33,38 +33,73 @@ async function envoyerUn(el: Element): Promise<'ok' | 'refus' | 'reessayer'> {
   }
 }
 
-/** Envoie tout de suite ; en cas d'échec réseau, garde la contribution (et une copie de l'audio) sur l'appareil. */
+/** Un seul accès à la file à la fois : un renvoi en cours ne doit pas écraser une contribution ajoutée entre-temps. */
+let verrou: Promise<unknown> = Promise.resolve();
+const exclusif = <T,>(f: () => Promise<T>): Promise<T> => {
+  const r = verrou.then(f, f);
+  verrou = r.catch(() => {});
+  return r;
+};
+
+const retirer = (ids: Set<string>) => exclusif(async () => ecrire((await lire()).filter(e => !ids.has(e.contribution.id))));
+const supprimerCopie = (uri?: string) => {
+  if (uri && uri.startsWith(FileSystem.documentDirectory || '\0')) FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {});
+};
+
+/**
+ * Écrit D'ABORD sur l'appareil (réponses + copie durable de l'audio), puis tente l'envoi.
+ * Si la connexion se coupe, si l'application est fermée ou le téléphone redémarre en plein envoi,
+ * la contribution est déjà en sûreté et sera renvoyée au retour du réseau.
+ */
 export async function soumettre(contribution: Contribution, audioUri?: string, mime?: string): Promise<'envoye' | 'en_attente' | 'refuse'> {
   let uri = audioUri;
-  const el: Element = { contribution, audioUri: uri, mime };
-  const r = await envoyerUn(el);
-  if (r === 'ok') return 'envoye';
-  if (r === 'refus') return 'refuse';
-  // Copie durable : le cache système peut être vidé avant le renvoi
-  if (uri && Platform.OS !== 'web' && FileSystem.documentDirectory) {
+  // Le cache système peut être vidé : l'audio est copié dans un dossier durable avant tout.
+  if (uri && Platform.OS !== 'web' && FileSystem.documentDirectory && !uri.startsWith(FileSystem.documentDirectory)) {
     const dest = `${FileSystem.documentDirectory}${contribution.id}.${(mime || '').includes('mp4') ? 'm4a' : 'audio'}`;
     try { await FileSystem.copyAsync({ from: uri, to: dest }); uri = dest; } catch { /* on garde l'adresse d'origine */ }
   }
-  await ecrire([...(await lire()), { contribution, audioUri: uri, mime }]);
+  const el: Element = { contribution, audioUri: uri, mime };
+  try {
+    await exclusif(async () => ecrire([...(await lire()).filter(e => e.contribution.id !== contribution.id), el]));
+  } catch {
+    // Stockage plein ou refusé : envoi direct sans filet ; en cas d'échec on le dit, au lieu de prétendre avoir sauvegardé.
+    const r = await envoyerUn(el);
+    if (r === 'ok') return 'envoye';
+    if (r === 'refus') return 'refuse';
+    throw new Error('Impossible de sauvegarder sur l’appareil (espace insuffisant ?)');
+  }
+  const r = await envoyerUn(el);
+  if (r === 'ok' || r === 'refus') {
+    await retirer(new Set([contribution.id]));
+    supprimerCopie(uri);
+    return r === 'ok' ? 'envoye' : 'refuse';
+  }
   return 'en_attente';
 }
 
+let renvoiEnCours: Promise<number> | null = null;
+
 /** Rejoue la file (démarrage, retour du réseau). L'identifiant stable évite les doublons côté serveur. */
-export async function rejouerFile(): Promise<number> {
-  const file = await lire();
-  const reste: Element[] = [];
-  let envoyes = 0;
-  let traites = 0;
-  if (file.length) definirSync({ genre: 'envoi', fait: 0, total: file.length });
-  for (const el of file) {
-    const r = await envoyerUn(el);
-    definirSync({ genre: 'envoi', fait: ++traites, total: file.length });
-    if (r === 'ok') { envoyes++; if (el.audioUri?.startsWith(FileSystem.documentDirectory || '\0')) FileSystem.deleteAsync(el.audioUri, { idempotent: true }).catch(() => {}); }
-    else if (r === 'reessayer') reste.push(el);
-  }
-  await ecrire(reste);
-  if (lireSync().genre === 'envoi') definirSync({ genre: null, fait: 0, total: 0 });
-  return envoyes;
+export function rejouerFile(): Promise<number> {
+  if (renvoiEnCours) return renvoiEnCours; // un seul renvoi à la fois
+  renvoiEnCours = (async () => {
+    const file = await exclusif(lire);
+    let envoyes = 0;
+    let n = 0;
+    if (file.length) definirSync({ genre: 'envoi', fait: 0, total: file.length });
+    for (const el of file) {
+      const r = await envoyerUn(el);
+      definirSync({ genre: 'envoi', fait: ++n, total: file.length });
+      if (r === 'ok' || r === 'refus') {
+        if (r === 'ok') envoyes++;
+        supprimerCopie(el.audioUri);
+        await retirer(new Set([el.contribution.id])); // retiré au fur et à mesure : une coupure en cours de route ne perd rien
+      }
+    }
+    if (lireSync().genre === 'envoi') definirSync({ genre: null, fait: 0, total: 0 });
+    return envoyes;
+  })().finally(() => { renvoiEnCours = null; });
+  return renvoiEnCours;
 }
 
 /** Contributions gardées sur l'appareil (affichage de la file d'attente). */
@@ -79,8 +114,7 @@ export async function contributionsEnFile(): Promise<Contribution[]> {
 
 /** Retire une contribution encore sur l'appareil (et sa copie audio). */
 export async function retirerDeLaFile(id: string): Promise<void> {
-  const file = await lire();
-  const cible = file.find(e => e.contribution.id === id);
-  if (cible?.audioUri?.startsWith(FileSystem.documentDirectory || '\0')) FileSystem.deleteAsync(cible.audioUri, { idempotent: true }).catch(() => {});
-  await ecrire(file.filter(e => e.contribution.id !== id));
+  const cible = (await lire()).find(e => e.contribution.id === id);
+  supprimerCopie(cible?.audioUri);
+  await retirer(new Set([id]));
 }

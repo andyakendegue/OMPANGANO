@@ -1,0 +1,46 @@
+[
+ {
+  "id": "ntina",
+  "titre": "Ntina",
+  "titre_myene": "Ntina",
+  "etape_vie": "ntina",
+  "cycle": 1,
+  "description": "Premier parcours : les salutations et les mots de tous les jours.",
+  "couleur": "#F59E0B",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "ogendo",
+  "titre": "Ogèndo",
+  "titre_myene": "Ogèndo",
+  "etape_vie": "ogendo",
+  "cycle": 2,
+  "description": "Deuxième parcours (contenu à venir).",
+  "couleur": "#D9693F",
+  "ordre": 2,
+  "publie": true
+ },
+ {
+  "id": "emeno",
+  "titre": "Emeno",
+  "titre_myene": "Emeno",
+  "etape_vie": "emeno",
+  "cycle": 3,
+  "description": "Troisième parcours (contenu à venir).",
+  "couleur": "#C85A32",
+  "ordre": 3,
+  "publie": true
+ },
+ {
+  "id": "ikoko",
+  "titre": "Ikôkô",
+  "titre_myene": "Ikôkô",
+  "etape_vie": "ikoko",
+  "cycle": 4,
+  "description": "Quatrième parcours (contenu à venir).",
+  "couleur": "#B45309",
+  "ordre": 4,
+  "publie": true
+ }
+]

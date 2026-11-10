@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { resolveMediaUrl } from '../data/api';
 import { StatistiquesVisites } from './StatistiquesVisites';
 import { 
@@ -57,6 +57,22 @@ import { ThemeManagerAdmin } from './ThemeManagerAdmin';
 import { BadgesManagerAdmin } from './BadgesManagerAdmin';
 import { useShowMore, ShowMoreButton } from './ShowMore';
 import { ClanVillageAdmin } from './ClanVillageAdmin';
+import { StatsContributions } from './StatsContributions';
+
+const TRANCHES_AGE_LIBELLES: [string, string][] = [
+  ['moins18', 'Moins de 18 ans'], ['18-25', '18–25 ans'], ['26-35', '26–35 ans'], ['36-50', '36–50 ans'],
+  ['51-65', '51–65 ans'], ['66plus', '66 ans et plus'], ['inconnu', 'Âge inconnu'],
+];
+/** Tranche d'âge d'une date de naissance AAAA-MM-JJ (mêmes tranches que l'API). */
+function trancheAgeDe(birthDate?: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(birthDate || '');
+  if (!m) return 'inconnu';
+  const n = new Date();
+  let age = n.getFullYear() - Number(m[1]);
+  if (n.getMonth() + 1 < Number(m[2]) || (n.getMonth() + 1 === Number(m[2]) && n.getDate() < Number(m[3]))) age--;
+  if (age < 0 || age > 120) return 'inconnu';
+  return age < 18 ? 'moins18' : age <= 25 ? '18-25' : age <= 35 ? '26-35' : age <= 50 ? '36-50' : age <= 65 ? '51-65' : '66plus';
+}
 
 interface AdminDashboardProps {
   items: QuestionnaireItem[];
@@ -271,6 +287,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'admin' | 'validator' | 'user'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'flagged' | 'suspended'>('all');
   const [userConsentFilter, setUserConsentFilter] = useState<'all' | 'accepted' | 'pending'>('all');
+  const [userEthnieFilter, setUserEthnieFilter] = useState('all');
+  const [userAgeFilter, setUserAgeFilter] = useState('all');
+  const [userPage, setUserPage] = useState(1);
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
   // Badges & Levels state
@@ -425,7 +444,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       'Autorisation_Image',
       'Association_Partenaire',
       'Date_Signature_Consentement',
-      'Tribu',
+      'Ethnie',
       'Clan_Paternel',
       'Clan_Maternel',
       'Village_Origine',
@@ -509,6 +528,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const hasSignedConsent = !!(u.termsAccepted && u.dataUsageAccepted);
     if (userConsentFilter === 'accepted' && !hasSignedConsent) return false;
     if (userConsentFilter === 'pending' && hasSignedConsent) return false;
+    if (userEthnieFilter !== 'all' && (u.tribe || 'inconnue') !== userEthnieFilter) return false;
+    if (userAgeFilter !== 'all' && trancheAgeDe(u.birthDate) !== userAgeFilter) return false;
     if (userSearchQuery.trim()) {
       const q = userSearchQuery.toLowerCase();
       const matchQuery = (u.fullName || '').toLowerCase().includes(q) ||
@@ -525,7 +546,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return true;
   });
 
-  const moreUsers = useShowMore(filteredUsers.length, `${userSearchQuery}|${userRoleFilter}|${userStatusFilter}|${userConsentFilter}`);
+  const USERS_PAR_PAGE = 20;
+  const userPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PAR_PAGE));
+  const userPageCourante = Math.min(userPage, userPages);
+  const usersPage = filteredUsers.slice((userPageCourante - 1) * USERS_PAR_PAGE, userPageCourante * USERS_PAR_PAGE);
+  useEffect(() => { setUserPage(1); }, [userSearchQuery, userRoleFilter, userStatusFilter, userConsentFilter, userEthnieFilter, userAgeFilter]);
+  const segEthnie = usersList.reduce<Record<string, number>>((m, u) => { const k = u.tribe || 'inconnue'; m[k] = (m[k] || 0) + 1; return m; }, {});
+  const segAge = usersList.reduce<Record<string, number>>((m, u) => { const k = trancheAgeDe(u.birthDate); m[k] = (m[k] || 0) + 1; return m; }, {});
   const moreContribs = useShowMore(filteredContributions.length);
   const moreAllUsers = useShowMore(usersList.length);
 
@@ -868,6 +895,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-[#d4af94]">Ethnie :</span>
+              {['all', 'Mpongwè', 'Adyumba', 'Enenga', 'Nkomi', 'Galoa', 'Ôrungu', 'inconnue'].map(e => (
+                <button key={e} onClick={() => setUserEthnieFilter(e)}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all ${userEthnieFilter === e ? 'bg-[#c85a32] text-white shadow' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'}`}>
+                  {e === 'all' ? 'Toutes' : e === 'inconnue' ? 'Autre / non renseignée' : e}{e !== 'all' ? ` (${segEthnie[e] || 0})` : ''}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-[#d4af94]">Âge :</span>
+              {[['all', 'Tous âges'], ...TRANCHES_AGE_LIBELLES].map(([k, nom]) => (
+                <button key={k} onClick={() => setUserAgeFilter(k)}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all ${userAgeFilter === k ? 'bg-[#c85a32] text-white shadow' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'}`}>
+                  {nom}{k !== 'all' ? ` (${segAge[k] || 0})` : ''}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-[#d4af94]">Rôle :</span>
               {(['all', 'admin', 'validator', 'user'] as const).map(role => (
                 <button
@@ -909,7 +956,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Aucun utilisateur ne correspond aux critères de recherche.
               </div>
             ) : (
-              <>{filteredUsers.slice(0, moreUsers.shown).map((user) => {
+              <>{usersPage.map((user) => {
                 const isAdmin = user.role === 'admin';
                 const isValidator = user.role === 'validator';
                 const hasAcceptedConsent = !!(user.termsAccepted && user.dataUsageAccepted);
@@ -963,7 +1010,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
 
                           <div className="text-xs text-[#d4af94] mt-0.5">
-                            {user.email || user.contact || user.phoneNumber || 'Contact non renseigné'} • Tribu : <strong>{user.tribe || 'Non spécifiée'}</strong>
+                            {user.email || user.contact || user.phoneNumber || 'Contact non renseigné'} • Ethnie : <strong>{user.tribe || 'Non spécifiée'}</strong>
                           </div>
 
                           <div className="text-[11px] text-[#a8826d] mt-1">
@@ -1057,7 +1104,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   </div>
                 );
-              })}<ShowMoreButton hasMore={moreUsers.hasMore} remaining={moreUsers.remaining} onMore={moreUsers.more} /></>
+              })}{userPages > 1 && (
+                <div className="flex items-center justify-between gap-2 pt-2 text-xs text-[#d4af94]">
+                  <button disabled={userPageCourante <= 1} onClick={() => setUserPage(userPageCourante - 1)} className="px-3 py-1.5 rounded-lg bg-[#27150c] border border-[#4a2412] disabled:opacity-30">‹ Précédent</button>
+                  <span>Page {userPageCourante} / {userPages} · {filteredUsers.length} utilisateur(s)</span>
+                  <button disabled={userPageCourante >= userPages} onClick={() => setUserPage(userPageCourante + 1)} className="px-3 py-1.5 rounded-lg bg-[#27150c] border border-[#4a2412] disabled:opacity-30">Suivant ›</button>
+                </div>
+              )}</>
             )}
           </div>
         </div>
@@ -1316,6 +1369,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* TAB: STATS & ANALYTICS */}
       {activeTab === 'stats' && (
         <div className="space-y-6">
+          <StatsContributions />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             <div className="p-4 bg-[#27150c] border border-[#4a2412] rounded-2xl">
               <div className="flex items-center justify-between text-[#f59e0b] mb-1">
@@ -2048,7 +2102,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 type="text"
                 value={fraudSearchQuery}
                 onChange={(e) => setFraudSearchQuery(e.target.value)}
-                placeholder="Rechercher nom, tribu, village..."
+                placeholder="Rechercher nom, ethnie, village..."
                 className="w-full pl-9 pr-3 py-2 bg-[#180d07] border border-[#4a2412] rounded-xl text-xs text-white focus:outline-none focus:border-[#ef4444]"
               />
             </div>
@@ -2107,7 +2161,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </span>
                     </div>
                     <div className="text-xs text-[#d4af94] mt-0.5">
-                      Contact : {user.contact || user.email || 'Non renseigné'} • Tribu : {user.tribe || 'Inconnue'}
+                      Contact : {user.contact || user.email || 'Non renseigné'} • Ethnie : {user.tribe || 'Inconnue'}
                     </div>
                   </div>
 

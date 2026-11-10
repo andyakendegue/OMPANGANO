@@ -1,0 +1,19 @@
+[
+ {
+  "id": "ntina-u1",
+  "parcours_id": "ntina",
+  "titre": "Saluer",
+  "titre_myene": "",
+  "description": "Dire bonjour, merci et au revoir.",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "ntina-u2",
+  "parcours_id": "ntina",
+  "titre": "Être poli",
+  "description": "S'il te plaît, excuse-moi, viens.",
+  "ordre": 2,
+  "publie": true
+ }
+]
