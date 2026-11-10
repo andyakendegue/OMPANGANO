@@ -61,7 +61,7 @@ Note : une première version de ce fichier, écrite par la session claude.ai, a 
 
 ## Connexion Google (mobile) — à configurer
 Le code est en place (`apps/nkala/src/Google.tsx`) : web = fenêtre Google de Firebase (déjà opérationnelle) ; iOS/Android = `expo-auth-session` puis `signInWithCredential`. Sur mobile, le bouton reste grisé tant que les identifiants OAuth manquent :
-1. Console Google Cloud (projet de Firebase), « Identifiants » : créer un client **iOS** (identifiant de paquet `engineering.essaka.nkala`) et un client **Android** (nom de paquet `engineering.essaka.nkala` + empreinte SHA-1 du certificat de build EAS).
+1. Console Google Cloud (projet de Firebase), « Identifiants » : créer un client **iOS** (identifiant de paquet `nkala.essaka.engineering`) et un client **Android** (nom de paquet `nkala.essaka.engineering` + empreinte SHA-1 du certificat de build EAS).
 2. Définir `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` et `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` (fichier `.env` de `apps/nkala` ou secrets EAS). Le client web est lu dans `firebase.config.json` (`oAuthClientId`) ou `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`.
 3. Console Firebase > Authentification > Google : vérifier que le fournisseur est activé et que le client web figure parmi les clients autorisés.
 4. Tester sur une version de développement (`eas build --profile development`) : la redirection Google ne fonctionne pas dans Expo Go avec un schéma personnalisé.

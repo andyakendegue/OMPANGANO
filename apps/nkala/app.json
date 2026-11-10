@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "bundleIdentifier": "engineering.essaka.nkala",
+      "bundleIdentifier": "nkala.essaka.engineering",
       "supportsTablet": true,
       "appleTeamId": "6F6D2P9F3P",
       "infoPlist": {
@@ -17,7 +17,7 @@
       }
     },
     "android": {
-      "package": "engineering.essaka.nkala"
+      "package": "nkala.essaka.engineering"
     },
     "web": {
       "bundler": "metro",
