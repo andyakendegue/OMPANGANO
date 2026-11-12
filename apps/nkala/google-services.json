@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "743429299872",
+    "firebase_url": "https://enenga-default-rtdb.firebaseio.com",
+    "project_id": "enenga",
+    "storage_bucket": "enenga.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:743429299872:android:5d225f61f0de25838733c5",
+        "android_client_info": {
+          "package_name": "nkala.essaka.engineering"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "743429299872-kkn7a3r1fdfobetcqk1r5upfdlte1s4i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "nkala.essaka.engineering",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "743429299872-jhhgd53ncfihgrtuh0lgcvisqq654khm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "***CLE_REVOQUEE***"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "743429299872-jhhgd53ncfihgrtuh0lgcvisqq654khm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "743429299872-02i2dldp6ndvs45av7b9h14vor6k93lm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.essaka.enenga.enenga"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

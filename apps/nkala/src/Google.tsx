@@ -10,8 +10,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Identifiants OAuth Google (console Google Cloud, même projet que Firebase). Le client « web » vient de la configuration Firebase.
 const WEB = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || (config as any).oAuthClientId || '';
-const IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '';
-const ANDROID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '';
+// Clients OAuth des apps Firebase « nkala.essaka.engineering » (projet enenga) : identifiants publics, repris de GoogleService-Info.plist et google-services.json.
+const IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '743429299872-ajkolfjbqa3okofhnlou2l1f2k1oi1ue.apps.googleusercontent.com';
+const ANDROID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '743429299872-kkn7a3r1fdfobetcqk1r5upfdlte1s4i.apps.googleusercontent.com';
 
 interface Props { surErreur: (m: string | null) => void }
 

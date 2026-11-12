@@ -2,7 +2,11 @@
   "expo": {
     "name": "Nkala",
     "slug": "nkala",
-    "scheme": "nkala",
+    "scheme": [
+      "nkala",
+      "nkala.essaka.engineering",
+      "com.googleusercontent.apps.743429299872-ajkolfjbqa3okofhnlou2l1f2k1oi1ue"
+    ],
     "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -14,14 +18,16 @@
       "appleTeamId": "6F6D2P9F3P",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "package": "nkala.essaka.engineering",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#170D08"
-      }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
