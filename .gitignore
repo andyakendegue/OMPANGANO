@@ -15,3 +15,9 @@ server/.demo-data/
 apps/nkala/ios/
 apps/nkala/android/
 livrables/
+
+# Configuration Firebase (clés API) : jamais versionnée. Voir apps/nkala/app.config.js et src/firebaseConfig.ts
+apps/nkala/google-services.json
+apps/nkala/GoogleService-Info.plist
+apps/nkala/src/firebase.config.json
+firebase-applet-config.json

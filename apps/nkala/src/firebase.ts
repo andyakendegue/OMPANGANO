@@ -4,7 +4,7 @@ import { initializeAuth, getAuth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { configurerApi, configurerCache, jetonSessionSms, setTokenProvider } from '@nkala/noyau';
-import config from './firebase.config.json';
+import config from './firebaseConfig';
 
 // Même projet Firebase que le web (authentification seulement ; les données sont sur le VPS).
 const app = getApps().length ? getApp() : initializeApp(config);

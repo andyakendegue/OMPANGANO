@@ -90,7 +90,6 @@ function ompaganoUniversalOfflinePlugin(): Plugin {
             '/index.html',
             '/@vite/client',
             '/node_modules/vite/dist/client/env.mjs',
-            '/firebase-applet-config.json?import',
             '/manifest.webmanifest',
             '/icon.svg',
             '/apple-touch-icon.png',

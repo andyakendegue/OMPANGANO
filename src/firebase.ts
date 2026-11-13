@@ -13,7 +13,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import firebaseConfig from '../firebase-applet-config.json';
+import firebaseConfig from './firebaseConfig';
 import { signalerErreur } from './services/erreurs';
 import { api, ApiError, isPermanentApiError, setTokenProvider, subscribeToEvents } from './data/api';
 import { PROTECTED_USER_FIELDS } from '../shared/userSecurity';

@@ -3,7 +3,7 @@ import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from './AuthProvider';
-import config from './firebase.config.json';
+import config from './firebaseConfig';
 import { couleurs, stylesDyn } from './theme';
 
 WebBrowser.maybeCompleteAuthSession();
