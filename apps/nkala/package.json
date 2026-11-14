@@ -65,5 +65,16 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.7",
+    "postcss": "^8.5.33",
+    "node-forge": "^1.4.3",
+    "decode-uri-component": "file:../../packages/decode-uri-component",
+    "minimatch@^9": "^11.0.8",
+    "minimatch@^10": "^11.0.8",
+    "glob@^13": "^14.0.6",
+    "glob@^10": "^14.0.6",
+    "image-size": "file:../../packages/image-size-compat"
   }
 }

@@ -1,0 +1,8 @@
+{
+  "name": "decode-uri-component",
+  "version": "0.5.1",
+  "description": "Copie CommonJS de decode-uri-component 0.5.1 (correctifs de sécurité) pour query-string 7.",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true
+}

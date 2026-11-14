@@ -1,0 +1,8 @@
+{
+  "name": "image-size",
+  "version": "2.1.0",
+  "description": "Façade à l'API 1.x d'image-size au-dessus d'image-size 2.1.0 (correctifs de sécurité), pour Metro 0.83. Code d'image-size 2.1.0 (MIT) copié tel quel dans vendor/.",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true
+}
