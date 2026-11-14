@@ -6,7 +6,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Modal, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { demanderKakIgonjo, fonctionActive, minutesDeLecture, quizLecture, type Ligne, type NiveauAcces, type QuestionLecture, type QuestionnaireItem } from '@nkala/noyau';
+import { demanderKakIgonjo, ficheLivre, fonctionActive, listerLivres, quizLecture, rayonsBibliotheque, texteChapitre, type ChapitreListe, type ChapitreTexte, type Ligne, type LivreListe, type NiveauAcces, type QuestionLecture, type QuestionnaireItem } from '@nkala/noyau';
+import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { KakIgonjoFeuille } from './KakIgonjoCours';
 import { Son } from './OnenjiLecon';
@@ -52,32 +53,38 @@ function useLecture() {
   return { r, regler };
 }
 
-type Livre = Ligne & { titre: string };
-type Chap = Ligne & { titre: string; texte: string; livre_id: string };
+type Livre = LivreListe & Record<string, unknown>;
+type Chap = ChapitreListe;
+/** Minutes de lecture d'après le nombre de mots (≈ 200 mots par minute). */
+const minutesMots = (mots: number) => Math.max(1, Math.round(mots / 200));
+/** Rayons des textes officiels (import du 12 nov. 2026) : rangés après la littérature sur l'étagère. */
+const RAYONS_OFFICIELS = /^(decrets?|arretes?|decisions|sommaires|ordonnances|lois|autres actes|textes officiels|jo\b)/i;
+const sansAccent = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-/** `entete` : en-tête fourni par l'onglet Ezango d'Apprendre (titre, recherche, onglets) ; sans lui, l'étagère garde son propre en-tête. */
+/**
+ * Bibliothèque servie par morceaux (14 nov. 2026) : la liste des livres arrive par pages et par rayon, la fiche avec ses chapitres
+ * sans texte, et le texte d'un chapitre seulement quand on l'ouvre (gardé sur l'appareil pour la relecture hors ligne).
+ * `entete` : en-tête fourni par l'onglet Ezango d'Apprendre (titre, recherche, onglets) ; sans lui, l'étagère garde son propre en-tête.
+ */
 export function Bibliotheque({ retour, entete }: { retour: () => void; entete?: React.ReactNode }) {
   const pile = usePile<E>({ t: 'etagere' });
-  const { res, chargement } = useContenus(['bibliotheque', 'livre_chapitres', 'opportunites']);
-  const { prefs } = usePrefs();
+  const { res } = useContenus(['opportunites']);
   const { r, regler } = useLecture();
-  const D = useMemo(() => {
-    const chap = [...(res.livre_chapitres ?? [])].sort((a, b) => num(a.ordre) - num(b.ordre)) as unknown as Chap[];
-    const parLivre = new Map<string, Chap[]>();
-    for (const c of chap) parLivre.set(c.livre_id, [...(parLivre.get(c.livre_id) ?? []), c]);
-    const tous = [...(res.bibliotheque ?? [])].sort((a, b) => num(a.ordre) - num(b.ordre)) as unknown as Livre[];
-    const adapte = (l: Livre) => prefs.mode !== 'enfant' || !num(l.cycle) || num(l.cycle) <= 2;
-    return { livres: tous.filter(l => parLivre.has(l.id) && adapte(l)), documents: tous.filter(l => !parLivre.has(l.id) && l.url), parLivre, opp: res.opportunites ?? [] };
-  }, [res, prefs.mode]);
   const e = pile.ecran;
-  if (chargement) return <Ecran><Chargement /></Ecran>;
   switch (e.t) {
-    case 'livre': { const l = D.livres.find(x => x.id === e.id); return l ? <FicheLivre l={l} chap={D.parLivre.get(l.id) ?? []} pile={pile} r={r} /> : <Ecran><Entete titre="Livre" retour={pile.retour} /><EtatVide icone="livre" titre="Livre introuvable" /></Ecran>; }
-    case 'lire': { const l = D.livres.find(x => x.id === e.livreId); return l ? <Lecteur l={l} chap={D.parLivre.get(l.id) ?? []} idx={e.idx} pile={pile} r={r} regler={regler} /> : null; }
+    case 'livre': return <FicheLivre id={e.id} pile={pile} r={r} />;
+    case 'lire': return <LecteurCharge livreId={e.livreId} idx={e.idx} pile={pile} r={r} regler={regler} />;
     case 'mots': return <MesMots r={r} regler={regler} retour={pile.retour} />;
     case 'dico': return <Dictionnaire r={r} regler={regler} retour={pile.retour} />;
-    default: return <Etagere D={D} pile={pile} r={r} retour={retour} entete={entete} />;
+    default: return <Etagere opp={res.opportunites ?? []} pile={pile} r={r} retour={retour} entete={entete} />;
   }
+}
+
+/** Fiche d'un livre (livre + chapitres sans texte), partagée par la fiche et le lecteur. */
+function useFiche(id: string) {
+  const [f, setF] = useState<{ livre: Livre; chapitres: Chap[] } | null | 'erreur'>(null);
+  useEffect(() => { let ok = true; setF(null); ficheLivre(id).then(x => { if (ok) setF(x as { livre: Livre; chapitres: Chap[] }); }).catch(() => { if (ok) setF('erreur'); }); return () => { ok = false; }; }, [id]);
+  return f;
 }
 
 // ------------------------------------------------------------------ couverture
@@ -101,17 +108,72 @@ function progressionLivre(l: Livre, chap: Chap[], donnees: Record<string, { bonn
 }
 
 // ------------------------------------------------------------------ étagère
-function Etagere({ D, pile, r, retour, entete }: { D: { livres: Livre[]; documents: Livre[]; parLivre: Map<string, Chap[]>; opp: Ligne[] }; pile: ReturnType<typeof usePile<E>>; r: Reglages; retour: () => void; entete?: React.ReactNode }) {
+type Pile = ReturnType<typeof usePile<E>>;
+const ouvrirLivre = (l: Livre, pile: Pile) => { if (!Number(l.nb_chapitres) && l.url) Linking.openURL(String(l.url)).catch(() => {}); else pile.pousser({ t: 'livre', id: l.id }); };
+
+function Rayon({ nom, livres, pile, lectures, onTout }: { nom: string; livres: Livre[]; pile: Pile; lectures: Record<string, { bonnes: number; sur: number }> | undefined; onTout?: () => void }) {
   const { c } = useTheme();
+  if (!livres.length) return null;
+  return (
+    <View style={{ gap: 10 }}>
+      <SectionTitre titre={nom.charAt(0).toUpperCase() + nom.slice(1)} action={onTout ? 'Tout voir' : undefined} onAction={onTout} />
+      <View style={{ borderBottomWidth: 6, borderBottomColor: c.bord, borderRadius: 3, paddingBottom: 10 }}>
+        <Rangee espace={14}>{livres.map(l => <Volume key={l.id} l={l} pile={pile} lectures={lectures} />)}</Rangee>
+      </View>
+    </View>
+  );
+}
+function Volume({ l, pile, lectures }: { l: Livre; pile: Pile; lectures: Record<string, { bonnes: number; sur: number }> | undefined }) {
+  const lus = Object.keys(lectures ?? {}).filter(k => k.startsWith(l.id + '-')).length, total = Number(l.nb_chapitres) || 0;
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`${l.titre}, ${l.auteur ?? ''}`} onPress={() => ouvrirLivre(l, pile)} style={{ width: 112, gap: 6 }}>
+      <Couverture l={l} />{lus > 0 && total > 0 && <Barre valeur={Math.min(1, lus / total)} hauteur={5} />}
+      <T v="petit" numberOfLines={2} style={{ textAlign: 'center' }}>{lus >= total && total > 0 ? '★ ' : ''}{l.titre}</T>
+    </Pressable>
+  );
+}
+
+function Etagere({ opp, pile, r, retour, entete }: { opp: Ligne[]; pile: Pile; r: Reglages; retour: () => void; entete?: React.ReactNode }) {
+  const { c } = useTheme();
+  const { prefs } = usePrefs();
   const { donnees } = useProgres();
+  const cycleMax = prefs.mode === 'enfant' ? 2 : undefined;
   const [q, setQ] = useState(''); const [rayon, setRayon] = useState('');
+  const [rayons, setRayons] = useState<{ total: number; chapitres: number; rayons: { rayon: string; n: number }[] } | null>(null);
+  const [etageres, setEtageres] = useState<Record<string, Livre[]>>({});
+  const [liste, setListe] = useState<{ livres: Livre[]; total: number; page: number } | null>(null);
+  const [charge, setCharge] = useState(false);
+  const [erreur, setErreur] = useState(false);
+  const [encours, setEncours] = useState<Livre | null>(null);
   const lectures = donnees.lectures;
   const lus = Object.keys(lectures ?? {}).length;
-  const rayons = [...new Set(D.livres.map(l => (l.categorie as string) || 'livres'))];
-  const visibles = D.livres.filter(l => (!rayon || ((l.categorie as string) || 'livres') === rayon) && (!q.trim() || `${l.titre} ${l.auteur ?? ''}`.toLowerCase().includes(q.trim().toLowerCase())));
-  const encours = r.dernier ? D.livres.find(l => l.id === r.dernier) : undefined;
-  const pe = encours ? progressionLivre(encours, D.parLivre.get(encours.id) ?? [], lectures) : null;
-  const objectif = (() => { const auj = new Date().toISOString().slice(0, 10); return Object.values(lectures ?? {}).some(x => x.jour === auj); })();
+  const ordonnes = useMemo(() => [...(rayons?.rayons ?? [])].sort((a, b) => Number(RAYONS_OFFICIELS.test(sansAccent(a.rayon))) - Number(RAYONS_OFFICIELS.test(sansAccent(b.rayon))) || b.n - a.n), [rayons]);
+  useEffect(() => { rayonsBibliotheque().then(setRayons).catch(() => setErreur(true)); }, []);
+  // Étagères par défaut : les six premiers rayons (littérature d'abord), 12 livres chacun.
+  useEffect(() => {
+    let ok = true;
+    for (const x of ordonnes.slice(0, 6)) listerLivres({ rayon: x.rayon, n: 12, cycleMax }).then(rp => { if (ok) setEtageres(a => ({ ...a, [x.rayon]: rp.livres as Livre[] })); }).catch(() => {});
+    return () => { ok = false; };
+  }, [ordonnes, cycleMax]);
+  // Recherche ou rayon choisi : liste paginée, demandée au serveur.
+  const filtre = rayon || q.trim().length >= 2;
+  useEffect(() => {
+    if (!filtre) { setListe(null); return; }
+    let ok = true; setCharge(true);
+    const h = setTimeout(() => listerLivres({ q: q.trim() || undefined, rayon: rayon || undefined, cycleMax, n: 30, page: 0 })
+      .then(rp => { if (ok) setListe({ livres: rp.livres as Livre[], total: rp.total, page: 0 }); }).catch(() => { if (ok) setErreur(true); }).finally(() => { if (ok) setCharge(false); }), 300);
+    return () => { ok = false; clearTimeout(h); };
+  }, [q, rayon, cycleMax, filtre]);
+  useEffect(() => { if (r.dernier) listerLivres({ ids: [r.dernier] }).then(rp => setEncours((rp.livres[0] as Livre) ?? null)).catch(() => {}); }, [r.dernier]);
+  const plus = async () => {
+    if (!liste) return;
+    setCharge(true);
+    try { const rp = await listerLivres({ q: q.trim() || undefined, rayon: rayon || undefined, cycleMax, n: 30, page: liste.page + 1 }); setListe({ livres: [...liste.livres, ...(rp.livres as Livre[])], total: rp.total, page: liste.page + 1 }); }
+    catch { setErreur(true); } finally { setCharge(false); }
+  };
+  const objectif = (() => { const auj = new Date().toISOString().slice(0, 10); return Object.values(lectures ?? {}).some(x => (x as { jour?: string }).jour === auj); })();
+  const totalEnCours = Number(encours?.nb_chapitres) || 0;
+  const lusEnCours = encours ? Object.keys(lectures ?? {}).filter(k => k.startsWith(encours.id + '-')).length : 0;
   return (
     <Ecran bas={40}>
       {entete ?? <Entete titre="Bibliothèque" sous="Lis, touche les mots, gagne de l'XP" retour={retour} droite={<Pastille label={`${lus} chapitre${lus > 1 ? 's' : ''} lu${lus > 1 ? 's' : ''}`} couleur={c.accent} fond={c.carte} />} />}
@@ -123,44 +185,47 @@ function Etagere({ D, pile, r, retour, entete }: { D: { livres: Livre[]; documen
         <View style={{ flex: 1 }}><T v="carte">{objectif ? 'Défi du jour réussi' : 'Défi du jour : lis un chapitre'}</T><T v="petit">{objectif ? 'Ta série continue. Reviens demain !' : 'Un chapitre terminé aujourd\'hui entretient ta série et rapporte de l\'XP.'}</T></View>
         {objectif && <Ic nom="ok" taille={26} couleur={c.succes} />}
       </View></Carte>
-      {encours && pe && <Carte onPress={() => pile.pousser({ t: 'lire', livreId: encours.id, idx: r.position[encours.id] ?? pe.prochain })} accent={encours.couleur as string} label={`Reprendre ${encours.titre}`}>
+      {encours && <Carte onPress={() => pile.pousser({ t: 'lire', livreId: encours.id, idx: r.position[encours.id] ?? 0 })} accent={encours.couleur as string} label={`Reprendre ${encours.titre}`}>
         <View style={{ flexDirection: 'row', gap: 14, padding: 14, alignItems: 'center' }}>
           <Couverture l={encours} w={58} h={82} />
-          <View style={{ flex: 1, gap: 6 }}><T v="libelle">Reprendre ma lecture</T><T v="carte" numberOfLines={2}>{encours.titre}</T><Barre valeur={pe.part} /><T v="petit">{pe.faits} / {pe.total} chapitres</T></View>
+          <View style={{ flex: 1, gap: 6 }}><T v="libelle">Reprendre ma lecture</T><T v="carte" numberOfLines={2}>{encours.titre}</T>{totalEnCours > 0 && <><Barre valeur={Math.min(1, lusEnCours / totalEnCours)} /><T v="petit">{lusEnCours} / {totalEnCours} chapitres</T></>}</View>
           <Ic nom="suivant" taille={18} couleur={c.discret} />
         </View>
       </Carte>}
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Carte onPress={() => pile.pousser({ t: 'mots' })} plat style={{ flex: 1 }} label="Mes mots"><View style={{ padding: 14, gap: 4 }}><Ic nom="livre" taille={22} couleur={c.accent} /><T v="carte">Mes mots</T><T v="petit">{r.mots.length} collectés</T></View></Carte>
-        <Carte plat style={{ flex: 1 }}><View style={{ padding: 14, gap: 4 }}><Ic nom="etoile" taille={22} couleur={c.accent} /><T v="carte">{D.livres.length} livre{D.livres.length > 1 ? 's' : ''}</T><T v="petit">{D.livres.reduce((n, l) => n + (D.parLivre.get(l.id)?.length ?? 0), 0)} chapitres</T></View></Carte>
+        <Carte plat style={{ flex: 1 }}><View style={{ padding: 14, gap: 4 }}><Ic nom="etoile" taille={22} couleur={c.accent} /><T v="carte">{(rayons?.total ?? 0).toLocaleString('fr-FR')} livre{(rayons?.total ?? 0) > 1 ? 's' : ''}</T><T v="petit">{(rayons?.chapitres ?? 0).toLocaleString('fr-FR')} chapitres</T></View></Carte>
       </View>
-      {D.livres.length > 3 && <Champ valeur={q} onChange={setQ} placeholder="Chercher un titre ou un auteur" icone="chercher" auto="none" />}
-      {rayons.length > 1 && <Rangee><Puce label="Tous" actif={!rayon} onPress={() => setRayon('')} />{rayons.map(x => <Puce key={x} label={x} actif={rayon === x} onPress={() => setRayon(x)} />)}</Rangee>}
-      {D.livres.length === 0 ? <EtatVide mascotte titre="Les rayons se remplissent" texte="Les livres libres de droits arrivent bientôt." /> : visibles.length === 0 ? <EtatVide icone="chercher" titre="Rien trouvé" texte="Essaie un autre mot." /> :
-        (rayon || q.trim() ? [[rayon || 'Résultats', visibles] as const] : rayons.map(x => [x, visibles.filter(l => ((l.categorie as string) || 'livres') === x)] as const)).map(([nom, liste]) => liste.length > 0 && (
-          <View key={nom} style={{ gap: 10 }}>
-            <SectionTitre titre={nom.charAt(0).toUpperCase() + nom.slice(1)} />
-            <View style={{ borderBottomWidth: 6, borderBottomColor: c.bord, borderRadius: 3, paddingBottom: 10 }}>
-              <Rangee espace={14}>{liste.map(l => { const p = progressionLivre(l, D.parLivre.get(l.id) ?? [], lectures); return (
-                <Pressable key={l.id} accessibilityRole="button" accessibilityLabel={`${l.titre}, ${(l.auteur as string) ?? ''}`} onPress={() => pile.pousser({ t: 'livre', id: l.id })} style={{ width: 112, gap: 6 }}>
-                  <Couverture l={l} />{p.faits > 0 && <Barre valeur={p.part} hauteur={5} />}
-                  <T v="petit" numberOfLines={2} style={{ textAlign: 'center' }}>{p.faits === p.total && p.total > 0 ? '★ ' : ''}{l.titre}</T>
-                </Pressable>); })}</Rangee>
-            </View>
-          </View>))}
-      {D.documents.length > 0 && <><SectionTitre titre="Documents à ouvrir" />{D.documents.map(b => <Carte key={b.id} plat onPress={() => b.url && Linking.openURL(b.url as string).catch(() => {})} label={b.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{b.titre}</T><T v="petit">{[b.auteur, b.type, b.langue].filter(Boolean).join(' · ')}</T></View></Carte>)}</>}
-      {D.opp.length > 0 && <><SectionTitre titre="Opportunités pour la jeunesse" />{D.opp.map(o => <Carte key={o.id} plat onPress={() => o.lien && Linking.openURL(o.lien as string).catch(() => {})} label={o.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{o.titre}</T><T v="petit">{[o.organisme, o.date_limite].filter(Boolean).join(' · ')}</T></View></Carte>)}</>}
+      <Champ valeur={q} onChange={setQ} placeholder="Chercher un titre ou un auteur" icone="chercher" auto="none" />
+      {ordonnes.length > 1 && <Rangee><Puce label="Tous" actif={!rayon} onPress={() => setRayon('')} />{ordonnes.map(x => <Puce key={x.rayon} label={`${x.rayon} · ${x.n}`} actif={rayon === x.rayon} onPress={() => setRayon(rayon === x.rayon ? '' : x.rayon)} />)}</Rangee>}
+      {erreur && !rayons ? <EtatVide icone="reseau" titre="Bibliothèque injoignable" texte="Vérifie ta connexion, puis reviens. Les chapitres déjà ouverts restent lisibles." />
+        : !rayons ? <Chargement />
+        : rayons.total === 0 ? <EtatVide mascotte titre="Les rayons se remplissent" texte="Les livres libres de droits arrivent bientôt." />
+        : filtre ? (
+          !liste ? <Chargement /> : liste.livres.length === 0 ? <EtatVide icone="chercher" titre="Rien trouvé" texte="Essaie un autre mot ou un autre rayon." /> : <>
+            <T v="petit">{liste.total.toLocaleString('fr-FR')} livre{liste.total > 1 ? 's' : ''}</T>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, justifyContent: 'center' }}>{liste.livres.map(l => <Volume key={l.id} l={l} pile={pile} lectures={lectures} />)}</View>
+            {liste.livres.length < liste.total && <Bouton label="Afficher plus" variante="fantome" charge={charge} onPress={plus} />}
+          </>)
+        : ordonnes.slice(0, 6).map(x => <Rayon key={x.rayon} nom={x.rayon} livres={etageres[x.rayon] ?? []} pile={pile} lectures={lectures} onTout={() => setRayon(x.rayon)} />)}
+      {opp.length > 0 && <><SectionTitre titre="Opportunités pour la jeunesse" />{opp.map(o => <Carte key={o.id} plat onPress={() => o.lien && Linking.openURL(o.lien as string).catch(() => {})} label={o.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{o.titre}</T><T v="petit">{[o.organisme, o.date_limite].filter(Boolean).join(' · ')}</T></View></Carte>)}</>}
     </Ecran>
   );
 }
 
 // ------------------------------------------------------------------ fiche d'un livre
-function FicheLivre({ l, chap, pile, r }: { l: Livre; chap: Chap[]; pile: ReturnType<typeof usePile<E>>; r: Reglages }) {
+function FicheLivre({ id, pile, r }: { id: string; pile: Pile; r: Reglages }) {
+  const f = useFiche(id);
+  if (f === null) return <Ecran><Entete titre="Livre" retour={pile.retour} /><Chargement /></Ecran>;
+  if (f === 'erreur') return <Ecran><Entete titre="Livre" retour={pile.retour} /><EtatVide icone="livre" titre="Livre introuvable" texte="Il a peut-être été retiré, ou la connexion manque." /></Ecran>;
+  return <FicheLivreVue l={f.livre} chap={f.chapitres} pile={pile} r={r} />;
+}
+function FicheLivreVue({ l, chap, pile, r }: { l: Livre; chap: Chap[]; pile: Pile; r: Reglages }) {
   const { c } = useTheme();
   const { donnees } = useProgres();
   const p = progressionLivre(l, chap, donnees.lectures);
   const reprise = r.position[l.id] ?? p.prochain;
-  const minutes = num(l.minutes) || Math.round(chap.reduce((n, x) => n + minutesDeLecture(x.texte), 0));
+  const minutes = num(l.minutes) || chap.reduce((n, x) => n + minutesMots(x.mots), 0);
   return (
     <Ecran bas={40}>
       <Entete titre={l.titre} retour={pile.retour} />
@@ -180,7 +245,7 @@ function FicheLivre({ l, chap, pile, r }: { l: Livre; chap: Chap[]; pile: Return
           <Carte key={x.id} plat onPress={() => pile.pousser({ t: 'lire', livreId: l.id, idx: i })} label={x.titre}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 }}>
               <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: res ? c.succes : c.fond2, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: c.bord }}>{res ? <Ic nom="ok" taille={18} couleur="#FFF" /> : <T v="petit">{i + 1}</T>}</View>
-              <View style={{ flex: 1 }}><T v="carte" numberOfLines={2}>{x.titre}</T><T v="petit">{minutesDeLecture(x.texte)} min{res && res.sur > 0 ? ` · quiz ${res.bonnes}/${res.sur}` : ''}</T></View>
+              <View style={{ flex: 1 }}><T v="carte" numberOfLines={2}>{x.titre}</T><T v="petit">{minutesMots(x.mots)} min{res && res.sur > 0 ? ` · quiz ${res.bonnes}/${res.sur}` : ''}</T></View>
               {res && res.sur > 0 && <Text style={{ color: c.accent, fontSize: 14 }}>{'★'.repeat(Math.max(1, Math.round((res.bonnes / res.sur) * 3)))}</Text>}
             </View>
           </Carte>); })}
@@ -193,11 +258,33 @@ function FicheLivre({ l, chap, pile, r }: { l: Livre; chap: Chap[]; pile: Return
 type Selection = { mot: string; phrase: string; sens?: string };
 const nettoie = (m: string) => m.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '');
 
-function Lecteur({ l, chap, idx, pile, r, regler }: { l: Livre; chap: Chap[]; idx: number; pile: ReturnType<typeof usePile<E>>; r: Reglages; regler: (p: Partial<Reglages> | ((a: Reglages) => Partial<Reglages>)) => void }) {
+type Regler = (p: Partial<Reglages> | ((a: Reglages) => Partial<Reglages>)) => void;
+/** Charge la fiche puis le texte du chapitre demandé (copie locale pour la relecture hors ligne). */
+function LecteurCharge({ livreId, idx, pile, r, regler }: { livreId: string; idx: number; pile: Pile; r: Reglages; regler: Regler }) {
+  const f = useFiche(livreId);
+  const { profil } = useAuth();
+  const [texte, setTexte] = useState<ChapitreTexte | null>(null);
+  const [refus, setRefus] = useState<string | null>(null);
+  const chap = f && f !== 'erreur' ? f.chapitres : [];
+  const i = Math.min(Math.max(idx, 0), Math.max(0, chap.length - 1));
+  const cid = chap[i]?.id;
+  useEffect(() => {
+    if (!cid) return;
+    let ok = true; setTexte(null); setRefus(null);
+    texteChapitre(livreId, cid, !!profil).then(x => { if (ok) setTexte(x.chapitre); })
+      .catch(e => { if (ok) setRefus((e as { status?: number }).status === 401 ? 'Connecte-toi pour lire ce livre.' : (e as { status?: number }).status === 402 ? (e as Error).message : 'Ce chapitre ne se charge pas. Vérifie ta connexion.'); });
+    return () => { ok = false; };
+  }, [livreId, cid, profil?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (f === 'erreur') return <Ecran><Entete titre="Livre" retour={pile.retour} /><EtatVide icone="livre" titre="Livre introuvable" /></Ecran>;
+  if (refus) return <Ecran><Entete titre={f?.livre.titre ?? 'Livre'} retour={pile.retour} /><EtatVide icone="verrou" titre="Lecture impossible" texte={refus} /></Ecran>;
+  if (!f || !texte) return <Ecran><Entete titre={f ? f.livre.titre : 'Livre'} retour={pile.retour} /><Chargement lignes={6} /></Ecran>;
+  return <Lecteur l={f.livre} chap={chap} ch={texte} idx={i} pile={pile} r={r} regler={regler} />;
+}
+
+function Lecteur({ l, chap, ch, idx, pile, r, regler }: { l: Livre; chap: Chap[]; ch: ChapitreTexte; idx: number; pile: Pile; r: Reglages; regler: Regler }) {
   const { c } = useTheme();
   const toast = useToast();
   const { lireChapitre, donnees } = useProgres();
-  const ch = chap[Math.min(Math.max(idx, 0), chap.length - 1)];
   const [phase, setPhase] = useState<'texte' | 'quiz' | 'fin'>('texte');
   const [sel, setSel] = useState<Selection | null>(null);
   const [explication, setExplication] = useState<string | null>(null);

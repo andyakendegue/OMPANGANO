@@ -20,7 +20,7 @@ const vecteurs = vecteursParDefaut();
 
 // ------------------------------------------------------------------ réglages
 export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number }
-export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 4, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120 };
+export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120 };
 export const configIa = async (q: Queryable): Promise<ConfigIa> => ({ ...CONFIG_IA_DEFAUT, ...(await parametre<Partial<ConfigIa>>(q, 'ia_config', {})) });
 
 // ------------------------------------------------------------------ fournisseur de modèle
@@ -37,10 +37,27 @@ function compatibleOpenAi(nom: string, base: string, cle: string, modeleDefaut: 
       const r = await fetch(`${base}/chat/completions`, { method: 'POST', headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: o.modele || modeleDefaut, temperature: o.temperature ?? 0.3, max_tokens: o.maxTokens ?? 700, messages: [{ role: 'system', content: o.systeme }, ...o.messages] }) });
       if (!r.ok) throw new Error(`${nom} ${r.status}`);
-      const j: any = await r.json();
-      return { texte: j.choices?.[0]?.message?.content ?? '', usage: { entree: j.usage?.prompt_tokens ?? 0, sortie: j.usage?.completion_tokens ?? 0 }, modele: j.model ?? o.modele, simule: false };
+      const j = lireReponseOpenAi(await r.json());
+      const texte = j.choices?.[0]?.message?.content ?? '';
+      // Réponse vide (forme inconnue, coupure du modèle) : erreur claire plutôt qu'une bulle vide enregistrée.
+      if (!String(texte).trim()) throw new Error(`${nom} : réponse vide (${j.choices?.[0]?.finish_reason ?? 'forme inconnue'})`);
+      return { texte, usage: { entree: j.usage?.prompt_tokens ?? 0, sortie: j.usage?.completion_tokens ?? 0 }, modele: j.model ?? o.modele, simule: false };
     },
   };
+}
+
+/**
+ * Corps d'une réponse « chat/completions ». Le relais RunPod (vLLM en file serverless) l'enveloppe parfois : `[ {…} ]`,
+ * `{ output: [ {…} ] }` ou `{ output: {…} }` (14 nov. 2026 : toutes les réponses de Kak'Igonjo étaient vides pour cette raison).
+ */
+export function lireReponseOpenAi(brut: unknown): any {
+  let j: any = brut;
+  for (let i = 0; i < 3; i++) {
+    if (Array.isArray(j)) j = j[0];
+    else if (j && typeof j === 'object' && !('choices' in j) && 'output' in j) j = (j as any).output;
+    else break;
+  }
+  return j ?? {};
 }
 
 export function fournisseurIaParDefaut(env = process.env): FournisseurIa {
@@ -159,20 +176,66 @@ async function vecteurQuestion(embed: FournisseurEmbedding, requete: string, del
   try { return (await Promise.race([embed.embed([requete]), delai]))[0]; } finally { clearTimeout(minuteur); }
 }
 
-export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000) {
+// ------------------------------------------------------------------ recherche hybride (14 nov. 2026)
+/** Même expression que l'index de la migration 019 : minuscules, accents retirés (lettres myènè ɛ ɔ ŋ comprises). */
+const ACCENTS = ['àâäáãåçéèêëíìîïñóòôöõúùûüýÿœæɛɔŋ', 'aaaaaaceeeeiiiinooooouuuuyyoaeon'] as const;
+const TEXTE_RECHERCHE = `to_tsvector('simple'::regconfig, translate(lower(c.texte), '${ACCENTS[0]}', '${ACCENTS[1]}'))`;
+export const sansAccents = (t: string) => [...t.toLowerCase()].map(ch => { const k = ACCENTS[0].indexOf(ch); return k >= 0 ? ACCENTS[1][k] : ch; }).join('');
+/** Mots sans valeur de recherche (français courant et tournures de demande à l'assistant). */
+const MOTS_VIDES = new Set(('le la les un une des de du d l au aux et ou en dans sur sous par pour avec sans ce cet cette ces qui que quoi dont ou est sont '
+  + 'je tu il elle on nous vous ils elles me te se moi toi lui leur mon ma mes ton ta tes son sa ses notre votre nos vos ne pas plus tres '
+  + 'donne donner dis dire peux pourrais veux voudrais connais connait comment quel quelle quels quelles parle parlent parler '
+  + 'myene myènè omyene omyènè langue mot mots exemple stp svp bonjour merci').split(' ').map(sansAccents));
+/** Quelques équivalences de thèmes, dans les deux sens : élargissent la recherche par mots-clés (les vecteurs, eux, font le reste). */
+const SYNONYMES: Record<string, string[]> = {
+  riviere: ['fleuve', 'cours', 'eau', 'rivieres'], fleuve: ['riviere', 'cours', 'eau'], lagune: ['eau', 'mer'], mer: ['ocean', 'lagune'],
+  proverbe: ['proverbes', 'dicton', 'dictons', 'adage'], proverbes: ['proverbe', 'dicton'], conte: ['contes', 'recit', 'legende'], chant: ['chants', 'chanson'],
+  enfant: ['enfants', 'fils', 'fille'], mere: ['maman', 'meres'], pere: ['papa', 'peres'], pirogue: ['pirogues', 'barque'], poisson: ['poissons', 'peche'],
+};
+export function motsCles(requete: string): string[] {
+  const base = sansAccents(requete).split(/[^a-z0-9'’-]+/).map(m => m.replace(/^[dlj][’']/, '').replace(/['’-]/g, '')).filter(m => m.length >= 3 && !MOTS_VIDES.has(m));
+  return [...new Set(base.flatMap(m => [m, ...(SYNONYMES[m] ?? [])]))].slice(0, 24);
+}
+/** Le titre du document répond-il à la question ? (ex. « proverbe » et un recueil de proverbes) */
+const titreCorrespond = (titre: string, mots: string[]) => { const t = sansAccents(titre ?? ''); return mots.filter(m => m.length >= 4 && t.includes(m.slice(0, Math.max(4, m.length - 1)))).length; };
+
+export interface ResultatRag { id: number; document: string; titre: string; source: string | null; texte: string; score: number; vecteur?: number; motsCles?: number }
+
+/**
+ * Recherche dans le corpus : vecteurs (sens) + mots-clés (plein texte), fusionnés par rang réciproque, avec un bonus quand le titre
+ * du document répond à la question. Le seuil s'applique au score des vecteurs ; un morceau trouvé par ses mots-clés est gardé même sous le seuil.
+ */
+export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000): Promise<ResultatRag[]> {
   // Rien d'indexé : inutile d'appeler le service d'embeddings.
   if (!(await q.query<any>(`SELECT 1 FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif LIMIT 1`)).length) return [];
-  if (vecteurs.actif) {
+  const N = Math.max(30, k * 6);
+  const mots = motsCles(requete);
+  // 1) mots-clés (n'attend pas le service d'embeddings)
+  const lexical: { id: number; rang: number }[] = mots.length ? (await q.query<any>(
+    `SELECT c.id, ts_rank_cd(${TEXTE_RECHERCHE}, to_tsquery('simple'::regconfig, $1)) AS r FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif
+     WHERE ${TEXTE_RECHERCHE} @@ to_tsquery('simple'::regconfig, $1) ORDER BY r DESC LIMIT $2`, [mots.join(' | '), N])).map(x => ({ id: Number(x.id), rang: Number(x.r) })) : [];
+  // 2) vecteurs (une panne ou un délai du service d'embeddings laisse les mots-clés seuls)
+  let vect: { id: number; score: number }[] = [];
+  try {
     const qv = await vecteurQuestion(embed, requete, delaiMs);
-    const trouves = (await vecteurs.chercher(qv, k)).filter(x => x.score >= seuil);
-    if (!trouves.length) return [];
-    const rows = await q.query<any>(`SELECT c.id, c.texte, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif WHERE c.id = ANY($1::bigint[])`, [trouves.map(x => x.id)]);
-    return trouves.map(t => { const r = rows.find(x => Number(x.id) === t.id); return r && { id: t.id, document: r.document_id, titre: r.titre, source: r.source, texte: r.texte, score: t.score }; }).filter(Boolean).slice(0, k) as any[];
-  }
-  const rows = await q.query<any>(`SELECT c.id, c.texte, c.embedding, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif`);
-  if (!rows.length) return [];
-  const v = await vecteurQuestion(embed, requete, delaiMs);
-  return rows.map(r => ({ id: r.id, document: r.document_id, titre: r.titre, source: r.source, texte: r.texte, score: cosinus(v, r.embedding) })).filter(x => x.score >= seuil).sort((a, b) => b.score - a.score).slice(0, k);
+    if (vecteurs.actif) vect = (await vecteurs.chercher(qv, Math.ceil(N / 3))).slice(0, N);
+    else vect = (await q.query<any>(`SELECT c.id, c.embedding FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif`)).map(r => ({ id: Number(r.id), score: cosinus(qv, r.embedding) })).sort((a, b) => b.score - a.score).slice(0, N);
+  } catch (e) { if (!lexical.length) throw e; }
+  // 3) fusion par rang réciproque (RRF, constante 60)
+  const fusion = new Map<number, { s: number; vecteur?: number; motsCles?: number }>();
+  vect.forEach((x, i) => { const f = fusion.get(x.id) ?? { s: 0 }; f.s += 1 / (60 + i); f.vecteur = x.score; fusion.set(x.id, f); });
+  lexical.forEach((x, i) => { const f = fusion.get(x.id) ?? { s: 0 }; f.s += 1 / (60 + i); f.motsCles = x.rang; fusion.set(x.id, f); });
+  const ids = [...fusion.keys()];
+  if (!ids.length) return [];
+  const rows = await q.query<any>(`SELECT c.id, c.texte, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif WHERE c.id = ANY($1::bigint[])`, [ids]);
+  return rows
+    .map(r => {
+      const f = fusion.get(Number(r.id))!;
+      return { id: Number(r.id), document: r.document_id, titre: r.titre, source: r.source, texte: r.texte, vecteur: f.vecteur, motsCles: f.motsCles, score: f.s + titreCorrespond(r.titre, mots) * (1 / 60) };
+    })
+    .filter(x => (x.vecteur ?? 0) >= seuil || x.motsCles !== undefined)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, k);
 }
 
 // ------------------------------------------------------------------ prompt système
@@ -215,7 +278,8 @@ FORME DES RÉPONSES
 export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : tu es un grand-père très doux. Phrases très courtes, mots simples, beaucoup d'encouragements, aucun sujet inquiétant, aucune question personnelle ; ramène la conversation vers la langue et les jeux.`;
 
 /** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG. */
-export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; prenom?: string | null; fiche?: string; actions?: string }) {
+/** `delaiRagMs` : attente maximale de l'embedding de la question (8 s par défaut ; 2 min en réponse différée, le temps qu'un worker serverless se réveille). */
+export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; prenom?: string | null; fiche?: string; actions?: string; delaiRagMs?: number }) {
   const cfg = await configIa(q);
   const actif = (await q.query<any>(`SELECT contenu FROM ia_prompts WHERE actif`))[0]?.contenu ?? PROMPT_DEFAUT;
   let systeme = actif.replace(/\{\{\s*lexique\s*\}\}/g, LEXIQUE());
@@ -227,7 +291,7 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   if (o.actions) systeme += o.actions;
   let contexte: Awaited<ReturnType<typeof rechercherRag>> = [];
   if (cfg.ragActif) {
-    try { contexte = await rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil); } catch { /* le RAG ne bloque jamais la réponse */ }
+    try { contexte = await rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, o.delaiRagMs ?? 8000); } catch { /* le RAG ne bloque jamais la réponse */ }
     if (contexte.length) systeme += `\n\n### Contexte (documents de référence ; cite-les si utile, ne dis rien qui n'y figure pas sur le myènè)\n` + contexte.map((c, i) => `[${i + 1}] ${c.titre}${c.source ? ` (${c.source})` : ''} : ${c.texte}`).join('\n');
   }
   return { systeme, contexte, cfg };
@@ -242,7 +306,9 @@ export function registerIaAdmin(ctx: Ctx) {
   app.get('/v1/admin/ia/etat', async (req) => {
     await admin(req);
     return { fournisseur: ctx.ia.nom, baseVectorielle: vecteurs.actif ? 'qdrant' : 'postgresql', embedding: { nom: embed.nom, modele: embed.modele }, runpod: { simule: runpod.simule }, config: await configIa(db),
-      documents: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents`))[0].n), chunks: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_chunks`))[0].n) };
+      documents: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents`))[0].n), chunks: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_chunks`))[0].n),
+      // Avancement réel : un document enregistré sans morceau attend encore ses vecteurs (service d'embeddings indisponible ou passage interrompu).
+      vectorises: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents WHERE nb_chunks > 0`))[0].n), enAttente: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents WHERE nb_chunks = 0`))[0].n) };
   });
 
   app.put('/v1/admin/ia/config', async (req) => {

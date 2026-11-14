@@ -77,3 +77,13 @@ export function VieilOrungu({ taille = 120 }: { taille?: number }) {
     </Svg>
   );
 }
+
+/**
+ * Texte d'attente de Kak'Igonjo pendant une réponse différée (14 nov. 2026) : le modèle tourne en serverless, et son réveil peut
+ * prendre une à deux minutes la première fois. `secondes` : temps écoulé depuis l'envoi (null = pas encore de nouvelles du serveur).
+ */
+export function texteAttenteKakIgonjo(secondes: number | null): string {
+  if (secondes === null || secondes < 8) return 'Kak\'Igonjo réfléchit…';
+  if (secondes < 90) return `Kak'Igonjo se réveille… La première réponse peut prendre une minute ou deux (${secondes} s).`;
+  return `Encore un instant, Kak'Igonjo arrive… (${Math.floor(secondes / 60)} min ${String(secondes % 60).padStart(2, '0')} s)`;
+}

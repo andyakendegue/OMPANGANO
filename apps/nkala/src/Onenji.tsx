@@ -12,6 +12,7 @@ import {
   progressionUnite, resoudreMedia, uniteSuivante, VARIANTES_TRIBALES, type EtatLecon, type Exercice, type Lecon, type Ligne, type NiveauAcces, type Parcours, type Unite,
 } from '@nkala/noyau';
 import { texteAccueil, useAccueilKakIgonjo } from './Assistant';
+import { texteAttenteKakIgonjo } from './KakIgonjo';
 import { useAuth } from './AuthProvider';
 import { Bouton, Carte, Ecran, Entete, EtatVide, Feuille, Ic, Mascotte, Pastille, Rangee, SectionTitre, T, Visuel, Champ, Barre, Chargement, Puce, useToast } from './kit';
 import { ajouterMesMots, Bibliotheque } from './Bibliotheque';
@@ -41,7 +42,7 @@ const tri = <T extends Ligne>(l: T[]) => [...l].sort((a, b) => num(a.ordre) - nu
 
 export function Onenji() {
   const pile = usePile<E>({ t: 'hub' });
-  const { res: base, chargement: chargeBase } = useContenus(['parcours', 'unites', 'lecons', 'cours_artisans', 'chapitres', 'bibliotheque', 'opportunites', 'grammaire']);
+  const { res: base, chargement: chargeBase } = useContenus(['parcours', 'unites', 'lecons', 'cours_artisans', 'chapitres', 'opportunites', 'grammaire']);
   // Exercices : collection privée, servie selon les droits du compte (14 nov. 2026) ; rechargée quand le compte ou ses droits changent.
   const { profil } = useAuth();
   const droits = useDroits();
@@ -59,7 +60,7 @@ export function Onenji() {
     const parcours = tri(res.parcours ?? []).filter(p => !enfant || num(p.cycle) <= 2) as unknown as Parcours[];
     // Variante de l'apprenant (ôrungu par défaut) : à chaque position d'une leçon, l'exercice de sa variante, sinon le commun.
     const exercices = filtrerVariante(tri(res.exercices ?? []) as unknown as Exercice[], prefs.variante || 'orungu');
-    return { parcours, unites: tri(res.unites ?? []) as unknown as Unite[], lecons: tri(res.lecons ?? []).filter(l => !enfant || l.mode !== 'adulte') as unknown as Lecon[], exercices, cours: tri(res.cours_artisans ?? []), chapitres: tri(res.chapitres ?? []), biblio: res.bibliotheque ?? [], opportunites: res.opportunites ?? [], grammaire: tri(res.grammaire ?? []) };
+    return { parcours, unites: tri(res.unites ?? []) as unknown as Unite[], lecons: tri(res.lecons ?? []).filter(l => !enfant || l.mode !== 'adulte') as unknown as Lecon[], exercices, cours: tri(res.cours_artisans ?? []), chapitres: tri(res.chapitres ?? []), biblio: [], opportunites: res.opportunites ?? [], grammaire: tri(res.grammaire ?? []) };
   }, [res, enfant, prefs.variante]);
   const e = pile.ecran;
   if (chargement) return <Ecran><Chargement /></Ecran>;
@@ -547,16 +548,17 @@ function KakIgonjoChat({ retour }: { retour: () => void }) {
   const [bulles, setBulles] = useState<Bulle[]>([{ role: 'assistant', content: '', accueil: true }]);
   const [texte, setTexte] = useState('');
   const [occupe, setOccupe] = useState(false);
+  const [attente, setAttente] = useState<number | null>(null);
   const [conv, setConv] = useState<string | undefined>();
   const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   useSansPublicite(true);
   const envoyer = async () => {
     const m = texte.trim(); if (!m || occupe) return;
-    setTexte(''); setErreur(null); setOccupe(true);
+    setTexte(''); setErreur(null); setOccupe(true); setAttente(null);
     const hist = bulles.slice(1);
     setBulles(b => [...b, { role: 'user', content: m }]);
-    try { const r = await demanderKakIgonjo(m, conv, hist); setConv(r.conversationId); setQuota(r.quota); setBulles(b => [...b, { role: 'assistant', content: r.reponse }]); }
+    try { const r = await demanderKakIgonjo(m, conv, hist, setAttente); setConv(r.conversationId); setQuota(r.quota); setBulles(b => [...b, { role: 'assistant', content: r.reponse }]); }
     catch (e) { setErreur((e as Error).message); }
     finally { setOccupe(false); }
   };
@@ -571,7 +573,7 @@ function KakIgonjoChat({ retour }: { retour: () => void }) {
             <View style={{ maxWidth: '82%', padding: 12, borderRadius: 18, backgroundColor: b.role === 'user' ? c.accent : c.carte, borderWidth: b.role === 'user' ? 0 : 1, borderColor: c.bord }}><T v="corps" couleur={b.role === 'user' ? c.surAccent : c.texte}>{b.accueil ? texteAccueil(modeleAccueil, profil?.displayName || profil?.fullName) : b.content}</T></View>
           </View>
         ))}
-        {occupe && <T v="petit">Kak'Igonjo écrit…</T>}
+        {occupe && <T v="petit" accessibilityLiveRegion="polite">{texteAttenteKakIgonjo(attente)}</T>}
         {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
         {quota?.alerte && <T v="petit" couleur={c.accent}>Il te reste peu de messages aujourd'hui.</T>}
         <Champ valeur={texte} onChange={setTexte} placeholder="Écris ta question…" auto="sentences" onSubmit={envoyer} maxLength={2000} />

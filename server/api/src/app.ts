@@ -24,6 +24,8 @@ import { registerContenus } from './contenus.ts';
 import { registerJeux } from './jeux.ts';
 import { registerAzeva } from './azeva.ts';
 import { registerServices } from './services.ts';
+import { registerBibliotheque } from './bibliotheque.ts';
+import { registerTravauxIa } from './travauxIa.ts';
 import { registerChats } from './chats.ts';
 import { fournisseurEmbeddingParDefaut, fournisseurIaParDefaut, registerIaAdmin, type FournisseurEmbedding, type FournisseurIa } from './ia.ts';
 import { registerSupervision } from './supervision.ts';
@@ -1198,7 +1200,9 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   registerJeux(nk);
   registerAzeva(nk);
   registerServices(nk);
+  registerBibliotheque(nk);
   registerChats(nk);
+  registerTravauxIa(nk);
   registerIaAdmin(nk);
   registerSupervision(nk);
   registerMedia(nk, storage);

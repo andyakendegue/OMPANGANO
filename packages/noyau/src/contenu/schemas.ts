@@ -98,7 +98,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'annee', type: 'entier', aide: 'Année de première publication.' }, { nom: 'cycle', type: 'entier', aide: 'Âge de lecture conseillé : 1 = enfant (jusqu\'à 9 ans), 2 = jeune, 3 = adulte.' },
     { nom: 'couleur', type: 'texte', aide: 'Couleur de la tranche et de la couverture #RRGGBB.', exemple: '#B84A28' },
     { nom: 'source', type: 'texte', aide: 'Origine et licence (domaine public, adresse).' }, ordre, acces, rangMin, plans, image, publie] },
-  { id: 'livre_chapitres', module: 'onenji', titre: 'Chapitres de livres', description: 'Texte des livres de la bibliothèque, un chapitre par ligne (généré par l\'import de la bibliothèque).', champs: [
+  { id: 'livre_chapitres', module: 'onenji', prive: true, titre: 'Chapitres de livres', description: 'Texte des livres de la bibliothèque, un chapitre par ligne (généré par l\'import de la bibliothèque). Collection privée (14 nov. 2026) : trop grosse pour une lecture en bloc ; l\'application lit un chapitre à la fois (/pub/bibliotheque/…).', champs: [
     id, { nom: 'livre_id', type: 'texte', requis: true, ref: 'bibliotheque', aide: 'Livre parent.' }, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du chapitre.' },
     { nom: 'texte', type: 'long', requis: true, aide: 'Texte du chapitre (paragraphes séparés par une ligne vide).' }, ordre,
     { nom: 'glossaire', type: 'json', aide: 'Mots expliqués : [{"mot":"pirogue","sens":"barque creusée dans un tronc"}].' },

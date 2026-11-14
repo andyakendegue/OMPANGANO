@@ -7,6 +7,7 @@ import { SignJWT } from 'jose';
 import { verifierQuota, estimerJetons, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
 import { peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
 import { accesCompletVideo, finPartieGratuite } from '../../../packages/noyau/src/lecons.ts';
+import { differable } from './travauxIa.ts';
 import { prixSeance, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
 import { zoneAffichable, profilAgeDepuis, modulesSansPub, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
 import { construireSysteme } from './ia.ts';
@@ -60,9 +61,10 @@ export function registerServices(ctx: Ctx) {
   const profilAge = async (uid: string) => profilAgeDepuis((await db.query<any>(`SELECT data->>'birthDate' AS n FROM users WHERE id = $1`, [uid]))[0]?.n);
 
   // ---------------------------------------------------------------- IA
-  app.post('/v1/ia/message', async (req) => {
+  // Réponse différée possible (`asynchrone: true`, travauxIa.ts) : le worker serverless du modèle peut mettre plusieurs minutes à se réveiller.
+  app.post('/v1/ia/message', differable(app, acteur, async (req) => {
     const a = await acteur(req);
-    const { message, conversationId, historique } = (req.body || {}) as { message?: string; conversationId?: string; historique?: { role: string; content: string }[] };
+    const { message, conversationId, historique, asynchrone } = (req.body || {}) as { message?: string; conversationId?: string; historique?: { role: string; content: string }[]; asynchrone?: boolean };
     if (!str(message) || !message.trim() || message.length > 2000) return fail(400, 'Message vide ou trop long (2000 caractères au plus).');
     const { fonctions } = await modulesActuels(db, env);
     if (!fonctions.assistantIA) return fail(503, 'Kak\'Igonjo n\'est pas encore là.');
@@ -74,7 +76,7 @@ export function registerServices(ctx: Ctx) {
     const quota: QuotaJetons = { parJour: Math.floor(base.parJour * f), parMois: Math.floor(base.parMois * f), parConversation: Math.floor(base.parConversation * f) };
     const conv = str(conversationId) && /^[A-Za-z0-9_-]{6,60}$/.test(conversationId) ? conversationId : 'c_' + randomBytes(6).toString('hex');
     const msgs = [...(Array.isArray(historique) ? historique : []).filter(m => (m.role === 'user' || m.role === 'assistant') && str(m.content)).slice(-8).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 1500) })), { role: 'user' as const, content: message.trim() }];
-    const { systeme, cfg } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant' });
+    const { systeme, cfg } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant', delaiRagMs: asynchrone ? 120_000 : 8000 });
     const estimation = estimerJetons(systeme + msgs.map(m => m.content).join('')) + cfg.maxTokens;
     const verdict = verifierQuota(quota, await consommation(db, a.auth.uid, conv), estimation);
     if (!verdict.ok) return fail(429, verdict.limite === 'conversation' ? 'Cette conversation est trop longue : commence-en une nouvelle.' : verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
@@ -85,7 +87,7 @@ export function registerServices(ctx: Ctx) {
       [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule]);
     const apres = verifierQuota(quota, await consommation(db, a.auth.uid, conv), 0);
     return { reponse: rep.texte, conversationId: conv, usage: { entree: rep.usage.entree, sortie: rep.usage.sortie }, simule: rep.simule, quota: apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true } };
-  });
+  }, req => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); }));
 
   app.get('/v1/ia/usage', async (req) => {
     const a = await acteur(req);

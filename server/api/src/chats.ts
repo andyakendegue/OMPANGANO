@@ -12,6 +12,7 @@ import {
 } from '../../../packages/noyau/src/jetons.ts';
 import { profilAgeDepuis } from '../../../packages/noyau/src/publicite.ts';
 import { construireSysteme } from './ia.ts';
+import { differable } from './travauxIa.ts';
 import { ficheUtilisateur } from './ficheIa.ts';
 import { consigneActions, extraireActions } from '../../../packages/noyau/src/actionsIa.ts';
 import type { Queryable } from './db.ts';
@@ -93,9 +94,10 @@ export function registerChats(ctx: Ctx) {
    * 409 `plein` : contexte au plafond. 409 `exces` : politique « bloquer ». 402 `frais` : politique « facturer » sans accord
    * (le corps donne l'estimation ; renvoyer avec `accepteFrais: true`).
    */
-  app.post('/v1/ia/chats/:id/messages', async (req, reply) => {
+  // Réponse différée possible (`asynchrone: true`, travauxIa.ts) : le worker serverless du modèle peut mettre plusieurs minutes à se réveiller.
+  app.post('/v1/ia/chats/:id/messages', differable(app, acteur, async (req, reply) => {
     const a = await acteur(req);
-    const { message, accepteFrais, etat } = (req.body || {}) as { message?: string; accepteFrais?: boolean; etat?: unknown };
+    const { message, accepteFrais, etat, asynchrone } = (req.body || {}) as { message?: string; accepteFrais?: boolean; etat?: unknown; asynchrone?: boolean };
     if (!str(message) || !message.trim() || message.length > 2000) return fail(400, 'Message vide ou trop long (2000 caractères au plus).');
     const { fonctions, modules } = await modulesActuels(db, env);
     if (!fonctions.assistantIA) return fail(503, 'Kak\'Igonjo n\'est pas encore là.');
@@ -120,7 +122,7 @@ export function registerChats(ctx: Ctx) {
     const cadre = { enfant: age === 'enfant' || modeEnfant, modules };
     const { systeme, contexte: sources, cfg } = await construireSysteme(db, ctx.embed, {
       message: texte, enfant: age === 'enfant', prenom: moi?.nom,
-      fiche: await ficheUtilisateur(db, a.auth.uid, etat), actions: consigneActions(cadre),
+      fiche: await ficheUtilisateur(db, a.auth.uid, etat), actions: consigneActions(cadre), delaiRagMs: asynchrone ? 120_000 : 8000,
     });
     // Contexte de cet envoi : la mesure du dernier appel si elle existe, sinon l'estimation ; on garde la plus prudente.
     const estime = Math.max(estimerJetons(systeme + msgs.map(m => m.content).join('')), c.contexte_jetons + estimerJetons(texte));
@@ -160,7 +162,7 @@ export function registerChats(ctx: Ctx) {
       chat: fiche(await lire(db, c.id, a.auth.uid), regles, tarif, a.isAdmin),
       quota: apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true },
     };
-  });
+  }, req => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); }));
 
   // ---------------------------------------------------------------- console : combien ça coûte
   app.get('/v1/admin/ia/couts', async (req) => {

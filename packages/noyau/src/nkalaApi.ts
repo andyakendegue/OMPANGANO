@@ -1,5 +1,6 @@
 /** Appels de l'application à l'API Nkala : connexion par SMS, progression, parties, assistant, publicité, droits, contenus d'utilisateurs, cours à distance. */
 import { api } from './api';
+import { avecCache } from './cache';
 import type { EtatContexte, ReglesContexte, TarifIa } from './jetons';
 import type { ActionIa } from './actionsIa';
 
@@ -34,8 +35,34 @@ export const ajouterAmi = (telephone: string) => api<{ ajoute: { id: string; nom
 
 // ------------------------------------------------------------------ assistant IA (Kak'Igonjo)
 export interface ReponseIa { reponse: string; conversationId: string; usage: { entree: number; sortie: number }; simule: boolean; quota: { restantJour: number; restantMois: number; alerte: boolean } }
-export const demanderKakIgonjo = (message: string, conversationId?: string, historique?: { role: 'user' | 'assistant'; content: string }[]) =>
-  api<ReponseIa>('POST', '/v1/ia/message', { message, conversationId, historique });
+/**
+ * Réponse différée de l'assistant (14 nov. 2026) : le modèle tourne en serverless et son réveil peut prendre plusieurs minutes,
+ * bien plus que le délai d'une requête (30 s). L'envoi part avec `asynchrone: true` ; le serveur répond aussitôt un numéro de travail
+ * qu'on relève jusqu'à la réponse. `surAttente(secondes)` sert à faire patienter l'utilisateur. Un serveur plus ancien répond directement.
+ */
+export async function attendreReponseIa<T>(depart: Promise<unknown>, surAttente?: (secondes: number) => void): Promise<T> {
+  const r = await depart as { travail?: string } & T;
+  if (!r || typeof r !== 'object' || !('travail' in r) || !r.travail) return r as T;
+  const t0 = Date.now();
+  let echecsReseau = 0;
+  for (;;) {
+    await new Promise(ok => setTimeout(ok, Date.now() - t0 < 20_000 ? 1500 : 3000));
+    try {
+      const x = await api<{ statut?: string; depuis?: number } & T>('GET', `/v1/ia/travaux/${encodeURIComponent(r.travail)}`);
+      echecsReseau = 0;
+      if (x.statut === 'en_cours') { surAttente?.(x.depuis ?? Math.round((Date.now() - t0) / 1000)); continue; }
+      const { statut: _s, ...reste } = x as Record<string, unknown>;
+      return reste as T;
+    } catch (e) {
+      // Réseau coupé un instant pendant l'attente : on réessaie (la réponse reste gardée sur le serveur 15 minutes).
+      if ((e as { status?: number }).status === 0 && ++echecsReseau <= 10) continue;
+      throw e;
+    }
+  }
+}
+
+export const demanderKakIgonjo = (message: string, conversationId?: string, historique?: { role: 'user' | 'assistant'; content: string }[], surAttente?: (secondes: number) => void) =>
+  attendreReponseIa<ReponseIa>(api('POST', '/v1/ia/message', { message, conversationId, historique, asynchrone: true }), surAttente);
 export const consommationIa = () => api<{ consommation: { jour: number; mois: number; conversation: number }; quota: { parJour: number; parMois: number; parConversation: number } }>('GET', '/v1/ia/usage');
 
 // ------------------------------------------------------------------ chats de l'assistant (contexte, excès, coût)
@@ -61,7 +88,8 @@ export const renommerChat = (id: string, titre: string) => api('PATCH', `/v1/ia/
 export const supprimerChat = (id: string) => api('DELETE', `/v1/ia/chats/${id}`);
 /** `etat` : ce que seul le téléphone connaît (réglages, Mes mots, écran ouvert), pour la fiche de Kak'Igonjo. */
 export interface EtatLocalChat { prefs?: Record<string, unknown>; mesMots?: { total: number; derniers: string[] }; ecran?: string }
-export const envoyerAuChat = (id: string, message: string, accepteFrais = false, etat?: EtatLocalChat) => api<ReponseChat>('POST', `/v1/ia/chats/${id}/messages`, { message, accepteFrais, etat });
+export const envoyerAuChat = (id: string, message: string, accepteFrais = false, etat?: EtatLocalChat, surAttente?: (secondes: number) => void) =>
+  attendreReponseIa<ReponseChat>(api('POST', `/v1/ia/chats/${id}/messages`, { message, accepteFrais, etat, asynchrone: true }), surAttente);
 export interface CoutsIa {
   regles: ReglesContexte; tarif: TarifIa; enExces: number;
   jour: TotauxIa; mois: TotauxIa; total: TotauxIa;
@@ -252,3 +280,18 @@ export const adminRadioSynchroniser = () => api<{ crees: number; maj: number }>(
 export interface EtatBibliotheque { dossier: string; enCours: boolean; fin?: string; presents: number; importes: number; livres: number; ajoutes: number; modifies: number; inchanges: number; chapitres: number; erreurs: { fichier: string; message: string }[] }
 export const adminBibliothequeEtat = () => api<EtatBibliotheque>('GET', '/v1/admin/bibliotheque/etat');
 export const adminBibliothequeImporter = () => api<{ ok: boolean }>('POST', '/v1/admin/bibliotheque/importer', {});
+
+// ------------------------------------------------------------------ bibliothèque servie par morceaux (14 nov. 2026)
+/** Livre tel qu'il apparaît dans la liste (champs légers). */
+export interface LivreListe { id: string; titre: string; auteur?: string; categorie?: string; annee?: number; cycle?: number; couleur?: string; image?: string; type?: string; langue?: string; url?: string; minutes?: number; nb_chapitres?: number; niveau_acces?: string; rang_min?: number; plans?: string[] }
+export interface ChapitreListe { id: string; titre: string; ordre: number; mots: number }
+export interface ChapitreTexte { id: string; livre_id: string; titre: string; ordre: number; texte: string; glossaire: { mot: string; sens: string }[] | null; questions: { enonce: string; options: string[]; bonne: number }[] | null }
+const qs = (o: Record<string, string | number | undefined>) => Object.entries(o).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join('&');
+/** Liste paginée : recherche (titre, auteur), rayon, âge (cycleMax) ou livres précis (ids). */
+export const listerLivres = (p: { q?: string; rayon?: string; cycleMax?: number; ids?: string[]; page?: number; n?: number }) =>
+  avecCache(`biblio:liste:${qs({ ...p, ids: p.ids?.join(',') })}`, () => api<{ total: number; page: number; n: number; livres: LivreListe[] }>('GET', `/pub/bibliotheque?${qs({ q: p.q, rayon: p.rayon, cycleMax: p.cycleMax, ids: p.ids?.join(','), page: p.page, n: p.n })}`));
+export const rayonsBibliotheque = () => avecCache('biblio:rayons', () => api<{ total: number; chapitres: number; rayons: { rayon: string; n: number }[] }>('GET', '/pub/bibliotheque/rayons'));
+export const ficheLivre = (id: string) => avecCache(`biblio:livre:${id}`, () => api<{ livre: LivreListe & Record<string, unknown>; chapitres: ChapitreListe[] }>('GET', `/pub/bibliotheque/${encodeURIComponent(id)}`));
+/** Texte d'un chapitre (copie locale : un chapitre ouvert une fois se relit hors ligne). Avec compte : route qui applique les droits. */
+export const texteChapitre = (livreId: string, chapitreId: string, connecte: boolean) =>
+  avecCache(`biblio:chap:${livreId}:${chapitreId}`, () => api<{ chapitre: ChapitreTexte }>('GET', `/${connecte ? 'v1' : 'pub'}/bibliotheque/${encodeURIComponent(livreId)}/chapitres/${encodeURIComponent(chapitreId)}`));

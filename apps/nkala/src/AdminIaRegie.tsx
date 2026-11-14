@@ -111,6 +111,7 @@ export function IaAdmin() {
         <Ligne a="Embeddings" b={`${etat.embedding.nom} · ${etat.embedding.modele}`} />
         <Ligne a="RunPod" b={etat.runpod.simule ? 'simulation (RUNPOD_API_KEY absente)' : 'branché'} />
         <Ligne a="RAG" b={`${etat.documents} document(s), ${etat.chunks} morceaux`} />
+        {etat.vectorises !== undefined && <Ligne a="Vectorisés" b={`${etat.vectorises} document(s) · ${etat.enAttente ?? 0} en attente d'embeddings`} />}
         <T v="petit">Les fournisseurs se règlent dans le fichier .env du serveur (IA_FOURNISSEUR, RUNPOD_*, EMBEDDING_*).</T>
       </View></Carte>
 

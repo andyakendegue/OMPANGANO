@@ -1,9 +1,10 @@
 """
 Proxy d'embeddings : expose une API OpenAI (POST /v1/embeddings) devant un endpoint serverless RunPod, sur le modèle de runpod-openai-proxy.
 N'écoute que sur l'adresse interne du serveur (LISTEN_HOST, par défaut la passerelle Docker 172.17.0.1) : jamais exposé sur Internet.
-Variables : RUNPOD_API_KEY, RUNPOD_EMBED_ENDPOINT_ID (laisser vides = mode simulation), EMBED_MODEL, PROXY_TOKEN (facultatif : jeton exigé en Bearer).
+Variables : RUNPOD_API_KEY, RUNPOD_EMBED_ENDPOINT_ID (laisser vides = mode simulation), EMBED_MODEL, PROXY_TOKEN (facultatif : jeton exigé en Bearer),
+ATTENTE_MAX_S (attente maximale d'un travail, démarrage à froid compris ; 270 par défaut).
 """
-import hashlib, math, os, re
+import asyncio, hashlib, math, os, re, time
 from typing import Any, Dict, List
 
 import httpx
@@ -13,6 +14,8 @@ API_KEY = os.environ.get("RUNPOD_API_KEY", "")
 ENDPOINT = os.environ.get("RUNPOD_EMBED_ENDPOINT_ID", "")
 MODEL = os.environ.get("EMBED_MODEL", "BAAI/bge-m3")
 TOKEN = os.environ.get("PROXY_TOKEN", "")
+# Attente maximale d'un travail RunPod (démarrage à froid compris), en secondes.
+ATTENTE_MAX_S = int(os.environ.get("ATTENTE_MAX_S", "270"))  # sous les 300 s après lesquelles fetch (Node) abandonne côté API
 SIMULATION = not (API_KEY and ENDPOINT)
 BASE = f"https://api.runpod.ai/v2/{ENDPOINT}"
 app = FastAPI()
@@ -75,7 +78,19 @@ async def embeddings(body: Dict[str, Any], authorization: str | None = Header(de
             if r.status_code != 200:
                 raise HTTPException(status_code=502, detail=f"RunPod {r.status_code} : {r.text[:200]}")
             j = r.json()
+            # Démarrage à froid du worker (14 nov. 2026) : runsync rend la main avec IN_QUEUE / IN_PROGRESS au bout de son délai.
+            # On suit alors le travail par /status jusqu'à la fin (au plus ATTENTE_MAX_S) au lieu de renvoyer 504 : sinon l'indexation
+            # s'arrêtait après trois échecs et la question de l'utilisateur partait au modèle sans contexte.
+            debut = time.monotonic()
+            while j.get("status") in ("IN_QUEUE", "IN_PROGRESS") and j.get("id"):
+                if time.monotonic() - debut > ATTENTE_MAX_S:
+                    raise HTTPException(status_code=504, detail=f"Travail RunPod toujours {j.get('status')} après {ATTENTE_MAX_S} s")
+                await asyncio.sleep(2)
+                s = await c.get(f"{BASE}/status/{j['id']}", headers={"Authorization": f"Bearer {API_KEY}"})
+                if s.status_code != 200:
+                    raise HTTPException(status_code=502, detail=f"RunPod /status {s.status_code} : {s.text[:200]}")
+                j = s.json()
             if j.get("status") not in (None, "COMPLETED"):
-                raise HTTPException(status_code=504, detail=f"Travail RunPod {j.get('status')} (démarrage à froid ? réessayer)")
+                raise HTTPException(status_code=502, detail=f"Travail RunPod {j.get('status')} : {str(j.get('error', ''))[:200]}")
             vecteurs = extraire(j.get("output", j))
     return {"object": "list", "model": body.get("model", MODEL), "data": [{"object": "embedding", "index": i, "embedding": v} for i, v in enumerate(vecteurs)], "usage": {"prompt_tokens": sum(len(t) // 3 for t in textes), "total_tokens": sum(len(t) // 3 for t in textes)}}

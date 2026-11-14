@@ -26,7 +26,7 @@ const ecouteurs = new Set<() => void>();
 export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 
 // Le dessin du vieux sage est dans KakIgonjo.tsx (partagé avec la mascotte du kit).
-import { VieilOrungu } from './KakIgonjo';
+import { VieilOrungu, texteAttenteKakIgonjo } from './KakIgonjo';
 export { VieilOrungu };
 
 
@@ -143,6 +143,7 @@ export function AssistantFlottant() {
   const [bulles, setBulles] = useState<Bulle[]>(() => [accueil()]);
   const [texte, setTexte] = useState('');
   const [occupe, setOccupe] = useState(false);
+  const [attente, setAttente] = useState<number | null>(null);
   /** Envoi refusé par le serveur (contexte en excès ou plein), avec le message en attente. */
   const [refus, setRefus] = useState<(RefusChat & { message: string; erreur: string }) | null>(null);
   const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean } | null>(null);
@@ -213,11 +214,11 @@ export function AssistantFlottant() {
   const envoyer = async (repris?: { message: string; accepteFrais: boolean }) => {
     const m = (repris?.message ?? texte).trim(); if (!m || occupe) return;
     if (!repris) { setTexte(''); setBulles(b => [...b, { role: 'user', content: m }]); }
-    setErreur(null); setRefus(null); setOccupe(true);
+    setErreur(null); setRefus(null); setOccupe(true); setAttente(null);
     try {
       let id = chat?.id;
       if (!id) { const n = await creerChat(); id = n.chat.id; setChat(n.chat); }
-      const r = await envoyerAuChat(id, m, repris?.accepteFrais, await etatLocal());
+      const r = await envoyerAuChat(id, m, repris?.accepteFrais, await etatLocal(), setAttente);
       setChat(r.chat); setQuota(r.quota); setBulles(b => [...b, { role: 'assistant', content: r.reponse, actions: r.actions?.length ? r.actions : undefined }]);
       void rafraichir();
     } catch (e) {
@@ -347,7 +348,7 @@ export function AssistantFlottant() {
                     </View>
                   ))}
                   {charge && <T v="petit">Chargement du chat…</T>}
-                  {occupe && <T v="petit" accessibilityLiveRegion="polite">Kak'Igonjo réfléchit…</T>}
+                  {occupe && <T v="petit" accessibilityLiveRegion="polite">{texteAttenteKakIgonjo(attente)}</T>}
                   {refus && (
                     <View accessibilityRole="alert" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.erreur, backgroundColor: c.carte, padding: 12, gap: 10 }}>
                       <T v="corps" fort>{refus.code === 'frais' ? 'Ce chat dépasse le contexte inclus' : refus.code === 'plein' ? 'Ce chat est plein' : 'Ce chat a dépassé le contexte inclus'}</T>

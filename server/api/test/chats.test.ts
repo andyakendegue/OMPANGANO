@@ -133,7 +133,11 @@ test('RAG : un service d\'embeddings en panne ne retient pas la réponse', async
   await db.query(`INSERT INTO ia_documents (id, titre, texte) VALUES ('d1','Doc','Mbolo veut dire bonjour')`);
   await db.query(`INSERT INTO ia_chunks (document_id, ordre, texte, embedding) VALUES ('d1',0,'Mbolo veut dire bonjour','[1,0]')`);
   const t = Date.now();
-  await assert.rejects(rechercherRag(db, lent, 'mbolo', 4, 0, 50), /pas de réponse/);
+  // Recherche hybride (14 nov. 2026) : sans vecteurs, les mots-clés répondent seuls…
+  const parMots = await rechercherRag(db, lent, 'mbolo', 4, 0, 50);
+  assert.deepEqual(parMots.map(x => x.document), ['d1']);
+  // … et sans mot-clé trouvé, l'erreur du service d'embeddings remonte (construireSysteme l'avale).
+  await assert.rejects(rechercherRag(db, lent, 'zzzz introuvable', 4, 0, 50), /pas de réponse/);
   assert.ok(Date.now() - t < 2000);
   // construireSysteme avale l'erreur : la réponse part sans contexte
   const u = await user();

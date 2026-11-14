@@ -65,6 +65,18 @@ export async function extraireTexte(chemin: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * Ordre d'indexation (14 nov. 2026) : d'abord les sources myènè et les documents travaillés (proverbes, édition, histoire des côtes, langue),
+ * puis le reste par ordre alphabétique. L'indexation est lente (un worker serverless) et souvent interrompue (redéploiements de l'API) :
+ * ce qui sert le plus à l'assistant doit être vectorisé en premier. Variable RAG_PRIORITE : dossiers séparés par des virgules.
+ */
+export const PRIORITE_RAG_DEFAUT = ['09_documents_pedagogiques', '17_edition_DONDO_myene', '01_sources_myene', '11_histoire_cotes_myene', '16_langue_fang', '03_droit_coutumier', '14_programme_et_jeux'];
+export function ordonnerParPriorite(fichiers: string[], priorite?: string): string[] {
+  const liste = (priorite ? priorite.split(',').map(x => x.trim()).filter(Boolean) : PRIORITE_RAG_DEFAUT);
+  const rang = (rel: string) => { const i = liste.findIndex(p => rel === p || rel.startsWith(p + '/')); return i < 0 ? liste.length : i; };
+  return [...fichiers].sort((a, b) => rang(a) - rang(b) || (a < b ? -1 : a > b ? 1 : 0));
+}
+
 /** EPUB : fichiers de contenu lus dans l'ordre de lecture (spine) du fichier OPF. */
 async function extraireEpub(chemin: string): Promise<string> {
   const lire = async (nom: string) => (await run('unzip', ['-p', chemin, nom], { maxBuffer: 80 * 1024 * 1024, timeout: 60_000 })).stdout;
@@ -101,7 +113,7 @@ export async function synchroniserDossier(q: Queryable, embed: FournisseurEmbedd
     // Après 3 échecs d'embeddings de suite, le service est jugé indisponible pour ce passage : les fichiers restants sont gardés
     // tels quels (rien n'est purgé) et seront indexés au passage suivant. Une seule erreur est signalée.
     let coupe = false, echecsSuite = 0;
-    for (const rel of await lister(racine)) {
+    for (const rel of ordonnerParPriorite(await lister(racine), env.RAG_PRIORITE)) {
       etat.fichiers++;
       const abs = path.join(racine, rel);
       const id = 'f_' + createHash('sha1').update(rel).digest('hex').slice(0, 20);
