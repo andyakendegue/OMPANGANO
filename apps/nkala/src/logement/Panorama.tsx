@@ -4,9 +4,21 @@
  */
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import type { WebView as WebViewT } from 'react-native-webview';
+import { MiseAJourNecessaire, moduleRnPresent } from '../natif';
 import * as FileSystem from 'expo-file-system/legacy';
 import { htmlPanorama } from './pannellumHtml';
+
+// react-native-webview est absent des versions 0.1.0 (vc3, vc4) : son import plante dès le chargement (getEnforcing).
+// Il est donc chargé seulement au premier affichage d'un panorama, et seulement s'il est présent (règle M2).
+let WebViewCharge: typeof WebViewT | null | undefined;
+function webView(): typeof WebViewT | null {
+  if (WebViewCharge === undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    WebViewCharge = moduleRnPresent('RNCWebViewModule') ? (require('react-native-webview') as { WebView: typeof WebViewT }).WebView : null;
+  }
+  return WebViewCharge;
+}
 
 export interface PanoramaRef { gyro: (on: boolean) => void; zoom: (d: number) => void }
 export interface PanoramaProps { url: string; apercu?: string; onCharge?: () => void; onErreur?: (m: string) => void }
@@ -35,11 +47,13 @@ async function enDataUri(url: string): Promise<string> {
 }
 
 export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama({ url, apercu, onCharge, onErreur }, ref) {
-  const vue = useRef<WebView>(null);
+  const vue = useRef<WebViewT>(null);
+  const WebView = webView();
   const [html, setHtml] = useState<string | null>(null);
   useEffect(() => {
     let vivant = true;
     setHtml(null);
+    if (!WebView) { onErreur?.(new MiseAJourNecessaire().message); return; }
     enDataUri(url).then(d => { if (vivant) setHtml(htmlPanorama({ url: d })); }).catch(e => vivant && onErreur?.((e as Error).message));
     return () => { vivant = false; };
   }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -48,7 +62,7 @@ export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama
     zoom: d => vue.current?.injectJavaScript(`window.nkala360&&window.nkala360.zoom(${Number(d) || 0});true;`),
   }), []);
   void apercu;
-  if (!html) return <View style={{ flex: 1, backgroundColor: '#170D08' }} />;
+  if (!html || !WebView) return <View style={{ flex: 1, backgroundColor: '#170D08' }} />;
   return (
     <WebView
       ref={vue}

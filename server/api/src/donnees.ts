@@ -37,6 +37,7 @@ export const DUREES = {
   comptesSupprimes: 400,  // au-delà, plus aucun jeton émis avant la suppression ne peut être valide
   journaux: 1825,         // journal_admin, item_audit (5 ans)
   paiements: 3650,        // obligation comptable (10 ans)
+  // Hors base : sauvegardes chiffrées 14 jours, copies faites avant une mise à jour 30 jours (server/backup/backup.sh)
 } as const;
 
 async function tablesExistantes(q: Queryable): Promise<Set<string>> {

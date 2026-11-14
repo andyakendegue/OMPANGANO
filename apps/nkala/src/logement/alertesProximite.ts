@@ -8,7 +8,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
-import * as TaskManager from 'expo-task-manager';
+import type * as TaskManagerT from 'expo-task-manager';
+import { moduleNatifPresent, moduleParesseux } from '../natif';
 import { Platform } from 'react-native';
 import { distanceM } from '@nkala/noyau';
 
@@ -20,7 +21,10 @@ const DELAI_MS = 24 * 3600_000;
 
 export interface AlerteLogement { annonceId: string; titre: string; prixLabel: string; quartier?: string; lat: number; lng: number; rayonM: number; actif: boolean; dernierEnvoi?: number; creeLe: number }
 
-export const alertesDisponibles = Platform.OS !== 'web';
+// expo-task-manager est absent des versions 0.1.0 (vc3, vc4) : sans lui, pas d'alertes de proximité (pas de plantage)
+export const alertesDisponibles = Platform.OS !== 'web' && moduleNatifPresent('ExpoTaskManager');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const TaskManager = moduleParesseux<typeof TaskManagerT>(() => alertesDisponibles, () => require('expo-task-manager'));
 
 export async function lireAlertes(): Promise<AlerteLogement[]> {
   try { return JSON.parse((await AsyncStorage.getItem(CLE)) || '[]'); } catch { return []; }

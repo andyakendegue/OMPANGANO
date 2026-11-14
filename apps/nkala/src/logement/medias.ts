@@ -2,8 +2,14 @@
  * Médias des annonces de logement : prise de vue ou galerie, compression (photos 1600 px, 360° 4096 et 6000 px, vignettes 400 px),
  * vignette des vidéos, métadonnées de « Visite certifiée » (prise dans l'app, date, position au moment de la prise).
  */
-import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import type * as ImagePickerT from 'expo-image-picker';
+import type * as ManipulateurT from 'expo-image-manipulator';
+import { moduleNatifPresent, moduleParesseux } from '../natif';
+// Modules natifs absents des versions 0.1.0 (vc3, vc4) : chargés au premier usage seulement (règle M2), sinon l'app planterait au démarrage
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const ImagePicker = moduleParesseux<typeof ImagePickerT>(() => moduleNatifPresent('ExponentImagePicker'), () => require('expo-image-picker'));
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Manipulateur = moduleParesseux<typeof ManipulateurT>(() => moduleNatifPresent('ExpoImageManipulator'), () => require('expo-image-manipulator'));
 import * as Location from 'expo-location';
 import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
@@ -54,7 +60,7 @@ async function octetsDe(uri: string): Promise<number> {
 }
 
 async function redimensionner(uri: string, largeurOrigine: number, max: number, qualite = 0.8) {
-  const r = await manipulateAsync(uri, largeurOrigine > max ? [{ resize: { width: max } }] : [], { compress: qualite, format: SaveFormat.JPEG });
+  const r = await Manipulateur.manipulateAsync(uri, largeurOrigine > max ? [{ resize: { width: max } }] : [], { compress: qualite, format: Manipulateur.SaveFormat.JPEG });
   return { uri: r.uri, largeur: r.width, hauteur: r.height, octets: await octetsDe(r.uri) };
 }
 
@@ -79,7 +85,7 @@ export interface ImageChoisie { uri: string; largeur: number; hauteur: number; c
 export async function choisirImages(source: Source, maximum: number): Promise<{ images: ImageChoisie[]; erreur?: string }> {
   const err = await permission(source);
   if (err) return { images: [], erreur: err };
-  const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 1, exif: false, allowsMultipleSelection: source === 'galerie' && maximum > 1, selectionLimit: Math.max(1, maximum) };
+  const opts: ImagePickerT.ImagePickerOptions = { mediaTypes: ['images'], quality: 1, exif: false, allowsMultipleSelection: source === 'galerie' && maximum > 1, selectionLimit: Math.max(1, maximum) };
   const r = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
   if (r.canceled) return { images: [] };
   const pos = source === 'camera' ? await positionActuelle() : null;
@@ -113,7 +119,7 @@ export async function preparerImage(img: ImageChoisie, type: Extract<TypeMedia, 
 export async function choisirVideo(source: Source, ordre: number): Promise<{ media?: MediaLocal; erreur?: string }> {
   const err = await permission(source, true);
   if (err) return { erreur: err };
-  const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['videos'], videoMaxDuration: VIDEO_MAX_S, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium, quality: 0.7 };
+  const opts: ImagePickerT.ImagePickerOptions = { mediaTypes: ['videos'], videoMaxDuration: VIDEO_MAX_S, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium, quality: 0.7 };
   const r = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
   if (r.canceled || !r.assets[0]) return {};
   const a = r.assets[0];

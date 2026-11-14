@@ -28,6 +28,10 @@ sceller "$DEST/db/ompangano-$STAMP.dump.enc"; sceller "$DEST/media/media-$STAMP.
 find "$DEST/db" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
 find "$DEST/media" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
 chmod 600 "$DEST"/db/* "$DEST"/media/* 2>/dev/null || true
+# Copies faites avant une mise à jour (avant-*, auto-*, db-avant-*…) : elles contiennent parfois la base en clair.
+# Durée de conservation : 30 jours (SECURITE_ISO27001.md, donnees.ts DUREES), accès réservé à root.
+find "$DEST" -mindepth 1 -maxdepth 1 \( -name 'avant-*' -o -name 'auto-*' -o -name '*-avant-*' -o -name '*.avant-*' \) -mtime +30 -exec rm -rf {} +
+chmod -R go-rwx "$DEST" 2>/dev/null || true
 
 # Copie hors du VPS (ISO 27001 A.8.13 : obligatoire) : rsync vers BACKUP_REMOTE (ex. user@autre-serveur:/sauvegardes/ompangano).
 # Les fichiers sont déjà chiffrés et scellés ; le témoin « derniere_copie_hors_site » est surveillé par alertes.py (> 48 h = alerte).
