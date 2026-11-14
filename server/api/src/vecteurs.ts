@@ -12,6 +12,8 @@ export interface Vecteurs {
   chercher(vecteur: number[], k: number): Promise<{ id: number; score: number }[]>;
 }
 
+/** Points par envoi à Qdrant : 64 vecteurs de 1024 nombres ≈ 1,3 Mo de JSON, sous la limite de 3,3 Mo d'un corps de requête. */
+export const LOT_POINTS = 64;
 // Quantification scalaire int8 : quantile 0.99 écarte les valeurs extrêmes ; always_ram garde la copie compacte en mémoire vive
 const QUANTIFICATION = { scalar: { type: 'int8', quantile: 0.99, always_ram: true } };
 // Recherche : candidats tirés de la copie int8 (x2), puis re-notés avec les vecteurs complets lus sur disque
@@ -50,7 +52,10 @@ export function vecteursParDefaut(env = process.env): Vecteurs {
     },
     async remplacer(documentId, points) {
       await this.supprimer(documentId);
-      if (points.length) await appel('PUT', `/collections/${nom}/points?wait=true`, { points: points.map(p => ({ id: p.id, vector: p.vecteur, payload: { document_id: documentId } })) });
+      // Par lots (14 nov. 2026) : Qdrant refuse un corps de plus de ~3,3 Mo ; un gros document (des milliers de morceaux de 1024 nombres)
+      // donnait un envoi de 57 Mo, refusé, compté comme une panne des embeddings, et l'indexation s'arrêtait.
+      for (let i = 0; i < points.length; i += LOT_POINTS)
+        await appel('PUT', `/collections/${nom}/points?wait=true`, { points: points.slice(i, i + LOT_POINTS).map(p => ({ id: p.id, vector: p.vecteur, payload: { document_id: documentId } })) });
     },
     async supprimer(documentId) { await appel('POST', `/collections/${nom}/points/delete?wait=true`, { filter: { must: [{ key: 'document_id', match: { value: documentId } }] } }, [404]); },
     async chercher(vecteur, k) { const j = await appel('POST', `/collections/${nom}/points/search`, { vector: vecteur, limit: k * 3, with_payload: false, params: RECHERCHE }); return (j?.result ?? []).map((x: any) => ({ id: Number(x.id), score: x.score })); },
