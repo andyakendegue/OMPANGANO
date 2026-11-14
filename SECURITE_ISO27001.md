@@ -40,7 +40,7 @@ Ce document couvre deux choses :
 - **Pare-feu** (A.8.20) : ufw limité à 22, 80, 443, TURN et la plage UDP. Ollama retiré le 13/11.
 - **Clés publiées** : les 4 clés Firebase présentes dans l'historique git ont été supprimées chez Google le 13/11. Les nouvelles clés sont limitées par API et par référent.
 
-## 2. Corrections faites le 14/11/2026 (non commitées, non déployées)
+## 2. Corrections faites le 14/11/2026 (commitées et mises en ligne le 14/11)
 
 | # | Mesure | Défaut | Correction | Fichier |
 |---|---|---|---|---|
@@ -57,7 +57,7 @@ Tests : `server/api/test/securite.test.ts` (5 tests). Serveur : 171/171 ; `tsc` 
 **Effet visible pour les utilisateurs** : aucun. Les sessions en cours restent valides.
 **Pour le point 6, un nouveau build natif est nécessaire** : avant ce build, le jeton reste dans AsyncStorage.
 
-## 2 bis. Écarts traités le 14/11/2026, 2e passe (non commités, non déployés)
+## 2 bis. Écarts traités le 14/11/2026, 2e passe (commités et mis en ligne le 14/11)
 
 | Prio | Mesure | Ce qui est fait | Fichiers |
 |---|---|---|---|
@@ -77,14 +77,22 @@ Tests : `server/api/test/securite.test.ts` (5 tests). Serveur : 171/171 ; `tsc` 
 
 Tests : `server/api/test/securite.test.ts` (14 tests) et `smsRevue.test.ts`. Serveur : 180/180 ; `tsc` propre sur le serveur et l'app.
 
-### À faire au prochain déploiement (avec l'accord de Capp)
-1. `.env` du VPS : **`MEDIA_SECRET` = valeur actuelle de `SESSION_SECRET`**, sinon les médias chiffrés ne seront plus lisibles si `SESSION_SECRET` change un jour. `REVUE_JUSQU_AU=<date ISO>` si une revue des magasins est en cours, sinon le numéro examinateur est coupé. Retirer `localhost` de `CORS_ORIGINS` s'il y figure.
-2. Migration 017 (appliquée au démarrage de l'API).
-3. `BACKUP_REMOTE` vers un second serveur ou un stockage distant, et une première copie.
-4. Cron : `30 4 1 * * root /opt/ompangano/server/backup/test_restauration.sh >> /var/log/ompangano-restauration.log 2>&1`.
-5. Republier le site (page `/suppression-compte.html`), puis indiquer son adresse dans la Play Console (Sécurité des données > Suppression du compte).
-6. App : `eas update` pour l'écran « Mes données et mon compte ». Nouveau build natif pour le trousseau et `allowBackup: false`.
-7. Effets visibles : les parties de jeu et les lectures en cours au moment du déploiement échouent une fois, car les clés des manches et des licences changent. Les administrateurs connectés par SMS depuis plus de 12 h doivent se reconnecter.
+### Mise en production du 14/11/2026 (accord de Capp)
+- **API** : seuls mes blocs sont appliqués sur les fichiers en ligne. Le travail des autres sessions déjà en ligne est conservé, et celui qui n'y était pas (Nkorouna, annonces logement, migrations 013/014, `achats.ts`, `contenus.ts`, etc.) n'est pas parti. Migration 017 appliquée. Vérifié : santé, en-têtes, 401 sans jeton, CORS sans localhost, vraies IP dans les journaux, purge du jour, aucune erreur. Sauvegarde : `/opt/ompangano/backups/avant-securite-iso-20261114-123209` (code, `.env`, base).
+- **`.env`** : `MEDIA_SECRET` = ancienne `SESSION_SECRET`, `REVUE_JUSQU_AU=2026-12-28T23:59:59Z` (changer `REVUE_CODE` ensuite), `CORS_ORIGINS` sans localhost, `BACKUP_REMOTE=sauvegarde-hors-site:`. Copie de l'ancien fichier : `.env.avant-securite-iso-*`.
+- **Copie hors site** : serveur Essaka (Contabo, États-Unis), `/root/sauvegardes-ompangano`, clé SSH dédiée `/root/.ssh/sauvegarde_hors_site` limitée par `rrsync` à ce dossier (aucun shell). Seuls des fichiers déjà chiffrés et scellés y vont. Première copie : 929 Mo.
+- **Essai de restauration** : cron `/etc/cron.d/ompangano`, le 1er de chaque mois à 04:30. Premier essai le 14/11 : sceau vérifié, mêmes chiffres que la base en service (105 comptes, 50 132 fiches, 89 contributions).
+- **Copies faites avant une mise à jour** : gardées 30 jours au plus (`backup.sh`).
+- **Veille de déploiement automatique en pause** (`/opt/ompangano/secrets/veille_en_pause`) : `main` contient maintenant du travail validé mais pas encore mis en ligne. Le prochain envoi sur `main` le mettrait en production sans accord. Pour la relancer : `rm /opt/ompangano/secrets/veille_en_pause` (et vérifier d'abord ce qu'elle déploiera).
+- **Historique git réécrit** (`git filter-repo --replace-text`) : les 4 clés révoquées sont remplacées par `***CLE_REVOQUEE***` dans toutes les branches et étiquettes de GitHub. Copie complète d'avant : `DONDO/_sauvegardes_git/OMPANGANO-avant-reecriture-20261114.bundle`. GitHub peut encore servir les anciens commits par leur empreinte (caches, éventuels forks) : demande d'effacement au support GitHub si besoin.
+- **Site Essaka** : pages statiques, sans compilation. https://essaka.engineering/nkala/confidentialite/ (politique de Nkala) et https://essaka.engineering/nkala/suppression-compte/ (à indiquer dans la Play Console). La politique du site vitrine (dans `site-app.jsx`) ne couvrait pas Nkala. Elle n'a pas été modifiée, car il aurait fallu recompiler `assets/app.js` ; un lien vers la page Nkala reste à y ajouter.
+- **App** : mise à jour JavaScript publiée sur le canal `production`, sans build (groupe `baca1683`). Elle porte la version d'exécution **0.2.0**, car une autre session avait monté `version` (module natif WebRTC). Elle n'atteint donc pas les versions installées (0.1.0, vc3/vc4) : elle s'appliquera au prochain build 0.2.0. Les modules natifs absents des versions installées (sélecteur et retouche d'images, tâches de fond, WebView) sont maintenant chargés au premier usage (`apps/nkala/src/natif.ts`) : sur vc3/vc4, ces fonctions affichent « mettez l'application à jour » au lieu de planter. Le trousseau et `allowBackup: false` n'agiront qu'avec le prochain build.
+
+### Reste à faire
+1. Indiquer https://essaka.engineering/nkala/suppression-compte/ et https://essaka.engineering/nkala/confidentialite/ dans la Play Console.
+2. Faire valider la politique de confidentialité de Nkala, notamment l'âge de 15 ans pour l'accord parental et la liste des prestataires.
+3. Nouveau build natif quand Capp le décidera.
+4. Après la revue des magasins : changer `REVUE_CODE`.
 
 ## 3. Écarts restants
 
@@ -92,10 +100,9 @@ Tests : `server/api/test/securite.test.ts` (14 tests) et `smsRevue.test.ts`. Ser
 |---|---|---|---|
 | P1 | A.8.8 | Failles restantes de l'app (outils de build d'Expo) et du site (`@grpc/grpc-js` via firebase), qui ne se corrigent que par des montées de version majeures. | `npm audit fix --force` changerait Expo ou Firebase de version majeure : à faire avec un test complet avant un build. Dependabot proposera les correctifs. |
 | P2 | A.8.5 | Double authentification du super-administrateur. | Se règle dans le compte Google (Sécurité > Validation en deux étapes), pas dans le code. |
-| P2 | A.5.34 | La politique de confidentialité doit reprendre les durées et le sort des données (`donnees.ts`, page de suppression). | Texte juridique à valider par Capp ou un juriste. |
+| P2 | A.5.34 | Politique de confidentialité de Nkala publiée le 14/11 (essaka.engineering/nkala/confidentialite/), à faire valider. La politique du site vitrine doit y renvoyer. | Validation juridique ; lien à ajouter dans `site-app.jsx` (compilation). |
 | P2 | A.5.34 | Les identifiants des comptes SMS (`tel_241…`) contiennent le numéro, et ils restent dans les paiements, le registre Nkorouna et les journaux après suppression (obligation légale, preuve). | Les remplacer casserait la chaîne de hachage du registre. À traiter par un identifiant opaque pour les nouveaux comptes (migration à décider). |
 | P2 | A.8.5 | « Déconnecter partout » ne révoque pas le jeton de rafraîchissement Firebase côté Google. L'API refuse bien l'ancienne session, mais il faut se reconnecter. | Révocation chez Google : `firebase-admin` + compte de service, à décider. |
-| P3 | A.8.4 | 4 clés déjà révoquées restent dans l'historique public. | La réécriture (`git filter-repo` + `push --force`) touche tout le dépôt public et tous ses clones : seulement sur décision explicite de Capp. Les clés sont déjà inutilisables. |
 
 ---
 
