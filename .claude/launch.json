@@ -18,6 +18,80 @@
         "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3001 npx expo start --web --port 5173"
       ],
       "port": 5173
+    },
+    {
+      "name": "nkala-api-demo",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd server && npm run demo"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "nkorouna-api",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd server && PORT=3011 DEMO_CORS=http://localhost:5183 DEMO_DATA=.demo-data-nkorouna MOBILEMONEY_FOURNISSEUR=simulation NKOROUNA_ANCRAGE_URL=http://127.0.0.1:8600/ancrer NKOROUNA_ANCRAGE_SECRET=$(cat ../chaine/reseau/secret-relais 2>/dev/null) npm run demo"
+      ],
+      "port": 3011
+    },
+    {
+      "name": "nkorouna-web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3011 npx expo start --web --port 5183"
+      ],
+      "port": 5183
+    },
+    {
+      "name": "logement-api",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd server && PORT=3021 DEMO_CORS=http://localhost:5193 DEMO_DATA=.demo-data-logement npm run demo"
+      ],
+      "port": 3021,
+      "autoPort": false
+    },
+    {
+      "name": "logement-web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3021 npx expo start --web --port 5193"
+      ],
+      "port": 5193,
+      "autoPort": false
+    },
+    {
+      "name": "nkorouna-relais",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd chaine && RELAIS_CLE_PRIVEE=$(node -p \"require('./reseau/comptes.json').relais.clePrivee\") RELAIS_SECRET=$(cat reseau/secret-relais) CONTRAT_ADRESSE=$(node -p \"require('./reseau/deploiement.json').adresse\") RPC_URL=${RPC_URL:-http://127.0.0.1:8555} PORT=8600 node relais/relais.mjs"
+      ],
+      "port": 8600
+    },
+    {
+      "name": "securite-api-demo",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd server && PORT=3021 DEMO_CORS=http://localhost:5193 DEMO_DATA=.demo-data-securite npm run demo"
+      ],
+      "port": 3021
+    },
+    {
+      "name": "securite-web",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3021 npx expo start --web --port 5193"
+      ],
+      "port": 5193
     }
   ]
 }
