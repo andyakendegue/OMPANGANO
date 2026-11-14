@@ -10,10 +10,47 @@
  */
 import { createHmac } from 'node:crypto';
 import { journaliser, str, type Ctx } from './ctx.ts';
+import type { Db } from './db.ts';
 import { accorderProduit } from './achats.ts';
 import { COMPTES_SYSTEME, ErreurNkr, NKR, compteDe, ecrire, ouvrirCompte, preparerAncrage, preuveDe, solde, verifierRegistre } from './nkorounaRegistre.ts';
 
 const CLE = /^[A-Za-z0-9_-]{8,64}$/;
+const MOUVEMENT = /^nkr_[0-9a-f]{16}$/;   // identifiant d'un mouvement (règle API1)
+const UID = /^[A-Za-z0-9_-]{1,128}$/;
+
+/**
+ * Scelle les nouveaux mouvements (racine de Merkle) puis publie par le relais de la chaîne tous les sceaux sans transaction,
+ * du plus ancien au plus récent (20 au plus) : un relais injoignable une fois ne laisse aucun trou. Chaque étape est journalisée
+ * dans la transaction qui l'écrit (règle J1). `par` : administrateur, ou « systeme » pour l'ancrage quotidien (main.ts).
+ */
+export async function ancrerEtPublier(db: Db, env: NodeJS.ProcessEnv, par: string) {
+  const anc = await db.tx(async q => {
+    const x = await preparerAncrage(q);
+    if (x) await journaliser(q, par, 'nkorouna_ancrage', String(x.id), { racine: x.racine, de: x.de, jusqua: x.jusqua });
+    return x;
+  });
+  const publies: { id: number; reseau: string; transaction: string }[] = [];
+  if (env.NKOROUNA_ANCRAGE_URL && env.NKOROUNA_ANCRAGE_SECRET) {
+    const enAttente = await db.query<any>(`SELECT id, de_rang, jusqu_au_rang, racine FROM nkr_ancrages WHERE transaction IS NULL ORDER BY id LIMIT 20`);
+    for (const x of enAttente) {
+      const corps = JSON.stringify({ racine: x.racine, de: Number(x.de_rang), jusqua: Number(x.jusqu_au_rang), ancrage: Number(x.id) });
+      try {
+        const r = await fetch(env.NKOROUNA_ANCRAGE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-signature': createHmac('sha256', env.NKOROUNA_ANCRAGE_SECRET).update(corps).digest('hex') }, body: corps, signal: AbortSignal.timeout(30_000) });
+        if (!r.ok) break;
+        const j = await r.json() as { reseau?: string; transaction?: string };
+        if (!str(j.reseau) || !str(j.transaction) || !/^0x[0-9a-fA-F]{64}$/.test(j.transaction) || j.reseau.length > 40) break;
+        await db.tx(async q => {
+          await q.query(`UPDATE nkr_ancrages SET reseau = $2, transaction = $3 WHERE id = $1 AND transaction IS NULL`, [x.id, j.reseau, j.transaction]);
+          await journaliser(q, par, 'nkorouna_ancrage_publie', String(x.id), { reseau: j.reseau, transaction: j.transaction });
+        });
+        publies.push({ id: Number(x.id), reseau: j.reseau, transaction: j.transaction });
+      } catch { break; /* relais injoignable : ces sceaux restent en attente pour le prochain passage */ }
+    }
+  }
+  if (!anc && !publies.length) return { ok: true, rien: true as const };
+  const duNouveau = anc ? publies.find(p => p.id === anc.id) : undefined;
+  return { ok: true, ...(anc ?? {}), reseau: duNouveau?.reseau ?? 'aucun', transaction: duNouveau?.transaction ?? null, publies };
+}
 
 export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
   const admin = async (req: any) => { const a = await acteur(req); if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.'); return a; };
@@ -44,7 +81,11 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
   });
 
   /** Preuve qu'un mouvement fait partie d'une racine ancrée (empreintes seulement). */
-  app.get('/pub/nkorouna/preuve/:id', async (req) => (await preuveDe(db, (req.params as any).id)) ?? fail(404, 'Mouvement introuvable.'));
+  app.get('/pub/nkorouna/preuve/:id', async (req) => {
+    const id = (req.params as any).id;
+    if (!MOUVEMENT.test(id)) return fail(400, 'Identifiant de mouvement invalide.');
+    return (await preuveDe(db, id)) ?? fail(404, 'Mouvement introuvable.');
+  });
 
   // ---------------------------------------------------------------- utilisateur
   app.get('/v1/nkorouna', async (req) => {
@@ -74,7 +115,7 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
     if (!transfertsOuverts()) return fail(403, 'Les envois de Nkorouna entre personnes ne sont pas ouverts.');
     const a = await acteur(req);
     const { vers, montant, cle } = (req.body || {}) as { vers?: string; montant?: number; cle?: string };
-    if (!str(vers) || !str(cle) || !CLE.test(cle) || !Number.isSafeInteger(montant) || montant! <= 0) return fail(400, 'Destinataire, montant entier et clé attendus.');
+    if (!str(vers) || !UID.test(vers) || !str(cle) || !CLE.test(cle) || !Number.isSafeInteger(montant) || montant! <= 0) return fail(400, 'Destinataire, montant entier et clé attendus.');
     if (vers === a.auth.uid) return fail(400, 'Impossible de s\'envoyer des Nkorouna.');
     if (!(await db.query(`SELECT 1 FROM users WHERE id = $1`, [vers])).length) return fail(404, 'Destinataire introuvable.');
     const max = Number(env.NKOROUNA_TRANSFERT_MAX_JOUR || 5000);
@@ -99,7 +140,7 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
   app.post('/v1/admin/nkorouna/ajuster', async (req) => {
     const a = await admin(req);
     const { userId, montant, motif, cle } = (req.body || {}) as { userId?: string; montant?: number; motif?: string; cle?: string };
-    if (!str(userId) || !str(motif) || motif.trim().length < 3 || !Number.isSafeInteger(montant) || montant === 0 || !str(cle) || !CLE.test(cle)) return fail(400, 'Utilisateur, montant entier non nul (négatif pour retirer), motif et clé attendus.');
+    if (!str(userId) || !UID.test(userId) || !str(motif) || motif.trim().length < 3 || !Number.isSafeInteger(montant) || montant === 0 || !str(cle) || !CLE.test(cle)) return fail(400, 'Utilisateur, montant entier non nul (négatif pour retirer), motif et clé attendus.');
     return garde(() => db.tx(async q => {
       const compte = await ouvrirCompte(q, userId);
       const [debit, credit] = montant! > 0 ? [COMPTES_SYSTEME.bonus, compte] : [compte, COMPTES_SYSTEME.bonus];
@@ -114,6 +155,7 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
     const a = await admin(req);
     const { motif } = (req.body || {}) as { motif?: string };
     if (!str(motif) || motif.trim().length < 3) return fail(400, 'Motif attendu.');
+    if (!MOUVEMENT.test((req.params as any).id)) return fail(400, 'Identifiant de mouvement invalide.');
     const m = (await db.query<any>(`SELECT * FROM nkr_mouvements WHERE id = $1`, [(req.params as any).id]))[0];
     if (!m) return fail(404, 'Mouvement introuvable.');
     if (m.nature === 'annulation') return fail(400, 'Une annulation ne s\'annule pas : passer un ajustement.');
@@ -127,10 +169,12 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
   app.post('/v1/admin/nkorouna/geler', async (req) => {
     const a = await admin(req);
     const { userId, gele } = (req.body || {}) as { userId?: string; gele?: boolean };
-    if (!str(userId) || typeof gele !== 'boolean') return fail(400, 'Utilisateur et gele (oui/non) attendus.');
-    await ouvrirCompte(db, userId);
-    await db.query(`UPDATE nkr_comptes SET gele = $2 WHERE id = $1`, [compteDe(userId), gele]);
-    await journaliser(db, a.auth.uid, gele ? 'nkorouna_gel' : 'nkorouna_degel', userId);
+    if (!str(userId) || !UID.test(userId) || typeof gele !== 'boolean') return fail(400, 'Utilisateur et gele (oui/non) attendus.');
+    await db.tx(async q => { // action et journal dans la même transaction (règle J1)
+      await ouvrirCompte(q, userId);
+      await q.query(`UPDATE nkr_comptes SET gele = $2 WHERE id = $1`, [compteDe(userId), gele]);
+      await journaliser(q, a.auth.uid, gele ? 'nkorouna_gel' : 'nkorouna_degel', userId);
+    });
     return { ok: true, gele };
   });
 
@@ -140,25 +184,6 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
    */
   app.post('/v1/admin/nkorouna/ancrer', async (req) => {
     const a = await admin(req);
-    const anc = await db.tx(q => preparerAncrage(q));
-    const publies: { id: number; reseau: string; transaction: string }[] = [];
-    if (env.NKOROUNA_ANCRAGE_URL && env.NKOROUNA_ANCRAGE_SECRET) {
-      const enAttente = await db.query<any>(`SELECT id, de_rang, jusqu_au_rang, racine FROM nkr_ancrages WHERE transaction IS NULL ORDER BY id LIMIT 20`);
-      for (const x of enAttente) {
-        const corps = JSON.stringify({ racine: x.racine, de: Number(x.de_rang), jusqua: Number(x.jusqu_au_rang), ancrage: Number(x.id) });
-        try {
-          const r = await fetch(env.NKOROUNA_ANCRAGE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-signature': createHmac('sha256', env.NKOROUNA_ANCRAGE_SECRET).update(corps).digest('hex') }, body: corps, signal: AbortSignal.timeout(30_000) });
-          if (!r.ok) break;
-          const j = await r.json() as { reseau?: string; transaction?: string };
-          if (!str(j.reseau) || !str(j.transaction) || !/^0x[0-9a-fA-F]{64}$/.test(j.transaction) || j.reseau.length > 40) break;
-          await db.query(`UPDATE nkr_ancrages SET reseau = $2, transaction = $3 WHERE id = $1 AND transaction IS NULL`, [x.id, j.reseau, j.transaction]);
-          publies.push({ id: Number(x.id), reseau: j.reseau, transaction: j.transaction });
-        } catch { break; /* relais injoignable : ces sceaux restent en attente pour le prochain appel */ }
-      }
-    }
-    if (!anc && !publies.length) return { ok: true, rien: true };
-    const duNouveau = anc ? publies.find(p => p.id === anc.id) : undefined;
-    await journaliser(db, a.auth.uid, 'nkorouna_ancrage', anc ? String(anc.id) : 'republication', { racine: anc?.racine, publies });
-    return { ok: true, ...(anc ?? {}), reseau: duNouveau?.reseau ?? 'aucun', transaction: duNouveau?.transaction ?? null, publies };
+    return ancrerEtPublier(db, env, a.auth.uid);
   });
 }

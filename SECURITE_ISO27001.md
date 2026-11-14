@@ -24,6 +24,7 @@ Ce document couvre deux choses :
 | App Nkala (Expo) | Play Store, App Store (à venir), web | jeton de session, profil en cache, file hors ligne |
 | Site OMPANGANO (Vite) | Firebase Hosting `ompangano.web.app` | — |
 | Sauvegardes | `/opt/ompangano/backups` (chiffrées) | copie complète de la base et des médias |
+| Chaîne Nkorouna (pilote) | VPS, `/opt/nkorouna-chaine` : 4 validateurs Besu QBFT et relais d'ancrage, réseaux Docker internes, aucun port public | empreintes et racines de Merkle seulement (aucune donnée personnelle) ; clés des validateurs, du compte administrateur et du relais dans `reseau/` et `relais.env` (600, root) |
 | Fournisseurs | Google (Firebase Auth, Play), Apple, Twilio Verify, Anthropic, RunPod, Expo/EAS, GitHub, hébergeur du VPS, Revive (régie), opérateurs Mobile Money | voir A.5.19 à A.5.23 |
 
 ---
@@ -93,6 +94,28 @@ Tests : `server/api/test/securite.test.ts` (14 tests) et `smsRevue.test.ts`. Ser
 2. Faire valider la politique de confidentialité de Nkala, notamment l'âge de 15 ans pour l'accord parental et la liste des prestataires.
 3. Nouveau build natif quand Capp le décidera.
 4. Après la revue des magasins : changer `REVUE_CODE`.
+
+## 2 ter. Chaîne Nkorouna (pilote mis en service le 14/11/2026)
+
+Code : `chaine/` (versionné ; `reseau/` et `relais.env` exclus). Détail technique : `chaine/README.md`.
+
+| Mesure | Ce qui est fait | Où |
+|---|---|---|
+| A.5.9 Inventaire | Pile, clés et adresses inscrites dans les actifs ci-dessus et dans le README. | `chaine/README.md` |
+| A.8.20, A.8.22 Réseaux | Validateurs et relais sur des réseaux Docker internes ; RPC du validateur 1 lié à 127.0.0.1 ; liste blanche des 4 nœuds (`permissions-docker.toml`) ; relais joignable seulement par l'API sur `ompangano_default` ; rien d'ouvert dans le pare-feu. | `chaine/docker-compose.yml` |
+| A.8.2, A.8.3 Moindre privilège | Chaque nœud ne voit que la genèse et sa clé (lecture seule) ; relais en système de fichiers en lecture seule, utilisateur 1000, 256 Mo ; seul le relais détient la clé qui écrit les ancrages ; l'API de Nkala ne la voit jamais. | `chaine/docker-compose.yml` |
+| A.8.24, C2, S3 Cryptographie | Demandes d'ancrage signées HMAC-SHA256 avec un secret propre à cet usage, comparées à temps constant ; empreintes SHA-256 ; signatures secp256k1 du protocole. | `chaine/relais/relais.mjs`, `server/api/src/nkorouna.ts` |
+| C4 Rotation | Procédures écrites pour la clé du relais, son secret, l'administrateur du contrat ; clés des validateurs par vote QBFT (`qbft_proposeValidatorVote`). | `chaine/README.md` § Sécurité |
+| A.8.13 Sauvegarde | Chaque nuit : clés, genèse, `relais.env` et données du validateur 4 (arrêté le temps de la copie, la chaîne continue), chiffrés et scellés comme le reste, copiés hors du VPS avec `BACKUP_REMOTE`, 14 jours. | `server/backup/backup.sh` |
+| A.8.16 Surveillance | Alerte e-mail si un validateur ou le relais s'arrête, ou si aucun bloc n'est produit pendant 10 minutes. | `server/backup/alertes.py` |
+| A.8.15, J1, J2 Journalisation | Scellements et publications inscrits dans `journal_admin` dans leur transaction (`systeme` pour l'ancrage quotidien) ; le relais n'écrit ni secret ni corps de requête. | `server/api/src/nkorouna.ts`, `chaine/relais/relais.mjs` |
+| A.8.8, F2 Dépendances | Images épinglées (Besu 26.10.2, Node 24.22.1) et exclues de Watchtower ; lockfile versionné ; versions publiées depuis plus de deux semaines. | `chaine/package-lock.json` |
+| A.5.34, D1 Données | Aucune donnée personnelle sur la chaîne (empreintes seulement) ; le registre Nkorouna de l'API est déjà couvert (export, suppression, 10 ans). | `server/api/src/donnees.ts` |
+| A.8.29 Essais | 6 tests du contrat, essai de bout en bout, 7 tests Nkorouna de l'API (401, 403, 400 compris). | `chaine/test/`, `chaine/scripts/essai-bout-en-bout.mjs`, `server/api/test/nkorouna.test.ts` |
+
+Risques acceptés pour le pilote, à inscrire au registre des risques (§ 5.3) : les 4 validateurs sont sur la même machine (une panne du VPS arrête la chaîne ; la sauvegarde permet de la reconstruire) ; la clé de l'administrateur du contrat est sur le serveur (à déplacer hors ligne avant l'ouverture à des partenaires).
+
+---
 
 ## 3. Écarts restants
 

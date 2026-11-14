@@ -1,0 +1,23 @@
+{
+  "name": "nkorouna-chaine",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Chaîne Nkorouna : réseau Besu QBFT, contrat Registre (certification, ancrage), relais d'ancrage et page de vérification.",
+  "scripts": {
+    "compiler": "hardhat compile",
+    "test": "hardhat test",
+    "reseau:generer": "node scripts/generer-reseau.mjs",
+    "deployer": "node scripts/deployer.mjs",
+    "relais": "node relais/relais.mjs",
+    "essai": "node scripts/essai-bout-en-bout.mjs"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "2.1.2",
+    "@nomicfoundation/hardhat-ethers": "3.1.3",
+    "chai": "4.5.0",
+    "hardhat": "2.29.1"
+  },
+  "dependencies": {
+    "ethers": "6.17.0"
+  }
+}

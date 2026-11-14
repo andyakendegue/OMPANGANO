@@ -21,7 +21,10 @@ HEALTH = 'https://api-ompangano.essaka.engineering/health'
 MAX_MAILS_PAR_HEURE = 6
 CONTENEURS = ['ompangano-api-1', 'ompangano-postgres-1', 'ompangano-garage-1']
 # Services ajoutés pour Nkala : surveillés seulement s'ils existent (un conteneur absent n'est pas une panne tant qu'il n'a pas été installé)
-CONTENEURS_FACULTATIFS = ['regie-revive-1', 'regie-revive-db-1', 'runpod-embedding-proxy', 'runpod-openai-proxy']
+CONTENEURS_FACULTATIFS = ['regie-revive-1', 'regie-revive-db-1', 'runpod-embedding-proxy', 'runpod-openai-proxy',
+                          # chaîne Nkorouna (/opt/nkorouna-chaine) : 4 validateurs Besu et le relais d'ancrage
+                          'nkorouna-chaine-validateur1-1', 'nkorouna-chaine-validateur2-1', 'nkorouna-chaine-validateur3-1', 'nkorouna-chaine-validateur4-1', 'nkorouna-chaine-relais-1']
+CHAINE_RPC = 'http://127.0.0.1:8545'   # RPC du validateur 1, local seulement
 # Adresses internes à contrôler (service : url) ; toute réponse HTTP < 500 prouve que le service tourne
 SERVICES_INTERNES = {'proxy embeddings': 'http://172.17.0.1:8001/health', 'Revive': 'http://172.17.0.1:3910/www/admin/install.php'}
 DRY = '--dry-run' in sys.argv
@@ -194,6 +197,20 @@ def anomalies_systeme(etat):
     age_hs = (time.time() - os.path.getmtime(hors_site)) / 3600 if os.path.exists(hors_site) else None
     if (age_hs is None or age_hs > 48) and etat.get('hors_site_alerte') != jour:
         out.append(('hors_site_alerte', 'Aucune copie des sauvegardes hors du VPS depuis 48 h (BACKUP_REMOTE non défini ou en échec) : une panne du VPS ferait tout perdre.'))
+    # Chaîne Nkorouna : un bloc toutes les 2 s ; même numéro de bloc pendant plus de 10 minutes = consensus arrêté
+    if sh("docker inspect -f '{{.Name}}' nkorouna-chaine-validateur1-1").returncode == 0:
+        try:
+            req = urllib.request.Request(CHAINE_RPC, data=b'{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}', headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=10) as rep:
+                bloc = int(json.loads(rep.read())['result'], 16)
+        except Exception:
+            bloc = None
+        maintenant = time.time()
+        if bloc is not None and bloc != etat.get('chaine_bloc'):
+            etat['chaine_bloc'], etat['chaine_vu'] = bloc, maintenant
+        elif maintenant - etat.get('chaine_vu', maintenant) > 600 and etat.get('chaine_alerte') != jour:
+            out.append(('chaine_alerte', f'Chaîne Nkorouna : aucun nouveau bloc depuis {round((maintenant - etat.get("chaine_vu", maintenant)) / 60)} min (dernier bloc {etat.get("chaine_bloc")}). Voir cd /opt/nkorouna-chaine && docker compose logs --tail 50.'))
+        etat.setdefault('chaine_vu', maintenant)
     return out
 
 

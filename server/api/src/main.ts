@@ -5,6 +5,7 @@ import { createPgDb, runMigrations } from './db.ts';
 import { journaliserErreur } from './erreurs.ts';
 import { createS3Storage } from './storage.ts';
 import { purgerDonnees } from './donnees.ts';
+import { ancrerEtPublier } from './nkorouna.ts';
 
 const cfg = loadConfig();
 const db = await createPgDb(cfg.databaseUrl);
@@ -34,7 +35,12 @@ const purger = () => purgerDonnees(db).then(d => console.log('Purge des données
 setTimeout(purger, 60_000);
 const minuteurPurge = setInterval(purger, 24 * 3600_000);
 
-const stop = async () => { clearInterval(minuteurPurge); await app.close(); await db.close(); process.exit(0); };
+// Ancrage quotidien du registre Nkorouna sur la chaîne (relais NKOROUNA_ANCRAGE_URL) ; sans relais, la racine est seulement calculée
+const ancrer = () => ancrerEtPublier(db, process.env, 'systeme').then(r => { if (!('rien' in r)) console.log('Ancrage Nkorouna :', JSON.stringify({ de: (r as any).de, jusqua: (r as any).jusqua, publies: r.publies.length })); }).catch(e => console.error('ancrage Nkorouna échoué', e?.message));
+setTimeout(ancrer, 5 * 60_000);
+const minuteurAncrage = setInterval(ancrer, 24 * 3600_000);
+
+const stop = async () => { clearInterval(minuteurPurge); clearInterval(minuteurAncrage); await app.close(); await db.close(); process.exit(0); };
 process.on('SIGTERM', stop);
 process.on('SIGINT', stop);
 

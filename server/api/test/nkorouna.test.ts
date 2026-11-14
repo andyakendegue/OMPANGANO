@@ -126,6 +126,21 @@ test('registre : chaîne valide, somme nulle, ancrage et preuve de Merkle ; reto
   await db.query(`UPDATE nkr_comptes SET solde = solde - 1000 WHERE id = 'u:nk1'`);
 });
 
+test('règles de sécurité : 401 sans jeton, 403 pour un utilisateur sur chaque route d\'administration, 400 sur identifiants invalides', async () => {
+  const u = await user();
+  for (const [m, url] of [['GET', '/v1/nkorouna'], ['POST', '/v1/nkorouna/depenser'], ['POST', '/v1/nkorouna/transferer'], ['GET', '/v1/admin/nkorouna']] as const)
+    assert.equal((await call(m, url)).status, 401, `${m} ${url} sans jeton`);
+  for (const [m, url, body] of [['GET', '/v1/admin/nkorouna', undefined], ['POST', '/v1/admin/nkorouna/ajuster', { userId: u.uid, montant: 5, motif: 'essai', cle: 'refus-0000001' }],
+    ['POST', '/v1/admin/nkorouna/annuler/nkr_0123456789abcdef', { motif: 'essai' }], ['POST', '/v1/admin/nkorouna/geler', { userId: u.uid, gele: true }], ['POST', '/v1/admin/nkorouna/ancrer', undefined]] as const)
+    assert.equal((await call(m, url, u.token, body)).status, 403, `${m} ${url} pour un utilisateur`);
+  assert.equal((await call('GET', '/pub/nkorouna/preuve/pas-un-id')).status, 400);
+  assert.equal((await call('POST', '/v1/admin/nkorouna/annuler/x;drop', ADMIN, { motif: 'essai' })).status, 400);
+  assert.equal((await call('POST', '/v1/admin/nkorouna/geler', ADMIN, { userId: 'a b', gele: true })).status, 400);
+  assert.equal((await call('POST', '/v1/admin/nkorouna/ajuster', ADMIN, { userId: '../x', montant: 5, motif: 'essai', cle: 'refus-0000002' })).status, 400);
+  const j = await db.query<any>(`SELECT action FROM journal_admin WHERE action LIKE 'nkorouna_%'`);
+  assert.ok(j.some(x => x.action === 'nkorouna_gel') && j.some(x => x.action === 'nkorouna_ancrage'), 'gel et ancrage journalisés');
+});
+
 test('Merkle : preuves valides pour chaque feuille, nombre impair compris', () => {
   for (const taille of [1, 2, 3, 5, 8, 13]) {
     const f = Array.from({ length: taille }, (_, i) => String(i).padStart(64, 'a'));

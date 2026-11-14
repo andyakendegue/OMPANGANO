@@ -1,0 +1,8 @@
+node_modules/
+artifacts/
+cache/
+# Clés des nœuds et des comptes, genèse générée, données des nœuds : jamais dans le dépôt (règle S1)
+reseau/
+.env
+*.cle
+relais.env

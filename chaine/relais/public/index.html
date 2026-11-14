@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vérifier un document</title>
+<style>
+  :root { --fond: #faf6f1; --carte: #ffffff; --texte: #1f1610; --discret: #6b5a4c; --accent: #b4521f; --bord: #e6dcd2; --ok: #1d7a46; --ko: #b42318; --attention: #9a6700; }
+  @media (prefers-color-scheme: dark) { :root { --fond: #17110d; --carte: #221a14; --texte: #f6eee7; --discret: #b8a797; --accent: #f0a04b; --bord: #3a2e25; --ok: #5ccf8f; --ko: #ff8a80; --attention: #f2c14e; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  p.sous { color: var(--discret); margin: 0 0 24px; }
+  .carte { background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .depot { display: block; border: 2px dashed var(--bord); border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; }
+  .depot:hover, .depot.survol { border-color: var(--accent); }
+  .depot strong { color: var(--accent); }
+  input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  label.titre { display: block; font-weight: 600; margin-bottom: 6px; }
+  .ligne { display: flex; gap: 8px; flex-wrap: wrap; }
+  input[type=text] { flex: 1 1 260px; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--bord); background: var(--fond); color: var(--texte); font: 14px ui-monospace, monospace; }
+  button { padding: 10px 16px; border-radius: 10px; border: 0; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .empreinte { font: 12px ui-monospace, monospace; color: var(--discret); word-break: break-all; margin-top: 10px; }
+  #resultat:empty { display: none; }
+  .verdict { font-size: 1.15rem; font-weight: 700; margin: 0 0 8px; }
+  .ok { color: var(--ok); } .ko { color: var(--ko); } .attention { color: var(--attention); }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+  dt { color: var(--discret); } dd { margin: 0; word-break: break-all; }
+  footer { color: var(--discret); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Vérifier un document</h1>
+  <p class="sous">Chaîne Nkorouna · le fichier reste sur votre appareil : seule son empreinte SHA-256 est comparée au registre.</p>
+
+  <div class="carte">
+    <label class="depot" id="depot" for="fichier">
+      <strong>Choisir un fichier</strong> ou le déposer ici
+      <input type="file" id="fichier">
+    </label>
+    <div class="empreinte" id="empreinte"></div>
+  </div>
+
+  <div class="carte">
+    <label class="titre" for="hex">Ou coller une empreinte, ou une racine d'ancrage (64 caractères hexadécimaux)</label>
+    <div class="ligne">
+      <input type="text" id="hex" placeholder="3f6bb6282…" autocomplete="off" spellcheck="false">
+      <button id="chercher" type="button">Vérifier</button>
+    </div>
+  </div>
+
+  <div class="carte" id="resultat" aria-live="polite"></div>
+
+  <footer>Un document certifié a été enregistré par un émetteur agréé à la date indiquée ; un document modifié, même d'un seul caractère, n'a plus la même empreinte et n'est pas reconnu.</footer>
+</main>
+<script>
+  const $ = id => document.getElementById(id);
+  const echapper = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const date = iso => new Date(iso).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+
+  async function empreinteDe(fichier) {
+    const h = await crypto.subtle.digest('SHA-256', await fichier.arrayBuffer());
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function verifier(hex) {
+    const r = $('resultat');
+    r.innerHTML = '<p>Interrogation de la chaîne…</p>';
+    try {
+      const [c, a] = await Promise.all([fetch('pub/verifier/' + hex).then(x => x.json()), fetch('pub/ancrage/' + hex).then(x => x.json())]);
+      if (c.erreur || a.erreur) { r.innerHTML = `<p class="verdict ko">${echapper(c.erreur || a.erreur)}</p>`; return; }
+      if (c.connu) {
+        r.innerHTML = `<p class="verdict ${c.revoque ? 'attention' : 'ok'}">${c.revoque ? 'Certificat révoqué' : 'Document certifié'}</p>
+          <dl><dt>Émetteur</dt><dd>${echapper(c.nomEmetteur || 'émetteur retiré')}</dd><dt>Adresse</dt><dd>${echapper(c.emetteur)}</dd>
+          <dt>Certifié le</dt><dd>${date(c.date)}</dd>${c.revoque ? `<dt>Révoqué le</dt><dd>${date(c.revoqueLe)}</dd>` : ''}</dl>`;
+      } else if (a.connu) {
+        r.innerHTML = `<p class="verdict ok">Racine d'ancrage enregistrée</p>
+          <dl><dt>Émetteur</dt><dd>${echapper(a.nomEmetteur)}</dd><dt>Mouvements</dt><dd>${a.de} à ${a.jusqua}</dd><dt>Ancrée le</dt><dd>${date(a.date)}</dd></dl>`;
+      } else {
+        r.innerHTML = '<p class="verdict ko">Inconnu du registre</p><p>Ce document n\'a pas été certifié, ou il a été modifié depuis.</p>';
+      }
+    } catch { r.innerHTML = '<p class="verdict ko">La chaîne ne répond pas. Réessayez plus tard.</p>'; }
+  }
+
+  async function traiter(fichier) {
+    if (!fichier) return;
+    $('empreinte').textContent = 'Calcul de l\'empreinte…';
+    const hex = await empreinteDe(fichier);
+    $('empreinte').textContent = `${fichier.name} · SHA-256 ${hex}`;
+    verifier(hex);
+  }
+
+  $('fichier').addEventListener('change', e => traiter(e.target.files[0]));
+  const depot = $('depot');
+  depot.addEventListener('dragover', e => { e.preventDefault(); depot.classList.add('survol'); });
+  depot.addEventListener('dragleave', () => depot.classList.remove('survol'));
+  depot.addEventListener('drop', e => { e.preventDefault(); depot.classList.remove('survol'); traiter(e.dataTransfer.files[0]); });
+  $('chercher').addEventListener('click', () => {
+    const hex = $('hex').value.trim().replace(/^0x/, '').toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(hex)) { $('resultat').innerHTML = '<p class="verdict ko">64 caractères hexadécimaux attendus.</p>'; return; }
+    verifier(hex);
+  });
+</script>
+</body>
+</html>

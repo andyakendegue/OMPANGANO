@@ -100,6 +100,8 @@ services:
       MOBILEMONEY_API_URL: ${MOBILEMONEY_API_URL:-}
       MOBILEMONEY_API_KEY: ${MOBILEMONEY_API_KEY:-}
       MOBILEMONEY_WEBHOOK_SECRET: ${MOBILEMONEY_WEBHOOK_SECRET:-}
+      NKOROUNA_ANCRAGE_URL: ${NKOROUNA_ANCRAGE_URL:-}        # relais de la chaîne Nkorouna (http://nkorouna-relais:8600/ancrer, réseau Docker interne)
+      NKOROUNA_ANCRAGE_SECRET: ${NKOROUNA_ANCRAGE_SECRET:-}  # HMAC partagé avec le relais (/opt/nkorouna-chaine/reseau/secret-relais)
       VECTOR_URL: ${VECTOR_URL:-}
       VECTOR_API_KEY: ${VECTOR_API_KEY:-}
       VECTOR_COLLECTION: ${VECTOR_COLLECTION:-nkala_rag}

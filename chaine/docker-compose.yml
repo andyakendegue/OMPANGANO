@@ -1,0 +1,187 @@
+# Réseau pilote de la chaîne Nkorouna : 4 validateurs Besu QBFT (image épinglée, règle F2).
+# Préparer d'abord : node scripts/generer-reseau.mjs, puis :
+#   echo "BOOTNODE=$(cat reseau/bootnodes-docker.txt)" > .env && chown -R 1000:1000 reseau/validateur* && docker compose up -d
+# (l'image Besu tourne sous l'utilisateur 1000 : il doit pouvoir lire les clés, en 600)
+# Chaque nœud ne voit que la genèse et son propre dossier (sa clé), en lecture seule ; reseau/ n'est jamais versionné.
+name: nkorouna-chaine
+services:
+  validateur1:
+    image: hyperledger/besu:26.10.2
+    restart: unless-stopped
+    # Serveur partagé avec Nkala : mémoire plafonnée par nœud, image figée (Watchtower ne la met pas à jour)
+    environment:
+      BESU_OPTS: -Xms256m -Xmx384m
+    mem_limit: 768m
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    command:
+      - --data-path=/data
+      - --genesis-file=/reseau/genese.json
+      - --node-private-key-file=/reseau/validateur1/cle
+      - --bootnodes=${BOOTNODE}
+      - --p2p-host=172.30.24.11
+      - --p2p-port=30303
+      - --permissions-nodes-config-file-enabled=true
+      - --permissions-nodes-config-file=/reseau/validateur1/permissions-docker.toml
+      - --min-gas-price=0
+      - --rpc-http-enabled=true
+      - --rpc-http-host=0.0.0.0
+      - --rpc-http-port=8545
+      - --rpc-http-api=ETH,NET,WEB3,QBFT
+      - --rpc-http-cors-origins=none
+      - --host-allowlist=localhost,127.0.0.1,validateur1,relais
+      - --logging=INFO
+    volumes:
+      - ./reseau/genese.json:/reseau/genese.json:ro
+      - ./reseau/validateur1:/reseau/validateur1:ro
+      - donnees1:/data
+    ports:
+      - "127.0.0.1:8545:8545"   # RPC du validateur 1 seulement, en local : en production, derrière un proxy HTTPS (règle C1)
+    networks:
+      chaine:
+        ipv4_address: 172.30.24.11
+
+  validateur2:
+    image: hyperledger/besu:26.10.2
+    restart: unless-stopped
+    # Serveur partagé avec Nkala : mémoire plafonnée par nœud, image figée (Watchtower ne la met pas à jour)
+    environment:
+      BESU_OPTS: -Xms256m -Xmx384m
+    mem_limit: 768m
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    command:
+      - --data-path=/data
+      - --genesis-file=/reseau/genese.json
+      - --node-private-key-file=/reseau/validateur2/cle
+      - --bootnodes=${BOOTNODE}
+      - --p2p-host=172.30.24.12
+      - --p2p-port=30303
+      - --permissions-nodes-config-file-enabled=true
+      - --permissions-nodes-config-file=/reseau/validateur2/permissions-docker.toml
+      - --min-gas-price=0
+      - --rpc-http-enabled=true
+      - --rpc-http-host=0.0.0.0
+      - --rpc-http-port=8545
+      - --rpc-http-api=ETH,NET,WEB3,QBFT
+      - --rpc-http-cors-origins=none
+      - --host-allowlist=localhost,127.0.0.1,validateur1,relais
+      - --logging=INFO
+    volumes:
+      - ./reseau/genese.json:/reseau/genese.json:ro
+      - ./reseau/validateur2:/reseau/validateur2:ro
+      - donnees2:/data
+    networks:
+      chaine:
+        ipv4_address: 172.30.24.12
+
+  validateur3:
+    image: hyperledger/besu:26.10.2
+    restart: unless-stopped
+    # Serveur partagé avec Nkala : mémoire plafonnée par nœud, image figée (Watchtower ne la met pas à jour)
+    environment:
+      BESU_OPTS: -Xms256m -Xmx384m
+    mem_limit: 768m
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    command:
+      - --data-path=/data
+      - --genesis-file=/reseau/genese.json
+      - --node-private-key-file=/reseau/validateur3/cle
+      - --bootnodes=${BOOTNODE}
+      - --p2p-host=172.30.24.13
+      - --p2p-port=30303
+      - --permissions-nodes-config-file-enabled=true
+      - --permissions-nodes-config-file=/reseau/validateur3/permissions-docker.toml
+      - --min-gas-price=0
+      - --rpc-http-enabled=true
+      - --rpc-http-host=0.0.0.0
+      - --rpc-http-port=8545
+      - --rpc-http-api=ETH,NET,WEB3,QBFT
+      - --rpc-http-cors-origins=none
+      - --host-allowlist=localhost,127.0.0.1,validateur1,relais
+      - --logging=INFO
+    volumes:
+      - ./reseau/genese.json:/reseau/genese.json:ro
+      - ./reseau/validateur3:/reseau/validateur3:ro
+      - donnees3:/data
+    networks:
+      chaine:
+        ipv4_address: 172.30.24.13
+
+  validateur4:
+    image: hyperledger/besu:26.10.2
+    restart: unless-stopped
+    # Serveur partagé avec Nkala : mémoire plafonnée par nœud, image figée (Watchtower ne la met pas à jour)
+    environment:
+      BESU_OPTS: -Xms256m -Xmx384m
+    mem_limit: 768m
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    command:
+      - --data-path=/data
+      - --genesis-file=/reseau/genese.json
+      - --node-private-key-file=/reseau/validateur4/cle
+      - --bootnodes=${BOOTNODE}
+      - --p2p-host=172.30.24.14
+      - --p2p-port=30303
+      - --permissions-nodes-config-file-enabled=true
+      - --permissions-nodes-config-file=/reseau/validateur4/permissions-docker.toml
+      - --min-gas-price=0
+      - --rpc-http-enabled=true
+      - --rpc-http-host=0.0.0.0
+      - --rpc-http-port=8545
+      - --rpc-http-api=ETH,NET,WEB3,QBFT
+      - --rpc-http-cors-origins=none
+      - --host-allowlist=localhost,127.0.0.1,validateur1,relais
+      - --logging=INFO
+    volumes:
+      - ./reseau/genese.json:/reseau/genese.json:ro
+      - ./reseau/validateur4:/reseau/validateur4:ro
+      - donnees4:/data
+    networks:
+      chaine:
+        ipv4_address: 172.30.24.14
+
+  # Relais d'ancrage : seul détenteur de la clé du compte « relais ». Joignable par l'API de Nkala sur son réseau Docker
+  # (http://nkorouna-relais:8600/ancrer), jamais depuis Internet. Variables dans relais.env (600, hors dépôt) :
+  # RELAIS_CLE_PRIVEE, RELAIS_SECRET, CONTRAT_ADRESSE.
+  relais:
+    image: node:24.22.1-alpine
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /app
+    command: ["node", "relais/relais.mjs"]
+    env_file: relais.env
+    environment:
+      RPC_URL: http://validateur1:8545
+      HOTE: 0.0.0.0
+      PORT: "8600"
+      RESEAU_NOM: nkorouna-pilote
+    volumes:
+      - ./relais:/app/relais:ro
+      - ./node_modules:/app/node_modules:ro
+      - ./package.json:/app/package.json:ro
+    read_only: true
+    mem_limit: 256m
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    depends_on: [validateur1]
+    networks:
+      chaine: {}
+      nkala:
+        aliases: [nkorouna-relais]
+
+networks:
+  chaine:
+    ipam:
+      config:
+        - subnet: 172.30.24.0/24
+  nkala:
+    external: true
+    name: ompangano_default
+volumes:
+  donnees1:
+  donnees2:
+  donnees3:
+  donnees4:

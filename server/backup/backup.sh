@@ -25,6 +25,18 @@ tar -C "$TMP" -czf - . | enc > "$DEST/media/media-$STAMP.tar.gz.enc"
 
 sceller "$DEST/db/ompangano-$STAMP.dump.enc"; sceller "$DEST/media/media-$STAMP.tar.gz.enc"
 
+# Chaîne Nkorouna : clés des validateurs et des comptes, genèse, relais.env, et données du validateur 4.
+# Il est arrêté le temps de la copie (copie cohérente) ; QBFT continue avec 3 validateurs sur 4, puis il rattrape.
+CHAINE=/opt/nkorouna-chaine; VOL=/var/lib/docker/volumes/nkorouna-chaine_donnees4/_data
+if [ -d "$CHAINE/reseau" ] && [ -d "$VOL" ]; then
+  mkdir -p "$DEST/chaine"
+  (cd "$CHAINE" && docker compose stop validateur4 >/dev/null 2>&1) || true
+  tar -czf - -C "$CHAINE" reseau relais.env -C "$(dirname "$VOL")" _data | enc > "$DEST/chaine/chaine-$STAMP.tar.gz.enc" || echo "ATTENTION : copie de la chaîne en échec" >&2
+  (cd "$CHAINE" && docker compose start validateur4 >/dev/null 2>&1) || echo "ATTENTION : validateur4 non relancé" >&2
+  sceller "$DEST/chaine/chaine-$STAMP.tar.gz.enc"
+  find "$DEST/chaine" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
+fi
+
 find "$DEST/db" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
 find "$DEST/media" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
 chmod 600 "$DEST"/db/* "$DEST"/media/* 2>/dev/null || true
@@ -36,7 +48,7 @@ chmod -R go-rwx "$DEST" 2>/dev/null || true
 # Copie hors du VPS (ISO 27001 A.8.13 : obligatoire) : rsync vers BACKUP_REMOTE (ex. user@autre-serveur:/sauvegardes/ompangano).
 # Les fichiers sont déjà chiffrés et scellés ; le témoin « derniere_copie_hors_site » est surveillé par alertes.py (> 48 h = alerte).
 if [ -n "${BACKUP_REMOTE:-}" ]; then
-  rsync -a --delete --exclude derniere_copie_hors_site "$DEST/db" "$DEST/media" "$BACKUP_REMOTE/" && touch "$DEST/derniere_copie_hors_site"
+  rsync -a --delete --exclude derniere_copie_hors_site "$DEST/db" "$DEST/media" $( [ -d "$DEST/chaine" ] && echo "$DEST/chaine" ) "$BACKUP_REMOTE/" && touch "$DEST/derniere_copie_hors_site"
 else
   echo "ATTENTION : BACKUP_REMOTE non défini, aucune copie hors du VPS." >&2
 fi
