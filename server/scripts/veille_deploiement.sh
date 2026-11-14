@@ -41,7 +41,7 @@ CHANGES=$(git -C "$SRC" diff --name-only "$DEPLOYE" "$NOUVEAU" 2>/dev/null)
 log "nouvelle publication $DEPLOYE → $NOUVEAU"
 
 git -C "$SRC" merge --quiet --ff-only "$NOUVEAU" 2>>"$LOG" || { alerte "publication refusée (historique modifié)" "La branche $BRANCH n'avance plus en ligne droite : déploiement automatique suspendu. Intervention nécessaire."; exit 1; }
-if ! echo "$CHANGES" | grep -qE '^(server/|shared/|packages/noyau/src/|src/types/|contenu/exemples/)'; then
+if ! echo "$CHANGES" | grep -qE '^(server/|shared/|packages/noyau/src/|packages/noyau/contenu/|src/types/|contenu/exemples/)'; then
   echo "$NOUVEAU" > "$APP/.version-deployee"; log "aucun fichier serveur modifié : rien à déployer"; exit 0
 fi
 
@@ -53,8 +53,8 @@ fi
 
 RS="rsync -rlc --exclude node_modules --exclude '.env*' --exclude .demo-data"
 eval $RS --exclude regie --exclude proxies --exclude api/src/demo.ts "$SRC/server/" "$APP/server/"
-mkdir -p "$APP/packages/noyau" "$APP/contenu" "$APP/src"
-eval $RS "$SRC/packages/noyau/src/" "$APP/packages/noyau/src/"; eval $RS "$SRC/shared/" "$APP/shared/"; eval $RS "$SRC/src/types/" "$APP/src/types/"; eval $RS "$SRC/contenu/exemples/" "$APP/contenu/exemples/"
+mkdir -p "$APP/packages/noyau/contenu" "$APP/contenu" "$APP/src"
+eval $RS "$SRC/packages/noyau/src/" "$APP/packages/noyau/src/"; eval $RS "$SRC/packages/noyau/contenu/" "$APP/packages/noyau/contenu/"; eval $RS "$SRC/shared/" "$APP/shared/"; eval $RS "$SRC/src/types/" "$APP/src/types/"; eval $RS "$SRC/contenu/exemples/" "$APP/contenu/exemples/"
 
 retour_arriere() {
   log "ÉCHEC : retour arrière vers $DEPLOYE"
