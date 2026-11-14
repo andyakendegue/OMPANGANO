@@ -13,6 +13,12 @@ APP=/opt/ompangano
 LOG=/var/log/ompangano-deploiement.log
 LOCK=/var/lock/ompangano-deploiement.lock
 exec 9>"$LOCK"; flock -n 9 || exit 0
+# Pause : tant que ce fichier existe, rien n'est déployé automatiquement (sa première ligne dit pourquoi).
+# Depuis le 14/11/2026, main contient du travail validé mais pas encore mis en ligne (Nkorouna, annonces logement,
+# migrations 013 et 014) : le déploiement se fait à la main, fichier par fichier, avec l'accord de Capp.
+# Pour relancer la veille : rm /opt/ompangano/secrets/veille_en_pause
+PAUSE=/opt/ompangano/secrets/veille_en_pause
+[ -f "$PAUSE" ] && exit 0
 log() { echo "$(date '+%F %T') $*" | tee -a "$LOG"; }
 alerte() { python3 "$APP/server/backup/alertes.py" --message "OMPANGANO — $1" "$2" >> "$LOG" 2>&1 || true; }
 [ -n "${DEPLOY_TOKEN:-}" ] && REPO_AUTH=${REPO/https:\/\//https:\/\/x-access-token:${DEPLOY_TOKEN}@} || REPO_AUTH=$REPO
