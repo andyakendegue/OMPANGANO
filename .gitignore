@@ -23,3 +23,6 @@ apps/nkala/GoogleService-Info.plist
 apps/nkala/src/firebase.config.json
 firebase-applet-config.json
 __pycache__/
+
+# Contrats (14 nov. 2026) : restent sur le Mac, jamais dans le dépôt.
+contrats/
