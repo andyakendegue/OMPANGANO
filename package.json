@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.3.0",
     "canvas-confetti": "^1.9.4",
     "express": "^4.21.2",
     "firebase": "^13.1.0",
