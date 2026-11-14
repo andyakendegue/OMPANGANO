@@ -19,6 +19,7 @@
     "@nkala/noyau": "file:../../packages/noyau",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "11.4.1",
+    "decode-uri-component": "file:../../packages/decode-uri-component",
     "expo": "~54.0.0",
     "expo-asset": "~12.0.14",
     "expo-audio": "~1.1.1",
@@ -52,6 +53,7 @@
     "expo-video-thumbnails": "~10.0.8",
     "expo-web-browser": "~15.0.11",
     "firebase": "^12.19.0",
+    "image-size": "file:../../packages/image-size-compat",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
@@ -70,11 +72,11 @@
     "@grpc/grpc-js": "^1.14.7",
     "postcss": "^8.5.33",
     "node-forge": "^1.4.3",
-    "decode-uri-component": "file:../../packages/decode-uri-component",
+    "decode-uri-component": "$decode-uri-component",
     "minimatch@^9": "^11.0.8",
     "minimatch@^10": "^11.0.8",
     "glob@^13": "^14.0.6",
     "glob@^10": "^14.0.6",
-    "image-size": "file:../../packages/image-size-compat"
+    "image-size": "$image-size"
   }
 }
