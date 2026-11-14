@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import {
+  adminCoutsIa, adminEcrireParametre, type CoutsIa,
   adminBibliothequeEtat, adminBibliothequeImporter, adminIaActiverPrompt, adminRadioEtat, adminRadioSynchroniser, adminIaAjouterDocument, adminIaAjouterPrompt, adminIaConfig, adminIaDocuments, adminIaDossier, adminIaEtat, adminIaPrompts, adminIaRechercher, adminIaReindexer, adminIaSupprimerDocument, adminIaSynchroniserDossier, adminIaTester,
   adminPushEnvoyer, adminPushEtat, adminPushHistorique, adminRegieAjouterAnnonceur, adminRegieAjouterCampagne, adminRegieAjouterCreation, adminRegieAnnonceurs, adminRegieCampagnes, adminRegieEtat,
   adminRegieStats, adminRegieStatut, adminRegieSynchroniser, adminRunpodEtat, adminRunpodPod,
@@ -12,6 +13,72 @@ import { useTheme } from './Prefs';
 
 const Ligne = ({ a, b }: { a: string; b: string }) => <View style={{ flexDirection: 'row', gap: 8 }}><T v="petit" style={{ width: 110 }}>{a}</T><T v="corps" style={{ flex: 1 }}>{b}</T></View>;
 const erreur = (toast: ReturnType<typeof useToast>) => (e: unknown) => toast((e as Error).message, 'erreur');
+
+// ------------------------------------------------------------------ coûts et contexte des chats
+const fcfa = (n: number, d: string) => `${(n || 0).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} ${d}`;
+const jet = (n: number) => (n || 0).toLocaleString('fr-FR');
+
+/** Combien coûte l'assistant : coût réel du modèle, frais d'excès comptés aux utilisateurs, chats les plus lourds ; réglages du contexte et des tarifs. */
+function CoutsChats() {
+  const toast = useToast(), ko = erreur(toast);
+  const [d, setD] = useState<CoutsIa | null>(null);
+  const [r, setR] = useState({ inclus: '', max: '', politique: 'facturer' as 'bloquer' | 'facturer' | 'suivre' });
+  const [t, setT] = useState({ devise: '', entreeParMillion: '', sortieParMillion: '', cacheParMillion: '', excesParMillier: '' });
+  const charger = useCallback(() => adminCoutsIa().then(x => {
+    setD(x);
+    setR({ inclus: String(x.regles.inclus), max: String(x.regles.max), politique: x.regles.politique });
+    setT({ devise: x.tarif.devise, entreeParMillion: String(x.tarif.entreeParMillion), sortieParMillion: String(x.tarif.sortieParMillion), cacheParMillion: String(x.tarif.cacheParMillion), excesParMillier: String(x.tarif.excesParMillier) });
+  }).catch(ko), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { charger(); }, [charger]);
+  if (!d) return <Chargement lignes={2} />;
+  const n = (v: string) => Number(v.replace(',', '.'));
+  const dev = d.tarif.devise;
+  const marge = (x: { cout: number; frais: number }) => x.frais - x.cout;
+  return (
+    <>
+      <SectionTitre titre="Coûts de l'assistant" action="Actualiser" onAction={charger} />
+      <Carte plat><View style={{ padding: 14, gap: 6 }}>
+        {([['Aujourd\'hui', d.jour], ['Ce mois-ci', d.mois], ['Depuis le début', d.total]] as const).map(([l, x]) => (
+          <View key={l} style={{ gap: 2 }}>
+            <Ligne a={l} b={`coût ${fcfa(x.cout, dev)} · frais d'excès ${fcfa(x.frais, dev)}`} />
+            <T v="petit" style={{ paddingLeft: 118 }}>{x.appels} appel(s), {jet(x.entree)} jetons lus, {jet(x.sortie)} écrits, {jet(x.jetons_exces)} en excès</T>
+          </View>
+        ))}
+        <Ligne a="Chats en excès" b={`${d.enExces} (contexte au-delà de ${jet(d.regles.inclus)} jetons)`} />
+        <T v="petit">Coût = ce que le modèle nous coûte, d'après les jetons mesurés et les tarifs ci-dessous. Frais = ce qui est compté aux utilisateurs pour le contexte au-delà de l'inclus. Aucun prélèvement n'est fait : ce sont des montants calculés. Les réponses simulées ne comptent pas.</T>
+      </View></Carte>
+
+      {d.chats.length > 0 && <>
+        <SectionTitre titre="Chats les plus coûteux" />
+        {d.chats.slice(0, 12).map(x => (
+          <Carte key={x.id} plat><View style={{ padding: 12, gap: 4 }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <T v="carte" numberOfLines={1} style={{ flex: 1 }}>{x.titre}</T>
+              {x.contexte.niveau !== 'ok' && <Pastille label={x.contexte.niveau === 'plein' ? 'plein' : x.contexte.niveau === 'exces' ? 'excès' : 'alerte'} />}
+            </View>
+            <T v="petit">{x.utilisateur} · contexte {jet(x.contexte.jetons)} / {jet(x.contexte.inclus)} · {x.appels} appel(s)</T>
+            <T v="petit">coût {fcfa(x.cout, dev)} · frais {fcfa(x.frais, dev)} · solde {fcfa(marge(x), dev)}</T>
+          </View></Carte>
+        ))}
+      </>}
+
+      <SectionTitre titre="Contexte des chats" />
+      <T v="petit">Le contexte d'un chat est tout ce que le modèle relit à chaque message (consigne, documents du RAG, échanges). Au-delà de « inclus », le chat est en excès ; au plafond, il est plein et l'utilisateur doit en ouvrir un autre.</T>
+      <Champ valeur={r.inclus} onChange={v => setR({ ...r, inclus: v.replace(/\D/g, '') })} placeholder="Jetons inclus par chat (6000)" clavier="number-pad" label="Jetons inclus par chat" />
+      <Champ valeur={r.max} onChange={v => setR({ ...r, max: v.replace(/\D/g, '') })} placeholder="Plafond par chat (24000)" clavier="number-pad" label="Plafond par chat" />
+      <Rangee>{([['facturer', 'Excès : frais (avec accord)'], ['bloquer', 'Excès : bloquer'], ['suivre', 'Excès : mesurer seulement']] as const).map(([v, l]) => <Puce key={v} label={l} actif={r.politique === v} onPress={() => setR({ ...r, politique: v })} />)}</Rangee>
+      <Bouton label="Enregistrer le contexte" petit variante="fantome" onPress={() => adminEcrireParametre('ia_contexte', { inclus: n(r.inclus), max: n(r.max), politique: r.politique }).then(() => { toast('Contexte enregistré.', 'succes'); charger(); }).catch(ko)} />
+
+      <SectionTitre titre="Tarifs" />
+      <T v="petit">Prix du modèle par million de jetons (à reprendre de la facture RunPod ou du fournisseur), et frais comptés à l'utilisateur par millier de jetons en excès, à chaque message.</T>
+      <Champ valeur={t.devise} onChange={v => setT({ ...t, devise: v.slice(0, 8) })} placeholder="Devise (FCFA)" label="Devise" />
+      {([['entreeParMillion', 'Lecture : prix par million de jetons'], ['sortieParMillion', 'Écriture : prix par million de jetons'], ['cacheParMillion', 'Cache : prix par million de jetons'], ['excesParMillier', 'Frais d\'excès par millier de jetons']] as const).map(([k, l]) => (
+        <Champ key={k} valeur={t[k]} onChange={v => setT({ ...t, [k]: v.replace(/[^0-9.,]/g, '') })} placeholder={l} clavier="decimal-pad" label={l} />
+      ))}
+      <Bouton label="Enregistrer les tarifs" petit variante="fantome" onPress={() => adminEcrireParametre('ia_tarifs', { devise: t.devise || 'FCFA', entreeParMillion: n(t.entreeParMillion), sortieParMillion: n(t.sortieParMillion), cacheParMillion: n(t.cacheParMillion), excesParMillier: n(t.excesParMillier) }).then(() => { toast('Tarifs enregistrés.', 'succes'); charger(); }).catch(ko)} />
+    </>
+  );
+}
 
 // ------------------------------------------------------------------ IA
 export function IaAdmin() {
@@ -53,6 +120,8 @@ export function IaAdmin() {
         <Bouton label="Enregistrer" petit large={false} onPress={() => adminIaConfig({ modele: cfg.modele, temperature: num(cfg.temperature), maxTokens: num(cfg.maxTokens), topK: num(cfg.topK), seuil: num(cfg.seuil), chunkTaille: num(cfg.chunkTaille), chunkChevauchement: num(cfg.chunkChevauchement) }).then(() => { toast('Réglages enregistrés.', 'succes'); charger(); }).catch(ko)} />
         <Bouton label={etat.config.ragActif ? 'RAG activé : couper' : 'RAG coupé : activer'} petit large={false} variante="fantome" onPress={() => adminIaConfig({ ragActif: !etat.config.ragActif }).then(charger).catch(ko)} />
       </View>
+
+      <CoutsChats />
 
       <SectionTitre titre="Prompt système" />
       <T v="petit">Variable disponible : {'{{lexique}}'} (mots myènè vérifiés). Chaque enregistrement crée une version ; on peut revenir en arrière.</T>

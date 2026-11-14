@@ -9,9 +9,12 @@ export const urlApi = () => apiUrl;
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** Corps JSON de la réponse d'erreur, quand le serveur en donne un (par exemple le détail d'un refus). */
+  corps?: any;
+  constructor(status: number, message: string, corps?: unknown) {
     super(message);
     this.status = status;
+    this.corps = corps;
   }
 }
 
@@ -68,6 +71,6 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
   if (res.status === 204) return undefined as T;
   let json: any = null;
   try { json = await res.json(); } catch { /* corps vide ou non JSON */ }
-  if (!res.ok) throw new ApiError(res.status, json?.error || `Erreur ${res.status}`);
+  if (!res.ok) throw new ApiError(res.status, json?.error || `Erreur ${res.status}`, json);
   return json as T;
 }

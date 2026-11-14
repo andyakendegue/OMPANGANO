@@ -146,7 +146,7 @@ Décision de Capp : plus de travail par étapes ; tout est codé, les services e
 |---|---|
 | 0.3 Navigation | **Fait** : 5 onglets (Accueil, Apprendre, Jouer, Écouter, Village) + menu « Plus » ; mini-lecteur flottant |
 | 0.5 Rôles | Inchangé (utilisateur, validateur, administrateur) ; modérateur = staff ; les autres rôles (créateur, précepteur…) restent à définir |
-| O1-O5, O8 Onenji | **Fait** : parcours, unités, leçons interactives, contrôle 4/5, certificat, mode enfant, cours d'artisans (vidéo, chapitres, filigrane), Ozangué (quotas de jetons) |
+| O1-O5, O8 Onenji | **Fait** : parcours, unités, leçons interactives, contrôle 4/5, certificat, mode enfant, cours d'artisans (vidéo, chapitres, filigrane), Kak'Igonjo (quotas de jetons ; ex-Ozangué) |
 | O6 Voix, bibliothèque | Bibliothèque et opportunités faites ; enregistrement de locuteurs : écran « Dire » fait, serveur de locuteurs non fait |
 | O7 Cours à distance | Salles, 4 au plus (serveur), signalisation faite ; caméra et micro : WebRTC natif à brancher |
 | A1-A5, A7-A8 Azeva | **Fait** : hall, salles, pendu, anagrammes, mots mêlés, dictée, quiz, phrases, grand jeu à dé, défi du jour, cœurs, annonce récompensée (3 par jour), classements, duels, collection, espace parents |

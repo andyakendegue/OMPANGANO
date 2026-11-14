@@ -2,14 +2,15 @@
  {
   "id": "pendu",
   "salle_id": "mots",
-  "titre": "Le pendu",
-  "moteur": "pendu",
-  "description": "Trouve le mot avant que le feu s'éteigne.",
+  "titre": "Ogoni",
+  "moteur": "ogoni",
+  "description": "Trouve le mot avant que le feu de bois s'éteigne.",
   "couleur": "#FDE047",
   "duree_s": 0,
   "mode_enfant": true,
   "ordre": 1,
-  "publie": true
+  "publie": true,
+  "corpus": true
  },
  {
   "id": "anagrammes",
@@ -21,7 +22,8 @@
   "duree_s": 60,
   "mode_enfant": true,
   "ordre": 2,
-  "publie": true
+  "publie": true,
+  "corpus": true
  },
  {
   "id": "mots-meles",
@@ -36,6 +38,42 @@
   "publie": true
  },
  {
+  "id": "mots-croises",
+  "salle_id": "mots",
+  "titre": "Mots croisés",
+  "moteur": "mots_croises",
+  "description": "Remplis la grille à partir des définitions.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 4,
+  "publie": true
+ },
+ {
+  "id": "mots-fleches",
+  "salle_id": "mots",
+  "titre": "Mots fléchés",
+  "moteur": "mots_fleches",
+  "description": "La définition est dans la case, le mot suit la flèche.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 5,
+  "publie": true
+ },
+ {
+  "id": "memoire",
+  "salle_id": "mots",
+  "titre": "Mémoire",
+  "moteur": "memoire",
+  "description": "Retourne les cartes : un mot, son sens.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 6,
+  "publie": true
+ },
+ {
   "id": "dictee",
   "salle_id": "mots",
   "titre": "Dictée sonore",
@@ -44,7 +82,7 @@
   "couleur": "#FDE047",
   "duree_s": 0,
   "mode_enfant": false,
-  "ordre": 4,
+  "ordre": 7,
   "publie": true
  },
  {
@@ -56,7 +94,7 @@
   "couleur": "#FDE047",
   "duree_s": 0,
   "mode_enfant": true,
-  "ordre": 5,
+  "ordre": 8,
   "publie": true
  },
  {
@@ -68,19 +106,1329 @@
   "couleur": "#FDE047",
   "duree_s": 0,
   "mode_enfant": false,
-  "ordre": 6,
+  "ordre": 9,
   "publie": true
+ },
+ {
+  "id": "singulier-pluriel",
+  "salle_id": "mots",
+  "titre": "Singulier, pluriel",
+  "moteur": "quiz",
+  "description": "Trouve le pluriel selon la classe du nom.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 10,
+  "publie": true,
+  "consigne": "Quel est le pluriel ?"
+ },
+ {
+  "id": "syllabes",
+  "salle_id": "mots",
+  "titre": "Syllabes",
+  "moteur": "syllabes",
+  "description": "Assemble les syllabes pour former le mot.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 11,
+  "publie": false
+ },
+ {
+  "id": "mot-image",
+  "salle_id": "mots",
+  "titre": "Mot-image",
+  "moteur": "quiz",
+  "description": "Relie chaque mot à son image.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 12,
+  "publie": false
+ },
+ {
+  "id": "mots-jumeaux",
+  "salle_id": "mots",
+  "titre": "Mots jumeaux",
+  "moteur": "quiz",
+  "description": "Distingue les mots qui se ressemblent.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 13,
+  "publie": false
+ },
+ {
+  "id": "familles-de-mots",
+  "salle_id": "mots",
+  "titre": "Familles de mots",
+  "moteur": "relier",
+  "description": "Relie un verbe à ses dérivés.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 14,
+  "publie": false
+ },
+ {
+  "id": "case-vide",
+  "salle_id": "mots",
+  "titre": "La case vide",
+  "moteur": "trous",
+  "description": "Écris ou choisis le mot qui manque.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 15,
+  "publie": false
+ },
+ {
+  "id": "touche-ta-tete",
+  "salle_id": "corps",
+  "titre": "Touche ta tête",
+  "moteur": "zones",
+  "description": "Lis le mot, touche la bonne partie du corps.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 16,
+  "publie": true,
+  "scene": "corps",
+  "consigne": "Touche la partie du corps"
+ },
+ {
+  "id": "habille-le-squelette",
+  "salle_id": "corps",
+  "titre": "Les étiquettes du corps",
+  "moteur": "relier",
+  "description": "Relie chaque partie du corps à son nom.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 17,
+  "publie": true,
+  "theme": [
+   "corps"
+  ]
+ },
+ {
+  "id": "puzzle-du-corps",
+  "salle_id": "corps",
+  "titre": "Mémoire du corps",
+  "moteur": "memoire",
+  "description": "Retrouve les paires : le mot, la partie du corps.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 18,
+  "publie": true,
+  "theme": [
+   "corps"
+  ]
+ },
+ {
+  "id": "ogoni-corps",
+  "salle_id": "corps",
+  "titre": "Ogoni du corps",
+  "moteur": "ogoni",
+  "description": "Le feu de bois, avec les mots du corps.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 19,
+  "publie": true,
+  "theme": [
+   "corps"
+  ]
+ },
+ {
+  "id": "corps-croises",
+  "salle_id": "corps",
+  "titre": "Mots croisés du corps",
+  "moteur": "mots_croises",
+  "description": "Une grille de mots du corps.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 20,
+  "publie": true,
+  "theme": [
+   "corps"
+  ]
+ },
+ {
+  "id": "jacques-a-dit",
+  "salle_id": "corps",
+  "titre": "Jacques a dit",
+  "moteur": "zones",
+  "description": "Suis les consignes en omyènè.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 21,
+  "publie": false,
+  "scene": "corps"
+ },
+ {
+  "id": "corps-en-chanson",
+  "salle_id": "corps",
+  "titre": "Le corps en chanson",
+  "moteur": "sequence",
+  "description": "Remets la comptine du corps dans l'ordre.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 22,
+  "publie": false
+ },
+ {
+  "id": "chez-le-guerisseur",
+  "salle_id": "corps",
+  "titre": "Chez le guérisseur",
+  "moteur": "quiz",
+  "description": "Dis où tu as mal.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 23,
+  "publie": false
+ },
+ {
+  "id": "range-la-case",
+  "salle_id": "maison",
+  "titre": "Range la case",
+  "moteur": "classer",
+  "description": "Range chaque mot à sa place : le corps, la maison, la nourriture.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 24,
+  "publie": true
+ },
+ {
+  "id": "maison-memoire",
+  "salle_id": "maison",
+  "titre": "La maison du village",
+  "moteur": "memoire",
+  "description": "Retrouve les objets de la maison.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 25,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "maison-meles",
+  "salle_id": "maison",
+  "titre": "Mots mêlés de la maison",
+  "moteur": "mots_meles",
+  "description": "Les objets de la maison cachés dans la grille.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 26,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "maison-fleches",
+  "salle_id": "maison",
+  "titre": "Mots fléchés de la maison",
+  "moteur": "mots_fleches",
+  "description": "Les objets de la maison en mots fléchés.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 27,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "le-marche",
+  "salle_id": "maison",
+  "titre": "Le marché",
+  "moteur": "quiz",
+  "description": "Achète les objets en les nommant.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 28,
+  "publie": false
+ },
+ {
+  "id": "qu-est-ce-qui-manque",
+  "salle_id": "maison",
+  "titre": "Qu'est-ce qui manque ?",
+  "moteur": "quiz",
+  "description": "Un objet a disparu : nomme-le.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 29,
+  "publie": false
+ },
+ {
+  "id": "a-quoi-ca-sert",
+  "salle_id": "maison",
+  "titre": "À quoi ça sert ?",
+  "moteur": "relier",
+  "description": "Relie l'objet à son usage.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 30,
+  "publie": false
+ },
+ {
+  "id": "hier-et-aujourdhui",
+  "salle_id": "maison",
+  "titre": "Hier et aujourd'hui",
+  "moteur": "relier",
+  "description": "L'objet d'autrefois et celui d'aujourd'hui.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 31,
+  "publie": false
+ },
+ {
+  "id": "l-artisan",
+  "salle_id": "maison",
+  "titre": "L'artisan",
+  "moteur": "sequence",
+  "description": "Fabrique un objet étape par étape.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 32,
+  "publie": false
+ },
+ {
+  "id": "animaux-relier",
+  "salle_id": "nature",
+  "titre": "Les animaux",
+  "moteur": "relier",
+  "description": "Relie chaque animal à son nom.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 33,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "animaux-memoire",
+  "salle_id": "nature",
+  "titre": "Mémoire des animaux",
+  "moteur": "memoire",
+  "description": "Retrouve les paires d'animaux.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 34,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "animaux-ogoni",
+  "salle_id": "nature",
+  "titre": "Ogoni des animaux",
+  "moteur": "ogoni",
+  "description": "Le feu de bois, avec les noms d'animaux.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 35,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "lire-le-ciel",
+  "salle_id": "nature",
+  "titre": "Lire le ciel",
+  "moteur": "relier",
+  "description": "Soleil, lune, pluie, forêt, mer.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 36,
+  "publie": true,
+  "theme": [
+   "nature"
+  ]
+ },
+ {
+  "id": "le-jardin",
+  "salle_id": "nature",
+  "titre": "Le jardin",
+  "moteur": "mots_meles",
+  "description": "Les fruits et les plantes cachés dans la grille.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 37,
+  "publie": true,
+  "theme": [
+   "aliments"
+  ]
+ },
+ {
+  "id": "cri-des-animaux",
+  "salle_id": "nature",
+  "titre": "Le cri des animaux",
+  "moteur": "quiz",
+  "description": "Écoute le cri, choisis l'animal.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 38,
+  "publie": false
+ },
+ {
+  "id": "chaine-de-la-mangrove",
+  "salle_id": "nature",
+  "titre": "La chaîne de la mangrove",
+  "moteur": "relier",
+  "description": "Qui mange qui ?",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 39,
+  "publie": false
+ },
+ {
+  "id": "la-peche",
+  "salle_id": "nature",
+  "titre": "La pêche",
+  "moteur": "quiz",
+  "description": "Attrape le poisson nommé.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 40,
+  "publie": false
+ },
+ {
+  "id": "foret-et-savane",
+  "salle_id": "nature",
+  "titre": "La forêt et la savane",
+  "moteur": "classer",
+  "description": "Range animaux et arbres selon leur milieu.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 41,
+  "publie": false
+ },
+ {
+  "id": "l-ile-qui-s-en-va",
+  "salle_id": "nature",
+  "titre": "L'île qui s'en va",
+  "moteur": "sequence",
+  "description": "Protège le rivage de Mandji.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 42,
+  "publie": false
+ },
+ {
+  "id": "la-pharmacopee",
+  "salle_id": "nature",
+  "titre": "La pharmacopée",
+  "moteur": "relier",
+  "description": "La plante et son usage (savoir public seulement).",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 43,
+  "publie": false
+ },
+ {
+  "id": "compte-avec-moi",
+  "salle_id": "nombres",
+  "titre": "Compte avec moi",
+  "moteur": "compter",
+  "description": "Compte les noisettes et choisis le nombre.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 44,
+  "publie": true,
+  "consigne": "Combien y en a-t-il ?"
+ },
+ {
+  "id": "suite-des-nombres",
+  "salle_id": "nombres",
+  "titre": "La suite des nombres",
+  "moteur": "sequence",
+  "description": "Remets les nombres dans l'ordre.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 45,
+  "publie": true
+ },
+ {
+  "id": "marche-aux-nombres",
+  "salle_id": "nombres",
+  "titre": "Le marché aux nombres",
+  "moteur": "trous",
+  "description": "Accorde le nombre avec le nom.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 46,
+  "publie": true,
+  "consigne": "Complète"
+ },
+ {
+  "id": "les-suites",
+  "salle_id": "nombres",
+  "titre": "Les suites",
+  "moteur": "suites",
+  "description": "Complète la suite de formes.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 47,
+  "publie": true,
+  "consigne": "Quelle forme vient ensuite ?"
+ },
+ {
+  "id": "nombres-memoire",
+  "salle_id": "nombres",
+  "titre": "Mémoire des nombres",
+  "moteur": "memoire",
+  "description": "Le nombre et son nom.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 48,
+  "publie": true,
+  "theme": [
+   "nombres"
+  ]
+ },
+ {
+  "id": "panier-de-noisettes",
+  "salle_id": "nombres",
+  "titre": "Le panier de noisettes",
+  "moteur": "compter",
+  "description": "Remplis le panier, noisette par noisette.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 49,
+  "publie": false
+ },
+ {
+  "id": "partage-du-poisson",
+  "salle_id": "nombres",
+  "titre": "Le partage du poisson",
+  "moteur": "quiz",
+  "description": "Partage la prise à parts égales.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 50,
+  "publie": false
+ },
+ {
+  "id": "plus-grand-plus-petit",
+  "salle_id": "nombres",
+  "titre": "Plus grand, plus petit",
+  "moteur": "suites",
+  "description": "Compare les tailles.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 51,
+  "publie": false
+ },
+ {
+  "id": "les-formes",
+  "salle_id": "nombres",
+  "titre": "Les formes",
+  "moteur": "quiz",
+  "description": "Reconnais les formes dans les objets du village.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 52,
+  "publie": false
+ },
+ {
+  "id": "quelle-heure",
+  "salle_id": "nombres",
+  "titre": "Quelle heure ?",
+  "moteur": "quiz",
+  "description": "Les moments du jour et de la nuit.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 53,
+  "publie": false
+ },
+ {
+  "id": "le-calendrier",
+  "salle_id": "nombres",
+  "titre": "Le calendrier",
+  "moteur": "sequence",
+  "description": "Jours, mois, saisons, lunes.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 54,
+  "publie": false
+ },
+ {
+  "id": "gauche-droite",
+  "salle_id": "nombres",
+  "titre": "Gauche, droite",
+  "moteur": "chemin",
+  "description": "Guide le personnage dans le village.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 55,
+  "publie": false,
+  "consigne": "Où va-t-il ?"
+ },
+ {
+  "id": "la-carte",
+  "salle_id": "nombres",
+  "titre": "La carte",
+  "moteur": "zones",
+  "description": "Situe les lieux de la côte myènè.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 56,
+  "publie": false
+ },
+ {
+  "id": "la-famille",
+  "salle_id": "famille",
+  "titre": "La famille",
+  "moteur": "relier",
+  "description": "Relie chaque parent à son nom.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 57,
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut",
+  "salle_id": "famille",
+  "titre": "Salue comme il faut",
+  "moteur": "quiz",
+  "description": "Choisis la bonne formule.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 58,
+  "publie": true,
+  "consigne": "Que dis-tu ?"
+ },
+ {
+  "id": "classes-d-age",
+  "salle_id": "famille",
+  "titre": "Les classes d'âge",
+  "moteur": "sequence",
+  "description": "Range les classes d'âge ôrungu, du plus jeune au plus ancien.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 59,
+  "publie": true
+ },
+ {
+  "id": "arbre-du-clan",
+  "salle_id": "famille",
+  "titre": "L'arbre du clan",
+  "moteur": "relier",
+  "description": "Place lignages et liens.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 60,
+  "publie": false
+ },
+ {
+  "id": "qui-fait-quoi",
+  "salle_id": "famille",
+  "titre": "Qui fait quoi au village ?",
+  "moteur": "relier",
+  "description": "Relie le personnage à sa fonction.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 61,
+  "publie": false
+ },
+ {
+  "id": "la-frise",
+  "salle_id": "famille",
+  "titre": "La frise",
+  "moteur": "sequence",
+  "description": "Remets les événements dans l'ordre.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 62,
+  "publie": false
+ },
+ {
+  "id": "la-devise",
+  "salle_id": "famille",
+  "titre": "La devise",
+  "moteur": "sequence",
+  "description": "Reconstitue la devise ligne par ligne.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 63,
+  "publie": false
+ },
+ {
+  "id": "devinettes",
+  "salle_id": "oralite",
+  "titre": "Tô, tôngè",
+  "moteur": "quiz",
+  "description": "Les devinettes traditionnelles.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 64,
+  "publie": true,
+  "consigne": "Tô tôngè…"
+ },
+ {
+  "id": "complete-le-proverbe",
+  "salle_id": "oralite",
+  "titre": "Complète le proverbe",
+  "moteur": "trous",
+  "description": "Retrouve le mot qui manque.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 65,
+  "publie": true,
+  "consigne": "Complète le proverbe"
+ },
+ {
+  "id": "le-rythme",
+  "salle_id": "oralite",
+  "titre": "Le rythme",
+  "moteur": "rythme",
+  "description": "Écoute et reproduis le rythme des tambours.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 66,
+  "publie": true,
+  "consigne": "Reproduis le rythme"
+ },
+ {
+  "id": "le-sens-cache",
+  "salle_id": "oralite",
+  "titre": "Le sens caché",
+  "moteur": "quiz",
+  "description": "Choisis la bonne lecture d'un proverbe.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 67,
+  "publie": false
+ },
+ {
+  "id": "raconte-la-suite",
+  "salle_id": "oralite",
+  "titre": "Raconte la suite",
+  "moteur": "sequence",
+  "description": "Remets en ordre les moments d'un conte.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 68,
+  "publie": false
+ },
+ {
+  "id": "la-veillee",
+  "salle_id": "oralite",
+  "titre": "La veillée",
+  "moteur": "quiz",
+  "description": "Écoute un conte, puis réponds.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 69,
+  "publie": false
+ },
+ {
+  "id": "dix-oiseaux",
+  "salle_id": "oralite",
+  "titre": "La chanson des dix oiseaux",
+  "moteur": "sequence",
+  "description": "Jeu traditionnel (accord de mandji.net requis).",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 70,
+  "publie": false
+ },
+ {
+  "id": "habille-toi",
+  "salle_id": "oralite",
+  "titre": "Habille-toi",
+  "moteur": "classer",
+  "description": "Okorouè, duku : chaque pièce à sa place.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 71,
+  "publie": false
+ },
+ {
+  "id": "la-cuisine",
+  "salle_id": "oralite",
+  "titre": "La cuisine",
+  "moteur": "sequence",
+  "description": "Suis la recette, geste par geste.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 72,
+  "publie": false
+ },
+ {
+  "id": "le-palabre",
+  "salle_id": "oralite",
+  "titre": "Le palabre",
+  "moteur": "quiz",
+  "description": "Jeu de rôle de justice.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 73,
+  "publie": false
+ },
+ {
+  "id": "cartes-memoire",
+  "salle_id": "mots",
+  "titre": "Cartes mémoire",
+  "moteur": "memoire",
+  "description": "Tous les mots appris, en paires à retrouver.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 74,
+  "publie": true
+ },
+ {
+  "id": "anagrammes-eclair",
+  "salle_id": "mots",
+  "titre": "Anagrammes éclair",
+  "moteur": "anagramme",
+  "description": "Les mêmes lettres, deux fois moins de temps.",
+  "couleur": "#FDE047",
+  "duree_s": 30,
+  "mode_enfant": false,
+  "ordre": 75,
+  "publie": true
+ },
+ {
+  "id": "grande-grille",
+  "salle_id": "mots",
+  "titre": "La grande grille",
+  "moteur": "mots_meles",
+  "description": "Des mots de tous les thèmes dans une seule grille.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 76,
+  "publie": true
+ },
+ {
+  "id": "grands-croises",
+  "salle_id": "mots",
+  "titre": "Les grands croisés",
+  "moteur": "mots_croises",
+  "description": "Des mots de tous les thèmes à croiser.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 77,
+  "publie": true
+ },
+ {
+  "id": "imagier-sonore",
+  "salle_id": "mots",
+  "titre": "Imagier sonore",
+  "moteur": "quiz",
+  "description": "Touche l'image, entends le mot.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 78,
+  "publie": false
+ },
+ {
+  "id": "montre-moi",
+  "salle_id": "mots",
+  "titre": "Montre-moi",
+  "moteur": "quiz",
+  "description": "Écoute le mot, touche la bonne image.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 79,
+  "publie": false
+ },
+ {
+  "id": "ne-pas-confondre",
+  "salle_id": "mots",
+  "titre": "Ne pas confondre",
+  "moteur": "quiz",
+  "description": "Des paires de mots proches à distinguer.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 80,
+  "publie": false
+ },
+ {
+  "id": "course-des-verbes",
+  "salle_id": "mots",
+  "titre": "La course des verbes",
+  "moteur": "quiz",
+  "description": "Conjugue vite et juste.",
+  "couleur": "#FDE047",
+  "duree_s": 45,
+  "mode_enfant": false,
+  "ordre": 81,
+  "publie": false
+ },
+ {
+  "id": "dialogues",
+  "salle_id": "mots",
+  "titre": "Dialogues à compléter",
+  "moteur": "trous",
+  "description": "Trouve la réplique qui manque.",
+  "couleur": "#FDE047",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 82,
+  "publie": false
+ },
+ {
+  "id": "corps-anagrammes",
+  "salle_id": "corps",
+  "titre": "Anagrammes du corps",
+  "moteur": "anagramme",
+  "description": "Remets en ordre les mots du corps.",
+  "couleur": "#D9693F",
+  "duree_s": 60,
+  "mode_enfant": true,
+  "ordre": 83,
+  "publie": true,
+  "theme": [
+   "corps"
+  ]
+ },
+ {
+  "id": "corps-meles",
+  "salle_id": "corps",
+  "titre": "Mots mêlés du corps",
+  "moteur": "mots_meles",
+  "description": "Les mots du corps cachés dans la grille.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 84,
+  "publie": true,
+  "theme": [
+   "corps"
+  ]
+ },
+ {
+  "id": "corps-pluriels",
+  "salle_id": "corps",
+  "titre": "Un bras, deux bras",
+  "moteur": "quiz",
+  "description": "Le pluriel des parties du corps.",
+  "couleur": "#D9693F",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 85,
+  "publie": true,
+  "banque": "singulier-pluriel",
+  "consigne": "Quel est le pluriel ?"
+ },
+ {
+  "id": "maison-ogoni",
+  "salle_id": "maison",
+  "titre": "Ogoni de la maison",
+  "moteur": "ogoni",
+  "description": "Le feu de bois, avec les objets de la maison.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 86,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "maison-relier",
+  "salle_id": "maison",
+  "titre": "Chaque objet, son nom",
+  "moteur": "relier",
+  "description": "Relie les objets de la maison à leur nom.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 87,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "maison-croises",
+  "salle_id": "maison",
+  "titre": "Mots croisés de la maison",
+  "moteur": "mots_croises",
+  "description": "Les objets de la maison à croiser.",
+  "couleur": "#C85A32",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 88,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "maison-anagrammes",
+  "salle_id": "maison",
+  "titre": "Anagrammes de la maison",
+  "moteur": "anagramme",
+  "description": "Remets en ordre les objets de la maison.",
+  "couleur": "#C85A32",
+  "duree_s": 60,
+  "mode_enfant": true,
+  "ordre": 89,
+  "publie": true,
+  "theme": [
+   "maison"
+  ]
+ },
+ {
+  "id": "animaux-croises",
+  "salle_id": "nature",
+  "titre": "Mots croisés des animaux",
+  "moteur": "mots_croises",
+  "description": "Les animaux du Gabon à croiser.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 90,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "animaux-meles",
+  "salle_id": "nature",
+  "titre": "Mots mêlés des animaux",
+  "moteur": "mots_meles",
+  "description": "Les animaux cachés dans la grille.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 91,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "animaux-anagrammes",
+  "salle_id": "nature",
+  "titre": "Anagrammes des animaux",
+  "moteur": "anagramme",
+  "description": "Remets en ordre les noms d'animaux.",
+  "couleur": "#0D9488",
+  "duree_s": 60,
+  "mode_enfant": true,
+  "ordre": 92,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "animaux-fleches",
+  "salle_id": "nature",
+  "titre": "Mots fléchés des animaux",
+  "moteur": "mots_fleches",
+  "description": "Les animaux en mots fléchés.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 93,
+  "publie": true,
+  "theme": [
+   "animaux"
+  ]
+ },
+ {
+  "id": "les-fruits",
+  "salle_id": "nature",
+  "titre": "Les fruits et la cuisine",
+  "moteur": "relier",
+  "description": "Relie chaque aliment à son nom.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 94,
+  "publie": true,
+  "theme": [
+   "aliments"
+  ]
+ },
+ {
+  "id": "aliments-memoire",
+  "salle_id": "nature",
+  "titre": "Mémoire du marché",
+  "moteur": "memoire",
+  "description": "Retrouve les paires d'aliments.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 95,
+  "publie": true,
+  "theme": [
+   "aliments"
+  ]
+ },
+ {
+  "id": "nature-memoire",
+  "salle_id": "nature",
+  "titre": "Mémoire de la nature",
+  "moteur": "memoire",
+  "description": "Forêt, mer, lune, pluie.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 96,
+  "publie": true,
+  "theme": [
+   "nature"
+  ]
+ },
+ {
+  "id": "oiseaux-du-littoral",
+  "salle_id": "nature",
+  "titre": "Les oiseaux du littoral",
+  "moteur": "relier",
+  "description": "Les oiseaux des lagunes et leur nom.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 97,
+  "publie": false
+ },
+ {
+  "id": "poissons-de-mer",
+  "salle_id": "nature",
+  "titre": "Les poissons de mer",
+  "moteur": "memoire",
+  "description": "Les poissons et leur nom.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 98,
+  "publie": false
+ },
+ {
+  "id": "arbres-du-pays",
+  "salle_id": "nature",
+  "titre": "Les arbres de notre pays",
+  "moteur": "relier",
+  "description": "Les arbres et leur nom.",
+  "couleur": "#0D9488",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 99,
+  "publie": false
+ },
+ {
+  "id": "nombres-ogoni",
+  "salle_id": "nombres",
+  "titre": "Ogoni des nombres",
+  "moteur": "ogoni",
+  "description": "Le feu de bois, avec les nombres.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 100,
+  "publie": true,
+  "theme": [
+   "nombres"
+  ]
+ },
+ {
+  "id": "nombres-relier",
+  "salle_id": "nombres",
+  "titre": "Le nombre et son nom",
+  "moteur": "relier",
+  "description": "Relie chaque nombre à son nom.",
+  "couleur": "#38BDF8",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 101,
+  "publie": true,
+  "theme": [
+   "nombres"
+  ]
+ },
+ {
+  "id": "nombres-anagrammes",
+  "salle_id": "nombres",
+  "titre": "Anagrammes des nombres",
+  "moteur": "anagramme",
+  "description": "Remets en ordre les nombres.",
+  "couleur": "#38BDF8",
+  "duree_s": 60,
+  "mode_enfant": true,
+  "ordre": 102,
+  "publie": true,
+  "theme": [
+   "nombres"
+  ]
+ },
+ {
+  "id": "famille-memoire",
+  "salle_id": "famille",
+  "titre": "Mémoire de la famille",
+  "moteur": "memoire",
+  "description": "Retrouve les paires de la famille.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 103,
+  "publie": true,
+  "theme": [
+   "famille"
+  ]
+ },
+ {
+  "id": "famille-ogoni",
+  "salle_id": "famille",
+  "titre": "Ogoni de la famille",
+  "moteur": "ogoni",
+  "description": "Le feu de bois, avec la famille.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 104,
+  "publie": true,
+  "theme": [
+   "famille"
+  ]
+ },
+ {
+  "id": "le-village",
+  "salle_id": "famille",
+  "titre": "Le village",
+  "moteur": "quiz",
+  "description": "Jeu de rôle : Agnambyè, Akaga, Ngowe…",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 105,
+  "publie": false
+ },
+ {
+  "id": "la-cote-myene",
+  "salle_id": "famille",
+  "titre": "La côte myènè",
+  "moteur": "zones",
+  "description": "Peuples, lieux, navires et dates sur la carte.",
+  "couleur": "#F472B6",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 106,
+  "publie": false
+ },
+ {
+  "id": "enigmes-des-proverbes",
+  "salle_id": "oralite",
+  "titre": "Énigmes des proverbes",
+  "moteur": "quiz",
+  "description": "Raisonne avec les proverbes.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": false,
+  "ordre": 107,
+  "publie": false
+ },
+ {
+  "id": "conte-de-nkonjo",
+  "salle_id": "oralite",
+  "titre": "Le conte",
+  "moteur": "sequence",
+  "description": "Remets un conte dans l'ordre.",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 108,
+  "publie": false
+ },
+ {
+  "id": "salutations-memoire",
+  "salle_id": "oralite",
+  "titre": "Mémoire des salutations",
+  "moteur": "memoire",
+  "description": "Bonjour, merci, s'il te plaît…",
+  "couleur": "#F59E0B",
+  "duree_s": 0,
+  "mode_enfant": true,
+  "ordre": 109,
+  "publie": true,
+  "theme": [
+   "salutations"
+  ]
  },
  {
   "id": "grand-jeu",
   "salle_id": "societe",
   "titre": "Le grand jeu",
   "moteur": "plateau",
-  "description": "Avance avec le dé de l'enfance à l'âge adulte.",
-  "couleur": "#FDE047",
+  "description": "Avance avec le dé, de l'enfance à l'âge adulte.",
+  "couleur": "#F59E0B",
   "duree_s": 0,
   "mode_enfant": false,
-  "ordre": 7,
+  "ordre": 110,
   "publie": true
  }
 ]

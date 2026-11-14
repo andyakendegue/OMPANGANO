@@ -3,11 +3,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Platform, Pressable, Share, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import {
-  adminAccorderDroit, adminExemples, adminImporterExemples, adminSupprimerExemples, adminPaiements, adminValiderPaiement, adminRefuserPaiement, adminAnnulerDroit, adminCollections, adminDecider, adminDroits, adminEcrireParametre, adminExporter, adminImporter, adminImports, adminJournal, adminLignes, adminModeration,
-  adminParametres, adminSeries, adminSupprimerLigne, adminSupervision, modeleCsv, SCHEMAS, schemaDe, type InfoCollection, type RapportServeur,
+  adminAccorderDroit, adminNkorouna, adminAjusterNkr, adminAnnulerNkr, adminGelerNkr, adminAncrerNkr, cleNkr, adminExemples, adminImporterExemples, adminSupprimerExemples, adminPaiements, adminValiderPaiement, adminRefuserPaiement, adminAnnulerDroit, adminCollections, adminDecider, adminDroits, adminEcrireParametre, adminExporter, adminImporter, adminImports, adminJournal, adminLignes, adminModeration,
+  adminParametres, adminSeries, adminSupprimerLigne, adminSupervision, chargerModules, modeleCsv, SCHEMAS, schemaDe, type InfoCollection, type RapportServeur,
 } from '@nkala/noyau';
 import { Bouton, Carte, Champ, Chargement, EtatVide, Ic, Pastille, Puce, Rangee, SectionTitre, T, useConfirmer, useToast } from './kit';
 import { ThemeSombre, useTheme } from './Prefs';
+import { sombre } from './theme';
+import { VueLogement, type AnnonceVue } from './logement/DetailLogement';
 
 export const Sombre = ({ children }: { children: React.ReactNode }) => <ThemeSombre><View style={{ gap: 14 }}>{children}</View></ThemeSombre>;
 
@@ -188,22 +190,43 @@ export function InterrupteursAdmin() {
   const [pl, setPl] = useState({ recompensesParJour: '', parCreationJour: '' });
   const charger = useCallback(() => adminParametres().then(r => { setEff(r.effectif); setP(r.parametres); setQ({ parJour: String(r.parametres.ia_quotas?.parJour ?? ''), parMois: String(r.parametres.ia_quotas?.parMois ?? ''), parConversation: String(r.parametres.ia_quotas?.parConversation ?? '') }); setPl({ recompensesParJour: String(r.parametres.pub_plafonds?.recompensesParJour ?? ''), parCreationJour: String(r.parametres.pub_plafonds?.parCreationJour ?? '') }); }).catch(e => toast((e as Error).message, 'erreur')), [toast]);
   useEffect(() => { charger(); }, [charger]);
-  const basculer = async (cle: 'modules' | 'fonctions', id: string, v: boolean) => { try { await adminEcrireParametre(cle, { ...(p[cle] ?? {}), ...(eff?.[cle] ?? {}), [id]: v }); toast('Enregistré.', 'succes'); charger(); } catch (e) { toast((e as Error).message, 'erreur'); } };
+  const basculer = async (cle: 'modules' | 'fonctions', id: string, v: boolean) => { try { await adminEcrireParametre(cle, { ...(p[cle] ?? {}), ...(eff?.[cle] ?? {}), [id]: v }); toast('Enregistré.', 'succes'); charger(); void chargerModules(); } catch (e) { toast((e as Error).message, 'erreur'); } };
   const nombres = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== '' && Number(v) >= 0).map(([k, v]) => [k, Number(v)]));
   if (!eff) return <Sombre><Chargement /></Sombre>;
   const Ligne = ({ cle, id, label, fige }: { cle: 'modules' | 'fonctions'; id: string; label: string; fige?: string }) => (
-    <Pressable accessibilityRole="switch" accessibilityState={{ checked: !!eff[cle][id], disabled: !!fige }} disabled={!!fige} onPress={() => basculer(cle, id, !eff[cle][id])} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, opacity: fige ? 0.6 : 1 }}>
+    <Pressable accessibilityRole="switch" accessibilityState={{ checked: !!eff[cle][id], disabled: !!fige }} disabled={!!fige} onPress={() => basculer(cle, id, !eff[cle][id])} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, backgroundColor: sombre.carte, borderWidth: 1, borderColor: sombre.bord, opacity: fige ? 0.6 : 1 }}>
       <View style={{ flex: 1 }}><T v="carte">{label}</T>{!!fige && <T v="petit">{fige}</T>}</View>
-      <View style={{ width: 46, height: 28, borderRadius: 14, backgroundColor: eff[cle][id] ? c.succes : c.squelette, justifyContent: 'center', paddingHorizontal: 3 }}><View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#FDFAF7', alignSelf: eff[cle][id] ? 'flex-end' : 'flex-start' }} /></View>
+      <View style={{ width: 46, height: 28, borderRadius: 14, backgroundColor: eff[cle][id] ? sombre.succes : sombre.squelette, justifyContent: 'center', paddingHorizontal: 3 }}><View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#FDFAF7', alignSelf: eff[cle][id] ? 'flex-end' : 'flex-start' }} /></View>
     </Pressable>
   );
+  // Trois positions par module : ouvert à tous, réservé aux administrateurs (essai), fermé.
+  type Mode = 'tous' | 'admins' | 'ferme';
+  const modeDe = (id: string): Mode => eff.modules[id] ? 'tous' : p.modules_admin?.[id] ? 'admins' : 'ferme';
+  const choisirMode = async (id: string, m: Mode) => {
+    try {
+      // Fermé ou réservé : `modules` passe à false explicitement, pour qu'une variable du serveur ne le rouvre pas au public.
+      await adminEcrireParametre('modules', { ...(p.modules ?? {}), ...eff.modules, [id]: m === 'tous' });
+      await adminEcrireParametre('modules_admin', { ...(p.modules_admin ?? {}), [id]: m === 'admins' });
+      toast('Enregistré.', 'succes'); charger(); void chargerModules();
+    } catch (e) { toast((e as Error).message, 'erreur'); }
+  };
+  const LigneModule = ({ id, label }: { id: string; label: string }) => {
+    const m = modeDe(id);
+    return (
+      <View style={{ gap: 8, padding: 12, borderRadius: 14, backgroundColor: sombre.carte, borderWidth: 1, borderColor: sombre.bord }}>
+        <T v="carte">{label}</T>
+        <Rangee>{([['tous', 'Tous'], ['admins', 'Admins'], ['ferme', 'Fermé']] as const).map(([k, l]) => <Puce key={k} label={l} actif={m === k} onPress={() => { if (m !== k) void choisirMode(id, k); }} />)}</Rangee>
+      </View>
+    );
+  };
   return (
     <Sombre>
-      <T v="petit">Ces interrupteurs s'appliquent à toutes les applications au prochain démarrage, sans nouvelle version.</T>
+      <T v="petit">Ces interrupteurs s'appliquent tout de suite sur cet appareil, et sur les autres à leur prochain retour dans l'application, sans nouvelle version.</T>
       <SectionTitre titre="Modules" />
-      {[['ompangano', 'Ompangano (contribuer)'], ['onenji', 'Onenji (apprendre)'], ['azeva', 'Azeva (jouer)'], ['ontci', 'Ontci (écouter)'], ['nkala', 'Nkala (village)']].map(([id, l]) => <Ligne key={id} cle="modules" id={id} label={l} />)}
+      <T v="petit">« Admins » : l'onglet reste caché au public mais s'affiche, marqué ADMIN, pour les administrateurs connectés, le temps de tester.</T>
+      {[['ompangano', 'Ompangano (contribuer)'], ['onenji', 'Onenji (apprendre)'], ['azeva', 'Azeva (jouer)'], ['ontci', 'Ontci (écouter)'], ['nkala', 'Nkala (village)']].map(([id, l]) => <LigneModule key={id} id={id} label={l} />)}
       <SectionTitre titre="Fonctions" />
-      {[['publicite', 'Publicité'], ['achats', 'Achats et abonnements'], ['assistantIA', 'Assistant Ozangué']].map(([id, l]) => <Ligne key={id} cle="fonctions" id={id} label={l} />)}
+      {[['publicite', 'Publicité'], ['achats', 'Achats et abonnements'], ['assistantIA', "Assistant Kak'Igonjo"]].map(([id, l]) => <Ligne key={id} cle="fonctions" id={id} label={l} />)}
       <Ligne cle="fonctions" id="salleParis" label="Salle des paris" fige="Fermée : le dossier juridique de cinq pièces n'est pas réuni." />
       <SectionTitre titre="Quotas de l'assistant (jetons)" />
       {([['parJour', 'Par jour'], ['parMois', 'Par mois'], ['parConversation', 'Par conversation']] as const).map(([k, l]) => <Champ key={k} valeur={q[k]} onChange={t => setQ({ ...q, [k]: t.replace(/\D/g, '') })} placeholder={`${l} (adulte ; enfants : ¼, abonnés : ×4)`} clavier="number-pad" />)}
@@ -223,7 +246,9 @@ export function ModerationHabitants() {
   const [liste, setListe] = useState<Record<string, any>[] | null>(null);
   const charger = useCallback(() => adminModeration().then(setListe).catch(e => toast((e as Error).message, 'erreur')), [toast]);
   useEffect(() => { charger(); }, [charger]);
-  const decider = async (x: Record<string, any>, d: 'publier' | 'refuser') => { try { await adminDecider(x.collection, x.id, d); charger(); } catch (e) { toast((e as Error).message, 'erreur'); } };
+  const [ouvert, setOuvert] = useState<string | null>(null);
+  const [motif, setMotif] = useState('');
+  const decider = async (x: Record<string, any>, d: 'publier' | 'refuser') => { try { await adminDecider(x.collection, x.id, d, d === 'refuser' && motif.trim() ? motif.trim() : undefined); setMotif(''); charger(); } catch (e) { toast((e as Error).message, 'erreur'); } };
   return (
     <Sombre>
       <T v="petit">Annonces, signalements, idées et avis envoyés par les habitants : rien n'est visible avant ta décision.</T>
@@ -232,6 +257,20 @@ export function ModerationHabitants() {
           <View style={{ flexDirection: 'row', gap: 8 }}><Pastille label={x.collection} /><T v="petit">{x.auteur}</T></View>
           <T v="carte">{x.titre ?? x.description}</T>{!!x.description && x.titre && <T v="petit">{x.description}</T>}
           {x.prix ? <T v="petit" couleur={c.accent}>{x.prix} FCFA</T> : null}
+          {x.logement && <>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+              <Pastille label={`${(x.logement.medias ?? []).length} médias`} />
+              <Pastille label={`Complétude ${x.logement.completude ?? 0}`} />
+              {x.logement.certifiee ? <Pastille label="Visite certifiée" couleur={c.succes} /> : <Pastille label="Non certifiée" />}
+              {x.logement.ecartMediasM !== null && x.logement.ecartMediasM !== undefined && <Pastille label={`Écart des médias pris sur place : ${x.logement.ecartMediasM} m`} couleur={x.logement.ecartMediasM > 150 ? c.erreur : c.texte} />}
+              {x.logement.masquee && <Pastille label="Emplacement masqué" />}
+            </View>
+            {x.logement.positionReelle && <T v="petit">Position réelle (modérateurs seulement) : {x.logement.positionReelle.lat.toFixed(5)}, {x.logement.positionReelle.lng.toFixed(5)}</T>}
+            <T v="petit">La certification est déclarative : une position de téléphone peut être falsifiée. Vérifiez la cohérence des photos.</T>
+            <Bouton label={ouvert === x.id ? 'Masquer la fiche' : 'Voir la fiche, les photos, vidéos et 360°'} petit variante="fantome" onPress={() => setOuvert(ouvert === x.id ? null : x.id)} />
+            {ouvert === x.id && <View style={{ gap: 12 }}><VueLogement a={x as AnnonceVue} /><T v="petit">Téléphone : {x.telephone || '—'}{x.logement.whatsapp ? ` · WhatsApp : ${x.logement.whatsapp}` : ''}</T></View>}
+          </>}
+          {ouvert === x.id && <Champ valeur={motif} onChange={setMotif} placeholder="Motif du refus (facultatif, visible de l'auteur)" />}
           <View style={{ flexDirection: 'row', gap: 10 }}><Bouton label="Publier" petit large={false} onPress={() => decider(x, 'publier')} /><Bouton label="Refuser" petit large={false} variante="fantome" onPress={() => decider(x, 'refuser')} /></View>
         </View></Carte>))}
     </Sombre>
@@ -286,6 +325,57 @@ export function PaiementsAdmin() {
           <T v="petit">{p.nom ?? p.userId} · {p.telephone} · réf. {p.reference}{p.transaction ? ` · transaction ${p.transaction}` : ''}</T>
           {(p.statut === 'declare' || p.statut === 'en_attente') && <View style={{ flexDirection: 'row', gap: 8 }}><Bouton label="Valider" petit large={false} onPress={() => adminValiderPaiement(p.id).then(() => { toast('Paiement validé, droit accordé.', 'succes'); charger(); }).catch(e => toast((e as Error).message, 'erreur'))} /><Bouton label="Refuser" petit large={false} variante="fantome" onPress={() => adminRefuserPaiement(p.id).then(charger).catch(e => toast((e as Error).message, 'erreur'))} /></View>}
         </View></Carte>))}
+    </Sombre>
+  );
+}
+
+// ------------------------------------------------------------------ Nkorouna (NKR)
+export function NkorounaAdmin() {
+  const { c } = useTheme();
+  const toast = useToast();
+  const [d, setD] = useState<Awaited<ReturnType<typeof adminNkorouna>> | null>(null);
+  const [uid, setUid] = useState(''), [montant, setMontant] = useState(''), [motif, setMotif] = useState('');
+  const charger = useCallback(() => adminNkorouna().then(setD).catch(e => toast((e as Error).message, 'erreur')), [toast]);
+  useEffect(() => { charger(); }, [charger]);
+  const err = (e: unknown) => toast((e as Error).message, 'erreur');
+  const ajuster = () => {
+    const n = Number(montant);
+    if (!uid.trim() || !Number.isInteger(n) || n === 0 || motif.trim().length < 3) { toast('Utilisateur, montant entier (négatif pour retirer) et motif attendus.', 'erreur'); return; }
+    adminAjusterNkr(uid.trim(), n, motif.trim(), cleNkr()).then(r => { toast(`Fait. Nouveau solde : ${r.solde} NKR.`, 'succes'); setMontant(''); setMotif(''); charger(); }).catch(err);
+  };
+  return (
+    <Sombre>
+      <T v="petit">Registre du Nkorouna : chaque mouvement est scellé au précédent ; la vérification relit tout le registre (chaîne, soldes, somme nulle, sceaux). Une erreur se corrige par une annulation, jamais en base.</T>
+      {!d ? <Chargement /> : <>
+        <Carte plat><View style={{ padding: 12, gap: 6 }}>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <T v="carte" style={{ flex: 1 }}>Vérification : {d.verification.mouvements} mouvements</T>
+            <Pastille label={d.verification.ok ? 'intègre' : 'ANOMALIE'} couleur={d.verification.ok ? c.succes : c.erreur} fond={c.carte} />
+          </View>
+          {d.verification.erreurs.slice(0, 10).map((e, i) => <T key={i} v="petit" couleur={c.erreur}>{e}</T>)}
+          <Bouton label="Sceller les nouveaux mouvements (racine de Merkle)" petit onPress={() => adminAncrerNkr().then(r => { toast(r.rien ? 'Rien de nouveau à sceller.' : `Sceau ${r.de}–${r.jusqua} : ${r.racine?.slice(0, 16)}… (${r.reseau})`, 'succes'); charger(); }).catch(err)} />
+        </View></Carte>
+        <Carte plat><View style={{ padding: 12, gap: 8 }}>
+          <T v="carte">Offrir ou retirer des Nkorouna</T>
+          <Champ valeur={uid} onChange={setUid} placeholder="Identifiant de l'utilisateur" />
+          <Champ valeur={montant} onChange={setMontant} placeholder="Montant (ex. 100, ou -50 pour retirer)" clavier="numbers-and-punctuation" />
+          <Champ valeur={motif} onChange={setMotif} placeholder="Motif (inscrit au journal)" />
+          <Bouton label="Valider" petit onPress={ajuster} />
+        </View></Carte>
+        <T v="carte">Comptes</T>
+        {d.comptes.map(k => (
+          <View key={k.id} style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <T v="petit" style={{ flex: 1 }} numberOfLines={1}>{k.nom ?? k.id} · {k.solde.toLocaleString('fr-FR')} NKR{k.gele ? ' · gelé' : ''}</T>
+            {k.user_id && <Bouton label={k.gele ? 'Dégeler' : 'Geler'} petit large={false} variante="fantome" onPress={() => adminGelerNkr(k.user_id!, !k.gele).then(charger).catch(err)} />}
+          </View>))}
+        <T v="carte">Derniers mouvements</T>
+        {d.mouvements.map(m => (
+          <Carte key={m.id} plat><View style={{ padding: 10, gap: 4 }}>
+            <T v="petit">#{m.rang} · {new Date(m.created_at).toLocaleString('fr-FR')} · {m.nature} · {m.montant.toLocaleString('fr-FR')} NKR</T>
+            <T v="petit">{m.debit} → {m.credit} · par {m.par.slice(0, 16)}</T>
+            {m.nature !== 'annulation' && <Bouton label="Annuler (contre-écriture)" petit large={false} variante="fantome" onPress={() => adminAnnulerNkr(m.id, 'Annulé depuis la console').then(() => { toast('Mouvement annulé.', 'succes'); charger(); }).catch(err)} />}
+          </View></Carte>))}
+      </>}
     </Sombre>
   );
 }

@@ -56,33 +56,37 @@ Une leçon = une suite d'exercices courts.
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Exercices — `exercices`
-Écouter-répéter, associer image et mot, remettre en ordre, dire à voix haute, choix.
+Collection privée (décision de Capp, 14 nov. 2026) : l'application ne reçoit que les exercices des leçons que le compte peut ouvrir. Une leçon suit l'unité en 9 étapes : écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier. Plusieurs variantes d'un même exercice se placent à la même position (colonne « ordre ») avec des dialectes différents : l'apprenant voit celle de sa variante (ôrungu par défaut).
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `lecon_id` | texte → `lecons` | oui | Leçon parente. |
-| `type` | choix (ecouter / associer / ordre / dire / choix) | oui | Type d'exercice. |
+| `type` | choix (ecouter / associer / ordre / dire / choix / trou / saisie / cours / dictee / comprendre / proverbe / culture / jouer) | oui | Type d'exercice : trou = mot à placer dans la phrase ; saisie = réponse à écrire ; cours = présentation avant les contrôles (non notée) ; dictee = écouter puis écrire ; comprendre = dialogue ou texte (colonne « texte ») puis question à choix ; proverbe et culture = cartes à lire (non notées) ; jouer = lien vers un jeu d'Azeva (colonne « jeu_id »). |
 | `consigne` | texte |  | Consigne affichée (texte ou lue). |
-| `mot_myene` | texte |  | Mot ou phrase en myènè (source obligatoire). |
+| `mot_myene` | texte |  | Mot ou phrase en myènè (source obligatoire) ; pour « trou », la phrase avec ___ à la place du mot. |
 | `mot_francais` | texte |  | Traduction française. |
 | `options` | liste |  | Choix proposés, séparés par \| (associer, choix) ou mots à remettre en ordre. |
 | `reponse` | texte |  | Bonne réponse (libellé exact d'une option, ou phrase complète pour « ordre »). |
 | `indice` | texte |  | Aide affichée après une erreur. |
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
 | `audio` | url |  | Fichier audio (adresse https ou chemin du stockage). |
-| `dialecte` | texte |  | Dialecte (ôrungu, omyènè…). |
+| `texte` | long |  | Texte long : explication (cours), dialogue une réplique par ligne « Nom : texte » (comprendre), sens et usage (proverbe), note (culture). |
+| `conseil` | texte |  | Conseil culturel montré en bulle pendant l'exercice. |
+| `jeu_id` | texte → `jeux` |  | Étape « jouer » : identifiant du jeu d'Azeva proposé (tous les jeux sont gratuits). |
+| `dialecte` | texte |  | Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes). |
 | `source` | texte |  | Source du contenu (document et page) : obligatoire pour tout mot myènè. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 
-### Cours d'artisans — `cours_artisans`
-Cours vidéo donnés par des artisans.
+### Vidéothèque (Igolani) — `cours_artisans`
+Tous les cours vidéo d'Onenji, rangés par catégorie ; les cours d'artisans sont une catégorie (nom de collection gardé pour les données déjà importées).
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `titre` | texte | oui | Titre du cours. |
-| `artisan` | texte | oui | Nom de l'artisan. |
+| `categorie` | texte |  | Catégorie de la vidéothèque (Artisans, Langue, Culture, Histoire…). Vide : « Artisans » si un artisan est indiqué. |
+| `artisan` | texte |  | Nom de l'artisan ou de l'intervenant. |
 | `metier` | texte |  | Métier (vin de palme, hors-bord, cuisine…). |
 | `description` | long |  | Description. |
 | `video_url` | url |  | Vidéo ou playlist HLS (inutile si protege = oui). |
@@ -90,7 +94,8 @@ Cours vidéo donnés par des artisans.
 | `sous_titres_url` | url |  | Fichier de sous-titres (.vtt). |
 | `duree_min` | entier |  | Durée totale en minutes. |
 | `niveau` | choix (debutant / intermediaire / avance) |  | Niveau. |
-| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Qui peut ouvrir ce contenu (libre par défaut). |
+| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Accès de toute la vidéo (vide = règle par défaut : 1er chapitre gratuit avec publicité, la suite au forfait, à l'achat pour un cours d'artisan de plus de 60 min). |
+| `parcours_id` | texte → `parcours` |  | Étape d'Inenga à laquelle la vidéo se rattache (facultatif). |
 | `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
 | `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 | `image` | url |  | Image (adresse https ou chemin du stockage). |
@@ -107,6 +112,7 @@ Chapitres d'un cours d'artisan.
 | `titre` | texte | oui | Titre du chapitre. |
 | `debut_s` | entier |  | Début dans la vidéo (secondes). |
 | `duree_s` | entier |  | Durée en secondes. |
+| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n'en a pas : 1er chapitre gratuit avec publicité, la suite au forfait, à l'achat pour un cours d'artisan de plus de 60 min). |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 
 ### Bibliothèque — `bibliotheque`
@@ -147,6 +153,24 @@ Texte des livres de la bibliothèque, un chapitre par ligne (généré par l'imp
 | `questions` | json |  | Quiz du chapitre (sinon généré) : [{"enonce":"…","options":["a","b","c"],"bonne":0}]. |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
+### Fiches de grammaire — `grammaire`
+Fiches courtes (conjugaison, classes nominales, pronoms, nombres…) lisibles dans Ezango et depuis les leçons. Chaque exemple myènè porte sa source.
+
+| Colonne | Type | Obligatoire | Description |
+|---|---|---|---|
+| `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
+| `titre` | texte | oui | Titre de la fiche. |
+| `categorie` | choix (conjugaison / classes_nominales / pronoms / nombres / phrase / prononciation / autre) |  | Rubrique. |
+| `resume` | texte |  | Une phrase qui dit ce que la fiche explique. |
+| `contenu` | long | oui | Explication (paragraphes séparés par une ligne vide ; un tableau en lignes « a \| b \| c »). |
+| `exemples` | json |  | Exemples : [{"myene":"…","francais":"…","audio":"…"}]. |
+| `parcours_id` | texte → `parcours` |  | Étape concernée (facultatif). |
+| `unite_id` | texte → `unites` |  | Unité où la fiche est proposée (facultatif). |
+| `dialecte` | texte |  | Dialecte (vide = commun). |
+| `source` | texte | oui | Source du contenu (document et page) : obligatoire pour tout mot myènè. |
+| `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
+| `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+
 ### Opportunités pour la jeunesse — `opportunites`
 Bourses, stages, concours.
 
@@ -179,25 +203,75 @@ Salles du hall (Mots, Corps, Maison, Nature, Nombres…).
 | `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Jeux — `jeux`
-Jeux du hall ; le moteur détermine le fonctionnement.
+Jeux du hall ; le moteur détermine le fonctionnement. Le contenu d'une partie est tiré par le serveur à chaque manche.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `salle_id` | texte → `salles` | oui | Salle. |
 | `titre` | texte | oui | Titre. |
-| `moteur` | choix (ogoni / pendu / anagramme / mots_meles / dictee / qcm / ordre / plateau / memoire) | oui | Moteur de jeu. |
+| `moteur` | choix (ogoni / pendu / anagramme / mots_meles / mots_croises / mots_fleches / memoire / syllabes / dictee / qcm / ordre / plateau / quiz / relier / classer / sequence / trous / compter / rythme / zones / suites / chemin) | oui | Moteur de jeu. |
 | `description` | texte |  | Description. |
+| `consigne` | texte |  | Consigne affichée pendant la partie. |
 | `couleur` | texte |  | Couleur d'accent #RRGGBB. |
-| `duree_s` | entier |  | Durée de la partie (secondes, 0 = sans limite). |
+| `icone` | texte |  | Nom d'icône. |
+| `duree_s` | entier |  | Durée de la partie (secondes, 0 = sans limite) ; un niveau peut la remplacer. |
+| `theme` | liste |  | Thèmes des « mots_jeux » utilisés, séparés par \| (vide = tous). |
+| `banque` | texte |  | Identifiant de jeu dont on réutilise les « jeux_items » (vide = ceux de ce jeu). |
+| `corpus` | booleen |  | oui/non : ajouter aux mots les fiches actives du corpus (un seul mot) dans le dialecte du joueur. |
+| `scene` | texte |  | Moteur « zones » : dessin intégré (corps) ou image de la scène. |
+| `niveaux` | entier |  | Nombre de niveaux du jeu (1000 par défaut). |
 | `mode_enfant` | booleen |  | oui/non : disponible en mode enfant. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 | `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
 | `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
+### Paliers des jeux — `jeux_niveaux`
+Chaque jeu a 1000 niveaux à difficulté croissante (calculée). Une ligne = un palier : « à partir du niveau X », avec sa condition d'accès (rang du joueur, formule d'abonnement, achat) et, si on veut, des réglages imposés. Sans ligne, huit paliers par défaut suivent les huit rangs.
+
+| Colonne | Type | Obligatoire | Description |
+|---|---|---|---|
+| `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
+| `jeu_id` | texte → `jeux` | oui | Jeu concerné. |
+| `niveau` | entier | oui | Premier niveau du palier (1, 51, 151…) ; il va jusqu'au palier suivant. |
+| `titre` | texte | oui | Nom du palier. |
+| `description` | texte |  | Ce qui change à ce palier. |
+| `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
+| `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
+| `produit_id` | texte → `produits` |  | Achat qui ouvre ce palier (collection « produits ») ; une formule citée dans « plans » l'ouvre aussi. |
+| `questions` | entier |  | Imposer le nombre de mots ou de questions par manche (vide = calculé selon le niveau). |
+| `duree_s` | entier |  | Imposer le temps limite en secondes (0 = sans limite ; vide = calculé). |
+| `erreurs_max` | entier |  | Imposer les erreurs permises (bûches du feu d'Ogoni) ; vide = calculé (7 puis 3). |
+| `taille` | entier |  | Imposer la taille de la grille ; vide = calculée. |
+| `options` | entier |  | Imposer le nombre de réponses proposées (2 à 6) ; vide = calculé. |
+| `contenu_niveau` | entier |  | Imposer la difficulté maximale des contenus tirés ; vide = calculée. |
+| `xp_pct` | entier |  | Imposer l'XP de la partie en pourcentage (100 = normal) ; vide = calculé (100 puis 300). |
+| `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+
+### Contenu des jeux — `jeux_items`
+Questions, paires, suites, phrases à trous… d'un jeu. Collection privée : l'application n'en reçoit que le tirage d'une manche.
+
+| Colonne | Type | Obligatoire | Description |
+|---|---|---|---|
+| `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
+| `jeu_id` | texte → `jeux` | oui | Jeu (ou banque) auquel appartient la ligne. |
+| `enonce` | texte | oui | Question, élément de gauche, phrase avec ___, élément à classer ou à ordonner, suite (rond\|carre\|?), nombre à compter. |
+| `reponse` | texte | oui | Bonne réponse, élément de droite, catégorie, syllabes (a-kôn-dô), rythme (G-D-G), zone (tete). |
+| `leurres` | liste |  | Mauvaises réponses séparées par \| (sinon tirées des autres lignes du jeu). |
+| `groupe` | texte |  | Série à laquelle appartient la ligne (moteur « sequence » : une série = une suite à remettre en ordre). |
+| `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
+| `niveau` | entier |  | Difficulté 1 à 3. |
+| `indice` | texte |  | Aide ou explication montrée après la réponse. |
+| `image` | url |  | Image (adresse https ou chemin du stockage). |
+| `audio` | url |  | Fichier audio (adresse https ou chemin du stockage). |
+| `extra` | json |  | Réglages propres au moteur, ex. {"x":50,"y":12} (zone), {"texte":"…"} (texte à lire avant la question). |
+| `dialecte` | texte |  | Dialecte (vide = tous). |
+| `source` | texte | oui | Source du contenu (document et page) : obligatoire pour tout mot myènè. |
+| `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
+
 ### Mots des jeux — `mots_jeux`
-Mots supplémentaires pour les jeux (en plus des fiches validées du corpus).
+Mots des jeux de lettres (feu d'Ogoni, anagrammes, grilles, mémoire). Collection privée : l'application n'en reçoit que le tirage d'une manche.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
@@ -516,13 +590,13 @@ Classes d'âge ôrungu : paliers d'XP.
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 
 ### Messages et rappels doux — `messages`
-Textes des rappels, encouragements et phrases d'Ozangué.
+Textes des rappels, encouragements et phrases de Kak'Igonjo.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
-| `type` | choix (rappel / encouragement / bienvenue / defaite / victoire / ozangue) | oui | Type. |
-| `texte` | texte | oui | Texte (tutoiement sauf services citoyens). |
+| `type` | choix (rappel / encouragement / bienvenue / defaite / victoire / kakigonjo / ozangue) | oui | Type. |
+| `texte` | texte | oui | Texte (tutoiement sauf services citoyens). Type « kakigonjo » : message d'accueil du chat de Kak'Igonjo ; {prénom} est remplacé par le prénom de l'utilisateur. |
 | `ton` | choix (tu / vous) |  | Tutoiement ou vouvoiement. |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
@@ -536,23 +610,25 @@ Ce que chaque formule débloque : toute l'application, ou seulement les contenus
 | `description` | long |  | Ce qu'elle apporte. |
 | `tout` | booleen |  | oui = donne accès à tout (contenus soumis à une formule compris). |
 | `rang_min` | entier |  | Rang minimal conseillé (information). |
-| `sans_pub` | booleen |  | oui = plus de publicité. |
+| `sans_pub` | liste |  | Parties sans publicité : « tout », ou des modules séparés par \| (commun, onenji, azeva, ontci, nkala). Vide = publicité maintenue. « oui » vaut « tout ». |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Produits payants — `produits`
-Abonnements et achats intégrés (aucun prix n'est fixé dans le code).
+Abonnements, achats intégrés et packs de Nkorouna (aucun prix n'est fixé dans le code). Un produit peut se payer en FCFA (prix_fcfa), en Nkorouna (prix_nkr) ou les deux.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `titre` | texte | oui | Titre. |
-| `type` | choix (abonnement / achat / consommable) | oui | Type. |
+| `type` | choix (abonnement / achat / consommable / nkorouna) | oui | Type ; « nkorouna » = pack de jetons payé en FCFA. |
 | `prix_fcfa` | entier |  | Prix en FCFA. |
 | `periode` | choix (mois / an / unique) |  | Période. |
 | `donne_acces` | liste |  | Contenus débloqués par un achat, séparés par \| ; « tout » = toute l'application. |
 | `plan_id` | texte → `plans` |  | Formule donnée par cet abonnement (collection « plans »). |
 | `jetons_ia` | entier |  | Jetons IA offerts (consommable). |
+| `nkorouna` | entier |  | Type « nkorouna » : nombre de Nkorouna (NKR) crédités quand le pack est payé en FCFA. |
+| `prix_nkr` | entier |  | Prix en Nkorouna (vide = ne s'achète pas en Nkorouna ; jamais pour un pack de Nkorouna). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Créations publicitaires — `pub_creations`

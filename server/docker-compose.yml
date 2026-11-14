@@ -41,7 +41,9 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://ompangano:${POSTGRES_PASSWORD}@postgres:5432/ompangano
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://ompangano.web.app,https://ompangano.firebaseapp.com,https://source.essaka.engineering,http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://ompangano.web.app,https://ompangano.firebaseapp.com,https://source.essaka.engineering}
+      NODE_ENV: ${NODE_ENV:-production}
+      TRUST_PROXY: ${TRUST_PROXY:-127.0.0.1,::1,172.16.0.0/12}
       S3_ENDPOINT: http://garage:3900
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:3900}
       S3_REGION: garage
@@ -52,6 +54,9 @@ services:
       MODULES_ACTIFS: ${MODULES_ACTIFS:-ompangano,onenji,azeva,ontci,nkala}
       FONCTIONS_ACTIVES: ${FONCTIONS_ACTIVES:-}
       SESSION_SECRET: ${SESSION_SECRET:?générer avec openssl rand -hex 32 puis noter dans .env}
+      # Clés séparées (api/src/cles.ts) : MEDIA_SECRET = valeur actuelle de SESSION_SECRET pour garder les médias déjà chiffrés
+      MEDIA_SECRET: ${MEDIA_SECRET:-}
+      LICENCE_SECRET: ${LICENCE_SECRET:-}
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
       TWILIO_VERIFY_SID: ${TWILIO_VERIFY_SID:-}
@@ -62,6 +67,10 @@ services:
       TURN_URLS: ${TURN_URLS:-}
       TURN_SECRET: ${TURN_SECRET:-}
       SMS_FOURNISSEUR: ${SMS_FOURNISSEUR:-}
+      # Numéro des examinateurs des magasins (code fixe, sans SMS) : facultatif
+      REVUE_TELEPHONE: ${REVUE_TELEPHONE:-}
+      REVUE_CODE: ${REVUE_CODE:-}
+      REVUE_JUSQU_AU: ${REVUE_JUSQU_AU:-}   # date ISO de fin de revue des magasins (45 j au plus) ; sans elle le numéro examinateur est coupé
       ADMIN_TELEPHONES: ${ADMIN_TELEPHONES:-}
       IA_FOURNISSEUR: ${IA_FOURNISSEUR:-}
       RUNPOD_API_KEY: ${RUNPOD_API_KEY:-}

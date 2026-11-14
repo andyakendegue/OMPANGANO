@@ -42,3 +42,15 @@ export function useRegle() {
   return (l: Ligne | Record<string, any> | null | undefined): DecisionAvancee => accesAvance({ rangMin: Number(l?.rang_min) || 0, plans: Array.isArray(l?.plans) ? l!.plans : [] }, { rang, plans: p.plans, tout: p.tout });
 }
 export const oublierAcces = () => { cacheAcces = null; };
+
+/** Formules actives de l'utilisateur (identifiants) ; vide sans compte ou hors ligne. */
+export function useFormules(): { plans: string[]; tout: boolean } {
+  const { profil } = useAuth();
+  const [p, setP] = useState<{ plans: string[]; tout: boolean }>(cacheAcces && cacheAcces.uid === profil?.id ? cacheAcces.p : { plans: [], tout: false });
+  useEffect(() => {
+    if (!profil) { setP({ plans: [], tout: false }); return; }
+    if (cacheAcces && cacheAcces.uid === profil.id && Date.now() - cacheAcces.t < 60_000) { setP(cacheAcces.p); return; }
+    chargerProfilAcces().then(r => { cacheAcces = { uid: profil.id, p: { plans: r.plans, tout: r.tout }, t: Date.now() }; setP(cacheAcces.p); }).catch(() => {});
+  }, [profil?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  return p;
+}

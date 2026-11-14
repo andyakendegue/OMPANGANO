@@ -1,8 +1,8 @@
 /**
  * Conditionne un fichier audio ou vidéo en HLS chiffré AES-128 et le range dans le stockage (ou dans un dossier local pour essai).
- *   cd server && SESSION_SECRET=… npx tsx scripts/chiffrer_media.ts <collection> <id> <fichier> [audio|video] [--local dossier]
+ *   cd server && MEDIA_SECRET=… npx tsx scripts/chiffrer_media.ts <collection> <id> <fichier> [audio|video] [--local dossier]
  *   collection : titres | chapitres | cours_artisans ; id : identifiant de la ligne importée (colonne protege = oui)
- * La clé n'est jamais écrite dans le stockage : elle est dérivée du SESSION_SECRET (même dérivation que l'API) et livrée contre une licence.
+ * La clé n'est jamais écrite dans le stockage : elle est dérivée de MEDIA_SECRET, sinon SESSION_SECRET (même dérivation que l'API, cles.ts) et livrée contre une licence.
  * Il faut ffmpeg. En production, lancer sur le VPS avec les variables S3_* du serveur.
  */
 import { execFileSync } from 'node:child_process';
@@ -17,8 +17,9 @@ const iLocal = args.indexOf('--local');
 const local = iLocal >= 0 ? args.splice(iLocal, 2)[1] : null;
 const [collection, id, fichier, genre = 'audio'] = args;
 if (!collection || !id || !fichier) { console.error('Usage : chiffrer_media.ts <collection> <id> <fichier> [audio|video] [--local dossier]'); process.exit(1); }
-const secret = process.env.SESSION_SECRET;
-if (!secret) { console.error('SESSION_SECRET manquant'); process.exit(1); }
+// Même clé que l'API (cles.ts) : MEDIA_SECRET, sinon SESSION_SECRET
+const secret = process.env.MEDIA_SECRET || process.env.SESSION_SECRET;
+if (!secret) { console.error('MEDIA_SECRET (ou SESSION_SECRET) manquant'); process.exit(1); }
 
 const tmp = mkdtempSync(join(tmpdir(), 'hls-'));
 writeFileSync(join(tmp, 'cle.bin'), cleContenu(secret, collection, id));

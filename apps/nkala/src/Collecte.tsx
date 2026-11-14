@@ -139,7 +139,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
         if (parDefi.length > 0) liste = parDefi;
       }
       if (annule) return;
-      // Fiche choisie dans Ezango : on se place dessus dès que la liste est prête.
+      // Fiche choisie dans Ikamba (ex-Ezango) : on se place dessus dès que la liste est prête.
       const voulue = ficheDemandee.current;
       if (voulue && !liste.includes(voulue)) { ficheDemandee.current = null; setTribu('all'); setFiltreDefi(false); return; }
       setIds(liste); setIndex(voulue ? Math.max(0, liste.indexOf(voulue)) : 0);

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Installé par : git config core.hooksPath scripts/hooks   (voir SECURITE_ISO27001.md, règle S1)
+exec "$(git rev-parse --show-toplevel)/scripts/secrets_interdits.sh"

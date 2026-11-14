@@ -3,12 +3,16 @@
  * Le client envoie ses réponses ; le serveur recalcule le score et décide de l'XP (plafonds quotidiens).
  */
 import { scorePartie, jourLocal } from '../../../packages/noyau/src/moteurs.ts';
-import { terminerLecon, uniteValidee, progressionVide, majSerie, XP_LECON, type ProgressionOnenji } from '../../../packages/noyau/src/lecons.ts';
+import { terminerLecon, uniteValidee, progressionVide, majSerie, XP_LECON, accesLecon, numeroCertificat, parcoursTermine, NUMERO_CERTIFICAT, type ProgressionOnenji, type Unite } from '../../../packages/noyau/src/lecons.ts';
+import { peutAcceder, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
+import { droitsDe } from './services.ts';
 import { nouveauRang } from '../../../packages/noyau/src/rangs.ts';
 import { getLevelForXp } from '../../../shared/levels.ts';
 import type { Queryable } from './db.ts';
 import { parametre, str, type Ctx } from './ctx.ts';
 import { verifierRegle } from './profil_acces.ts';
+import { lireJetonManche } from './azeva.ts';
+import { JEUX_GRATUITS } from '../../../packages/noyau/src/difficulte.ts';
 
 const PLAFOND_XP_JEUX_JOUR = 150;
 const XP_UNITE = 30;
@@ -18,6 +22,8 @@ interface Donnees extends ProgressionOnenji {
   defisFaits: Record<string, string>; amis: string[]; contributions?: number;
   /** Chapitres de livres terminés : identifiant -> jour et résultat du quiz (l'XP n'est donnée qu'une fois par chapitre). */
   lectures?: Record<string, { jour: string; bonnes: number; sur: number }>;
+  /** Meilleur niveau de difficulté gagné, par jeu. */
+  niveauxGagnes?: Record<string, number>;
 }
 const vide = (): Donnees => ({ ...progressionVide(), parties: 0, victoires: 0, points: 0, succes: [], defisFaits: {}, amis: [] });
 
@@ -39,7 +45,96 @@ async function donnerXp(q: Queryable, uid: string, xp: number) {
   return { xp: apres, nouveauRang: nouveauRang(avant, apres) };
 }
 
-export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx) {
+export function registerJeux({ app, db, fail, acteur, ensureUser, notify, cles }: Ctx) {
+  /** Niveau d'accès d'une leçon (même règle que l'application, `accesLecon`) ; unité inconnue : la leçon reste ouverte. */
+  const niveauLecon = async (leconId: string, data: Record<string, any>): Promise<NiveauAcces> => {
+    if (data.niveau_acces) return data.niveau_acces as NiveauAcces;
+    const u = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'unites' AND id = $1 AND deleted_at IS NULL`, [data.unite_id]))[0];
+    if (!u) return 'libre';
+    const soeurs = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'unites' AND publie AND deleted_at IS NULL AND data->>'parcours_id' = $1`, [u.data.parcours_id]))
+      .map(x => ({ ...x.data, id: x.id }) as Unite);
+    return accesLecon({ ...data, id: leconId } as any, { ...u.data, id: u.id } as Unite, soeurs.length ? soeurs : [{ ...u.data, id: u.id }]) as NiveauAcces;
+  };
+
+  // ---------------------------------------------------------------- exercices d'Onenji (collection privée, 14 nov. 2026)
+  /**
+   * Exercices des leçons que le demandeur peut ouvrir : sans compte, les leçons gratuites (première unité de chaque étape, « libre »,
+   * « gratuit_avec_pub ») ; avec un compte, aussi celles couvertes par ses droits (forfait, achat) ; le personnel reçoit tout.
+   * Les règles « rang_min » et « plans » de la leçon s'appliquent en plus.
+   */
+  const exercicesOuverts = async (req: any, reply: any, avecCompte: boolean) => {
+    const a = avecCompte ? await acteur(req) : null;
+    const lecons = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'lecons' AND publie AND deleted_at IS NULL`)).map(x => ({ ...x.data, id: x.id }));
+    const unites = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'unites' AND publie AND deleted_at IS NULL`)).map(x => ({ ...x.data, id: x.id }) as Unite);
+    const droits = a ? await droitsDe(db, a.auth.uid, a.role) : null;
+    const ouvertes = new Set<string>();
+    for (const l of lecons) {
+      if (a?.isStaff) { ouvertes.add(l.id); continue; }
+      const u = unites.find(x => x.id === l.unite_id);
+      const niveau = (l.niveau_acces || (u ? accesLecon(l, u, unites.filter(x => x.parcours_id === u.parcours_id)) : 'libre')) as NiveauAcces;
+      const regle = Number(l.rang_min) > 0 || (Array.isArray(l.plans) && l.plans.length > 0);
+      const gratuite = (niveau === 'libre' || niveau === 'gratuit_avec_pub') && !regle;
+      if (gratuite) { ouvertes.add(l.id); continue; }
+      if (!a) continue;
+      if (!peutAcceder({ id: l.id, acces: niveau, roles: ['admin', 'validator'] }, droits).ok) continue;
+      if (regle && !(await verifierRegle(db, a.auth.uid, a.isStaff, l)).ok) continue;
+      ouvertes.add(l.id);
+    }
+    const rows = await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'exercices' AND publie AND deleted_at IS NULL ORDER BY (data->>'ordre')::numeric NULLS LAST, id`);
+    reply.header('Cache-Control', 'private, no-store');
+    return { lignes: rows.map(r => ({ ...r.data, id: r.id })).filter(e => ouvertes.has(e.lecon_id)), lecons: [...ouvertes] };
+  };
+  app.get('/pub/onenji/exercices', (req, reply) => exercicesOuverts(req, reply, false));
+  app.get('/v1/onenji/exercices', (req, reply) => exercicesOuverts(req, reply, true));
+  // Compatibilité des versions 0.1.x de l'app, qui lisent encore la collection en bloc : seulement les exercices des leçons gratuites
+  // (même règle que sans compte). Route fixe : elle passe avant /pub/contenus/:collection, qui refuse les collections privées.
+  app.get('/pub/contenus/exercices', async (req, reply) => ({ collection: 'exercices', ...(await exercicesOuverts(req, reply, false)) }));
+
+  // ---------------------------------------------------------------- certificats d'Onenji (numérotés, vérifiables)
+  const formeCertificat = (r: any) => ({ numero: r.numero, nom: r.nom, titre: r.titre, parcoursId: r.parcours_id, le: new Date(r.created_at).toISOString() });
+  app.post('/v1/onenji/certificats', async (req, reply) => {
+    const a = await acteur(req);
+    const { parcoursId } = (req.body || {}) as { parcoursId?: string };
+    if (!str(parcoursId)) return fail(400, 'Parcours attendu.');
+    const p = (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'parcours' AND id = $1 AND publie AND deleted_at IS NULL`, [parcoursId]))[0];
+    if (!p) return fail(404, 'Parcours introuvable.');
+    const deja = (await db.query<any>(`SELECT * FROM certificats WHERE user_id = $1 AND parcours_id = $2`, [a.auth.uid, parcoursId]))[0];
+    if (deja) return formeCertificat(deja);
+    const unites = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'unites' AND publie AND deleted_at IS NULL AND data->>'parcours_id' = $1`, [parcoursId])).map(x => ({ id: x.id, parcours_id: parcoursId }));
+    const d = await lireProgression(db, a.auth.uid);
+    if (!parcoursTermine(parcoursId, unites, d.unitesValidees)) return fail(409, 'Valide d\'abord toutes les unités de ce parcours.');
+    const u = (await db.query<any>(`SELECT data->>'fullName' AS f, data->>'displayName' AS d FROM users WHERE id = $1`, [a.auth.uid]))[0];
+    const nom = String(u?.f || u?.d || 'Apprenant·e Nkala').slice(0, 80);
+    const titre = String(p.data.titre || parcoursId).slice(0, 120);
+    const r = await db.tx(async q => {
+      const n = (await q.query<any>(`SELECT nextval(pg_get_serial_sequence('certificats', 'rang')) AS n`))[0].n;
+      const numero = numeroCertificat(Number(n), new Date().getFullYear());
+      await q.query(`INSERT INTO certificats (rang, numero, user_id, parcours_id, nom, titre) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (user_id, parcours_id) DO NOTHING`, [n, numero, a.auth.uid, parcoursId, nom, titre]);
+      return (await q.query<any>(`SELECT * FROM certificats WHERE user_id = $1 AND parcours_id = $2`, [a.auth.uid, parcoursId]))[0];
+    });
+    return reply.status(201).send(formeCertificat(r));
+  });
+  app.get('/v1/onenji/certificats', async (req) => {
+    const a = await acteur(req);
+    return (await db.query<any>(`SELECT * FROM certificats WHERE user_id = $1 ORDER BY created_at DESC`, [a.auth.uid])).map(formeCertificat);
+  });
+  /** Vérification publique d'un certificat (numéro imprimé) : nom, parcours et date seulement. */
+  /** `?format=html` : petite page lisible (lien imprimé sur le certificat). */
+  app.get('/pub/certificats/:numero', async (req, reply) => {
+    const numero = String((req.params as any).numero || '').toUpperCase();
+    const html = (req.query as any)?.format === 'html';
+    const page = (titre: string, corps: string) => reply.type('text/html; charset=utf-8').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${titre}</title><style>body{font-family:system-ui,sans-serif;background:#170D08;color:#FDFAF7;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:16px}main{max-width:460px;background:#27150C;border:2px solid #F59E0B;border-radius:20px;padding:28px;text-align:center}h1{font-size:20px;margin:0 0 12px}p{margin:6px 0;line-height:1.5}.n{color:#F59E0B;font-weight:700}</style></head><body><main>${corps}</main></body></html>`);
+    if (!NUMERO_CERTIFICAT.test(numero)) return html ? page('Certificat invalide', '<h1>Numéro invalide</h1>') : fail(400, 'Numéro de certificat invalide.');
+    const r = (await db.query<any>(`SELECT * FROM certificats WHERE numero = $1`, [numero]))[0];
+    if (!r) return html ? page('Certificat introuvable', `<h1>Aucun certificat</h1><p>Aucun certificat ne porte le numéro ${numero}.</p>`) : fail(404, 'Aucun certificat ne porte ce numéro.');
+    const { numero: n, nom, titre, le } = formeCertificat(r);
+    if (html) {
+      const e = (t: string) => t.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
+      return page(`Certificat ${n}`, `<h1>Certificat authentique ✓</h1><p class="n">${e(n)}</p><p><strong>${e(nom)}</strong> a terminé le parcours</p><p class="n">${e(titre)}</p><p>le ${new Date(le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} · Onenji, Nkala</p>`);
+    }
+    return { valide: true, numero: n, nom, titre, le };
+  });
+
   app.get('/v1/progression', async (req) => {
     const a = await acteur(req);
     await ensureUser(db, a.auth);
@@ -70,6 +165,12 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
     const l = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'lecons' AND id = $1 AND publie AND deleted_at IS NULL`, [leconId]);
     if (!l.length) return fail(404, 'Leçon introuvable.');
     { const r = await verifierRegle(db, a.auth.uid, a.isStaff, l[0].data); if (!r.ok) return fail(402, 'Cette leçon demande un niveau ou un abonnement supérieur.'); }
+    // Accès des cours (13 nov. 2026) : « niveau_acces » de la leçon, sinon première unité de chaque étape gratuite et le reste au forfait.
+    if (!a.isStaff) {
+      const niveau = await niveauLecon(leconId, l[0].data);
+      const d = peutAcceder({ id: leconId, acces: niveau, roles: ['admin', 'validator'] }, await droitsDe(db, a.auth.uid, a.role));
+      if (!d.ok) return fail(402, 'Cette leçon est réservée : passe à un forfait ou achète-la.');
+    }
     const out = await db.tx(async q => {
       await ensureUser(q, a.auth);
       const d = await lireProgression(q, a.auth.uid);
@@ -104,21 +205,30 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
 
   app.post('/v1/jeux/partie', async (req) => {
     const a = await acteur(req);
-    const b = (req.body || {}) as { jeuId?: string; bonnes?: number; erreurs?: number; secondesRestantes?: number; serie?: number; defiId?: string };
-    const bon = Number(b.bonnes), err = Number(b.erreurs);
+    const b = (req.body || {}) as { jeuId?: string; bonnes?: number; erreurs?: number; secondesRestantes?: number; serie?: number; defiId?: string; manche?: string };
+    let bon = Number(b.bonnes); const err = Number(b.erreurs);
     if (!str(b.jeuId) || !Number.isInteger(bon) || !Number.isInteger(err) || bon < 0 || err < 0 || bon > 60 || err > 60) return fail(400, 'Résultat de partie invalide.');
     const jeu = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'jeux' AND id = $1 AND publie AND deleted_at IS NULL`, [b.jeuId]);
     if (!jeu.length) return fail(404, 'Jeu introuvable.');
-    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, jeu[0].data); if (!r.ok) return fail(402, 'Ce jeu demande un niveau ou un abonnement supérieur.'); }
-    const score = scorePartie({ bonnes: bon, erreurs: err, secondesRestantes: Math.min(60, Math.max(0, Number(b.secondesRestantes) || 0)), serie: Math.min(5, Math.max(0, Number(b.serie) || 0)) });
+    // Jeux gratuits (13 nov. 2026) : seul le rang du jeu compte, sa colonne « plans » est ignorée (même règle que l'ouverture de la manche).
+    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, JEUX_GRATUITS ? { rang_min: jeu[0].data.rang_min } : jeu[0].data); if (!r.ok) return fail(402, JEUX_GRATUITS ? 'Ce jeu s\'ouvre à un rang supérieur.' : 'Ce jeu demande un niveau ou un abonnement supérieur.'); }
+    // Jeton de la manche servie par le serveur : il fixe le niveau, le plafond de bonnes réponses et le bonus d'XP.
+    // Sans jeton valide (ancienne version, partie renvoyée après expiration) : niveau 1, sans bonus.
+    const m = lireJetonManche(cles.manches, b.manche, a.auth.uid);
+    const manche = m && m.j === b.jeuId ? m : null;
+    const niveau = manche?.n ?? 1, pct = manche?.x ?? 100;
+    if (manche) bon = Math.min(bon, manche.q);
+    const score = Math.round(scorePartie({ bonnes: bon, erreurs: err, secondesRestantes: Math.min(60, Math.max(0, Number(b.secondesRestantes) || 0)), serie: Math.min(5, Math.max(0, Number(b.serie) || 0)) }) * pct / 100);
     const out = await db.tx(async q => {
       await ensureUser(q, a.auth);
-      await q.query(`INSERT INTO scores (user_id, jeu_id, score, bonnes, erreurs) VALUES ($1,$2,$3,$4,$5)`, [a.auth.uid, b.jeuId, score, bon, err]);
       const d = await lireProgression(q, a.auth.uid);
       const jour = jourLocal();
-      const dejaXp = Number((await q.query<any>(`SELECT COALESCE(sum(LEAST(30, score / 50)), 0)::int AS xp FROM scores WHERE user_id = $1 AND jour = current_date AND id <> (SELECT max(id) FROM scores WHERE user_id = $1)`, [a.auth.uid]))[0].xp);
-      let xpPartie = Math.min(30, Math.floor(score / 50));
+      const dejaXp = Number((await q.query<any>(`SELECT COALESCE(sum(COALESCE(xp, LEAST(30, score / 50))), 0)::int AS xp FROM scores WHERE user_id = $1 AND jour = current_date`, [a.auth.uid]))[0].xp);
+      let xpPartie = Math.min(Math.round(30 * pct / 100), Math.floor(score / 50));
       xpPartie = Math.max(0, Math.min(xpPartie, PLAFOND_XP_JEUX_JOUR - dejaXp));
+      await q.query(`INSERT INTO scores (user_id, jeu_id, score, bonnes, erreurs, niveau, xp) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [a.auth.uid, b.jeuId, score, bon, err, niveau, xpPartie]);
+      // Plus haut niveau gagné par jeu : il ouvre le niveau suivant (seule une manche servie par le serveur fait avancer).
+      if (bon > err) { d.niveauxGagnes ??= {}; d.niveauxGagnes[b.jeuId!] = Math.max(d.niveauxGagnes[b.jeuId!] ?? 0, manche ? niveau : Math.min(niveau, 1)); }
       d.parties++; d.points += score; if (bon > err) d.victoires++;
       Object.assign(d, majSerie(d, jour));
       // Défi du jour ou de la semaine : une seule récompense par défi
@@ -135,7 +245,7 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
       const gain = xpPartie + xpDefi + debloques.reduce((n, s) => n + s.xp, 0);
       await ecrire(q, a.auth.uid, d);
       const x = await donnerXp(q, a.auth.uid, gain);
-      return { score, xpGagne: gain, xp: x.xp, nouveauRang: x.nouveauRang, succesDebloques: debloques, serie: d.serie, defiRempli: xpDefi > 0 };
+      return { score, niveau, xpGagne: gain, xp: x.xp, nouveauRang: x.nouveauRang, succesDebloques: debloques, serie: d.serie, defiRempli: xpDefi > 0, niveauxGagnes: d.niveauxGagnes ?? {} };
     });
     notify('scores');
     return out;
@@ -175,12 +285,13 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify }: Ctx)
 
   app.get('/v1/jeux/classement', async (req) => {
     const a = await acteur(req);
-    const { portee = 'semaine', groupe = 'tous', jeu } = req.query as Record<string, string>;
+    const { portee = 'semaine', groupe = 'tous', jeu, niveau } = req.query as Record<string, string>;
     const depuis = portee === 'jour' ? `s.jour = current_date` : portee === 'mois' ? `s.at > clock_timestamp() - interval '30 days'` : portee === 'tout' ? 'true' : `s.at > clock_timestamp() - interval '7 days'`;
     const moi = (await db.query<any>(`SELECT data FROM users WHERE id = $1`, [a.auth.uid]))[0]?.data ?? {};
     const params: unknown[] = [];
     let filtre = '';
     if (jeu) { params.push(jeu); filtre += ` AND s.jeu_id = $${params.length}`; }
+    if (Number(niveau) >= 1) { params.push(Number(niveau)); filtre += ` AND s.niveau = $${params.length}`; }
     if (groupe === 'ethnie' && moi.tribe) { params.push(moi.tribe); filtre += ` AND u.data->>'tribe' = $${params.length}`; }
     if (groupe === 'village' && moi.villageOfOrigin) { params.push(moi.villageOfOrigin); filtre += ` AND u.data->>'villageOfOrigin' = $${params.length}`; }
     if (groupe === 'amis') {

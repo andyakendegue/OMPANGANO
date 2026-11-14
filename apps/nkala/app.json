@@ -7,7 +7,7 @@
       "nkala.essaka.engineering",
       "com.googleusercontent.apps.743429299872-ajkolfjbqa3okofhnlou2l1f2k1oi1ue"
     ],
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -23,6 +23,7 @@
     },
     "android": {
       "package": "nkala.essaka.engineering",
+      "allowBackup": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#170D08"
@@ -39,10 +40,11 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
+      "expo-secure-store",
       [
         "expo-audio",
         {
-          "microphonePermission": "Nkala utilise le micro pour enregistrer votre voix lorsque vous contribuez."
+          "microphonePermission": "Nkala utilise le micro pour enregistrer votre voix lorsque vous contribuez ou répétez une leçon, et pendant les cours à distance."
         }
       ],
       "expo-asset",
@@ -56,6 +58,30 @@
           "backgroundColor": "#170D08",
           "image": "./assets/splash-icon.png",
           "imageWidth": 240
+        }
+      ],
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Nkala utilise la caméra pendant les cours à distance, pour que l'enseignant et le groupe vous voient.",
+          "microphonePermission": "Nkala utilise le micro pendant les cours à distance, pour que l'enseignant et le groupe vous entendent."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Nkala utilise votre position, même en arrière-plan, pour vous prévenir quand vous passez près d'un logement que vous suivez. Votre position reste sur votre téléphone.",
+          "locationWhenInUsePermission": "Nkala utilise votre position pour afficher les logements et services proches de vous.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Nkala accède à vos photos pour ajouter des photos, vidéos et photos 360° à vos annonces de logement.",
+          "cameraPermission": "Nkala utilise l'appareil photo pour photographier ou filmer un logement que vous publiez.",
+          "microphonePermission": "Nkala utilise le micro pour le son des vidéos de vos annonces."
         }
       ],
       "./plugins/sans-push-ios.js"

@@ -4,6 +4,7 @@ import { loadConfig } from './config.ts';
 import { createPgDb, runMigrations } from './db.ts';
 import { journaliserErreur } from './erreurs.ts';
 import { createS3Storage } from './storage.ts';
+import { purgerDonnees } from './donnees.ts';
 
 const cfg = loadConfig();
 const db = await createPgDb(cfg.databaseUrl);
@@ -28,7 +29,12 @@ process.on('uncaughtException', async (err: any) => {
   process.exit(1);
 });
 
-const stop = async () => { await app.close(); await db.close(); process.exit(0); };
+// Durées de conservation (donnees.ts, DUREES) : purge au démarrage puis toutes les 24 h
+const purger = () => purgerDonnees(db).then(d => console.log('Purge des données :', JSON.stringify(d))).catch(e => console.error('purge échouée', e));
+setTimeout(purger, 60_000);
+const minuteurPurge = setInterval(purger, 24 * 3600_000);
+
+const stop = async () => { clearInterval(minuteurPurge); await app.close(); await db.close(); process.exit(0); };
 process.on('SIGTERM', stop);
 process.on('SIGINT', stop);
 

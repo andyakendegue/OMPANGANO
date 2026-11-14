@@ -18,7 +18,10 @@ export interface Ctx {
   sms: FournisseurSms;
   ia: FournisseurIa;
   embed: FournisseurEmbedding;
+  /** Secret des sessions SMS (SESSION_SECRET). */
   secret: string;
+  /** Clés séparées par usage (cles.ts). */
+  cles: import('./cles.ts').Cles;
 }
 
 export const str = (v: unknown): v is string => typeof v === 'string';

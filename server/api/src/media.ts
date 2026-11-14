@@ -33,12 +33,12 @@ export async function reecrirePlaylist(texte: string, o: { collection: string; i
   return sortie.join('\n');
 }
 
-export function registerMedia({ app, fail, secret, env }: Ctx, storage: MediaStorage) {
+export function registerMedia({ app, fail, cles, env }: Ctx, storage: MediaStorage) {
   async function licence(req: FastifyRequest, collection: string, id: string): Promise<string> {
     const t = (req.query as { t?: string }).t;
     if (!t || !COLLECTIONS_PROTEGEES.includes(collection) || !ID_RE.test(id)) return fail(403, 'Licence manquante.');
     try {
-      const { payload } = await jwtVerify(t, new TextEncoder().encode(secret), { issuer: 'nkala-licence', algorithms: ['HS256'] });
+      const { payload } = await jwtVerify(t, new TextEncoder().encode(cles.licences), { issuer: 'nkala-licence', algorithms: ['HS256'] });
       if (payload.c !== `${collection}/${id}`) throw new Error('contenu');
       return t;
     } catch { return fail(403, 'Licence invalide ou expirée.'); }
@@ -57,6 +57,6 @@ export function registerMedia({ app, fail, secret, env }: Ctx, storage: MediaSto
   app.get('/media/cle/:collection/:id', async (req, reply) => {
     const { collection, id } = req.params as { collection: string; id: string };
     await licence(req, collection, id);
-    return reply.header('Content-Type', 'application/octet-stream').header('Cache-Control', 'no-store').send(cleContenu(secret, collection, id));
+    return reply.header('Content-Type', 'application/octet-stream').header('Cache-Control', 'no-store').send(cleContenu(cles.media, collection, id));
   });
 }

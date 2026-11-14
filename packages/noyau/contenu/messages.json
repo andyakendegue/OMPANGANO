@@ -28,9 +28,9 @@
   "publie": true
  },
  {
-  "id": "msg-ozangue",
-  "type": "ozangue",
-  "texte": "Je suis Ozangué. Pose-moi une question sur la langue.",
+  "id": "msg-kakigonjo",
+  "type": "kakigonjo",
+  "texte": "Mbolo {prénom} ! Myè no Kak'Igonjo. Wulinya myè, de quoi as-tu besoin ?",
   "ton": "tu",
   "publie": true
  }

@@ -44,3 +44,20 @@ export const oublierContenus = () => memoire.clear();
 export const enListe = (v: unknown): string[] => Array.isArray(v) ? v.map(String) : typeof v === 'string' && v ? v.split('|').map(s => s.trim()).filter(Boolean) : [];
 
 export const parId = <T extends Ligne>(l: T[], id?: string | null): T | undefined => l.find(x => x.id === id);
+
+/**
+ * Exercices d'Onenji (collection privée depuis le 14 nov. 2026) : le serveur ne renvoie que ceux des leçons que le compte peut ouvrir.
+ * Copie locale par compte pour le hors ligne ; sans réseau ni copie, les exercices de démonstration livrés avec l'application.
+ */
+export async function chargerExercices<T extends Ligne = Ligne>(uid: string | null, force = false): Promise<Ressource<T> & { lecons: string[] | null }> {
+  const cle = `onenji-exercices:${uid ?? 'invite'}`;
+  const m = memoire.get(cle);
+  if (!force && m && Date.now() - m.t < DUREE_MEMOIRE_MS) return m.r as Ressource<T> & { lecons: string[] | null };
+  let r: Ressource<T> & { lecons: string[] | null };
+  try {
+    const rep = await avecCache(cle, () => api<{ lignes: T[]; lecons: string[] }>('GET', uid ? '/v1/onenji/exercices' : '/pub/onenji/exercices'));
+    r = { lignes: trier(rep.lignes), source: 'serveur', demo: false, lecons: rep.lecons };
+  } catch { r = { ...demo<T>('exercices'), lecons: null }; }
+  memoire.set(cle, { t: Date.now(), r });
+  return r;
+}

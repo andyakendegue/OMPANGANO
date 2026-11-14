@@ -31,7 +31,7 @@ export function Contribuer({ retour }: { retour: () => void }) {
   const e = pile.ecran;
   if (e.t === 'collecte') return <Historique titre="Enregistrer ma voix" pile={pile}><View style={{ flex: 1 }}><Collecte onGuide={() => emettre('guide')} /></View></Historique>;
   if (e.t === 'valider') return <Historique titre="Valider" pile={pile} sombre><Moderation /></Historique>;
-  if (e.t === 'ezango') return <Historique titre="Ezango" pile={pile}><Ezango onContribuer={id => { demanderFiche(id); pile.remplacer({ t: 'collecte' }); }} /></Historique>;
+  if (e.t === 'ezango') return <Historique titre="Ikamba" pile={pile}><Ezango onContribuer={id => { demanderFiche(id); pile.remplacer({ t: 'collecte' }); }} /></Historique>;
   if (e.t === 'mes') return <Historique titre="Mes enregistrements" pile={pile}><ProfilContributeur /></Historique>;
   if (e.t === 'classement') return <Podium pile={pile} />;
   if (e.t === 'rangs') return <Rangs pile={pile} />;
@@ -62,7 +62,7 @@ function Accueil({ pile, retour }: { pile: Pile; retour: () => void }) {
         <Carte onPress={() => pile.pousser({ t: 'rangs' })} style={{ flex: 1 }} label="Rangs et badges"><View style={{ padding: 14, gap: 6 }}><Ic nom="couronne" taille={24} couleur={c.accent} /><T v="carte">Rangs et badges</T></View></Carte>
       </View>
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        <Carte onPress={() => pile.pousser({ t: 'ezango' })} style={{ flex: 1 }} label="Ezango"><View style={{ padding: 14, gap: 6 }}><Ic nom="livre" taille={24} couleur={c.accent} /><T v="carte">Ezango</T><T v="petit">Parcourir les fiches</T></View></Carte>
+        <Carte onPress={() => pile.pousser({ t: 'ezango' })} style={{ flex: 1 }} label="Ikamba"><View style={{ padding: 14, gap: 6 }}><Ic nom="livre" taille={24} couleur={c.accent} /><T v="carte">Ikamba</T><T v="petit">Parcourir les fiches</T></View></Carte>
         <Carte onPress={() => pile.pousser({ t: 'mes' })} style={{ flex: 1 }} label="Mes enregistrements"><View style={{ padding: 14, gap: 6 }}><Ic nom="micro" taille={24} couleur={c.accent} /><T v="carte">Mes enregistrements</T></View></Carte>
       </View>
       {valide && <Bouton label="Valider des contributions" icone="bouclier" variante="fantome" onPress={() => pile.pousser({ t: 'valider' })} />}

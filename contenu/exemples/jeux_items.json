@@ -1,0 +1,1404 @@
+[
+ {
+  "id": "singulier-pluriel-01",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Ogô » (le bras) : au pluriel ?",
+  "reponse": "Agô",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Ogô → Agô"
+ },
+ {
+  "id": "singulier-pluriel-02",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Ino » (la dent) : au pluriel ?",
+  "reponse": "Ano",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Ino → Ano"
+ },
+ {
+  "id": "singulier-pluriel-03",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Onumbu » (la lèvre) : au pluriel ?",
+  "reponse": "Inumbu",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Onumbu → Inumbu"
+ },
+ {
+  "id": "singulier-pluriel-04",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Oméno » (le doigt) : au pluriel ?",
+  "reponse": "Iméno",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Oméno → Iméno"
+ },
+ {
+  "id": "singulier-pluriel-05",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Ogholo » (le pied) : au pluriel ?",
+  "reponse": "Agholo",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Ogholo → Agholo"
+ },
+ {
+  "id": "singulier-pluriel-06",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Ompéndé » (la jambe) : au pluriel ?",
+  "reponse": "Impéndé",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Ompéndé → Impéndé"
+ },
+ {
+  "id": "singulier-pluriel-07",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Ntumbu » (le talon) : au pluriel ?",
+  "reponse": "Intumbu",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Ntumbu → Intumbu"
+ },
+ {
+  "id": "singulier-pluriel-08",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Épa » (l'os) : au pluriel ?",
+  "reponse": "Ipa",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Épa → Ipa"
+ },
+ {
+  "id": "singulier-pluriel-09",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Éréré » (l'arbre) : au pluriel ?",
+  "reponse": "Iréré",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "Éréré → Iréré"
+ },
+ {
+  "id": "singulier-pluriel-10",
+  "jeu_id": "singulier-pluriel",
+  "enonce": "« Épaga » (le mur) : au pluriel ?",
+  "reponse": "Ipaga",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "Épaga → Ipaga"
+ },
+ {
+  "id": "touche-ta-tete-01",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ewondjo",
+  "reponse": "tete",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "la tête"
+ },
+ {
+  "id": "touche-ta-tete-02",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Itwé",
+  "reponse": "cheveux",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "les cheveux"
+ },
+ {
+  "id": "touche-ta-tete-03",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Intcho",
+  "reponse": "oeil",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "l'œil"
+ },
+ {
+  "id": "touche-ta-tete-04",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Aroyi",
+  "reponse": "oreille",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "les oreilles"
+ },
+ {
+  "id": "touche-ta-tete-05",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ompélé",
+  "reponse": "cou",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le cou"
+ },
+ {
+  "id": "touche-ta-tete-06",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ompombo",
+  "reponse": "nez",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le nez"
+ },
+ {
+  "id": "touche-ta-tete-07",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ndjègèlu",
+  "reponse": "menton",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le menton"
+ },
+ {
+  "id": "touche-ta-tete-08",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ntono",
+  "reponse": "poitrine",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "la poitrine"
+ },
+ {
+  "id": "touche-ta-tete-09",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ogô",
+  "reponse": "bras",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le bras"
+ },
+ {
+  "id": "touche-ta-tete-10",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Nkôgôzô",
+  "reponse": "coude",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le coude"
+ },
+ {
+  "id": "touche-ta-tete-11",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ikaka",
+  "reponse": "main",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "la main"
+ },
+ {
+  "id": "touche-ta-tete-12",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Oméno",
+  "reponse": "doigt",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le doigt"
+ },
+ {
+  "id": "touche-ta-tete-13",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Orôrô",
+  "reponse": "nombril",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le nombril"
+ },
+ {
+  "id": "touche-ta-tete-14",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ompéndé",
+  "reponse": "jambe",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "la jambe"
+ },
+ {
+  "id": "touche-ta-tete-15",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ivuva",
+  "reponse": "genou",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le genou"
+ },
+ {
+  "id": "touche-ta-tete-16",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ogholo",
+  "reponse": "pied",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le pied"
+ },
+ {
+  "id": "touche-ta-tete-17",
+  "jeu_id": "touche-ta-tete",
+  "enonce": "Ntumbu",
+  "reponse": "talon",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "le talon"
+ },
+ {
+  "id": "range-la-case-01",
+  "jeu_id": "range-la-case",
+  "enonce": "Ewondjo",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "La tête"
+ },
+ {
+  "id": "range-la-case-02",
+  "jeu_id": "range-la-case",
+  "enonce": "Itwé",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Les cheveux"
+ },
+ {
+  "id": "range-la-case-03",
+  "jeu_id": "range-la-case",
+  "enonce": "Intcho",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "L'œil"
+ },
+ {
+  "id": "range-la-case-04",
+  "jeu_id": "range-la-case",
+  "enonce": "Aroyi",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Les oreilles"
+ },
+ {
+  "id": "range-la-case-05",
+  "jeu_id": "range-la-case",
+  "enonce": "Ompélé",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Le cou"
+ },
+ {
+  "id": "range-la-case-06",
+  "jeu_id": "range-la-case",
+  "enonce": "Ompombo",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "Le nez"
+ },
+ {
+  "id": "range-la-case-07",
+  "jeu_id": "range-la-case",
+  "enonce": "Ino",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "La dent"
+ },
+ {
+  "id": "range-la-case-08",
+  "jeu_id": "range-la-case",
+  "enonce": "Onèmè",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "La langue"
+ },
+ {
+  "id": "range-la-case-09",
+  "jeu_id": "range-la-case",
+  "enonce": "Onumbu",
+  "reponse": "Le corps",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Le Corps humain",
+  "publie": true,
+  "indice": "La lèvre"
+ },
+ {
+  "id": "range-la-case-10",
+  "jeu_id": "range-la-case",
+  "enonce": "Nago",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "La maison"
+ },
+ {
+  "id": "range-la-case-11",
+  "jeu_id": "range-la-case",
+  "enonce": "Tavulu",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "La table"
+ },
+ {
+  "id": "range-la-case-12",
+  "jeu_id": "range-la-case",
+  "enonce": "Ebongo",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "Le banc"
+ },
+ {
+  "id": "range-la-case-13",
+  "jeu_id": "range-la-case",
+  "enonce": "Kisini",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "La cuisine"
+ },
+ {
+  "id": "range-la-case-14",
+  "jeu_id": "range-la-case",
+  "enonce": "Puka",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "Le sac"
+ },
+ {
+  "id": "range-la-case-15",
+  "jeu_id": "range-la-case",
+  "enonce": "Ogoni",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "Le feu"
+ },
+ {
+  "id": "range-la-case-16",
+  "jeu_id": "range-la-case",
+  "enonce": "Windè",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "La fenêtre"
+ },
+ {
+  "id": "range-la-case-17",
+  "jeu_id": "range-la-case",
+  "enonce": "Odo",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "Le lit"
+ },
+ {
+  "id": "range-la-case-18",
+  "jeu_id": "range-la-case",
+  "enonce": "Elinga",
+  "reponse": "La maison",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La Nature",
+  "publie": true,
+  "indice": "La robe"
+ },
+ {
+  "id": "range-la-case-19",
+  "jeu_id": "range-la-case",
+  "enonce": "Ntogôlo",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "Le piment"
+ },
+ {
+  "id": "range-la-case-20",
+  "jeu_id": "range-la-case",
+  "enonce": "Ilasa",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "L'orange"
+ },
+ {
+  "id": "range-la-case-21",
+  "jeu_id": "range-la-case",
+  "enonce": "Onêmbè",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "Le miel"
+ },
+ {
+  "id": "range-la-case-22",
+  "jeu_id": "range-la-case",
+  "enonce": "Itôtô",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "La banane douce"
+ },
+ {
+  "id": "range-la-case-23",
+  "jeu_id": "range-la-case",
+  "enonce": "Ikôndô",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "La banane plantain"
+ },
+ {
+  "id": "range-la-case-24",
+  "jeu_id": "range-la-case",
+  "enonce": "Olôlô",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "La papaye"
+ },
+ {
+  "id": "range-la-case-25",
+  "jeu_id": "range-la-case",
+  "enonce": "Mbenda",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "L'arachide"
+ },
+ {
+  "id": "range-la-case-26",
+  "jeu_id": "range-la-case",
+  "enonce": "Ewèrè",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "Le poisson"
+ },
+ {
+  "id": "range-la-case-27",
+  "jeu_id": "range-la-case",
+  "enonce": "Iké",
+  "reponse": "La nourriture",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true,
+  "indice": "L'œuf"
+ },
+ {
+  "id": "compte-avec-moi-01",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "1",
+  "reponse": "Môri",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-02",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "2",
+  "reponse": "Mbani",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-03",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "3",
+  "reponse": "Ntcharo",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons ; forme ntcharo : Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md)",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-04",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "4",
+  "reponse": "Nayi",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-05",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "5",
+  "reponse": "Otani",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-06",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "6",
+  "reponse": "Orowa",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-07",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "7",
+  "reponse": "Erwagénomo",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-08",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "8",
+  "reponse": "Enanayi",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-09",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "9",
+  "reponse": "Enogomi",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "compte-avec-moi-10",
+  "jeu_id": "compte-avec-moi",
+  "enonce": "10",
+  "reponse": "Igomi",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "suite-des-nombres-01",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Môri",
+  "reponse": "1",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "un-a-cinq",
+  "ordre": 1,
+  "indice": "Compte de 1 à 5"
+ },
+ {
+  "id": "suite-des-nombres-02",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Mbani",
+  "reponse": "2",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "un-a-cinq",
+  "ordre": 2,
+  "indice": "Compte de 1 à 5"
+ },
+ {
+  "id": "suite-des-nombres-03",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Ntcharo",
+  "reponse": "3",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "un-a-cinq",
+  "ordre": 3,
+  "indice": "Compte de 1 à 5"
+ },
+ {
+  "id": "suite-des-nombres-04",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Nayi",
+  "reponse": "4",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "un-a-cinq",
+  "ordre": 4,
+  "indice": "Compte de 1 à 5"
+ },
+ {
+  "id": "suite-des-nombres-05",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Otani",
+  "reponse": "5",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "un-a-cinq",
+  "ordre": 5,
+  "indice": "Compte de 1 à 5"
+ },
+ {
+  "id": "suite-des-nombres-06",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Orowa",
+  "reponse": "6",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "six-a-dix",
+  "ordre": 6,
+  "indice": "Compte de 6 à 10"
+ },
+ {
+  "id": "suite-des-nombres-07",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Erwagénomo",
+  "reponse": "7",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "six-a-dix",
+  "ordre": 7,
+  "indice": "Compte de 6 à 10"
+ },
+ {
+  "id": "suite-des-nombres-08",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Enanayi",
+  "reponse": "8",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "six-a-dix",
+  "ordre": 8,
+  "indice": "Compte de 6 à 10"
+ },
+ {
+  "id": "suite-des-nombres-09",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Enogomi",
+  "reponse": "9",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "six-a-dix",
+  "ordre": 9,
+  "indice": "Compte de 6 à 10"
+ },
+ {
+  "id": "suite-des-nombres-10",
+  "jeu_id": "suite-des-nombres",
+  "enonce": "Igomi",
+  "reponse": "10",
+  "leurres": [],
+  "niveau": 2,
+  "source": "[LEC] Comptons",
+  "publie": true,
+  "groupe": "six-a-dix",
+  "ordre": 10,
+  "indice": "Compte de 6 à 10"
+ },
+ {
+  "id": "marche-aux-nombres-01",
+  "jeu_id": "marche-aux-nombres",
+  "enonce": "Nago ___ (trois maisons)",
+  "reponse": "ntcharo",
+  "leurres": [
+   "mbani",
+   "nayi",
+   "otani"
+  ],
+  "niveau": 1,
+  "source": "Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md) §2",
+  "publie": true,
+  "indice": "Nago ntcharo : trois maisons"
+ },
+ {
+  "id": "marche-aux-nombres-02",
+  "jeu_id": "marche-aux-nombres",
+  "enonce": "Igomi gni ___ (dix chèvres)",
+  "reponse": "mboni",
+  "leurres": [
+   "nago",
+   "mbwa",
+   "pusi"
+  ],
+  "niveau": 1,
+  "source": "Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md) §2",
+  "publie": true,
+  "indice": "Igomi gni mboni : dix chèvres"
+ },
+ {
+  "id": "marche-aux-nombres-03",
+  "jeu_id": "marche-aux-nombres",
+  "enonce": "___ gni mboni (dix chèvres)",
+  "reponse": "Igomi",
+  "leurres": [
+   "Otani",
+   "Orowa",
+   "Môri"
+  ],
+  "niveau": 2,
+  "source": "Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md) §2",
+  "publie": true,
+  "indice": "Igomi gni mboni : dix chèvres"
+ },
+ {
+  "id": "les-suites-01",
+  "jeu_id": "les-suites",
+  "enonce": "rond|carre|rond|carre|?",
+  "reponse": "carre",
+  "leurres": [
+   "rond",
+   "triangle"
+  ],
+  "niveau": 1,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "les-suites-02",
+  "jeu_id": "les-suites",
+  "enonce": "triangle|triangle|rond|triangle|triangle|?",
+  "reponse": "rond",
+  "leurres": [
+   "triangle",
+   "carre"
+  ],
+  "niveau": 1,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "les-suites-03",
+  "jeu_id": "les-suites",
+  "enonce": "rond:rouge|rond:jaune|rond:rouge|?",
+  "reponse": "rond:jaune",
+  "leurres": [
+   "rond:rouge",
+   "carre:jaune"
+  ],
+  "niveau": 1,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "les-suites-04",
+  "jeu_id": "les-suites",
+  "enonce": "carre|losange|etoile|carre|losange|?",
+  "reponse": "etoile",
+  "leurres": [
+   "carre",
+   "losange",
+   "rond"
+  ],
+  "niveau": 2,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "les-suites-05",
+  "jeu_id": "les-suites",
+  "enonce": "rond:rouge:petit|rond:rouge:grand|carre:bleu:petit|?",
+  "reponse": "carre:bleu:grand",
+  "leurres": [
+   "carre:bleu:petit",
+   "rond:bleu:grand",
+   "carre:rouge:grand"
+  ],
+  "niveau": 3,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "les-suites-06",
+  "jeu_id": "les-suites",
+  "enonce": "etoile|rond|rond|etoile|rond|rond|?",
+  "reponse": "etoile",
+  "leurres": [
+   "rond",
+   "croix"
+  ],
+  "niveau": 2,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "les-suites-07",
+  "jeu_id": "les-suites",
+  "enonce": "croix:vert|triangle:vert|croix:jaune|triangle:jaune|croix:rouge|?",
+  "reponse": "triangle:rouge",
+  "leurres": [
+   "croix:rouge",
+   "triangle:vert",
+   "triangle:jaune"
+  ],
+  "niveau": 3,
+  "source": "Suite de formes (aucun mot myènè)",
+  "publie": true
+ },
+ {
+  "id": "la-famille-01",
+  "jeu_id": "la-famille",
+  "enonce": "Rérè",
+  "reponse": "Papa",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-02",
+  "jeu_id": "la-famille",
+  "enonce": "Ngwè",
+  "reponse": "Maman",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-03",
+  "jeu_id": "la-famille",
+  "enonce": "Ombalo",
+  "reponse": "L'oncle",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-04",
+  "jeu_id": "la-famille",
+  "enonce": "Tata poyo",
+  "reponse": "Le grand-père",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-05",
+  "jeu_id": "la-famille",
+  "enonce": "Mama poyo",
+  "reponse": "La grand-mère",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-06",
+  "jeu_id": "la-famille",
+  "enonce": "Irônda",
+  "reponse": "L'ami, l'amie",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-07",
+  "jeu_id": "la-famille",
+  "enonce": "Ogôyi",
+  "reponse": "Le beau-frère",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "la-famille-08",
+  "jeu_id": "la-famille",
+  "enonce": "Omu-ngwè",
+  "reponse": "Le frère",
+  "leurres": [],
+  "niveau": 1,
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-01",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Tu salues une personne.",
+  "reponse": "Mbolo",
+  "leurres": [
+   "Mbôluani",
+   "Akéwa",
+   "Kôkôlô"
+  ],
+  "niveau": 1,
+  "source": "[LEC] Bonjour ; [RW] p. 284 ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-02",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Tu salues plusieurs personnes.",
+  "reponse": "Mbôluani",
+  "leurres": [
+   "Mbolo",
+   "Akéwa",
+   "Yaga"
+  ],
+  "niveau": 1,
+  "source": "[EQ] ; cf. [RW] « Mboloani » ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-03",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Quelqu'un arrive : tu lui souhaites la bienvenue.",
+  "reponse": "Salé",
+  "leurres": [
+   "Akéwa",
+   "Kôkôlô",
+   "Yaga"
+  ],
+  "niveau": 1,
+  "source": "[LEC] Bonjour ; [EQ] ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-04",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Tu remercies.",
+  "reponse": "Akéwa",
+  "leurres": [
+   "Mbolo",
+   "Salé",
+   "Kôkôlô"
+  ],
+  "niveau": 1,
+  "source": "[LEC] Formules de politesse ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-05",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Tu demandes quelque chose poliment.",
+  "reponse": "Kôkôlô",
+  "leurres": [
+   "Akéwa",
+   "Mbolo",
+   "Salé"
+  ],
+  "niveau": 1,
+  "source": "[LEC] Formules de politesse ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-06",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Tu appelles quelqu'un : « Viens ! »",
+  "reponse": "Yaga",
+  "leurres": [
+   "Salé",
+   "Akéwa",
+   "Mbôluani"
+  ],
+  "niveau": 1,
+  "source": "[LEC] Formules de politesse ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "salue-comme-il-faut-07",
+  "jeu_id": "salue-comme-il-faut",
+  "enonce": "Tu t'excuses.",
+  "reponse": "Nyéza myè",
+  "leurres": [
+   "Akéwa",
+   "Yaga",
+   "Mbolo"
+  ],
+  "niveau": 1,
+  "source": "[LEC] Formules de politesse ; [EQ] ; Lexique sourcé (packages/noyau/src/lexique.ts)",
+  "publie": true
+ },
+ {
+  "id": "classes-d-age-01",
+  "jeu_id": "classes-d-age",
+  "enonce": "Ekèï-kèï",
+  "reponse": "1",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 1,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-02",
+  "jeu_id": "classes-d-age",
+  "enonce": "Omwana",
+  "reponse": "2",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 2,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-03",
+  "jeu_id": "classes-d-age",
+  "enonce": "Iwanjo",
+  "reponse": "3",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 3,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-04",
+  "jeu_id": "classes-d-age",
+  "enonce": "Olèngwani",
+  "reponse": "4",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 4,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-05",
+  "jeu_id": "classes-d-age",
+  "enonce": "Okengele",
+  "reponse": "5",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 5,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-06",
+  "jeu_id": "classes-d-age",
+  "enonce": "Onerwama",
+  "reponse": "6",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 6,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-07",
+  "jeu_id": "classes-d-age",
+  "enonce": "Onèró",
+  "reponse": "7",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 7,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "classes-d-age-08",
+  "jeu_id": "classes-d-age",
+  "enonce": "Mbolo",
+  "reponse": "8",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Classes d'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)",
+  "publie": true,
+  "groupe": "classes",
+  "ordre": 8,
+  "indice": "Du plus jeune au plus ancien"
+ },
+ {
+  "id": "devinettes-01",
+  "jeu_id": "devinettes",
+  "enonce": "Nago nogo-pa, ompombana fô ! (Une maison sans portes ?)",
+  "reponse": "Iké (l'œuf)",
+  "leurres": [
+   "Nago (la maison)",
+   "Owaro (la pirogue)",
+   "Puka (le sac)"
+  ],
+  "niveau": 1,
+  "source": "[LEC] LES DEVINETTES EN OMYENE",
+  "publie": true
+ },
+ {
+  "id": "devinettes-02",
+  "jeu_id": "devinettes",
+  "enonce": "Anaga ngwè mo, w'ayènana ? (Deux enfants de même mère qui ne se voient jamais ?)",
+  "reponse": "Aroyi (les oreilles)",
+  "leurres": [
+   "Intcho (l'œil)",
+   "Agô (les bras)",
+   "Agholo (les pieds)"
+  ],
+  "niveau": 1,
+  "source": "[LEC] LES DEVINETTES EN OMYENE",
+  "publie": true
+ },
+ {
+  "id": "devinettes-03",
+  "jeu_id": "devinettes",
+  "enonce": "Winô nè : « Mpyo ! » Winô nè : « Nkèyi ». (L'un a chaud, l'autre a froid ?)",
+  "reponse": "Owaro (la pirogue)",
+  "leurres": [
+   "Ogoni (le feu)",
+   "Nago (la maison)",
+   "Odo (le lit)"
+  ],
+  "niveau": 2,
+  "source": "[LEC] LES DEVINETTES EN OMYENE",
+  "publie": true
+ },
+ {
+  "id": "complete-le-proverbe-01",
+  "jeu_id": "complete-le-proverbe",
+  "enonce": "Nkula môri môri, é dyonyiz'___",
+  "reponse": "otondo",
+  "leurres": [
+   "nago",
+   "ogoni",
+   "owaro"
+  ],
+  "niveau": 1,
+  "source": "14_programme_et_jeux/02_jeux_application_NKALA.md §9 (« Le panier de noisettes »), à valider par Capp",
+  "publie": true,
+  "indice": "Noisette après noisette, le panier se remplit."
+ },
+ {
+  "id": "le-rythme-01",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 3 frappes",
+  "reponse": "G-D-G",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-02",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 3 frappes",
+  "reponse": "G-G-D",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-03",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 3 frappes",
+  "reponse": "D-G-D",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-04",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 4 frappes",
+  "reponse": "G-D-D-G",
+  "leurres": [],
+  "niveau": 1,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-05",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 4 frappes",
+  "reponse": "G-G-D-G",
+  "leurres": [],
+  "niveau": 2,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-06",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 5 frappes",
+  "reponse": "D-D-G-D-G",
+  "leurres": [],
+  "niveau": 2,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-07",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 5 frappes",
+  "reponse": "G-D-G-G-D",
+  "leurres": [],
+  "niveau": 2,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-08",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 6 frappes",
+  "reponse": "G-C-D-G-C-D",
+  "leurres": [],
+  "niveau": 3,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-09",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 7 frappes",
+  "reponse": "G-G-D-C-G-D-D",
+  "leurres": [],
+  "niveau": 3,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ },
+ {
+  "id": "le-rythme-10",
+  "jeu_id": "le-rythme",
+  "enonce": "Rythme de 7 frappes",
+  "reponse": "D-G-C-C-G-D-G",
+  "leurres": [],
+  "niveau": 3,
+  "source": "Rythme d'exemple (aucun mot myènè) : rythmes traditionnels à collecter",
+  "publie": true
+ }
+]

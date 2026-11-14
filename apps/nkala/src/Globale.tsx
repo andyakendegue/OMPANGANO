@@ -4,13 +4,16 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { AppState, Modal, Platform, Pressable, Text, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
-import { estAdmin, estValidateur } from '@nkala/noyau';
+import { estAdmin, estValidateur, moduleActif, moduleEnEssai, type ModuleId } from '@nkala/noyau';
+import { useModules } from './useModules';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from './AuthProvider';
-import { emettre } from './evenements';
-import { Bouton, Champ, Feuille, Ic, Mascotte, Onde, T, Visuel } from './kit';
+import { compterNonLues } from './Alertes';
+import { ecouter, emettre } from './evenements';
+import { Avatar, Bouton, Champ, Feuille, Ic, Mascotte, Onde, T, Visuel } from './kit';
 import { useLecteur } from './Lecteur';
+import { useProgres } from './Progres';
 import { usePrefs, useTheme } from './Prefs';
 import { degrades, polices } from './theme';
 
@@ -24,31 +27,64 @@ export function GlobaleProvider({ children }: { children: React.ReactNode }) {
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }
 
+// ------------------------------------------------------------------ notifications non lues (pastille de l'onglet Moi et du menu)
+function useNonLues() {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const lire = () => { compterNonLues().then(setN).catch(() => {}); };
+    lire();
+    const a = ecouter('nonLues', lire);
+    const b = AppState.addEventListener('change', st => { if (st === 'active') lire(); });
+    return () => { a(); b.remove(); };
+  }, []);
+  return n;
+}
+
 // ------------------------------------------------------------------ barre du bas
-const ONGLETS: { route: string; label: string; icone: string }[] = [
-  { route: 'index', label: 'Accueil', icone: 'accueil' }, { route: 'apprendre', label: 'Apprendre', icone: 'apprendre' }, { route: 'azeva', label: 'Jouer', icone: 'jouer' },
-  { route: 'ecoute', label: 'Écouter', icone: 'ecouter' }, { route: 'village', label: 'Village', icone: 'village' },
+// expo-router retire l'option `href` avant de passer les écrans à la barre : la visibilité se lit donc ici, dans les interrupteurs.
+const ONGLETS: { route: string; label: string; icone: string; module?: ModuleId }[] = [
+  { route: 'index', label: 'Accueil', icone: 'accueil' }, { route: 'apprendre', label: 'Apprendre', icone: 'apprendre', module: 'onenji' }, { route: 'azeva', label: 'Jouer', icone: 'jouer', module: 'azeva' },
+  { route: 'ecoute', label: 'Écouter', icone: 'ecouter', module: 'ontci' }, { route: 'village', label: 'Village', icone: 'village', module: 'nkala' },
+  // Partie contributeur (Ompangano) : même règle que les autres modules (interrupteur côté serveur). Décision de Capp, 13 nov. 2026.
+  { route: 'contribuer', label: 'Contribuer', icone: 'micro', module: 'ompangano' },
 ];
 export function BarreOnglets({ state, descriptors, navigation }: BottomTabBarProps) {
   const { c } = useTheme();
   const ins = useSafeAreaInsets();
   const { courant } = useLecteur();
-  const { ouvrirLecteur } = useGlobale();
+  const { ouvrirLecteur, ouvrirPlus, plus } = useGlobale();
+  const { profil } = useAuth();
+  const nonLues = useNonLues();
+  useModules();
   const actif = state.routes[state.index]?.name;
+  const surProfil = plus || ['profil', 'reglages', 'serie', 'parents'].includes(actif ?? '');
   return (
     <View>
       {courant && <MiniLecteur onOuvrir={ouvrirLecteur} />}
       <View style={{ backgroundColor: c.verre, borderTopWidth: 1, borderTopColor: c.bord, paddingTop: 8, paddingBottom: Math.max(ins.bottom, 10), flexDirection: 'row', justifyContent: 'space-around', ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(18px)' } as object) : null) }}>
-        {ONGLETS.filter(o => (descriptors[state.routes.find(r => r.name === o.route)?.key ?? '']?.options as { href?: string | null } | undefined)?.href !== null && state.routes.some(r => r.name === o.route)).map(o => {
+        {ONGLETS.filter(o => (!o.module || moduleActif(o.module)) && state.routes.some(r => r.name === o.route)).map(o => {
           const on = actif === o.route, route = state.routes.find(r => r.name === o.route)!;
+          const essai = !!o.module && moduleEnEssai(o.module);
           return (
-            <Pressable key={o.route} accessibilityRole="tab" accessibilityLabel={o.label} accessibilityState={{ selected: on }} onPress={() => { const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true }); if (!on && !e.defaultPrevented) navigation.navigate(o.route as never); }}
-              style={{ width: 68, alignItems: 'center', gap: 3 }}>
-              <View style={{ width: 52, height: 30, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? 'rgba(245,158,11,0.18)' : 'transparent' }}><Ic nom={o.icone} taille={22} couleur={on ? c.accent : c.discret} /></View>
-              <Text style={{ fontFamily: polices.corpsGras, fontSize: 11, color: on ? c.fort : c.discret }}>{o.label}</Text>
+            <Pressable key={o.route} accessibilityRole="tab" accessibilityLabel={essai ? `${o.label} (essai, visible des administrateurs seulement)` : o.label} accessibilityState={{ selected: on }} onPress={() => { const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true }); if (!on && !e.defaultPrevented) navigation.navigate(o.route as never); }}
+              style={{ flex: 1, minWidth: 0, alignItems: 'center', gap: 3 }}>
+              <View style={{ width: 52, height: 30, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? 'rgba(245,158,11,0.18)' : 'transparent' }}><Ic nom={o.icone} taille={22} couleur={on ? c.accent : c.discret} />
+                {essai && <View style={{ position: 'absolute', top: -3, right: 0, paddingHorizontal: 4, height: 14, borderRadius: 7, backgroundColor: c.accent, borderWidth: 1.5, borderColor: c.fond, justifyContent: 'center' }}><Text style={{ fontFamily: polices.corpsTresGras, fontSize: 8, color: '#FFFFFF' }}>ADMIN</Text></View>}
+              </View>
+              <Text numberOfLines={1} style={{ fontFamily: polices.corpsGras, fontSize: 11, color: on ? c.fort : c.discret }}>{o.label}</Text>
             </Pressable>
           );
         })}
+        {/* Moi : photo du profil ; ouvre le menu (profil, notifications, réglages…) */}
+        <Pressable accessibilityRole="tab" accessibilityLabel={`Mon espace${nonLues ? `, ${nonLues} notification${nonLues > 1 ? 's' : ''} non lue${nonLues > 1 ? 's' : ''}` : ''}`} accessibilityState={{ selected: surProfil }} onPress={ouvrirPlus}
+          style={{ flex: 1, minWidth: 0, alignItems: 'center', gap: 3 }}>
+          <View style={{ height: 30, justifyContent: 'center' }}>
+            {profil ? <Avatar nom={profil.displayName || profil.fullName} uri={profil.photoURL || null} taille={28} actif={surProfil} />
+              : <View style={{ width: 52, height: 30, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: surProfil ? 'rgba(245,158,11,0.18)' : 'transparent' }}><Ic nom="profil" taille={22} couleur={surProfil ? c.accent : c.discret} /></View>}
+            {nonLues > 0 && <View style={{ position: 'absolute', top: -2, right: -8, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: c.erreur, borderWidth: 2, borderColor: c.fond, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: polices.corpsTresGras, fontSize: 10, color: '#FFFFFF' }}>{nonLues > 9 ? '9+' : nonLues}</Text></View>}
+          </View>
+          <Text numberOfLines={1} style={{ fontFamily: polices.corpsGras, fontSize: 11, color: surProfil ? c.fort : c.discret }}>Moi</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -81,14 +117,14 @@ export function MenuPlus() {
   const { profil, deconnexion, invite } = useAuth();
   const { c } = useTheme();
   const routeur = useRouter();
+  const nonLues = useNonLues();
+  const { xp, rang } = useProgres();
   const aller = (chemin: string) => { fermerPlus(); setTimeout(() => routeur.push(chemin as never), 80); };
   const evt = (nom: 'guide' | 'faq' | 'alertes' | 'horsligne') => { fermerPlus(); setTimeout(() => emettre(nom), 120); };
   const items: { icone: string; label: string; sous?: string; action: () => void }[] = [
-    { icone: 'micro', label: 'Contribuer', sous: 'Enregistrer, valider, classement', action: () => aller('/contribuer') },
     { icone: 'couronne', label: 'Nkala Plus et achats', sous: 'Abonnement sans publicité', action: () => { fermerPlus(); setTimeout(ouvrirBoutique, 120); } },
     { icone: 'flamme', label: 'Ma série', sous: 'Calendrier et record', action: () => aller('/serie') },
-    { icone: 'profil', label: 'Mon profil', sous: 'Rang, XP, anneaux par module', action: () => aller('/profil') },
-    { icone: 'cloche', label: 'Notifications', action: () => evt('alertes') },
+    { icone: 'cloche', label: 'Notifications', sous: nonLues ? `${nonLues} non lue${nonLues > 1 ? 's' : ''}` : 'Tout est lu', action: () => evt('alertes') },
     { icone: 'chercher', label: 'Recherche', sous: 'Mots, leçons, jeux, lieux', action: () => aller('/recherche') },
     { icone: 'reseau', label: 'Hors ligne', sous: 'Téléchargements et file d\'envoi', action: () => evt('horsligne') },
     { icone: 'parents', label: 'Espace parents', sous: 'Temps et limites', action: () => aller('/parents') },
@@ -98,10 +134,22 @@ export function MenuPlus() {
     ...(estAdmin(profil?.role) ? [{ icone: 'surveiller', label: 'Administration', sous: 'Contenus, supervision, interrupteurs', action: () => aller('/admin') }] : []),
   ];
   return (
-    <Feuille visible={plus} onClose={fermerPlus} titre="Plus">
+    <Feuille visible={plus} onClose={fermerPlus} titre="Mon espace">
+      <Pressable accessibilityRole="button" accessibilityLabel={profil ? 'Voir mon profil' : 'Se connecter'} onPress={() => (profil ? aller('/profil') : (fermerPlus(), deconnexion()))}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 20, backgroundColor: pressed ? c.carteHaut : c.carte, borderWidth: 1, borderColor: c.bordAmbre, marginBottom: 6 })}>
+        <Avatar nom={profil ? profil.displayName || profil.fullName : undefined} uri={profil?.photoURL || null} taille={56} actif />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T v="sousTitre" numberOfLines={1}>{profil ? profil.displayName || profil.fullName || 'Mon profil' : 'Sans compte'}</T>
+          <T v="petit" numberOfLines={1}>{profil ? `${rang.rang.nom} · ${xp} XP · Voir mon profil` : 'Crée un compte pour garder ta progression'}</T>
+        </View>
+        <Ic nom="suivant" taille={18} couleur={c.discret} />
+      </Pressable>
       {items.map(i => (
         <Pressable key={i.label} accessibilityRole="button" onPress={i.action} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 16, backgroundColor: pressed ? c.carte : 'transparent' })}>
-          <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, alignItems: 'center', justifyContent: 'center' }}><Ic nom={i.icone} taille={22} couleur={c.accent} /></View>
+          <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, alignItems: 'center', justifyContent: 'center' }}>
+            <Ic nom={i.icone} taille={22} couleur={c.accent} />
+            {i.icone === 'cloche' && nonLues > 0 && <View style={{ position: 'absolute', top: 6, right: 6, width: 10, height: 10, borderRadius: 5, backgroundColor: c.erreur }} />}
+          </View>
           <View style={{ flex: 1 }}><T v="carte">{i.label}</T>{!!i.sous && <T v="petit">{i.sous}</T>}</View>
           <Ic nom="suivant" taille={18} couleur={c.discret} />
         </Pressable>
@@ -136,7 +184,7 @@ export function FinEnfant() {
       <View style={{ flex: 1, backgroundColor: c.fond, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 16 }}>
         <Mascotte taille={140} humeur="dort" />
         <T v="titre" style={{ textAlign: 'center' }}>C'est fini pour aujourd'hui</T>
-        <T v="corps" style={{ textAlign: 'center' }}>Ozangué va dormir. À demain pour de nouveaux jeux !</T>
+        <T v="corps" style={{ textAlign: 'center' }}>Kak'Igonjo va dormir. À demain pour de nouveaux jeux !</T>
         {!!prefs.parentsCode && <View style={{ width: '100%', maxWidth: 320, gap: 10 }}>
           <T v="petit" style={{ textAlign: 'center' }}>Un parent peut ajouter 15 minutes avec son code.</T>
           <Champ valeur={code} onChange={t => setCode(t.replace(/\D/g, '').slice(0, 4))} placeholder="Code parent (4 chiffres)" clavier="number-pad" secret />

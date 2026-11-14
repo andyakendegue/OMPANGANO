@@ -5,8 +5,10 @@
                  au plus 3 rappels, espacés de 7 jours. « Je ne sais pas » compte comme une réponse.
 Config : /opt/ompangano/secrets/noreply.env (chmod 600) : SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM
          (MAIL_FROM = « Nkala <noreply@essaka.engineering> »). Sans ce fichier, rien n'est envoyé.
-Options : --dry-run (affiche sans envoyer ni enregistrer), --apercu bienvenue|filiation (affiche un exemple),
-          --test adresse (envoie les deux modèles à cette adresse, sans rien enregistrer).
+Options : --dry-run (affiche sans envoyer ni enregistrer), --apercu bienvenue|filiation|testeur_android (affiche un exemple),
+          --test adresse [modèle] (envoie les modèles automatiques, ou le modèle cité, à cette adresse, sans rien enregistrer),
+          --campagne testeur_android [--dry-run] : envoi unique, lancé à la main (jamais par le cron), à tous les comptes
+          « user » ayant un e-mail et ne l'ayant pas encore reçu ; chaque envoi est noté dans user_mails.
 """
 import os, smtplib, ssl, subprocess, sys, time
 from email.message import EmailMessage
@@ -14,6 +16,7 @@ from html import escape
 
 CONFIG = os.environ.get('COURRIELS_SMTP', '/opt/ompangano/secrets/noreply.env')
 SITE = 'https://ompangano.web.app'
+LIEN_TEST_ANDROID = 'https://play.google.com/apps/internaltest/4701483192437857405'
 MAX_PAR_PASSAGE = 20
 RAPPELS_MAX = 3
 DELAI_RAPPEL_JOURS = 7
@@ -34,12 +37,14 @@ def psql(sql):
 
 # ------------------------------------------------------------------ modèles de messages
 
-def _html(titre, paragraphes, etapes=None, bouton=None):
+def _html(titre, paragraphes, etapes=None, bouton=None, lien=SITE, apres=None):
     corps = ''.join(f'<p style="margin:0 0 14px">{p}</p>' for p in paragraphes)
     if etapes:
         corps += '<ol style="padding-left:20px;margin:0 0 16px">' + ''.join(f'<li style="margin-bottom:8px">{e}</li>' for e in etapes) + '</ol>'
     if bouton:
-        corps += f'<p style="margin:22px 0"><a href="{SITE}" style="background:#c85a32;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">{escape(bouton)}</a></p>'
+        corps += f'<p style="margin:22px 0"><a href="{escape(lien)}" style="background:#c85a32;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">{escape(bouton)}</a></p>'
+    if apres:
+        corps += ''.join(f'<p style="margin:0 0 14px">{p}</p>' for p in apres)
     return (f'<div style="background:#f6efe9;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">'
             f'<div style="max-width:560px;margin:auto;background:#fff;border-radius:14px;padding:26px;color:#2b1a10;line-height:1.5;font-size:15px">'
             f'<h1 style="font-size:21px;margin:0 0 16px;color:#b4431e">{escape(titre)}</h1>{corps}'
@@ -97,12 +102,33 @@ def modele_filiation(nom):
     return sujet, texte, _html('Complétez votre filiation', p, etapes, 'Ouvrir Nkala')
 
 
+def modele_testeur_android(nom):
+    nom = nom or 'contributeur'
+    sujet = 'Nkala arrive sur Android : testez-la avant tout le monde'
+    nom_h = escape(nom)
+    p = [f'Bonjour {nom_h},',
+         'Vous faites partie des premiers inscrits sur Nkala : Akewa ! La première version de l\'<b>application Android</b> est prête, et nous vous invitons à l\'essayer avant sa sortie publique.']
+    etapes = ['Sur votre téléphone Android, ouvrez le lien ci-dessous en étant connecté au <b>compte Google de cette adresse e-mail</b>.',
+              'Acceptez l\'invitation pour devenir testeur.',
+              'Installez <b>Nkala</b> depuis le Google Play Store (le lien apparaît sur la même page ; l\'application peut mettre jusqu\'à une heure à s\'afficher).']
+    apres = ['Au lancement, trois espaces sont ouverts : les <b>cours</b>, les <b>jeux</b> (Ogoni, défi du jour) et la <b>contribution</b> (enregistrer votre voix pour la langue Myènè).',
+             'Vous y croiserez aussi <b>Kak\'Igonjo</b>, le vieux sage de Nkala : il n\'est pas encore actif, mais il sera bientôt là pour répondre à vos questions et vous accompagner dans les cours.',
+             'Un problème, une idée ? Dans le Play Store, sur la page de Nkala, utilisez « Envoyer des commentaires privés au développeur ».',
+             'Vous avez un iPhone ? La version iPhone arrivera un peu plus tard : nous vous préviendrons.']
+    texte = (f'Bonjour {nom},\n\nVous faites partie des premiers inscrits sur Nkala : Akewa ! La première version de l\'application Android '
+             'est prête, et nous vous invitons à l\'essayer avant sa sortie publique.\n\n' +
+             '\n'.join(f'{i}. ' + _brut(e) for i, e in enumerate(etapes, 1)) +
+             f'\n\nRejoindre le test : {LIEN_TEST_ANDROID}\n\n' + '\n\n'.join(_brut(a) for a in apres) + '\n\nAkewa !\nL\'équipe Nkala\n')
+    return sujet, texte, _html('Nkala arrive sur Android', p, etapes, 'Rejoindre le test', LIEN_TEST_ANDROID, apres + ['Akewa !<br>L\'équipe Nkala'])
+
+
 def _brut(s):
     import re
     return re.sub(r'<[^>]+>', '', s)
 
 
-MODELES = {'bienvenue': modele_bienvenue, 'filiation': modele_filiation}
+MODELES = {'bienvenue': modele_bienvenue, 'filiation': modele_filiation, 'testeur_android': modele_testeur_android}
+CAMPAGNES = {'testeur_android'}  # envoyées à la main (--campagne), jamais par le cron
 
 # ------------------------------------------------------------------ envoi
 
@@ -180,13 +206,24 @@ def main():
         return
     cfg = config()
     if '--test' in sys.argv:
-        to = sys.argv[sys.argv.index('--test') + 1]
+        i = sys.argv.index('--test')
+        to = sys.argv[i + 1]
+        kinds = [sys.argv[i + 2]] if len(sys.argv) > i + 2 and sys.argv[i + 2] in MODELES else [k for k in MODELES if k not in CAMPAGNES]
         with connexion(cfg) as s:
-            for kind in MODELES:
+            for kind in kinds:
                 s.send_message(construire(cfg, kind, 'Essai', to))
-        print(f'Deux courriels d\'essai envoyés à {to}.')
+        print(f'{len(kinds)} courriel(s) d\'essai envoyé(s) à {to} : {", ".join(kinds)}.')
         return
-    todo = destinataires()
+    if '--campagne' in sys.argv:
+        kind = sys.argv[sys.argv.index('--campagne') + 1]
+        if kind not in CAMPAGNES:
+            sys.exit(f'campagne inconnue : {kind}')
+        todo = [(u, e, n, kind) for u, e, n in psql(
+            "select id, email, coalesce(nullif(data->>'fullName',''), nullif(data->>'displayName',''), split_part(email,'@',1)) from users u "
+            "where deleted_at is null and role = 'user' and email is not null and email <> '' and status <> 'suspended' "
+            f"and not exists (select 1 from user_mails m where m.user_id = u.id and m.kind = '{kind}') order by created_at")]
+    else:
+        todo = destinataires()
     if not todo:
         return
     s = None if DRY else connexion(cfg)

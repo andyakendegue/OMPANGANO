@@ -102,6 +102,20 @@ test('interrupteurs : la console remplace les variables, la salle des paris rest
   assert.equal((await call('PUT', '/v1/admin/parametres/fonctions', (await user()).token, { valeur: {} })).status, 403);
 });
 
+test('modules réservés aux administrateurs : cachés au public, ouverts aux admins connectés', async () => {
+  await call('PUT', '/v1/admin/parametres/modules', ADMIN, { valeur: { azeva: false } });
+  assert.equal((await call('PUT', '/v1/admin/parametres/modules_admin', ADMIN, { valeur: { azeva: true, inconnu: true } })).status, 200);
+  assert.equal((await call('GET', '/pub/modules')).body.modules.azeva, false);
+  const u = await user();
+  const pourUser = await call('GET', '/v1/modules', u.token);
+  assert.equal(pourUser.body.modules.azeva, false); assert.equal(pourUser.body.essai, undefined);
+  const pourAdmin = await call('GET', '/v1/modules', ADMIN);
+  assert.equal(pourAdmin.body.modules.azeva, true); assert.deepEqual(pourAdmin.body.essai, ['azeva']);
+  assert.equal((await call('PUT', '/v1/admin/parametres/modules_admin', u.token, { valeur: { azeva: true } })).status, 403);
+  await call('PUT', '/v1/admin/parametres/modules_admin', ADMIN, { valeur: {} });
+  await call('PUT', '/v1/admin/parametres/modules', ADMIN, { valeur: { azeva: true } });
+});
+
 test('leçons et parties : XP côté serveur, une seule récompense par leçon, plafond, succès', async () => {
   await call('POST', '/v1/admin/contenus/lecons/import', ADMIN, { lignes: [{ id: 'l1', unite_id: 'u1', titre: 'Bonjour', xp: 15, publie: 'oui' }], mode: 'ajouter', partiel: true });
   await call('POST', '/v1/admin/contenus/jeux/import', ADMIN, { lignes: [{ id: 'pendu', salle_id: 's', titre: 'Pendu', moteur: 'pendu', publie: 'oui' }], mode: 'ajouter', partiel: true });
@@ -201,7 +215,10 @@ test('sondages : un vote par compte, résultats publics', async () => {
 });
 
 test('cours à distance : quatre personnes au plus par groupe, signaux acheminés', async () => {
-  const [h, b, c, d, e] = [await user(), await user(), await user(), await user(), await user()];
+  // Salle immédiate : administrateurs seulement depuis le 14 nov. 2026 (les cours passent par le planning).
+  const h = { uid: 'capp', token: ADMIN };
+  const [b, c, d, e] = [await user(), await user(), await user(), await user()];
+  assert.equal((await call('POST', '/v1/appels', b.token, { titre: 'Classe' })).status, 403);
   const s = await call('POST', '/v1/appels', h.token, { titre: 'Classe' });
   const id = s.body.id;
   for (const x of [b, c, d]) assert.equal((await call('POST', `/v1/appels/${id}/rejoindre`, x.token)).status, 200);
@@ -270,7 +287,7 @@ test('IA : prompts versionnés, documents, RAG, essai, réglages, RunPod simulé
   assert.ok(t2.body.systeme.startsWith('Tu es un assistant de test'));
   assert.equal((await call('POST', '/v1/admin/ia/prompts', ADMIN, { contenu: 'court' })).status, 400);
   await call('POST', '/v1/admin/ia/prompts/defaut', ADMIN);
-  assert.ok((await call('POST', '/v1/admin/ia/tester', ADMIN, { message: 'Bonjour' })).body.systeme.includes('Ozangué'));
+  assert.ok((await call('POST', '/v1/admin/ia/tester', ADMIN, { message: 'Bonjour' })).body.systeme.includes('Kak\'Igonjo'));
   await call('PUT', '/v1/admin/ia/config', ADMIN, { ragActif: false, topK: 2, temperature: 5 });
   const cfg = (await call('GET', '/v1/admin/ia/etat', ADMIN)).body.config;
   assert.equal(cfg.ragActif, false); assert.equal(cfg.topK, 2); assert.equal(cfg.temperature, 0.3, 'valeur hors bornes ignorée');
@@ -366,7 +383,7 @@ test('médias chiffrés : licence → liste HLS réécrite → clé AES-128 ; je
 
 test('accès par rang et par formule : plans, rang minimal, personnel exempté', async () => {
   const j = (collection: string, lignes: unknown[]) => call('POST', `/v1/admin/contenus/${collection}/import`, ADMIN, { lignes, mode: 'ajouter', partiel: true });
-  await j('plans', [{ id: 'complet', titre: 'Complet', tout: 'oui', publie: 'oui' }, { id: 'jeux', titre: 'Jeux', publie: 'oui' }]);
+  await j('plans', [{ id: 'complet', titre: 'Complet', tout: 'oui', sans_pub: 'tout', publie: 'oui' }, { id: 'jeux', titre: 'Jeux', sans_pub: 'azeva', publie: 'oui' }]);
   await j('produits', [{ id: 'abo-tout', titre: 'Tout', type: 'abonnement', prix_fcfa: 2000, periode: 'mois', donne_acces: 'tout', plan_id: 'complet', publie: 'oui' }, { id: 'abo-jeux', titre: 'Jeux', type: 'abonnement', prix_fcfa: 1000, periode: 'mois', plan_id: 'jeux', publie: 'oui' }]);
   await j('jeux', [{ id: 'jeu-rang3', salle_id: 's', titre: 'Avancé', moteur: 'pendu', rang_min: 3, publie: 'oui' }, { id: 'jeu-jeux', salle_id: 's', titre: 'Premium', moteur: 'pendu', plans: 'jeux', publie: 'oui' }, { id: 'jeu-libre', salle_id: 's', titre: 'Libre', moteur: 'pendu', publie: 'oui' }]);
   await j('lecons', [{ id: 'lecon-plan', unite_id: 'u', titre: 'Réservée', plans: 'complet', publie: 'oui' }]);
@@ -374,7 +391,7 @@ test('accès par rang et par formule : plans, rang minimal, personnel exempté',
   const partie = (id: string) => call('POST', '/v1/jeux/partie', u.token, { jeuId: id, bonnes: 3, erreurs: 0 });
   assert.equal((await partie('jeu-libre')).status, 200);
   assert.equal((await partie('jeu-rang3')).status, 402, 'rang 1 < 3');
-  assert.equal((await partie('jeu-jeux')).status, 402, 'sans formule');
+  assert.equal((await partie('jeu-jeux')).status, 200, 'jeux gratuits (13 nov. 2026) : la formule citée par le jeu est ignorée');
   assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 402);
   const av = await call('POST', '/v1/acces/verifier', u.token, { collection: 'jeux', id: 'jeu-rang3' });
   assert.equal(av.body.autorise, false); assert.equal(av.body.rangMin, 3);
@@ -383,10 +400,17 @@ test('accès par rang et par formule : plans, rang minimal, personnel exempté',
   assert.equal((await partie('jeu-jeux')).status, 200);
   assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 402);
   assert.deepEqual((await call('GET', '/v1/droits/acces', u.token)).body.plans, ['jeux']);
+  // publicité selon le forfait : la formule « jeux » coupe la publicité des jeux seulement
+  await j('pub_creations', [{ id: 'pa', zone: 'bandeau_accueil', texte_alt: 'A', publie: 'oui' }, { id: 'pj', zone: 'bandeau_jeux', texte_alt: 'J', publie: 'oui' }]);
+  const autre = await user();
+  assert.equal((await call('GET', '/v1/pub?zone=bandeau_jeux', autre.token)).body.pub?.id, 'pj', 'sans formule : publicité dans les jeux');
+  assert.equal((await call('GET', '/v1/pub?zone=bandeau_jeux', u.token)).body.pub, null, 'formule « jeux » : plus de publicité dans les jeux');
+  assert.notEqual((await call('GET', '/v1/pub?zone=bandeau_accueil', u.token)).body.pub, null, '… mais toujours ailleurs');
   // formule complète : tout s'ouvre sauf le rang minimal (le niveau reste le niveau)
   await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo-tout', jours: 30 });
   assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 200);
   assert.equal((await partie('jeu-rang3')).status, 402, 'un abonnement ne remplace pas le rang');
+  assert.equal((await call('GET', '/v1/pub?zone=bandeau_accueil', u.token)).body.pub, null, 'formule complète (tout) : plus aucune publicité');
   // le personnel passe partout
   assert.equal((await call('POST', '/v1/jeux/partie', ADMIN, { jeuId: 'jeu-rang3', bonnes: 1, erreurs: 0 })).status, 200);
 });

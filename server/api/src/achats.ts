@@ -6,6 +6,7 @@
  */
 import type { Queryable } from './db.ts';
 import { journaliser, str, type Ctx } from './ctx.ts';
+import { crediterAchat } from './nkorounaRegistre.ts';
 
 export interface RecuVerifie { reference: string; fin?: Date | null }
 
@@ -24,7 +25,12 @@ export async function accorderProduit(q: Queryable, uid: string, produitId: stri
   const p = (await q.query<any>(`SELECT data FROM contenus WHERE collection = 'produits' AND id = $1 AND deleted_at IS NULL`, [produitId]))[0];
   if (!p) throw new Error('Produit introuvable.');
   const d = p.data, jours = d.periode === 'an' ? 366 : d.periode === 'mois' ? 31 : 0;
-  if (d.type === 'abonnement') await q.query(`INSERT INTO droits (user_id, produit_id, type, fin, source, reference) VALUES ($1,$2,'abonnement', clock_timestamp() + ($3 || ' days')::interval, $4, $5)`, [uid, produitId, String(jours || 31), source, reference]);
+  if (d.type === 'nkorouna') {
+    // Pack de Nkorouna payé en FCFA : jetons crédités une seule fois par paiement ou reçu (référence unique).
+    const n = Number(d.nkorouna);
+    if (!Number.isSafeInteger(n) || n <= 0) throw new Error(`Produit ${produitId} : colonne « nkorouna » (nombre de jetons) manquante.`);
+    await crediterAchat(q, uid, n, `achat:${source}:${reference}`, { produit: produitId, titre: String(d.titre ?? '').slice(0, 120), source, prix_fcfa: Number(d.prix_fcfa) || 0 }, source);
+  } else if (d.type === 'abonnement') await q.query(`INSERT INTO droits (user_id, produit_id, type, fin, source, reference) VALUES ($1,$2,'abonnement', clock_timestamp() + ($3 || ' days')::interval, $4, $5)`, [uid, produitId, String(jours || 31), source, reference]);
   else for (const contenu of (Array.isArray(d.donne_acces) && d.donne_acces.length ? d.donne_acces : [produitId]) as string[]) await q.query(`INSERT INTO droits (user_id, produit_id, type, contenu_id, source, reference) VALUES ($1,$2,'achat',$3,$4,$5)`, [uid, produitId, contenu, source, reference]);
   return { type: d.type };
 }

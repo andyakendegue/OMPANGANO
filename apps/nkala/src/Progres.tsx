@@ -20,7 +20,7 @@ interface Etat {
   terminerLecon: (l: Lecon, bonnes: number, erreurs: number) => Promise<{ xpGagne: number; nouveauRang: Rang | null }>;
   validerUnite: (uniteId: string, bonnes: number, sur: number) => Promise<{ valide: boolean }>;
   lireChapitre: (livreId: string, chapitreId: string, bonnes: number, sur: number) => Promise<{ xpGagne: number; premiereFois: boolean }>;
-  enregistrerPartie: (p: { jeuId: string; bonnes: number; erreurs: number; secondesRestantes?: number; serie?: number; defiId?: string }) => Promise<{ score: number; xpGagne: number }>;
+  enregistrerPartie: (p: { jeuId: string; bonnes: number; erreurs: number; secondesRestantes?: number; serie?: number; defiId?: string; manche?: string }) => Promise<{ score: number; xpGagne: number }>;
 }
 const Ctx = createContext<Etat | null>(null);
 export const useProgres = () => { const c = useContext(Ctx); if (!c) throw new Error('useProgres hors de ProgresProvider'); return c; };
@@ -95,7 +95,7 @@ export function ProgresProvider({ children }: { children: React.ReactNode }) {
     return { valide };
   }, [profil, sauver]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const partie = useCallback(async (p: { jeuId: string; bonnes: number; erreurs: number; secondesRestantes?: number; serie?: number; defiId?: string }) => {
+  const partie = useCallback(async (p: { jeuId: string; bonnes: number; erreurs: number; secondesRestantes?: number; serie?: number; defiId?: string; manche?: string }) => {
     const avant = ref.current.xp ?? 0;
     const score = scorePartie(p);
     let local = { ...ref.current, parties: ref.current.parties + 1, points: ref.current.points + score, victoires: ref.current.victoires + (p.bonnes > p.erreurs ? 1 : 0) } as Local;

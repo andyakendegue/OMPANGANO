@@ -1,0 +1,25 @@
+# Construit l'app bundle Android (profil production) puis l'envoie sur Google Play, piste « test fermé » (alpha).
+# Lancement manuel, depuis apps/nkala :  npx eas-cli workflow:run .eas/workflows/publier-android.yml
+# Prérequis (une seule fois) : clé du compte de service Google Play déposée dans EAS (eas credentials -p android),
+# variables d'environnement « production » (GOOGLE_SERVICES_JSON, EXPO_PUBLIC_FIREBASE_API_KEY) et
+# un premier .aab envoyé à la main dans la Play Console (exigence de Google).
+name: Publier Android (test fermé)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_android:
+    name: Build Android (app bundle)
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  submit_android:
+    name: Envoi sur Google Play
+    needs: [build_android]
+    type: submit
+    params:
+      build_id: ${{ needs.build_android.outputs.build_id }}
+      profile: production

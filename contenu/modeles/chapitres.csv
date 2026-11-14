@@ -1,2 +1,2 @@
-﻿id,cours_id,titre,debut_s,duree_s,ordre
-ntina-01,,,,,1
+﻿id,cours_id,titre,debut_s,duree_s,niveau_acces,ordre
+ntina-01,,,,,,1

@@ -1,4 +1,5 @@
 /** Accueil, série, profil, réglages, espace parents, recherche globale (écrans 11 à 20, 60, 15). */
+import { CarteNkorounaProfil } from './Nkorouna';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -8,7 +9,7 @@ import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { emettre } from './evenements';
 import { useGlobale } from './Globale';
-import { useConfirmer, Anneau, Avatar, Bouton, BoutonIcone, Carte, Champ, Ecran, Entete, EtatVide, Flamme, Ic, Mascotte, Pastille, Puce, Rangee, SectionTitre, T, Barre, useToast, BandeauHorsLigne } from './kit';
+import { useConfirmer, Anneau, Avatar, Bouton, BoutonIcone, BoutonRecherche, Carte, Champ, Ecran, Entete, EtatVide, Flamme, Ic, Mascotte, Pastille, Puce, Rangee, SectionTitre, T, Barre, useToast, BandeauHorsLigne } from './kit';
 import { Son } from './OnenjiLecon';
 import { usePrefs, useTheme, type NiveauAnim } from './Prefs';
 import { useProgres } from './Progres';
@@ -21,7 +22,6 @@ export function AccueilEcran() {
   const { c } = useTheme();
   const { profil, invite } = useAuth();
   const { prefs } = usePrefs();
-  const { ouvrirPlus } = useGlobale();
   const routeur = useRouter();
   const { donnees, xp, rang } = useProgres();
   const { res } = useContenus(['mots_jeux', 'actualites', 'albums', 'messages']);
@@ -39,9 +39,7 @@ export function AccueilEcran() {
           <T v="titre">{retour ? 'Bon retour' : 'Mbolo'}{nom ? `, ${nom}` : ''} !</T>
           <T v="petit">{rang.rang.nom} · {xp} XP</T>
         </View>
-        {!enfant && <BoutonIcone nom="chercher" label="Recherche" onPress={() => routeur.push('/recherche' as never)} />}
-        <BoutonIcone nom="cloche" label="Notifications" onPress={() => emettre('alertes')} />
-        <BoutonIcone nom="plus" label="Plus" onPress={ouvrirPlus} />
+        <BoutonRecherche />
       </View>
       <BandeauHorsLigne />
       {invite && !profil && <Carte accent={c.accent}><View style={{ padding: 16, gap: 8 }}><T v="carte">Tu essaies sans compte</T><T v="petit">Ta progression reste sur ce téléphone. Crée un compte pour la garder, contribuer et apparaître dans les classements.</T><Bouton label="Créer un compte" petit large={false} onPress={() => routeur.push('/connexion' as never)} /></View></Carte>}
@@ -103,6 +101,7 @@ export function ProfilEcran({ suite }: { suite: React.ReactNode }) {
       <View style={{ flexDirection: 'row', gap: 12 }}>{anneaux.map(([l, col, v, n]) => <Carte key={l} style={{ flex: 1, padding: 14, alignItems: 'center', gap: 8 }}><Anneau valeur={v} couleur={col} taille={64}><T v="carte">{n}</T></Anneau><T v="petit">{l}</T></Carte>)}</View>
       <SectionTitre titre="Rangs" />
       {RANGS.map((r, i) => <View key={r.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, opacity: i <= rang.index ? 1 : 0.5 }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: i <= rang.index ? c.accent : c.squelette, alignItems: 'center', justifyContent: 'center' }}><T v="carte" couleur={i <= rang.index ? c.surAccent : c.discret}>{i + 1}</T></View><View style={{ flex: 1 }}><T v="carte">{r.nom}</T><T v="petit">{r.description}</T></View><T v="petit">{r.minXp} XP</T></View>)}
+      {profil && <CarteNkorounaProfil />}
       {suite}
     </Ecran>
   );

@@ -10,7 +10,7 @@ import { journaliser, type Ctx } from './ctx.ts';
 
 export interface StationEnDirect { id: string; nom: string; flux: string; hls: string | null; titre: string; artiste: string; pochette: string | null; auditeurs: number; enDirect: boolean }
 
-const SIMULEE: StationEnDirect[] = [{ id: 'demo', nom: 'Radio Nkala (démonstration)', flux: '', hls: null, titre: 'Mbolo', artiste: 'Ozangué', pochette: null, auditeurs: 0, enDirect: false }];
+const SIMULEE: StationEnDirect[] = [{ id: 'demo', nom: 'Radio Nkala (démonstration)', flux: '', hls: null, titre: 'Mbolo', artiste: "Kak'Igonjo", pochette: null, auditeurs: 0, enDirect: false }];
 
 export function clientAzuracast(env = process.env) {
   const publique = (env.AZURACAST_URL || '').replace(/\/+$/, '');

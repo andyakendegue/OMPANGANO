@@ -5,6 +5,47 @@
 
 export interface ChapitreLivre { titre: string; texte: string }
 
+// ------------------------------------------------------------------ noms de dossiers et de fichiers lisibles
+/**
+ * Nom de dossier ou de fichier → libellé en français : chiffres et séparateurs du début retirés (« 09_hors_normatif » → « Hors normatif »),
+ * identifiant final retiré (« …__13229 »), soulignés remplacés par des espaces, élisions rétablies (« d_admission » → « d'admission »),
+ * « N 104 » → « n° 104 », « 19 11 1984 » → « 19/11/1984 », majuscule au début (un premier mot tout en capitales est remis en minuscules,
+ * les autres capitales — sigles, noms propres — sont gardées).
+ */
+export function nettoyerNom(brut: string): string {
+  let t = brut.normalize('NFC')
+    .replace(/_{2,}\d+$/, '')                      // identifiant final « __13229 »
+    .replace(/[_]+/g, ' ')
+    .replace(/^[\s\d.\-–—)(#]+/, '')               // chiffres et séparateurs du début
+    .replace(/\s+/g, ' ').trim();
+  t = t.replace(/\b(\d{1,2}) (\d{1,2}) (\d{4})\b/g, (_, j, m, a) => `${j.padStart(2, '0')}/${m.padStart(2, '0')}/${a}`)
+    .replace(/\bN (\d)/g, 'n° $1')
+    // m et t ne sont pas élidés : dans un titre, « M Auguste » est presque toujours « M. (Monsieur) Auguste », pas « m'Auguste ».
+    .replace(/\b(qu|[dljsnc]) (?=[aeiouyhàâäéèêëîïôöûüœAEIOUYHÀÂÉÈÊÎÔÛ])/gi, "$1'");
+  const [premier, ...reste] = t.split(' ');
+  if (!premier) return '';
+  const p = premier.length > 2 && premier === premier.toUpperCase() && /\p{L}/u.test(premier) ? premier.toLowerCase() : premier;
+  return [p.charAt(0).toUpperCase() + p.slice(1), ...reste].join(' ');
+}
+
+/** Un dossier qui ne nomme pas un rayon : une année, une date, « sans date ». */
+/** Libellé produit par la première version (qui élidait aussi m et t) : permet de reconnaître une fiche renommée automatiquement. */
+export const ancienLibelle = (t: string) => t.replace(/\b([mt]) (?=[aeiouyhàâäéèêëîïôöûüœAEIOUYHÀÂÉÈÊÎÔÛ])/gi, "$1'");
+
+const dossierSansSens = (n: string) => !n || /^\d{4}$/.test(n) || /^sans date$/i.test(n);
+
+/**
+ * Libellés d'un fichier déposé (chemin relatif) : titre, auteur (« Auteur - Titre ») et rayon = le dossier le plus proche qui a un sens
+ * (une année n'en est pas un : « 09_hors_normatif/1972/x.md » → rayon « Hors normatif »). `chemin` = les dossiers lisibles, du haut vers le bas.
+ */
+export function libellesFichier(rel: string): { titre: string; auteur: string; categorie: string; chemin: string[] } {
+  const parties = rel.split('/');
+  const fichier = (parties.pop() ?? '').replace(/\.[^.]+$/, '');
+  const dossiers = parties.map(nettoyerNom).filter(n => !dossierSansSens(n));
+  const m = /^(.+?)\s+[-–—]\s+(.+)$/.exec(fichier.replace(/_+/g, ' ').trim());
+  return { auteur: m ? nettoyerNom(m[1]) : '', titre: nettoyerNom(m ? m[2] : fichier) || fichier, categorie: dossiers[dossiers.length - 1] ?? '', chemin: dossiers };
+}
+
 export const slugLivre = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'livre';
 
 const TITRE = /^\s*(chapitre|chap\.|livre|partie|acte|sc[èe]ne|pr[ée]face|pr[ée]ambule|introduction|conclusion|[ée]pilogue|prologue)\b[^\n]{0,70}$/i;

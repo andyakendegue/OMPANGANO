@@ -1,5 +1,5 @@
 // Petit bus d'événements pour ouvrir le guide, la FAQ… depuis n'importe quel écran.
-type Nom = 'guide' | 'faq' | 'alertes' | 'horsligne' | 'onglet';
+type Nom = 'guide' | 'faq' | 'alertes' | 'horsligne' | 'onglet' | 'nonLues';
 const abonnes = new Map<Nom, Set<() => void>>();
 export const emettre = (n: Nom) => abonnes.get(n)?.forEach(f => f());
 export const ecouter = (n: Nom, f: () => void) => {

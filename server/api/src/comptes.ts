@@ -20,7 +20,7 @@ export async function fusionnerComptes(q: Queryable, de: string, vers: string): 
   const src = (await q.query<any>(`SELECT xp, contributions_count, recordings_count, validations_count FROM users WHERE id = $1 FOR UPDATE`, [de]))[0];
   if (!src) return { xp: 0 };
   await q.query(`UPDATE users SET xp = xp + $2, contributions_count = contributions_count + $3, recordings_count = recordings_count + $4, validations_count = validations_count + $5 WHERE id = $1`, [vers, src.xp, src.contributions_count, src.recordings_count, src.validations_count]);
-  for (const t of ['scores', 'ia_usage', 'droits', 'paiements', 'push_jetons', 'achats_recus', 'contributions']) await q.query(`UPDATE ${t} SET user_id = $2 WHERE user_id = $1`, [de, vers]);
+  for (const t of ['scores', 'ia_usage', 'droits', 'paiements', 'push_jetons', 'achats_recus', 'contributions', 'medias_annonces_envois']) await q.query(`UPDATE ${t} SET user_id = $2 WHERE user_id = $1`, [de, vers]);
   await q.query(`UPDATE pub_evenements SET user_id = $2 WHERE user_id = $1`, [de, vers]);
   await q.query(`UPDATE votes SET user_id = $2 WHERE user_id = $1 AND sondage_id NOT IN (SELECT sondage_id FROM votes WHERE user_id = $2)`, [de, vers]);
   await q.query(`DELETE FROM votes WHERE user_id = $1`, [de]);

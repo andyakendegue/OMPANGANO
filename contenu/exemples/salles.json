@@ -2,7 +2,7 @@
  {
   "id": "mots",
   "titre": "Salle des mots",
-  "description": "Pendu, anagrammes, mots mêlés, dictée…",
+  "description": "Ogoni, anagrammes, grilles, mémoire, dictée…",
   "couleur": "#FDE047",
   "icone": "texte",
   "ordre": 1,
@@ -11,29 +11,56 @@
  {
   "id": "corps",
   "titre": "Salle du corps",
-  "description": "Bientôt",
+  "description": "Le corps humain, de la tête aux pieds.",
   "couleur": "#D9693F",
   "icone": "corps",
   "ordre": 2,
-  "publie": false
+  "publie": true
  },
  {
   "id": "maison",
   "titre": "Salle de la maison",
-  "description": "Bientôt",
+  "description": "Les objets de tous les jours.",
   "couleur": "#C85A32",
   "icone": "maison",
   "ordre": 3,
-  "publie": false
+  "publie": true
  },
  {
   "id": "nature",
   "titre": "Salle de la nature",
-  "description": "Bientôt",
+  "description": "Animaux, forêt, mer et ciel.",
   "couleur": "#0D9488",
   "icone": "feuille",
   "ordre": 4,
-  "publie": false
+  "publie": true
+ },
+ {
+  "id": "nombres",
+  "titre": "Salle des nombres",
+  "description": "Compter, mesurer, se repérer.",
+  "couleur": "#38BDF8",
+  "icone": "de",
+  "ordre": 5,
+  "publie": true
+ },
+ {
+  "id": "famille",
+  "titre": "Famille et société",
+  "description": "La famille, les salutations, les classes d'âge.",
+  "couleur": "#F472B6",
+  "icone": "profil",
+  "ordre": 6,
+  "publie": true
+ },
+ {
+  "id": "oralite",
+  "titre": "Oralité et arts",
+  "description": "Devinettes, proverbes, rythmes.",
+  "couleur": "#F59E0B",
+  "icone": "micro",
+  "ordre": 7,
+  "publie": true
  },
  {
   "id": "societe",
@@ -41,7 +68,7 @@
   "description": "Le parcours de la vie, avec un dé.",
   "couleur": "#F59E0B",
   "icone": "de",
-  "ordre": 5,
+  "ordre": 8,
   "publie": true
  }
 ]

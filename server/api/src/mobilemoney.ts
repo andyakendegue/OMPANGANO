@@ -8,6 +8,7 @@
  */
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { normaliserTelephone } from '../../../packages/noyau/src/telephone.ts';
+import { codeDeSeance } from '../../../packages/noyau/src/coursDistance.ts';
 import { accorderProduit } from './achats.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, str, type Ctx } from './ctx.ts';
@@ -31,7 +32,12 @@ export function signatureValide(secret: string, corps: string, recu: string | un
 export async function confirmerPaiement(q: Queryable, id: string, par: string, transaction?: string): Promise<boolean> {
   const r = await q.query<any>(`UPDATE paiements SET statut = 'confirme', confirme_at = clock_timestamp(), confirme_par = $2, transaction_operateur = COALESCE($3, transaction_operateur) WHERE id = $1 AND statut IN ('en_attente','declare') RETURNING user_id, produit_id, reference`, [id, par, transaction ?? null]);
   if (!r.length) return false;
-  await accorderProduit(q, r[0].user_id, r[0].produit_id, 'mobile_money', r[0].reference);
+  const seance = codeDeSeance(String(r[0].produit_id));
+  if (seance) {
+    // Place payée : inscription au cours. Complet entre-temps : le paiement reste confirmé et noté pour remboursement par un administrateur.
+    const ok = await q.query<any>(`UPDATE cours_planifies SET inscrits = array_append(inscrits, $2) WHERE code = $1 AND NOT ($2 = ANY(inscrits)) AND cardinality(inscrits) < 4 RETURNING code`, [seance, r[0].user_id]);
+    if (!ok.length) await q.query(`UPDATE paiements SET note = 'cours complet ou annulé : à rembourser' WHERE id = $1`, [id]);
+  } else await accorderProduit(q, r[0].user_id, r[0].produit_id, 'mobile_money', r[0].reference);
   await journaliser(q, par, 'paiement_confirme', id, { produit: r[0].produit_id });
   return true;
 }
@@ -48,7 +54,17 @@ export function registerMobileMoney({ app, db, fail, acteur, env, notify }: Ctx)
     const { produitId, operateur, telephone } = (req.body || {}) as { produitId?: string; operateur?: string; telephone?: string };
     const tel = str(telephone) ? normaliserTelephone(telephone) : null;
     if (!str(produitId) || !OPERATEURS.includes(operateur as never) || !tel) return fail(400, 'Produit, opérateur (airtel ou moov) et numéro valides attendus.');
-    const p = (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'produits' AND id = $1 AND publie AND deleted_at IS NULL`, [produitId]))[0];
+    // Place d'un cours à distance (« seance:<code> ») : prix fixé à la création du cours d'après le tarif générique des administrateurs.
+    const seance = codeDeSeance(produitId!);
+    let p: any;
+    if (seance) {
+      const c = (await db.query<any>(`SELECT * FROM cours_planifies WHERE code = $1`, [seance]))[0];
+      if (!c || new Date(c.debut).getTime() + c.duree_min * 60_000 < Date.now()) return fail(404, 'Cours introuvable ou terminé.');
+      if ((c.inscrits as string[]).includes(a.auth.uid)) return fail(409, 'Tu es déjà inscrit à ce cours.');
+      if ((c.inscrits as string[]).length >= 4) return fail(409, 'Ce cours est complet.');
+      if (!(Number(c.prix_fcfa) > 0)) return fail(400, 'Ce cours est gratuit : inscris-toi directement.');
+      p = { data: { prix_fcfa: Number(c.prix_fcfa), titre: c.titre } };
+    } else p = (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'produits' AND id = $1 AND publie AND deleted_at IS NULL`, [produitId]))[0];
     if (!p || !(Number(p.data.prix_fcfa) > 0)) return fail(404, 'Produit introuvable ou sans prix.');
     if (mode === 'manuel' && !numeroMarchand(operateur!)) return fail(503, 'Ce moyen de paiement n\'est pas encore ouvert.');
     const enCours = (await db.query<any>(`SELECT count(*)::int AS n FROM paiements WHERE user_id = $1 AND statut IN ('en_attente','declare') AND expire_at > clock_timestamp()`, [a.auth.uid]))[0].n;

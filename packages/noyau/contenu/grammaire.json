@@ -1,0 +1,24 @@
+[
+ {
+  "id": "gram-saluer-nombre",
+  "titre": "Saluer une ou plusieurs personnes",
+  "categorie": "phrase",
+  "resume": "Le salut change selon le nombre de personnes saluées.",
+  "contenu": "On salue une personne avec « Mbolo ».\n\nOn salue plusieurs personnes avec « Mbôluani ».\n\nUne personne | Mbolo\nPlusieurs personnes | Mbôluani",
+  "exemples": [
+   {
+    "myene": "Mbolo",
+    "francais": "Bonjour (à une personne)"
+   },
+   {
+    "myene": "Mbôluani",
+    "francais": "Bonjour (à plusieurs)"
+   }
+  ],
+  "parcours_id": "ntina",
+  "unite_id": "ntina-u1",
+  "source": "[LEC] Bonjour ; [RW] p. 284 ; [EQ] ; cf. [RW] « Mboloani », [AMB] [mbolwanè]",
+  "ordre": 1,
+  "publie": true
+ }
+]

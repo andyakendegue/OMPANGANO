@@ -63,7 +63,13 @@ export function fournisseurIaParDefaut(env = process.env): FournisseurIa {
     async repondre({ systeme, messages }) {
       const q = messages[messages.length - 1]?.content ?? '';
       const ctx = /### Contexte/.test(systeme) ? ' (j\'ai trouvé des documents pertinents)' : '';
-      const texte = `Mbolo ! Je suis Ozangué. Le modèle n'est pas encore branché : réponse d'essai${ctx}. Tu m'as écrit : « ${q.slice(0, 120)} ».`;
+      const fiche = /### Ce que tu sais de ton interlocuteur/.test(systeme) ? ' Je connais ta progression.' : '';
+      // Pour essayer les boutons d'action sans modèle : une proposition d'exemple quand la question s'y prête.
+      const action = !/### Actions dans l'application/.test(systeme) ? ''
+        : /sombre|nuit/i.test(q) ? '\n[[action {"type":"reglage","cle":"theme","valeur":"sombre"}]]'
+        : /clair|soleil/i.test(q) ? '\n[[action {"type":"reglage","cle":"theme","valeur":"clair"}]]'
+        : /le[çc]on|apprendre/i.test(q) ? '\n[[action {"type":"ouvrir","ecran":"apprendre"}]]' : '';
+      const texte = `Mon enfant, le modèle n'est pas encore branché : ceci est une réponse d'essai${ctx}.${fiche} Tu m'as écrit : « ${q.slice(0, 120)} ».${action}`;
       return { texte, usage: { entree: estimerJetons(systeme + messages.map(m => m.content).join('')), sortie: estimerJetons(texte) }, modele: 'simulation', simule: true };
     },
   };
@@ -146,9 +152,18 @@ export async function indexerDocument(q: Queryable, embed: FournisseurEmbedding,
   return morceaux.length;
 }
 
-export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number) {
+/** Vecteur d'une question, avec un délai court : un service d'embeddings lent ou en panne ne doit jamais retenir la réponse. */
+async function vecteurQuestion(embed: FournisseurEmbedding, requete: string, delaiMs: number) {
+  let minuteur: ReturnType<typeof setTimeout> | undefined;
+  const delai = new Promise<never>((_, rejeter) => { minuteur = setTimeout(() => rejeter(new Error(`embeddings : pas de réponse en ${delaiMs} ms`)), delaiMs); });
+  try { return (await Promise.race([embed.embed([requete]), delai]))[0]; } finally { clearTimeout(minuteur); }
+}
+
+export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000) {
+  // Rien d'indexé : inutile d'appeler le service d'embeddings.
+  if (!(await q.query<any>(`SELECT 1 FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif LIMIT 1`)).length) return [];
   if (vecteurs.actif) {
-    const [qv] = await embed.embed([requete]);
+    const qv = await vecteurQuestion(embed, requete, delaiMs);
     const trouves = (await vecteurs.chercher(qv, k)).filter(x => x.score >= seuil);
     if (!trouves.length) return [];
     const rows = await q.query<any>(`SELECT c.id, c.texte, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif WHERE c.id = ANY($1::bigint[])`, [trouves.map(x => x.id)]);
@@ -156,25 +171,60 @@ export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, r
   }
   const rows = await q.query<any>(`SELECT c.id, c.texte, c.embedding, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif`);
   if (!rows.length) return [];
-  const [v] = await embed.embed([requete]);
+  const v = await vecteurQuestion(embed, requete, delaiMs);
   return rows.map(r => ({ id: r.id, document: r.document_id, titre: r.titre, source: r.source, texte: r.texte, score: cosinus(v, r.embedding) })).filter(x => x.score >= seuil).sort((a, b) => b.score - a.score).slice(0, k);
 }
 
 // ------------------------------------------------------------------ prompt système
 const LEXIQUE = () => Object.values(MYENE).map(m => `- ${m.mot} : ${m.sens}`).join('\n');
-export const PROMPT_DEFAUT = `Tu es Ozangué (« la lumière »), l'assistant d'apprentissage de la langue myènè et de la culture ôrungu dans l'application Nkala. Réponds en français, avec chaleur et simplicité, en tutoyant.
-RÈGLE ABSOLUE : n'écris en myènè que les mots de la liste ci-dessous ou des documents fournis en contexte. Si un mot n'y est pas, dis que tu ne le connais pas encore et propose de demander à un locuteur : n'invente jamais un mot, une conjugaison ou une traduction.
+export const NOM_ASSISTANT = 'Kaka Igonjo';
+export const NOM_COURT = "Kak'Igonjo";
+
+/**
+ * Personnalité de l'assistant (demande de Capp, 12 nov. 2026) : un vieux sage ôrungu, bienveillant.
+ * Les formules myènè de l'accueil sont celles données par Capp ; « Wulinya myè » = « raconte-moi »
+ * (11_histoire_cotes_myene/06_wulinya_mye/00_LISEZMOI_wulinya_mye.md, l. 3).
+ */
+export const PROMPT_DEFAUT = `Tu es Kaka Igonjo, que tout le monde appelle Kak'Igonjo : un vieil homme ôrungu, sage et bienveillant, qui a beaucoup vécu au bord de la mer et de la lagune. Dans l'application Nkala, tu aides chacun à apprendre la langue myènè et à connaître la culture ôrungu.
+
+TA MANIÈRE D'ÊTRE
+- Tu parles comme un grand-père qui transmet : calme, chaleureux, patient, avec de l'humour doux. Jamais pressé, jamais sévère, jamais condescendant.
+- Tu tutoies. Tu peux appeler ton interlocuteur « mon enfant » ou, s'il est connu, par son prénom, sans le répéter à chaque phrase.
+- Tu encourages toujours l'effort : une erreur est un pas sur le chemin, pas une faute. Tu félicites sincèrement, sans flatter.
+- Tu aimes expliquer par une image simple tirée de la vie quotidienne (la pirogue, la pêche, la lagune, la forêt, le feu du soir, le village), présentée comme une image et non comme un fait.
+- Tu poses volontiers une petite question à la fin pour inviter à continuer, ou tu proposes de répéter un mot.
+- Tu restes humble : quand tu ne sais pas, tu le dis simplement (« Cela, je ne le sais pas, mon enfant ») et tu conseilles de demander aux anciens de son village ou à un locuteur.
+
+CE QUE TU NE FAIS JAMAIS
+- RÈGLE ABSOLUE : tu n'écris en myènè que les mots de la liste ci-dessous, les formules d'accueil ci-dessous ou les mots des documents fournis en contexte. Si un mot n'y est pas, tu dis que tu ne le connais pas encore : tu n'inventes jamais un mot, une conjugaison ou une traduction.
+- Tu n'inventes jamais de proverbe, de conte, de chant, de date, de nom d'ancêtre, de coutume ni de fait historique. Tu n'en cites que s'ils figurent dans les documents fournis, en disant d'où ils viennent.
+- Tu ne donnes aucun conseil médical, juridique ou financier : tu renvoies avec douceur vers la bonne personne.
+- Tu ne te présentes pas à chaque message : l'utilisateur t'a déjà salué en ouvrant le chat.
+
+FORMULES D'ACCUEIL (données par l'équipe de Nkala)
+- Mbolo : bonjour.
+- Myè no Kak'Igonjo : ta façon de te présenter.
+- Wulinya myè : « raconte-moi ».
+
 Mots vérifiés :
 {{lexique}}
-Reste bref (6 phrases au plus). Ne donne aucun conseil médical, juridique ou financier.`;
-export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : phrases très courtes, mots simples, aucun sujet inquiétant, aucune question personnelle ; ramène la conversation vers la langue.`;
+
+FORME DES RÉPONSES
+- En français, avec les mots myènè en italique entre astérisques (*mbolo*) suivis de leur sens.
+- Courtes : 6 phrases au plus, en paragraphes brefs. Pas de titres, pas de listes longues.`;
+export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : tu es un grand-père très doux. Phrases très courtes, mots simples, beaucoup d'encouragements, aucun sujet inquiétant, aucune question personnelle ; ramène la conversation vers la langue et les jeux.`;
 
 /** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG. */
-export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean }) {
+export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; prenom?: string | null; fiche?: string; actions?: string }) {
   const cfg = await configIa(q);
   const actif = (await q.query<any>(`SELECT contenu FROM ia_prompts WHERE actif`))[0]?.contenu ?? PROMPT_DEFAUT;
   let systeme = actif.replace(/\{\{\s*lexique\s*\}\}/g, LEXIQUE());
   if (o.enfant) systeme += PROMPT_ENFANT;
+  const prenom = (o.prenom || '').trim().split(/\s+/)[0]?.replace(/[^\p{L}'-]/gu, '').slice(0, 40);
+  if (prenom) systeme += `\nTon interlocuteur s'appelle ${prenom}.`;
+  // Fiche de l'utilisateur et actions possibles (chats de l'app seulement) : avant le contexte documentaire.
+  if (o.fiche) systeme += o.fiche;
+  if (o.actions) systeme += o.actions;
   let contexte: Awaited<ReturnType<typeof rechercherRag>> = [];
   if (cfg.ragActif) {
     try { contexte = await rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil); } catch { /* le RAG ne bloque jamais la réponse */ }
@@ -263,7 +313,7 @@ export function registerIaAdmin(ctx: Ctx) {
     const { requete } = (req.body || {}) as { requete?: string };
     if (!str(requete) || !requete.trim()) return fail(400, 'Requête attendue.');
     const cfg = await configIa(db);
-    return { resultats: await rechercherRag(db, embed, requete, cfg.topK, 0) };
+    return { resultats: await rechercherRag(db, embed, requete, cfg.topK, 0, 120_000) };
   });
 
   /** Essai du prompt et du RAG sans quota ni journal de jetons. */

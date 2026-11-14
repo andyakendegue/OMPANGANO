@@ -11,9 +11,9 @@ Tout le code de l'application et de l'administration est écrit et testé **sans
 - Le numéro gabonais est stocké au format `+241 0X XX XX XX` (8 chiffres, 0 initial gardé). **À vérifier avec un vrai numéro** au premier essai Twilio.
 - Google et e-mail/mot de passe restent sur Firebase Auth.
 
-## 2. Assistant Ozangué : modèle de langage
+## 2. Assistant Kak'Igonjo : modèle de langage
 - Clé d'API dans `ANTHROPIC_API_KEY`, modèle dans `IA_MODELE` (par défaut `claude-haiku-5-5`). Sans clé : réponse simulée, le comptage des jetons et les quotas fonctionnent quand même.
-- Ouvrir la fonction « Assistant Ozangué » dans la console (Interrupteurs). Régler les quotas (jour, mois, conversation ; enfants ¼, abonnés ×4).
+- Ouvrir la fonction « Assistant Kak'Igonjo » dans la console (Interrupteurs). Régler les quotas (jour, mois, conversation ; enfants ¼, abonnés ×4).
 - Règle du prompt : n'écrire en myènè que les mots de `lexique.ts` (source vérifiable). À enrichir avec les mots validés.
 
 ## 3. Régie publicitaire : Revive Adserver

@@ -25,6 +25,8 @@ export interface SchemaContenu {
   titre: string;
   description: string;
   champs: Champ[];
+  /** Collection privée : jamais servie par la lecture publique. Le serveur n'en tire que ce qu'il faut pour une manche (jeux). */
+  prive?: boolean;
 }
 
 const id: Champ = { nom: 'id', type: 'texte', requis: true, aide: 'Identifiant unique, sans espace (lettres, chiffres, tiret, souligné).', exemple: 'ntina-01' };
@@ -37,6 +39,11 @@ const image: Champ = { nom: 'image', type: 'url', aide: 'Image (adresse https ou
 const audio: Champ = { nom: 'audio', type: 'url', aide: 'Fichier audio (adresse https ou chemin du stockage).' };
 const couleur: Champ = { nom: 'couleur', type: 'texte', aide: 'Couleur d\'accent #RRGGBB.', exemple: '#F59E0B' };
 const source: Champ = { nom: 'source', type: 'texte', aide: 'Source du contenu (document et page) : obligatoire pour tout mot myènè.', exemple: '[LEC] Bonjour' };
+
+/** Moteurs de jeu d'Azeva (un écran par moteur dans l'application ; le contenu vient toujours du serveur). */
+export const MOTEURS = ['ogoni', 'pendu', 'anagramme', 'mots_meles', 'mots_croises', 'mots_fleches', 'memoire', 'syllabes', 'dictee', 'qcm', 'ordre', 'plateau',
+  'quiz', 'relier', 'classer', 'sequence', 'trous', 'compter', 'rythme', 'zones', 'suites', 'chemin'] as const;
+export type Moteur = typeof MOTEURS[number];
 
 export const SCHEMAS: SchemaContenu[] = [
   // ---------------------------------------------------------------- Onenji
@@ -56,28 +63,33 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'duree_min', type: 'entier', aide: 'Durée estimée en minutes.', exemple: '5' },
     { nom: 'xp', type: 'entier', aide: 'XP gagnés à la fin (15 par défaut).', exemple: '15' },
     { nom: 'mode', type: 'choix', choix: ['tous', 'enfant', 'adulte'], aide: 'Public.', exemple: 'tous' }, acces, rangMin, plans, ordre, publie] },
-  { id: 'exercices', module: 'onenji', titre: 'Exercices', description: 'Écouter-répéter, associer image et mot, remettre en ordre, dire à voix haute, choix.', champs: [
+  { id: 'exercices', module: 'onenji', prive: true, titre: 'Exercices', description: 'Collection privée (décision de Capp, 14 nov. 2026) : l\'application ne reçoit que les exercices des leçons que le compte peut ouvrir. Une leçon suit l\'unité en 9 étapes : écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier. Plusieurs variantes d\'un même exercice se placent à la même position (colonne « ordre ») avec des dialectes différents : l\'apprenant voit celle de sa variante (ôrungu par défaut).', champs: [
     id, { nom: 'lecon_id', type: 'texte', requis: true, ref: 'lecons', aide: 'Leçon parente.' },
-    { nom: 'type', type: 'choix', requis: true, choix: ['ecouter', 'associer', 'ordre', 'dire', 'choix'], aide: 'Type d\'exercice.', exemple: 'ecouter' },
+    { nom: 'type', type: 'choix', requis: true, choix: ['ecouter', 'associer', 'ordre', 'dire', 'choix', 'trou', 'saisie', 'cours', 'dictee', 'comprendre', 'proverbe', 'culture', 'jouer'], aide: 'Type d\'exercice : trou = mot à placer dans la phrase ; saisie = réponse à écrire ; cours = présentation avant les contrôles (non notée) ; dictee = écouter puis écrire ; comprendre = dialogue ou texte (colonne « texte ») puis question à choix ; proverbe et culture = cartes à lire (non notées) ; jouer = lien vers un jeu d\'Azeva (colonne « jeu_id »).', exemple: 'ecouter' },
     { nom: 'consigne', type: 'texte', aide: 'Consigne affichée (texte ou lue).' },
-    { nom: 'mot_myene', type: 'texte', aide: 'Mot ou phrase en myènè (source obligatoire).' },
+    { nom: 'mot_myene', type: 'texte', aide: 'Mot ou phrase en myènè (source obligatoire) ; pour « trou », la phrase avec ___ à la place du mot.' },
     { nom: 'mot_francais', type: 'texte', aide: 'Traduction française.' },
     { nom: 'options', type: 'liste', aide: 'Choix proposés, séparés par | (associer, choix) ou mots à remettre en ordre.' },
     { nom: 'reponse', type: 'texte', aide: 'Bonne réponse (libellé exact d\'une option, ou phrase complète pour « ordre »).' },
     { nom: 'indice', type: 'texte', aide: 'Aide affichée après une erreur.' }, image, audio,
-    { nom: 'dialecte', type: 'texte', aide: 'Dialecte (ôrungu, omyènè…).' }, source, ordre] },
-  { id: 'cours_artisans', module: 'onenji', titre: 'Cours d\'artisans', description: 'Cours vidéo donnés par des artisans.', champs: [
-    id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du cours.' }, { nom: 'artisan', type: 'texte', requis: true, aide: 'Nom de l\'artisan.' },
+    { nom: 'texte', type: 'long', aide: 'Texte long : explication (cours), dialogue une réplique par ligne « Nom : texte » (comprendre), sens et usage (proverbe), note (culture).' },
+    { nom: 'conseil', type: 'texte', aide: 'Conseil culturel montré en bulle pendant l\'exercice.', exemple: 'C\'est la personne qui arrive qui salue la première.' },
+    { nom: 'jeu_id', type: 'texte', ref: 'jeux', aide: 'Étape « jouer » : identifiant du jeu d\'Azeva proposé (tous les jeux sont gratuits).' },
+    { nom: 'dialecte', type: 'texte', aide: 'Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes).' }, source, ordre] },
+  { id: 'cours_artisans', module: 'onenji', titre: 'Vidéothèque (Igolani)', description: 'Tous les cours vidéo d\'Onenji, rangés par catégorie ; les cours d\'artisans sont une catégorie (nom de collection gardé pour les données déjà importées).', champs: [
+    id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du cours.' }, { nom: 'categorie', type: 'texte', aide: 'Catégorie de la vidéothèque (Artisans, Langue, Culture, Histoire…). Vide : « Artisans » si un artisan est indiqué.', exemple: 'Artisans' }, { nom: 'artisan', type: 'texte', aide: 'Nom de l\'artisan ou de l\'intervenant.' },
     { nom: 'metier', type: 'texte', aide: 'Métier (vin de palme, hors-bord, cuisine…).' }, { nom: 'description', type: 'long', aide: 'Description.' },
     { nom: 'video_url', type: 'url', aide: 'Vidéo ou playlist HLS (inutile si protege = oui).' },
 { nom: 'protege', type: 'booleen', aide: 'oui/non : médias chiffrés (HLS AES-128) sous media/<collection>/<id>/ ; la lecture exige une licence.' },
      { nom: 'sous_titres_url', type: 'url', aide: 'Fichier de sous-titres (.vtt).' },
     { nom: 'duree_min', type: 'entier', aide: 'Durée totale en minutes.' }, { nom: 'niveau', type: 'choix', choix: ['debutant', 'intermediaire', 'avance'], aide: 'Niveau.' },
-    acces, rangMin, plans, image, ordre, publie] },
+    { ...acces, aide: 'Accès de toute la vidéo (vide = règle par défaut : 1er chapitre gratuit avec publicité, la suite au forfait, à l\'achat pour un cours d\'artisan de plus de 60 min).', exemple: '' },
+    { nom: 'parcours_id', type: 'texte', ref: 'parcours', aide: 'Étape d\'Inenga à laquelle la vidéo se rattache (facultatif).' }, rangMin, plans, image, ordre, publie] },
   { id: 'chapitres', module: 'onenji', titre: 'Chapitres de cours', description: 'Chapitres d\'un cours d\'artisan.', champs: [
     id, { nom: 'cours_id', type: 'texte', requis: true, ref: 'cours_artisans', aide: 'Cours parent.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du chapitre.' }, { nom: 'debut_s', type: 'entier', aide: 'Début dans la vidéo (secondes).' },
-    { nom: 'duree_s', type: 'entier', aide: 'Durée en secondes.' }, ordre] },
+    { nom: 'duree_s', type: 'entier', aide: 'Durée en secondes.' },
+    { ...acces, aide: 'Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n\'en a pas : 1er chapitre gratuit avec publicité, la suite au forfait, à l\'achat pour un cours d\'artisan de plus de 60 min).', exemple: '' }, ordre] },
   { id: 'bibliotheque', module: 'onenji', titre: 'Bibliothèque', description: 'Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l\'application.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'auteur', type: 'texte', aide: 'Auteur.' },
     { nom: 'type', type: 'choix', choix: ['livre', 'annale', 'fiche', 'audio', 'autre'], aide: 'Type.' },
@@ -91,6 +103,14 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'texte', type: 'long', requis: true, aide: 'Texte du chapitre (paragraphes séparés par une ligne vide).' }, ordre,
     { nom: 'glossaire', type: 'json', aide: 'Mots expliqués : [{"mot":"pirogue","sens":"barque creusée dans un tronc"}].' },
     { nom: 'questions', type: 'json', aide: 'Quiz du chapitre (sinon généré) : [{"enonce":"…","options":["a","b","c"],"bonne":0}].' }, publie] },
+  { id: 'grammaire', module: 'onenji', titre: 'Fiches de grammaire', description: 'Fiches courtes (conjugaison, classes nominales, pronoms, nombres…) lisibles dans Ezango et depuis les leçons. Chaque exemple myènè porte sa source.', champs: [
+    id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre de la fiche.', exemple: 'Les classes nominales' },
+    { nom: 'categorie', type: 'choix', choix: ['conjugaison', 'classes_nominales', 'pronoms', 'nombres', 'phrase', 'prononciation', 'autre'], aide: 'Rubrique.', exemple: 'classes_nominales' },
+    { nom: 'resume', type: 'texte', aide: 'Une phrase qui dit ce que la fiche explique.' },
+    { nom: 'contenu', type: 'long', requis: true, aide: 'Explication (paragraphes séparés par une ligne vide ; un tableau en lignes « a | b | c »).' },
+    { nom: 'exemples', type: 'json', aide: 'Exemples : [{"myene":"…","francais":"…","audio":"…"}].' },
+    { nom: 'parcours_id', type: 'texte', ref: 'parcours', aide: 'Étape concernée (facultatif).' }, { nom: 'unite_id', type: 'texte', ref: 'unites', aide: 'Unité où la fiche est proposée (facultatif).' },
+    { nom: 'dialecte', type: 'texte', aide: 'Dialecte (vide = commun).' }, { ...source, requis: true, exemple: 'Teisserès et Dubois, p. 12' }, ordre, publie] },
   { id: 'opportunites', module: 'onenji', titre: 'Opportunités pour la jeunesse', description: 'Bourses, stages, concours.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'organisme', type: 'texte', aide: 'Organisme.' },
     { nom: 'description', type: 'long', aide: 'Description.' }, { nom: 'date_limite', type: 'date', aide: 'Date limite (AAAA-MM-JJ).' }, { nom: 'lien', type: 'url', aide: 'Lien.' }, publie] },
@@ -99,12 +119,35 @@ export const SCHEMAS: SchemaContenu[] = [
   { id: 'salles', module: 'azeva', titre: 'Salles de jeu', description: 'Salles du hall (Mots, Corps, Maison, Nature, Nombres…).', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'titre_myene', type: 'texte', aide: 'Titre en myènè.' },
     { nom: 'description', type: 'texte', aide: 'Description courte.' }, couleur, { nom: 'icone', type: 'texte', aide: 'Nom d\'icône.' }, ordre, publie, rangMin, plans] },
-  { id: 'jeux', module: 'azeva', titre: 'Jeux', description: 'Jeux du hall ; le moteur détermine le fonctionnement.', champs: [
+  { id: 'jeux', module: 'azeva', titre: 'Jeux', description: 'Jeux du hall ; le moteur détermine le fonctionnement. Le contenu d\'une partie est tiré par le serveur à chaque manche.', champs: [
     id, { nom: 'salle_id', type: 'texte', requis: true, ref: 'salles', aide: 'Salle.' }, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' },
-    { nom: 'moteur', type: 'choix', requis: true, choix: ['ogoni', 'pendu', 'anagramme', 'mots_meles', 'dictee', 'qcm', 'ordre', 'plateau', 'memoire'], aide: 'Moteur de jeu.', exemple: 'pendu' },
-    { nom: 'description', type: 'texte', aide: 'Description.' }, couleur, { nom: 'duree_s', type: 'entier', aide: 'Durée de la partie (secondes, 0 = sans limite).' },
+    { nom: 'moteur', type: 'choix', requis: true, choix: [...MOTEURS], aide: 'Moteur de jeu.', exemple: 'ogoni' },
+    { nom: 'description', type: 'texte', aide: 'Description.' }, { nom: 'consigne', type: 'texte', aide: 'Consigne affichée pendant la partie.' }, couleur,
+    { nom: 'icone', type: 'texte', aide: 'Nom d\'icône.' }, { nom: 'duree_s', type: 'entier', aide: 'Durée de la partie (secondes, 0 = sans limite) ; un niveau peut la remplacer.' },
+    { nom: 'theme', type: 'liste', aide: 'Thèmes des « mots_jeux » utilisés, séparés par | (vide = tous).', exemple: 'corps' },
+    { nom: 'banque', type: 'texte', aide: 'Identifiant de jeu dont on réutilise les « jeux_items » (vide = ceux de ce jeu).' },
+    { nom: 'corpus', type: 'booleen', aide: 'oui/non : ajouter aux mots les fiches actives du corpus (un seul mot) dans le dialecte du joueur.' },
+    { nom: 'scene', type: 'texte', aide: 'Moteur « zones » : dessin intégré (corps) ou image de la scène.' },
+    { nom: 'niveaux', type: 'entier', aide: 'Nombre de niveaux du jeu (1000 par défaut).', exemple: '1000' },
     { nom: 'mode_enfant', type: 'booleen', aide: 'oui/non : disponible en mode enfant.' }, ordre, publie, rangMin, plans] },
-  { id: 'mots_jeux', module: 'azeva', titre: 'Mots des jeux', description: 'Mots supplémentaires pour les jeux (en plus des fiches validées du corpus).', champs: [
+  { id: 'jeux_niveaux', module: 'azeva', titre: 'Paliers des jeux', description: 'Chaque jeu a 1000 niveaux à difficulté croissante (calculée). Une ligne = un palier : « à partir du niveau X », avec sa condition d\'accès (rang du joueur, formule d\'abonnement, achat) et, si on veut, des réglages imposés. Sans ligne, huit paliers par défaut suivent les huit rangs.', champs: [
+    id, { nom: 'jeu_id', type: 'texte', requis: true, ref: 'jeux', aide: 'Jeu concerné.' }, { nom: 'niveau', type: 'entier', requis: true, aide: 'Premier niveau du palier (1, 51, 151…) ; il va jusqu\'au palier suivant.', exemple: '1' },
+    { nom: 'titre', type: 'texte', requis: true, aide: 'Nom du palier.', exemple: 'Éveil' }, { nom: 'description', type: 'texte', aide: 'Ce qui change à ce palier.' },
+    rangMin, plans, { nom: 'produit_id', type: 'texte', ref: 'produits', aide: 'Achat qui ouvre ce palier (collection « produits ») ; une formule citée dans « plans » l\'ouvre aussi.' },
+    { nom: 'questions', type: 'entier', aide: 'Imposer le nombre de mots ou de questions par manche (vide = calculé selon le niveau).' }, { nom: 'duree_s', type: 'entier', aide: 'Imposer le temps limite en secondes (0 = sans limite ; vide = calculé).' },
+    { nom: 'erreurs_max', type: 'entier', aide: 'Imposer les erreurs permises (bûches du feu d\'Ogoni) ; vide = calculé (7 puis 3).' }, { nom: 'taille', type: 'entier', aide: 'Imposer la taille de la grille ; vide = calculée.' },
+    { nom: 'options', type: 'entier', aide: 'Imposer le nombre de réponses proposées (2 à 6) ; vide = calculé.' }, { nom: 'contenu_niveau', type: 'entier', aide: 'Imposer la difficulté maximale des contenus tirés ; vide = calculée.' },
+    { nom: 'xp_pct', type: 'entier', aide: 'Imposer l\'XP de la partie en pourcentage (100 = normal) ; vide = calculé (100 puis 300).', exemple: '100' }, publie] },
+  { id: 'jeux_items', module: 'azeva', prive: true, titre: 'Contenu des jeux', description: 'Questions, paires, suites, phrases à trous… d\'un jeu. Collection privée : l\'application n\'en reçoit que le tirage d\'une manche.', champs: [
+    id, { nom: 'jeu_id', type: 'texte', requis: true, ref: 'jeux', aide: 'Jeu (ou banque) auquel appartient la ligne.' },
+    { nom: 'enonce', type: 'texte', requis: true, aide: 'Question, élément de gauche, phrase avec ___, élément à classer ou à ordonner, suite (rond|carre|?), nombre à compter.' },
+    { nom: 'reponse', type: 'texte', requis: true, aide: 'Bonne réponse, élément de droite, catégorie, syllabes (a-kôn-dô), rythme (G-D-G), zone (tete).' },
+    { nom: 'leurres', type: 'liste', aide: 'Mauvaises réponses séparées par | (sinon tirées des autres lignes du jeu).' },
+    { nom: 'groupe', type: 'texte', aide: 'Série à laquelle appartient la ligne (moteur « sequence » : une série = une suite à remettre en ordre).' }, ordre,
+    { nom: 'niveau', type: 'entier', aide: 'Difficulté 1 à 3.' }, { nom: 'indice', type: 'texte', aide: 'Aide ou explication montrée après la réponse.' }, image, audio,
+    { nom: 'extra', type: 'json', aide: 'Réglages propres au moteur, ex. {"x":50,"y":12} (zone), {"texte":"…"} (texte à lire avant la question).' },
+    { nom: 'dialecte', type: 'texte', aide: 'Dialecte (vide = tous).' }, { ...source, requis: true }, publie] },
+  { id: 'mots_jeux', module: 'azeva', prive: true, titre: 'Mots des jeux', description: 'Mots des jeux de lettres (feu d\'Ogoni, anagrammes, grilles, mémoire). Collection privée : l\'application n\'en reçoit que le tirage d\'une manche.', champs: [
     id, { nom: 'myene', type: 'texte', requis: true, aide: 'Mot en myènè.' }, { nom: 'francais', type: 'texte', requis: true, aide: 'Traduction.' },
     { nom: 'theme', type: 'texte', aide: 'Thème (corps, maison, nature, nombres…).' }, { nom: 'niveau', type: 'entier', aide: 'Difficulté 1 à 3.' },
     { nom: 'dialecte', type: 'texte', aide: 'Dialecte.' }, audio, image, { ...source, requis: true }, publie] },
@@ -119,7 +162,7 @@ export const SCHEMAS: SchemaContenu[] = [
   { id: 'avatars', module: 'azeva', titre: 'Avatars', description: 'Avatars à débloquer.', champs: [
     id, { nom: 'nom', type: 'texte', requis: true, aide: 'Nom.' }, image, { nom: 'couleur', type: 'texte', aide: 'Couleur de fond.' },
     { nom: 'rang_min', type: 'entier', aide: 'Rang minimal (1 à 8).' }, { nom: 'succes_id', type: 'texte', ref: 'succes', aide: 'Succès requis.' }, publie] },
-  { id: 'plateau', module: 'azeva', titre: 'Plateau du grand jeu', description: 'Cases du jeu de société (parcours de la vie, avec dé).', champs: [
+  { id: 'plateau', module: 'azeva', prive: true, titre: 'Plateau du grand jeu', description: 'Cases du jeu de société (parcours de la vie, avec dé).', champs: [
     id, { nom: 'position', type: 'entier', requis: true, aide: 'Numéro de case.' },
     { nom: 'type', type: 'choix', requis: true, choix: ['neutre', 'question', 'bonus', 'recul', 'proverbe', 'arrivee'], aide: 'Type de case.' },
     { nom: 'texte', type: 'texte', aide: 'Texte de la case.' }, { nom: 'effet', type: 'entier', aide: 'Cases à avancer (+) ou reculer (−).' }, { nom: 'mot_id', type: 'texte', ref: 'mots_jeux', aide: 'Mot de la question.' }, publie] },
@@ -181,17 +224,18 @@ export const SCHEMAS: SchemaContenu[] = [
   { id: 'rangs', module: 'commun', titre: 'Rangs', description: 'Classes d\'âge ôrungu : paliers d\'XP.', champs: [
     id, { nom: 'nom', type: 'texte', requis: true, aide: 'Nom du rang.' }, { nom: 'min_xp', type: 'entier', requis: true, aide: 'XP minimal.' },
     { nom: 'description', type: 'texte', aide: 'Définition.' }, { nom: 'source', type: 'texte', aide: 'Source.' }, ordre] },
-  { id: 'messages', module: 'commun', titre: 'Messages et rappels doux', description: 'Textes des rappels, encouragements et phrases d\'Ozangué.', champs: [
-    id, { nom: 'type', type: 'choix', requis: true, choix: ['rappel', 'encouragement', 'bienvenue', 'defaite', 'victoire', 'ozangue'], aide: 'Type.' },
-    { nom: 'texte', type: 'texte', requis: true, aide: 'Texte (tutoiement sauf services citoyens).' }, { nom: 'ton', type: 'choix', choix: ['tu', 'vous'], aide: 'Tutoiement ou vouvoiement.' }, publie] },
+  { id: 'messages', module: 'commun', titre: 'Messages et rappels doux', description: 'Textes des rappels, encouragements et phrases de Kak\'Igonjo.', champs: [
+    id, { nom: 'type', type: 'choix', requis: true, choix: ['rappel', 'encouragement', 'bienvenue', 'defaite', 'victoire', 'kakigonjo', 'ozangue'], aide: 'Type.' },
+    { nom: 'texte', type: 'texte', requis: true, aide: 'Texte (tutoiement sauf services citoyens). Type « kakigonjo » : message d\'accueil du chat de Kak\'Igonjo ; {prénom} est remplacé par le prénom de l\'utilisateur.', exemple: "Mbolo {prénom} ! Myè no Kak'Igonjo. Wulinya myè, de quoi as-tu besoin ?" }, { nom: 'ton', type: 'choix', choix: ['tu', 'vous'], aide: 'Tutoiement ou vouvoiement.' }, publie] },
   { id: 'plans', module: 'commun', titre: 'Formules d\'abonnement', description: 'Ce que chaque formule débloque : toute l\'application, ou seulement les contenus qui la citent (colonne « plans »).', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Nom de la formule.' }, { nom: 'description', type: 'long', aide: 'Ce qu\'elle apporte.' },
     { nom: 'tout', type: 'booleen', aide: 'oui = donne accès à tout (contenus soumis à une formule compris).' }, { nom: 'rang_min', type: 'entier', aide: 'Rang minimal conseillé (information).' },
-    { nom: 'sans_pub', type: 'booleen', aide: 'oui = plus de publicité.' }, ordre, publie] },
-  { id: 'produits', module: 'commun', titre: 'Produits payants', description: 'Abonnements et achats intégrés (aucun prix n\'est fixé dans le code).', champs: [
-    id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'type', type: 'choix', requis: true, choix: ['abonnement', 'achat', 'consommable'], aide: 'Type.' },
+    { nom: 'sans_pub', type: 'liste', aide: 'Parties sans publicité : « tout », ou des modules séparés par | (commun, onenji, azeva, ontci, nkala). Vide = publicité maintenue. « oui » vaut « tout ».', exemple: 'tout' }, ordre, publie] },
+  { id: 'produits', module: 'commun', titre: 'Produits payants', description: 'Abonnements, achats intégrés et packs de Nkorouna (aucun prix n\'est fixé dans le code). Un produit peut se payer en FCFA (prix_fcfa), en Nkorouna (prix_nkr) ou les deux.', champs: [
+    id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'type', type: 'choix', requis: true, choix: ['abonnement', 'achat', 'consommable', 'nkorouna'], aide: 'Type ; « nkorouna » = pack de jetons payé en FCFA.' },
     { nom: 'prix_fcfa', type: 'entier', aide: 'Prix en FCFA.' }, { nom: 'periode', type: 'choix', choix: ['mois', 'an', 'unique'], aide: 'Période.' },
-    { nom: 'donne_acces', type: 'liste', aide: 'Contenus débloqués par un achat, séparés par | ; « tout » = toute l\'application.' }, { nom: 'plan_id', type: 'texte', ref: 'plans', aide: 'Formule donnée par cet abonnement (collection « plans »).' }, { nom: 'jetons_ia', type: 'entier', aide: 'Jetons IA offerts (consommable).' }, publie] },
+    { nom: 'donne_acces', type: 'liste', aide: 'Contenus débloqués par un achat, séparés par | ; « tout » = toute l\'application.' }, { nom: 'plan_id', type: 'texte', ref: 'plans', aide: 'Formule donnée par cet abonnement (collection « plans »).' }, { nom: 'jetons_ia', type: 'entier', aide: 'Jetons IA offerts (consommable).' },
+    { nom: 'nkorouna', type: 'entier', aide: 'Type « nkorouna » : nombre de Nkorouna (NKR) crédités quand le pack est payé en FCFA.', exemple: '500' }, { nom: 'prix_nkr', type: 'entier', aide: 'Prix en Nkorouna (vide = ne s\'achète pas en Nkorouna ; jamais pour un pack de Nkorouna).', exemple: '300' }, publie] },
   { id: 'pub_creations', module: 'commun', titre: 'Créations publicitaires', description: 'Publicités maison servies par la passerelle (en attendant ou à côté de Revive).', champs: [
     id, { nom: 'zone', type: 'texte', requis: true, aide: 'Zone (bandeau_accueil, recompense_coeur…).' }, { nom: 'annonceur', type: 'texte', aide: 'Annonceur.' }, { nom: 'campagne_id', type: 'texte', aide: 'Campagne de la régie (créée dans la console) ; vide = création libre.' },
     { nom: 'format', type: 'choix', choix: ['bandeau', 'natif', 'plein_ecran', 'audio', 'video'], aide: 'natif = publication sponsorisée mêlée aux listes.' }, { nom: 'cta', type: 'texte', aide: 'Texte du bouton (Découvrir, Appeler…).' },
@@ -201,3 +245,5 @@ export const SCHEMAS: SchemaContenu[] = [
 
 export const schemaDe = (id: string) => SCHEMAS.find(s => s.id === id);
 export const COLLECTIONS = SCHEMAS.map(s => s.id);
+/** Collections que la lecture publique ne sert jamais. */
+export const estPrivee = (id: string) => !!schemaDe(id)?.prive;

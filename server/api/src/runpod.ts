@@ -9,7 +9,7 @@ export interface EtatRunpod { simule: boolean; pods: any[]; endpoints: any[]; vo
 export function clientRunpod(env = process.env) {
   const cle = env.RUNPOD_API_KEY, base = (env.RUNPOD_REST_URL || 'https://rest.runpod.io/v1').replace(/\/+$/, '');
   const simule = !cle;
-  const sim = { pods: [{ id: 'pod-sim-1', name: 'llm-ozangue', desiredStatus: 'RUNNING', gpu: 'A40', costPerHr: 0.4 }], endpoints: [{ id: 'ep-sim-1', name: 'embeddings', workersMin: 0, workersMax: 2 }, { id: 'ep-sim-2', name: 'llm-vllm', workersMin: 0, workersMax: 1 }], volumes: [{ id: 'vol-sim-1', name: 'modeles', size: 100, dataCenterId: 'EU-RO-1' }] };
+  const sim = { pods: [{ id: 'pod-sim-1', name: 'llm-kakigonjo', desiredStatus: 'RUNNING', gpu: 'A40', costPerHr: 0.4 }], endpoints: [{ id: 'ep-sim-1', name: 'embeddings', workersMin: 0, workersMax: 2 }, { id: 'ep-sim-2', name: 'llm-vllm', workersMin: 0, workersMax: 1 }], volumes: [{ id: 'vol-sim-1', name: 'modeles', size: 100, dataCenterId: 'EU-RO-1' }] };
   async function appel(methode: string, chemin: string, corps?: unknown): Promise<any> {
     const r = await fetch(`${base}${chemin}`, { method: methode, headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' }, body: corps === undefined ? undefined : JSON.stringify(corps) });
     if (!r.ok) throw new Error(`RunPod ${r.status} ${(await r.text().catch(() => '')).slice(0, 160)}`);

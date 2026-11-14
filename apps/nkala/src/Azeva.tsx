@@ -3,11 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, Share, View } from 'react-native';
 import {
-  appliquerTemps, attenteCoeur, bonneReponse, chargerClassementJeux, chargerDefiDuJour, creerDuel, DIALECTES, etatInitial, etoiles, fonctionActive, graineJour, hasardGraine, jouerDuel, jouable, jourLocal,
-  lireDuel, mauvaiseReponse, melanger, peutJouer, rangPourXp, REGLES, demanderPub, reclamerRecompensePub, signalerPub, type CreationPub, type Duel, type EtatJeu, type Ligne, type LigneClassementJeux, type MotJeu, type QuestionnaireItem,
+  appliquerTemps, attenteCoeur, bonneReponse, chargerClassementJeux, chargerDefiDuJour, chargerNiveaux, creerDuel, DIALECTES, etatInitial, etoiles, fonctionActive, jouerDuel,
+  lireDuel, mauvaiseReponse, NIVEAUX_INVITE, ouvrirManche, prechargerManches, palierDuNiveau, peutJouer, questionsDuel, RANGS, reglesNiveau, REGLES, demanderPub, reclamerRecompensePub, signalerPub, texteRefus,
+  type CreationPub, type Duel, type EtatJeu, type EtatNiveaux, type Ligne, type LigneClassementJeux, type Manche, type QuestionDuel,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
-import { catalogue } from './catalogue';
 import { JeuRunner, type ResultatPartie } from './AzevaJeux';
 import { Bouton, Carte, Chargement, Ecran, Entete, EtatVide, Flamme, Ic, Mascotte, Pastille, Puce, Rangee, SectionTitre, T, Barre, Champ, Visuel, useToast } from './kit';
 import { usePile } from './Pile';
@@ -15,17 +15,22 @@ import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 import { useRegle } from './Droits';
 import { useGlobale } from './Globale';
-import { EmplacementPub } from './Pub';
+import { EmplacementPub, PubEntreEcrans } from './Pub';
 import { useContenus } from './useContenu';
 import { Confettis } from './Confettis';
 import { Image } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 
 type E =
-  | { t: 'hall' } | { t: 'salle'; id: string } | { t: 'jeu'; jeu: Ligne; defiId?: string; duel?: Duel } | { t: 'resultat'; jeu: Ligne; r: ResultatPartie; score: number; xp: number; defiId?: string }
+  | { t: 'hall' } | { t: 'salle'; id: string } | { t: 'niveaux'; jeu: Ligne } | { t: 'jeu'; jeu: Ligne; niveau: number; defiId?: string }
+  | { t: 'resultat'; jeu: Ligne; niveau: number; total: number; r: ResultatPartie; score: number; xp: number; defiId?: string }
   | { t: 'classements' } | { t: 'duel' } | { t: 'collection' } | { t: 'defi' } | { t: 'coeur' };
 
 const num = (v: unknown) => Number(v) || 0;
 const clefEtoiles = (uid: string) => `nkala_etoiles_${uid}`;
+/** Plus haut niveau gagné par jeu, gardé sur l'appareil (le serveur fait foi pour un compte ; sans compte, c'est la seule trace). */
+const clefNiveaux = (uid: string) => `nkala_niveaux_${uid}`;
+const lireNiveaux = (uid: string): Promise<Record<string, number>> => AsyncStorage.getItem(clefNiveaux(uid)).then(v => (v ? JSON.parse(v) : {})).catch(() => ({}));
 
 /** Les cœurs et les points du joueur (clé de stockage historique conservée : la progression des joueurs reste). */
 function useCoeurs() {
@@ -40,39 +45,42 @@ function useCoeurs() {
 
 export function Azeva() {
   const pile = usePile<E>({ t: 'hall' });
-  const { profil } = useAuth();
   const { prefs } = usePrefs();
   const coeurs = useCoeurs();
-  const { res, chargement } = useContenus(['salles', 'jeux', 'mots_jeux', 'plateau', 'succes', 'avatars']);
+  // Rien de tout cela n'est dans l'application : salles et jeux viennent du serveur, le contenu d'une partie arrive manche par manche.
+  const { res, chargement } = useContenus(['salles', 'jeux', 'succes', 'avatars']);
   const [dialecte, setDialecte] = useState('orungu');
-  const [fiches, setFiches] = useState<QuestionnaireItem[]>([]);
-  useEffect(() => { catalogue.aleatoires(dialecte, 80).then(l => setFiches(l.filter(jouable))).catch(() => setFiches([])); }, [dialecte]);
-  const mots = useMemo<MotJeu[]>(() => [
-    ...fiches.map(f => ({ id: f.id, myene: f.myeneText.trim(), francais: f.frenchText.trim() })),
-    ...(res.mots_jeux ?? []).map(m => ({ id: m.id, myene: String(m.myene), francais: String(m.francais), theme: m.theme, audio: m.audio, image: m.image })),
-  ], [fiches, res.mots_jeux]);
   const jeux = (res.jeux ?? []).filter(j => prefs.mode !== 'enfant' || j.mode_enfant === true || j.mode_enfant === 'oui');
-  const D = { salles: res.salles ?? [], jeux, mots, fiches, plateau: (res.plateau ?? []).map(c => ({ id: c.id, position: num(c.position), type: c.type, texte: c.texte, effet: num(c.effet) })) as never[] };
+  const D = { salles: (res.salles ?? []).filter(s => jeux.some(j => j.salle_id === s.id)), jeux };
+  // Lien depuis une leçon d'Onenji (étape « jouer ») : /azeva?jeu=<id> ouvre directement les niveaux de ce jeu.
+  const { jeu: jeuDemande } = useLocalSearchParams<{ jeu?: string }>();
+  useEffect(() => {
+    if (!jeuDemande || chargement) return;
+    const j = jeux.find(x => x.id === jeuDemande);
+    if (j) pile.pousser({ t: 'niveaux', jeu: j });
+    router.setParams({ jeu: undefined });
+  }, [jeuDemande, chargement]); // eslint-disable-line react-hooks/exhaustive-deps
   const e = pile.ecran;
   if (chargement || !coeurs.etat) return <Ecran><Chargement /></Ecran>;
   const etat = coeurs.etat;
 
   if (e.t === 'jeu') {
     if (!peutJouer(etat)) return <Coeur etat={etat} pile={pile} coeurs={coeurs} />;
-    return <JeuxFlux e={e} D={D} dialecte={dialecte} pile={pile} coeurs={coeurs} etat={etat} />;
+    return <JeuxFlux key={`${e.jeu.id}#${e.niveau}`} e={e} dialecte={dialecte} pile={pile} coeurs={coeurs} etat={etat} />;
   }
   switch (e.t) {
     case 'resultat': return <Resultat e={e} pile={pile} coeurs={coeurs} />;
     case 'salle': return <Salle id={e.id} D={D} pile={pile} />;
+    case 'niveaux': return <Niveaux jeu={e.jeu} pile={pile} dialecte={dialecte} />;
     case 'classements': return <Classements retour={pile.retour} jeux={D.jeux} />;
-    case 'duel': return <DuelEcran retour={pile.retour} mots={res.mots_jeux ?? []} />;
+    case 'duel': return <DuelEcran retour={pile.retour} />;
     case 'collection': return <Collection retour={pile.retour} succes={res.succes ?? []} avatars={res.avatars ?? []} />;
     case 'defi': return <DefiJour pile={pile} D={D} />;
     case 'coeur': return <Coeur etat={etat} pile={pile} coeurs={coeurs} />;
     default: return <Hall D={D} pile={pile} etat={etat} dialecte={dialecte} setDialecte={setDialecte} />;
   }
 }
-type Donnees = { salles: Ligne[]; jeux: Ligne[]; mots: MotJeu[]; fiches: QuestionnaireItem[]; plateau: never[] };
+type Donnees = { salles: Ligne[]; jeux: Ligne[] };
 type Pile = ReturnType<typeof usePile<E>>;
 type Coeurs = ReturnType<typeof useCoeurs>;
 
@@ -90,8 +98,9 @@ function Hall({ D, pile, etat, dialecte, setDialecte }: { D: Donnees; pile: Pile
       <Entete titre="Jouer" sous={`${etat.points} points · série ${donnees.serie ?? 0} j`} droite={<Pressable accessibilityRole="button" accessibilityLabel={`${etat.coeurs} cœurs`} onPress={() => pile.pousser({ t: 'coeur' })} style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}><Ic nom="coeur" taille={22} couleur={c.erreur} /><T v="carte">{etat.coeurs}</T></Pressable>} />
       {jeuDefi && <Carte accent={jaune} onPress={() => pile.pousser({ t: 'defi' })} label="Défi du jour">
         <View style={{ padding: 18, gap: 8 }}><T v="libelle" couleur={jaune}>Défi du jour</T><T v="sousTitre">{defi?.titre ?? `Une partie de ${jeuDefi.titre}`}</T><T v="petit">{defi?.xp ? `+${defi.xp} XP à gagner` : 'Chaque jour, un nouveau défi.'}</T>
-          <Bouton label="Relever le défi" variante="ambre" petit large={false} icone="lecture" onPress={() => pile.pousser({ t: 'jeu', jeu: jeuDefi, defiId: defi?.id })} /></View></Carte>}
+          <Bouton label="Relever le défi" variante="ambre" petit large={false} icone="lecture" onPress={() => pile.pousser({ t: 'jeu', jeu: jeuDefi, niveau: 1, defiId: defi?.id })} /></View></Carte>}
       <Rangee>{DIALECTES.map(d => <Puce key={d.code} label={d.nom} actif={dialecte === d.code} onPress={() => setDialecte(d.code)} couleur={jaune} />)}</Rangee>
+      <EmplacementPub zone="bandeau_jeux" />
       <SectionTitre titre="Les salles" />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {D.salles.map(s => {
@@ -103,7 +112,7 @@ function Hall({ D, pile, etat, dialecte, setDialecte }: { D: Donnees; pile: Pile
           );
         })}
       </View>
-      {D.salles.length === 0 && <EtatVide mascotte titre="La salle de jeux ouvre bientôt" texte="Les premiers jeux arrivent." />}
+      {D.salles.length === 0 && <EtatVide mascotte titre="La salle de jeux attend le serveur" texte="Les jeux et leur contenu se chargent depuis le serveur. Vérifie ta connexion, puis reviens." />}
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Carte onPress={() => pile.pousser({ t: 'classements' })} style={{ flex: 1 }} label="Classements"><View style={{ padding: 14, gap: 6 }}><Ic nom="coupe" taille={24} couleur={jaune} /><T v="petit" fort numberOfLines={1}>Classements</T></View></Carte>
         <Carte onPress={() => pile.pousser({ t: 'duel' })} style={{ flex: 1 }} label="Duel"><View style={{ padding: 14, gap: 6 }}><Ic nom="duel" taille={24} couleur={jaune} /><T v="petit" fort numberOfLines={1}>Duel</T></View></Carte>
@@ -120,8 +129,8 @@ function Salle({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
   const { ouvrirBoutique } = useGlobale();
   const toast = useToast();
   const { profil } = useAuth();
-  const [et, setEt] = useState<Record<string, number>>({});
-  useEffect(() => { AsyncStorage.getItem(clefEtoiles(profil?.id ?? 'anon')).then(v => v && setEt(JSON.parse(v))).catch(() => {}); }, [profil?.id]);
+  const [gagnes, setGagnes] = useState<Record<string, number>>({});
+  useEffect(() => { lireNiveaux(profil?.id ?? 'anon').then(setGagnes); }, [profil?.id]);
   const s = D.salles.find(x => x.id === id);
   const jeux = D.jeux.filter(j => j.salle_id === id);
   return (
@@ -129,24 +138,102 @@ function Salle({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
       <Entete titre={s?.titre ?? 'Salle'} sous={s?.description} retour={pile.retour} />
       {jeux.length === 0 && <EtatVide mascotte titre="Salle en préparation" />}
       {jeux.map(j => (
-        <Carte key={j.id} onPress={() => { const r = juger(j); if (r.ok) pile.pousser({ t: 'jeu', jeu: j }); else if (r.motif === 'rang_requis') toast(`Ce jeu s'ouvre au rang ${r.rangMin}.`, 'info'); else { toast('Ce jeu demande une formule d\'abonnement.', 'info'); ouvrirBoutique(); } }} label={j.titre} accent={j.couleur}><View style={{ padding: 16, flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: j.couleur ?? c.modules.azeva, alignItems: 'center', justifyContent: 'center' }}><Ic nom="jouer" taille={26} couleur="#170D08" /></View>
+        <Carte key={j.id} onPress={() => { const r = juger({ rang_min: j.rang_min }); if (r.ok) pile.pousser({ t: 'niveaux', jeu: j }); else if (r.motif === 'rang_requis') toast(`Ce jeu s'ouvre au rang ${RANGS[r.rangMin - 1]?.nom ?? r.rangMin}.`, 'info'); else pile.pousser({ t: 'niveaux', jeu: j }); }} label={j.titre} accent={j.couleur}><View style={{ padding: 16, flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+          <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: j.couleur ?? c.modules.azeva, alignItems: 'center', justifyContent: 'center' }}><Ic nom={j.icone || 'jouer'} taille={26} couleur="#170D08" /></View>
           <View style={{ flex: 1 }}><T v="carte">{j.titre}</T><T v="petit" numberOfLines={2}>{j.description}</T></View>
-          {!juger(j).ok ? <Ic nom="verrou" taille={20} couleur={c.discret} /> : <View style={{ flexDirection: 'row' }}>{[1, 2, 3].map(k => <Ic key={k} nom="etoile" taille={16} couleur={(et[j.id] ?? 0) >= k ? c.modules.azeva : c.bord} />)}</View>}
+          {!juger(j).ok ? <Ic nom="verrou" taille={20} couleur={c.discret} /> : <Pastille label={gagnes[j.id] ? `Niv. ${gagnes[j.id]}` : 'Nouveau'} couleur={gagnes[j.id] ? c.fort : c.accent} fond={c.carte} />}
         </View></Carte>
       ))}
     </Ecran>
   );
 }
 
-// ------------------------------------------------------------------ partie
-function JeuxFlux({ e, D, dialecte, pile, coeurs, etat }: { e: Extract<E, { t: 'jeu' }>; D: Donnees; dialecte: string; pile: Pile; coeurs: Coeurs; etat: EtatJeu }) {
-  const { enregistrerPartie } = useProgres();
+// ------------------------------------------------------------------ les 1000 niveaux d'un jeu : paliers, cadenas, reprise
+function Niveaux({ jeu, pile, dialecte }: { jeu: Ligne; pile: Pile; dialecte: string }) {
   const { c } = useTheme();
+  const { profil } = useAuth();
+  const toast = useToast();
+  const { ouvrirBoutique } = useGlobale();
+  const [etat, setEtat] = useState<EtatNiveaux | null>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [local, setLocal] = useState(0);
+  const [ouvert, setOuvert] = useState<number | null>(null);
+  const charger = useCallback(() => { setErreur(null); setEtat(null); chargerNiveaux(jeu.id, !!profil).then(setEtat).catch(e => setErreur(((e as { status?: number }).status ?? 0) === 0 ? 'reseau' : (e as Error).message)); }, [jeu.id, profil?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { charger(); lireNiveaux(profil?.id ?? 'anon').then(n => setLocal(n[jeu.id] ?? 0)); }, [charger]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Les prochains niveaux sont chargés d'avance : on peut continuer à jouer sans réseau.
+  useEffect(() => { if (etat) prechargerManches(jeu.id, Math.min(etat.total, (etat.invite ? Math.min(local, NIVEAUX_INVITE) : Math.max(etat.atteint, local)) + 1), dialecte, !!profil, etat.invite ? Math.max(0, NIVEAUX_INVITE - local) : 5, etat.total).catch(() => {}); }, [etat, local]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (erreur) return <Ecran><Entete titre={String(jeu.titre)} retour={pile.retour} /><EtatVide icone="reseau" titre={erreur === 'reseau' ? 'Pas de connexion' : 'Jeu indisponible'} texte={erreur === 'reseau' ? 'Ce jeu n\'a encore jamais été chargé sur cet appareil. Connecte-toi une fois : ses niveaux resteront ensuite disponibles hors ligne.' : erreur} action="Réessayer" onAction={charger} /></Ecran>;
+  if (!etat) return <Ecran><Entete titre={String(jeu.titre)} retour={pile.retour} /><Chargement /></Ecran>;
+  // La progression locale compte aussi (parties gagnées hors ligne, envoyées au retour du réseau).
+  const atteint = etat.invite ? Math.min(local, NIVEAUX_INVITE) : Math.max(etat.atteint, local);
+  const prochain = Math.min(etat.total, atteint + 1);
+  const palierProchain = palierDuNiveau(etat.paliers, prochain);
+  const accesProchain = etat.paliers.find(p => p.id === palierProchain.id)!.acces;
+  const bloqueInvite = etat.invite && prochain > NIVEAUX_INVITE;
+  const regles = reglesNiveau(String(jeu.moteur), prochain, palierProchain, etat.total, num(jeu.duree_s));
+  const refus = (p: EtatNiveaux['paliers'][number]) => { if (p.acces.ok) return; toast(texteRefus(p.acces, RANGS) + '.', 'info'); };
+  const jouer = (n: number) => pile.pousser({ t: 'jeu', jeu, niveau: n });
   return (
-    <JeuRunner jeu={e.jeu} mots={D.mots} fiches={D.fiches} dialecte={dialecte} couleur={e.jeu.couleur ?? c.modules.azeva} cases={D.plateau} coeurs={etat.coeurs}
+    <Ecran bas={40}>
+      <Entete titre={String(jeu.titre)} sous={`${atteint} niveau${atteint > 1 ? 'x' : ''} gagné${atteint > 1 ? 's' : ''} sur ${etat.total}`} retour={pile.retour} />
+      <Barre valeur={atteint / etat.total} couleur={jeu.couleur ?? c.modules.azeva} />
+      <Carte accent={jeu.couleur ?? c.modules.azeva} label="Niveau à jouer"><View style={{ padding: 18, gap: 8 }}>
+        <T v="libelle" couleur={c.modules.azeva}>{atteint >= etat.total ? 'Tous les niveaux sont gagnés' : atteint === 0 ? 'Commencer' : 'Continuer'}</T>
+        <T v="titre">Niveau {prochain}</T>
+        <T v="petit">{palierProchain.titre} · {regles.questions} question{regles.questions > 1 ? 's' : ''}{regles.dureeS ? ` · ${regles.dureeS} s` : ' · sans limite de temps'}{['ogoni', 'pendu'].includes(String(jeu.moteur)) ? ` · ${regles.erreursMax} bûches` : ''} · XP × {(regles.xpPct / 100).toFixed(2).replace(/\.?0+$/, '')}</T>
+        {bloqueInvite ? <><T v="corps">Sans compte, tu peux jouer les {NIVEAUX_INVITE} premiers niveaux. Connecte-toi pour continuer et garder ta progression.</T></>
+          : accesProchain.ok ? <Bouton label={`Jouer le niveau ${prochain}`} variante="ambre" icone="lecture" onPress={() => jouer(prochain)} />
+            : <><T v="corps">{texteRefus(accesProchain, RANGS)}.</T>{/* Jeux gratuits (13 nov. 2026) : aucune formule à proposer ici. */}</>}
+      </View></Carte>
+      <SectionTitre titre="Les paliers" />
+      {etat.paliers.map(p => {
+        const fait = Math.max(0, Math.min(atteint, p.fin) - p.niveau + 1), taille = p.fin - p.niveau + 1, courant = prochain >= p.niveau && prochain <= p.fin, deplie = ouvert === p.niveau;
+        const condition = [num(p.rang_min) > 1 ? `rang ${RANGS[num(p.rang_min) - 1]?.nom ?? p.rang_min}` : null, ].filter(Boolean);
+        return (
+          <Carte key={p.id} plat onPress={() => (p.acces.ok ? setOuvert(deplie ? null : p.niveau) : refus(p))} label={`Palier ${p.titre}, niveaux ${p.niveau} à ${p.fin}${p.acces.ok ? '' : ', verrouillé'}`} style={courant ? { borderColor: c.accent } : undefined}>
+            <View style={{ padding: 14, gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: p.acces.ok ? (jeu.couleur ?? c.modules.azeva) : c.squelette, alignItems: 'center', justifyContent: 'center' }}><Ic nom={p.acces.ok ? (fait >= taille ? 'ok' : 'etoile') : 'verrou'} taille={20} couleur={p.acces.ok ? '#170D08' : c.discret} /></View>
+                <View style={{ flex: 1 }}><T v="carte">{p.titre}</T><T v="petit">Niveaux {p.niveau} à {p.fin}{condition.length ? ` · ${condition.join(' ou ')}` : ' · libre'}</T></View>
+                <T v="petit" fort>{fait}/{taille}</T>
+              </View>
+              <Barre valeur={fait / taille} couleur={jeu.couleur ?? c.modules.azeva} hauteur={5} />
+              {!p.acces.ok && <T v="petit" couleur={c.accent}>{texteRefus(p.acces, RANGS)}</T>}
+              {!!p.description && <T v="petit">{p.description}</T>}
+              {deplie && p.acces.ok && <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                {Array.from({ length: Math.min(60, Math.max(0, Math.min(prochain, p.fin) - p.niveau + 1)) }, (_, i) => Math.min(prochain, p.fin) - i).map(n => (
+                  <Pressable key={n} accessibilityRole="button" accessibilityLabel={`Rejouer le niveau ${n}`} onPress={() => jouer(n)} style={{ minWidth: 46, height: 40, paddingHorizontal: 6, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: n === prochain ? c.accent : c.carte, borderWidth: 1, borderColor: c.bord }}><T v="petit" fort couleur={n === prochain ? c.surAccent : c.fort}>{n}</T></Pressable>))}
+                {fait === 0 && prochain < p.niveau && <T v="petit">Gagne d'abord le niveau {p.niveau - 1}.</T>}
+              </View>}
+            </View>
+          </Carte>
+        );
+      })}
+      <T v="petit" couleur={c.discret}>Chaque niveau gagné ouvre le suivant. La difficulté monte peu à peu : plus de questions, moins de temps, moins d'erreurs permises.</T>
+    </Ecran>
+  );
+}
+
+// ------------------------------------------------------------------ partie : la manche arrive du serveur
+function JeuxFlux({ e, dialecte, pile, coeurs, etat }: { e: Extract<E, { t: 'jeu' }>; dialecte: string; pile: Pile; coeurs: Coeurs; etat: EtatJeu }) {
+  const { enregistrerPartie } = useProgres();
+  const { profil } = useAuth();
+  const { c } = useTheme();
+  const { ouvrirBoutique } = useGlobale();
+  const [manche, setManche] = useState<Manche | null>(null);
+  const [erreur, setErreur] = useState<{ statut: number; message: string } | null>(null);
+  const charger = useCallback(() => { setErreur(null); ouvrirManche(e.jeu.id, e.niveau, dialecte, !!profil).then(setManche).catch(x => setErreur({ statut: (x as { status?: number }).status ?? 0, message: (x as Error).message })); }, [e.jeu.id, e.niveau, dialecte, profil?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { charger(); }, [charger]);
+  if (erreur) return (
+    <Ecran><Entete titre={String(e.jeu.titre)} retour={pile.retour} />
+      <EtatVide icone={erreur.statut === 0 ? 'reseau' : 'verrou'} titre={erreur.statut === 0 ? 'Pas de connexion' : erreur.statut === 402 ? 'Niveau verrouillé' : erreur.statut === 401 ? 'Un compte est nécessaire' : 'Partie indisponible'}
+        texte={erreur.statut === 0 ? 'Ce niveau n\'a pas encore été chargé sur cet appareil. Avec du réseau, les 5 niveaux suivants se chargent d\'avance pour jouer hors ligne.' : erreur.message} action={erreur.statut === 0 ? 'Réessayer' : undefined} onAction={charger} />
+    </Ecran>);
+  if (!manche) return <Ecran><Entete titre={String(e.jeu.titre)} sous={`Niveau ${e.niveau}`} retour={pile.retour} /><Chargement /></Ecran>;
+  return (
+    <JeuRunner jeu={e.jeu} manche={manche} dialecte={dialecte} couleur={e.jeu.couleur ?? c.modules.azeva} coeurs={etat.coeurs}
       onQuitter={pile.retour} onBonne={coeurs.bonne} onErreur={coeurs.erreur}
-      onFin={async r => { const x = await enregistrerPartie({ jeuId: e.jeu.id, bonnes: r.bonnes, erreurs: r.erreurs, secondesRestantes: r.secondesRestantes, serie: r.serie, defiId: e.defiId }); pile.remplacer({ t: 'resultat', jeu: e.jeu, r, score: x.score, xp: x.xpGagne, defiId: e.defiId }); }} />
+      onFin={async r => { const x = await enregistrerPartie({ jeuId: e.jeu.id, bonnes: r.bonnes, erreurs: r.erreurs, secondesRestantes: r.secondesRestantes, serie: r.serie, defiId: e.defiId, manche: manche.jeton }); pile.remplacer({ t: 'resultat', jeu: e.jeu, niveau: e.niveau, total: num(e.jeu.niveaux) || 1000, r, score: x.score, xp: x.xpGagne, defiId: e.defiId }); }} />
   );
 }
 
@@ -157,20 +244,30 @@ function Resultat({ e, pile, coeurs }: { e: Extract<E, { t: 'resultat' }>; pile:
   const total = e.r.bonnes + e.r.erreurs;
   const victoire = e.r.bonnes > e.r.erreurs;
   const et = etoiles(e.r.bonnes, total);
-  useEffect(() => { const cle = clefEtoiles(profil?.id ?? 'anon'); AsyncStorage.getItem(cle).then(v => { const o = v ? JSON.parse(v) : {}; if ((o[e.jeu.id] ?? 0) < et) AsyncStorage.setItem(cle, JSON.stringify({ ...o, [e.jeu.id]: et })); }).catch(() => {}); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!victoire) return;
+    const uid = profil?.id ?? 'anon';
+    lireNiveaux(uid).then(o => { if ((o[e.jeu.id] ?? 0) < e.niveau) AsyncStorage.setItem(clefNiveaux(uid), JSON.stringify({ ...o, [e.jeu.id]: e.niveau })).catch(() => {}); });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const suivant = e.niveau + 1;
+  const peutSuivre = victoire && suivant <= e.total && (!!profil || suivant <= NIVEAUX_INVITE);
+  void coeurs; void clefEtoiles;
   return (
     <Ecran contenu={{ alignItems: 'center' }}>
       {victoire && prefs.animations !== 'aucune' && <Confettis declencheur nombre={prefs.animations === 'legeres' ? 20 : 40} />}
       <Mascotte taille={130} humeur={victoire ? 'content' : 'triste'} />
-      <T v="titre" style={{ textAlign: 'center' }}>{victoire ? 'Victoire !' : 'Partie perdue'}</T>
+      <T v="titre" style={{ textAlign: 'center' }}>{victoire ? `Niveau ${e.niveau} gagné !` : `Niveau ${e.niveau} : pas encore`}</T>
       {victoire ? <View style={{ flexDirection: 'row', gap: 6 }}>{[1, 2, 3].map(k => <Ic key={k} nom="etoile" taille={36} couleur={et >= k ? c.modules.azeva : c.bord} />)}</View>
-        : <T v="corps" style={{ textAlign: 'center' }}>Pas cette fois. Le mot était juste là. Réessaie : tu vas y arriver.</T>}
+        : <T v="corps" style={{ textAlign: 'center' }}>Il faut plus de bonnes réponses que d'erreurs pour ouvrir le niveau suivant. Réessaie : tu vas y arriver.</T>}
       <View style={{ flexDirection: 'row', gap: 12, alignSelf: 'stretch' }}>
         {[['Score', e.score], ['XP', `+${e.xp}`], ['Réussies', `${e.r.bonnes}/${total}`]].map(([l, v]) => <Carte key={String(l)} style={{ flex: 1, padding: 14, alignItems: 'center' }}><T v="titre" couleur={c.accent}>{String(v)}</T><T v="petit">{String(l)}</T></Carte>)}
       </View>
       <EmplacementPub zone="bandeau_resultats" />
-      <Bouton label="Rejouer" variante="ambre" icone="lecture" onPress={() => pile.remplacer({ t: 'jeu', jeu: e.jeu, defiId: e.defiId })} />
-      <Bouton label="Retour au hall" variante="fantome" onPress={pile.racine} />
+      <PubEntreEcrans zone="interstitiel_jeux" />
+      {peutSuivre && <Bouton label={`Niveau ${suivant}`} variante="ambre" icone="lecture" onPress={() => pile.remplacer({ t: 'jeu', jeu: e.jeu, niveau: suivant })} />}
+      {victoire && !peutSuivre && suivant <= e.total && <T v="corps" style={{ textAlign: 'center' }}>Connecte-toi pour jouer la suite et garder ta progression.</T>}
+      <Bouton label={victoire ? 'Rejouer ce niveau' : 'Réessayer'} variante={peutSuivre ? 'fantome' : 'ambre'} icone="lecture" onPress={() => pile.remplacer({ t: 'jeu', jeu: e.jeu, niveau: e.niveau, defiId: e.defiId })} />
+      <Bouton label="Tous les niveaux" variante="fantome" onPress={pile.retour} />
     </Ecran>
   );
 }
@@ -227,7 +324,7 @@ function DefiJour({ pile, D }: { pile: Pile; D: Donnees }) {
         <T v="titre" couleur={c.accent} accessibilityLabel={`Temps restant ${reste}`}>{reste}</T><T v="petit">avant le prochain défi</T>
         {!!defi?.xp && <T v="corps">Récompense : +{defi.xp} XP</T>}
       </Carte>
-      {jeu && <Bouton label="Jouer maintenant" icone="lecture" variante="ambre" onPress={() => pile.remplacer({ t: 'jeu', jeu, defiId: defi?.id })} />}
+      {jeu && <Bouton label="Jouer maintenant" icone="lecture" variante="ambre" onPress={() => pile.remplacer({ t: 'jeu', jeu, niveau: 1, defiId: defi?.id })} />}
     </Ecran>
   );
 }
@@ -256,7 +353,7 @@ function Classements({ retour, jeux }: { retour: () => void; jeux: Ligne[] }) {
 }
 
 // ------------------------------------------------------------------ duel asynchrone (57) : même graine, trois manches
-function DuelEcran({ retour, mots }: { retour: () => void; mots: Ligne[] }) {
+function DuelEcran({ retour }: { retour: () => void }) {
   const { c } = useTheme();
   const { profil } = useAuth();
   const toast = useToast();
@@ -265,14 +362,9 @@ function DuelEcran({ retour, mots }: { retour: () => void; mots: Ligne[] }) {
   const [manche, setManche] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [choisi, setChoisi] = useState<number | null>(null);
-  const [q, setQ] = useState<{ enonce: string; options: string[]; bonne: number }[]>([]);
-  const construire = (seed: string) => {
-    const h = hasardGraine(graineJour(seed)); const base = [...mots].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-    const tirage = melanger(base, h).slice(0, 3);
-    return tirage.map(m => { const faux = melanger(base.filter(x => x.id !== m.id), h).slice(0, 3).map(x => String(x.myene)); const opts = melanger([String(m.myene), ...faux], h); return { enonce: `Comment dit-on « ${m.francais} » ?`, options: opts, bonne: opts.indexOf(String(m.myene)) }; });
-  };
+  const [q, setQ] = useState<QuestionDuel[]>([]);
   if (!profil) return <Ecran><Entete titre="Duel" retour={retour} /><EtatVide icone="verrou" titre="Un compte est nécessaire" texte="Connecte-toi pour défier un ami." /></Ecran>;
-  const demarrer = (d: Duel) => { if (mots.length < 4) { toast('Il faut au moins 4 mots dans « mots_jeux » pour un duel.', 'erreur'); return; } setDuel(d); setQ(construire(d.seed)); setManche(0); setScore(0); setChoisi(null); };
+  const demarrer = async (d: Duel) => { try { const r = await questionsDuel(d.id); setDuel(d); setQ(r.questions); setManche(0); setScore(0); setChoisi(null); } catch (e) { toast((e as Error).message, 'erreur'); } };
   if (duel && manche !== null && manche < 3 && q[manche]) {
     const k = q[manche];
     return (
@@ -323,4 +415,4 @@ function Collection({ retour, succes, avatars }: { retour: () => void; succes: L
     </Ecran>
   );
 }
-void Image; void jourLocal; void rangPourXp; void useCallback;
+void Image; void useMemo;

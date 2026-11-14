@@ -11,6 +11,7 @@ import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { ConditionsModale } from './Conditions';
 import Inscription from './Inscription';
+import { MonCompte } from './MonCompte';
 import { useVersionDonnees } from './donnees';
 import { contributionsEnFile, nombreEnAttente, retirerDeLaFile } from './fileAttente';
 import { couleurs, stylesDyn } from './theme';
@@ -228,6 +229,7 @@ export function ProfilContributeur() {
             <Pressable style={s.petit} onPress={() => emettre('horsligne')}><Text style={s.petitTexte}>Gérer le pack</Text></Pressable>
             <Pressable style={s.alerte} onPress={() => confirmer('Vider le cache hors-ligne ?', async () => { await catalogue.vider(); setNbFiches(0); })}><Text style={s.danger}>Vider le cache hors-ligne</Text></Pressable>
           </View>
+          <MonCompte />
           <Pressable onPress={deconnexion}><Text style={s.danger}>{MYENE.KA_MENE.mot} · Se déconnecter</Text></Pressable>
         </>
       )}

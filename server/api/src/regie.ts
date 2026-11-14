@@ -39,10 +39,11 @@ export function clientRevive(env = process.env) {
     simule,
     async ping() { if (simule) return { simule, ok: true }; try { await ouvrir(); return { simule, ok: true }; } catch (e) { session = null; return { simule, ok: false, erreur: (e as Error).message }; } },
     async annonceur(a: { nom: string; contact?: string | null }) { if (simule) return 'sim-' + a.nom; return rpc('ox.addAdvertiser', [await ouvrir(), { advertiserName: a.nom, contactName: a.contact || a.nom, emailAddress: 'regie@essaka.engineering' }]); },
-    async campagne(c: { annonceurRevive: string; nom: string; debut?: string | null; fin?: string | null }) { if (simule) return 'sim-' + c.nom; return rpc('ox.addCampaign', [await ouvrir(), { advertiserId: Number(c.annonceurRevive), campaignName: c.nom, ...(c.debut ? { startDate: c.debut } : {}), ...(c.fin ? { endDate: c.fin } : {}), priority: 5 }]); },
+    async campagne(c: { annonceurRevive: string; nom: string; debut?: string | null; fin?: string | null }) { if (simule) return 'sim-' + c.nom; return rpc('ox.addCampaign', [await ouvrir(), { advertiserId: Number(c.annonceurRevive), campaignName: c.nom, ...(c.debut ? { startDate: c.debut } : {}), ...(c.fin ? { endDate: c.fin } : {}), priority: 0, weight: 1 }]); },
     async editeur(nom: string) { if (simule) return 'sim-site-' + nom; return rpc('ox.addPublisher', [await ouvrir(), { publisherName: nom, contactName: nom, emailAddress: 'regie@essaka.engineering' }]); },
     async zone(z: { editeurRevive: string; nom: string; largeur: number; hauteur: number }) { if (simule) return 'sim-zone-' + z.nom; return rpc('ox.addZone', [await ouvrir(), { publisherId: Number(z.editeurRevive), zoneName: z.nom, type: 0, width: z.largeur, height: z.hauteur }]); },
     async banniere(b: { campagneRevive: string; nom: string; image: string; lien: string; alt: string; largeur: number; hauteur: number }) { if (simule) return 'sim-' + b.nom; return rpc('ox.addBanner', [await ouvrir(), { campaignId: Number(b.campagneRevive), bannerName: b.nom, storageType: 'url', imageURL: b.image, url: b.lien, altText: b.alt, width: b.largeur, height: b.hauteur }]); },
+    async lier(zoneRevive: string, banniereRevive: string) { if (simule) return; await rpc('ox.linkBanner', [await ouvrir(), Number(zoneRevive), Number(banniereRevive)]); },
   };
 }
 
@@ -144,6 +145,8 @@ export function registerRegie(ctx: Ctx) {
   app.post('/v1/admin/regie/revive/synchroniser', async (req) => {
     const a = await admin(req);
     const rapport = { simule: revive.simule, annonceurs: 0, campagnes: 0, creations: 0, erreurs: [] as string[] };
+    const { ZONES } = await import('../../../packages/noyau/src/publicite.ts');
+    const zonesRevive = ((await db.query<any>(`SELECT valeur FROM parametres WHERE cle = 'revive_zones'`))[0]?.valeur?.zones ?? {}) as Record<string, string>;
     try {
       for (const an of await db.query<any>(`SELECT * FROM regie_annonceurs WHERE revive_id IS NULL`)) { const id = await revive.annonceur({ nom: an.nom, contact: an.contact }); await db.query(`UPDATE regie_annonceurs SET revive_id = $2 WHERE id = $1`, [an.id, id]); rapport.annonceurs++; }
       for (const k of await db.query<any>(`SELECT k.*, a.revive_id AS an_revive FROM regie_campagnes k JOIN regie_annonceurs a ON a.id = k.annonceur_id WHERE k.revive_id IS NULL AND k.statut = 'active'`)) {
@@ -151,7 +154,10 @@ export function registerRegie(ctx: Ctx) {
         await db.query(`UPDATE regie_campagnes SET revive_id = $2 WHERE id = $1`, [k.id, id]); rapport.campagnes++;
         for (const c of await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'pub_creations' AND data->>'campagne_id' = $1 AND image_ok IS NOT FALSE`.replace(" AND image_ok IS NOT FALSE", ''), [k.id])) {
           if (!c.data.image || !c.data.lien) continue;
-          await revive.banniere({ campagneRevive: id, nom: c.data.id, image: c.data.image, lien: c.data.lien, alt: c.data.texte_alt, largeur: 320, hauteur: 50 }); rapport.creations++;
+          const z = (ZONES as Record<string, { format: string; hauteur?: number }>)[c.data.zone];
+          const ban = await revive.banniere({ campagneRevive: id, nom: c.data.id, image: c.data.image, lien: c.data.lien, alt: c.data.texte_alt, largeur: 320, hauteur: z?.hauteur ?? (z?.format === 'plein_ecran' ? 480 : 180) });
+          if (zonesRevive[c.data.zone]) await revive.lier(zonesRevive[c.data.zone], ban);
+          rapport.creations++;
         }
       }
     } catch (e) { rapport.erreurs.push((e as Error).message); }

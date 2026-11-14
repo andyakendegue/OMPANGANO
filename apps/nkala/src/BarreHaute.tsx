@@ -33,7 +33,7 @@ export function BarreHaute({ mode = 'complet' }: { mode?: 'complet' | 'barre' | 
   const sync = useEtatSync();
   const enChargement = useCatalogueEnChargement();
 
-  const rafraichir = useCallback(async () => { setNonLues(await compterNonLues()); setAttente(await nombreEnAttente()); }, []);
+  const rafraichir = useCallback(async () => { setNonLues(await compterNonLues()); setAttente(await nombreEnAttente()); emettre('nonLues'); }, []);
   useEffect(() => { rafraichir(); }, [rafraichir, alertes, horsLigne]);
   useEffect(() => NetInfo.addEventListener(e => setEnLigne(e.isConnected !== false)), []);
   useEffect(() => {

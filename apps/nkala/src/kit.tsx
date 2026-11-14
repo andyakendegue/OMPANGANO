@@ -7,10 +7,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import NetInfo from '@react-native-community/netinfo';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextProps, type TextStyle, type ViewStyle, type KeyboardTypeOptions } from 'react-native';
+import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
 import { usePrefs, useTheme } from './Prefs';
 import { degrades, marque, ombres, polices, rayons, texte as styles } from './theme';
+import { VieilOrungu } from './KakIgonjo';
 
 // ------------------------------------------------------------------ icônes sémantiques → Ionicons
 const ICONES: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -24,6 +26,7 @@ const ICONES: Record<string, keyof typeof Ionicons.glyphMap> = {
   ajouter: 'add', supprimer: 'trash', modifier: 'create', filtre: 'options', carte: 'map', liste: 'list', grille: 'grid', amis: 'people', duel: 'flash', cadeau: 'gift', couronne: 'ribbon', diplome: 'ribbon',
   soleil: 'sunny', lune: 'moon', parents: 'lock-closed', famille: 'people', jeton: 'sparkles', ia: 'sparkles', mic_off: 'mic-off', fleche_haut: 'arrow-up', fleche_bas: 'arrow-down', gauche: 'arrow-back',
   paris: 'dice', wifi: 'wifi', exporter: 'share', fichier: 'document', dossier: 'folder', stats: 'stats-chart', surveiller: 'pulse', moderer: 'shield', vote: 'checkbox', taxi: 'car', magazine: 'newspaper',
+  crayon: 'create', video_off: 'videocam-off', retourner: 'camera-reverse', grammaire: 'library', raccrocher: 'call', langue: 'language',
 };
 export function Ic({ nom, taille = 22, couleur, style }: { nom: string; taille?: number; couleur?: string; style?: StyleProp<TextStyle> }) {
   const { c } = useTheme();
@@ -210,30 +213,15 @@ export function Flamme({ taille = 28, eteinte }: { taille?: number; eteinte?: bo
   );
 }
 
-/** Ozangué (« la lumière »), la mascotte : la barre de voix du symbole, avec deux yeux. */
+/** Kak'Igonjo, le vieux sage du village : la mascotte de Nkala (décision de Capp, 13 nov. 2026). L'humeur règle le mouvement et l'opacité. */
 export function Mascotte({ taille = 96, humeur = 'content' }: { taille?: number; humeur?: 'content' | 'triste' | 'parle' | 'dort' }) {
-  const v = useBoucle(2400);
+  const v = useBoucle(humeur === 'parle' ? 900 : 2400);
   const { prefs } = usePrefs();
-  const rebond = prefs.animations === 'completes' ? v.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, -4, 0] }) : 0;
-  const w = taille, h = taille;
-  const bouche = humeur === 'triste' ? 'M 40 74 Q 50 66 60 74' : humeur === 'parle' ? 'M 42 70 Q 50 82 58 70 Z' : humeur === 'dort' ? 'M 42 72 L 58 72' : 'M 40 70 Q 50 80 60 70';
+  const bouge = prefs.animations === 'completes' && humeur !== 'dort';
+  const rebond = bouge ? v.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, humeur === 'parle' ? -2 : -4, 0] }) : 0;
   return (
-    <Animated.View style={{ transform: [{ translateY: rebond as number }] }} accessibilityLabel="Ozangué, la mascotte" accessible>
-      <Svg width={w} height={h} viewBox="0 0 100 100">
-        <Rect x={6} y={30} width={10} height={42} rx={5} fill="#C85A32" opacity={0.55} />
-        <Rect x={84} y={30} width={10} height={42} rx={5} fill="#C85A32" opacity={0.55} />
-        <Rect x={19} y={38} width={9} height={26} rx={4.5} fill="#F59E0B" opacity={0.6} />
-        <Rect x={72} y={38} width={9} height={26} rx={4.5} fill="#F59E0B" opacity={0.6} />
-        <Rect x={30} y={8} width={40} height={84} rx={20} fill="#B84A28" />
-        <Rect x={34} y={12} width={14} height={30} rx={7} fill="#FFFFFF" opacity={0.12} />
-        {humeur === 'dort' ? <>
-          <Rect x={37} y={40} width={10} height={3} rx={1.5} fill="#FDFAF7" /><Rect x={53} y={40} width={10} height={3} rx={1.5} fill="#FDFAF7" />
-        </> : <>
-          <Ellipse cx={42} cy={42} rx={6.5} ry={8} fill="#FDFAF7" /><Ellipse cx={58} cy={42} rx={6.5} ry={8} fill="#FDFAF7" />
-          <Circle cx={43} cy={43} r={3.4} fill="#170D08" /><Circle cx={59} cy={43} r={3.4} fill="#170D08" />
-        </>}
-        <Path d={bouche} fill={humeur === 'parle' ? '#170D08' : 'none'} stroke="#170D08" strokeWidth={3} strokeLinecap="round" />
-      </Svg>
+    <Animated.View style={{ transform: [{ translateY: rebond as number }], opacity: humeur === 'dort' ? 0.55 : humeur === 'triste' ? 0.85 : 1 }} accessibilityLabel="Kak'Igonjo, le vieux sage" accessible>
+      <VieilOrungu taille={taille} />
     </Animated.View>
   );
 }
@@ -317,20 +305,32 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 // ------------------------------------------------------------------ éléments courants
-export function Avatar({ nom, taille = 44, couleur }: { nom?: string; taille?: number; couleur?: string }) {
+export function Avatar({ nom, taille = 44, couleur, uri, actif }: { nom?: string; taille?: number; couleur?: string; uri?: string | null; actif?: boolean }) {
   const { c } = useTheme();
+  const [casse, setCasse] = useState(false);
   const ini = (nom || '?').trim().split(/\s+/).map(s => s[0]).join('').slice(0, 2).toUpperCase();
+  if (uri && !casse) return <Image source={{ uri }} onError={() => setCasse(true)} accessibilityIgnoresInvertColors style={{ width: taille, height: taille, borderRadius: taille / 2, borderWidth: 2, borderColor: actif ? c.accent : c.bordAmbre, backgroundColor: c.carte }} />;
   return <View style={{ width: taille, height: taille, borderRadius: taille / 2, backgroundColor: couleur ?? marque.brique, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.bordAmbre }}><Text style={{ fontFamily: polices.titre, fontSize: taille * 0.38, color: '#FDFAF7' }}>{ini}</Text></View>;
 }
 
-export function Entete({ titre, sous, retour, droite }: { titre: string; sous?: string; retour?: () => void; droite?: React.ReactNode }) {
+export function Entete({ titre, sous, retour, droite, recherche = true }: { titre: string; sous?: string; retour?: () => void; droite?: React.ReactNode; recherche?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       {retour && <BoutonIcone nom="retour" label="Retour" onPress={retour} />}
       <View style={{ flex: 1 }}><T v="sousTitre" numberOfLines={1}>{titre}</T>{!!sous && <T v="petit" numberOfLines={1}>{sous}</T>}</View>
       {droite}
+      {recherche && <BoutonRecherche />}
     </View>
   );
+}
+
+/** Recherche globale, présente dans l'en-tête de chaque écran (sauf la recherche elle-même, la console et le mode enfant). */
+export function BoutonRecherche() {
+  const routeur = useRouter();
+  const chemin = usePathname();
+  const { prefs } = usePrefs();
+  if (prefs.mode === 'enfant' || /^\/(recherche|admin|validation)/.test(chemin)) return null;
+  return <BoutonIcone nom="chercher" label="Recherche" onPress={() => routeur.push('/recherche' as never)} />;
 }
 
 export function SectionTitre({ titre, action, onAction }: { titre: string; action?: string; onAction?: () => void }) {

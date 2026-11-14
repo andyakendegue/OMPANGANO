@@ -1,12 +1,15 @@
 /**
  * Bibliothèque virtuelle d'Onenji : étagère par rayons, fiche de livre, lecteur de chapitres où chaque mot se touche (glossaire, « Mes mots »,
- * explication par Ozangué), mini-quiz « complète le texte » en fin de chapitre, XP la première fois, série quotidienne et succès.
+ * explication par Kak'Igonjo), mini-quiz « complète le texte » en fin de chapitre, XP la première fois, série quotidienne et succès.
  * Les livres viennent des collections « bibliotheque » et « livre_chapitres » (import de /opt/bibliotheque ou fichiers CSV/JSON).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Modal, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { demanderOzangue, fonctionActive, minutesDeLecture, quizLecture, type Ligne, type NiveauAcces, type QuestionLecture } from '@nkala/noyau';
+import { demanderKakIgonjo, fonctionActive, minutesDeLecture, quizLecture, type Ligne, type NiveauAcces, type QuestionLecture, type QuestionnaireItem } from '@nkala/noyau';
+import { catalogue } from './catalogue';
+import { KakIgonjoFeuille } from './KakIgonjoCours';
+import { Son } from './OnenjiLecon';
 import { Anneau, Barre, Bouton, Carte, Champ, Chargement, Ecran, Entete, EtatVide, Ic, Mascotte, Pastille, Puce, Rangee, SectionTitre, T, useToast } from './kit';
 import { usePile } from './Pile';
 import { usePrefs, useTheme } from './Prefs';
@@ -15,16 +18,36 @@ import { polices } from './theme';
 import { useContenus } from './useContenu';
 import { Verrou } from './Verrou';
 
-type E = { t: 'etagere' } | { t: 'livre'; id: string } | { t: 'lire'; livreId: string; idx: number } | { t: 'mots' };
+type E = { t: 'etagere' } | { t: 'livre'; id: string } | { t: 'lire'; livreId: string; idx: number } | { t: 'mots' } | { t: 'dico' };
 interface Mot { mot: string; sens: string; livre: string; le: number }
 interface Reglages { position: Record<string, number>; mots: Mot[]; taille: number; dernier?: string }
 const CLE = 'nkala.lecture.v1';
 const VIDE: Reglages = { position: {}, mots: [], taille: 17 };
 const num = (v: unknown) => Number(v) || 0;
 
+const ecouteursLecture = new Set<() => void>();
+/**
+ * « Mes mots » nourri par les leçons (audit Apprendre §3.D) : à la fin d'une leçon, ses mots myènè rejoignent le carnet,
+ * avec la leçon comme origine. Les mots déjà présents ne sont pas dupliqués. Renvoie le nombre de mots ajoutés.
+ */
+export async function ajouterMesMots(mots: { mot: string; sens: string }[], origine: string): Promise<number> {
+  let r: Reglages = VIDE;
+  try { const b = await AsyncStorage.getItem(CLE); if (b) r = { ...VIDE, ...JSON.parse(b) }; } catch { /* carnet vide */ }
+  const deja = new Set(r.mots.map(m => m.mot.toLowerCase()));
+  const nouveaux = mots.filter(m => m.mot && !deja.has(m.mot.toLowerCase())).map(m => ({ mot: m.mot, sens: m.sens, livre: origine, le: Date.now() }));
+  if (!nouveaux.length) return 0;
+  await AsyncStorage.setItem(CLE, JSON.stringify({ ...r, mots: [...nouveaux, ...r.mots].slice(0, 2000) })).catch(() => {});
+  ecouteursLecture.forEach(f => f());
+  return nouveaux.length;
+}
+
 function useLecture() {
   const [r, setR] = useState<Reglages>(VIDE);
-  useEffect(() => { AsyncStorage.getItem(CLE).then(b => { if (b) setR({ ...VIDE, ...JSON.parse(b) }); }).catch(() => {}); }, []);
+  useEffect(() => {
+    const relire = () => { AsyncStorage.getItem(CLE).then(b => { if (b) setR({ ...VIDE, ...JSON.parse(b) }); }).catch(() => {}); };
+    relire(); ecouteursLecture.add(relire);
+    return () => { ecouteursLecture.delete(relire); };
+  }, []);
   const regler = useCallback((p: Partial<Reglages> | ((a: Reglages) => Partial<Reglages>)) => setR(a => { const n = { ...a, ...(typeof p === 'function' ? p(a) : p) }; AsyncStorage.setItem(CLE, JSON.stringify(n)).catch(() => {}); return n; }), []);
   return { r, regler };
 }
@@ -32,7 +55,8 @@ function useLecture() {
 type Livre = Ligne & { titre: string };
 type Chap = Ligne & { titre: string; texte: string; livre_id: string };
 
-export function Bibliotheque({ retour }: { retour: () => void }) {
+/** `entete` : en-tête fourni par l'onglet Ezango d'Apprendre (titre, recherche, onglets) ; sans lui, l'étagère garde son propre en-tête. */
+export function Bibliotheque({ retour, entete }: { retour: () => void; entete?: React.ReactNode }) {
   const pile = usePile<E>({ t: 'etagere' });
   const { res, chargement } = useContenus(['bibliotheque', 'livre_chapitres', 'opportunites']);
   const { prefs } = usePrefs();
@@ -51,7 +75,8 @@ export function Bibliotheque({ retour }: { retour: () => void }) {
     case 'livre': { const l = D.livres.find(x => x.id === e.id); return l ? <FicheLivre l={l} chap={D.parLivre.get(l.id) ?? []} pile={pile} r={r} /> : <Ecran><Entete titre="Livre" retour={pile.retour} /><EtatVide icone="livre" titre="Livre introuvable" /></Ecran>; }
     case 'lire': { const l = D.livres.find(x => x.id === e.livreId); return l ? <Lecteur l={l} chap={D.parLivre.get(l.id) ?? []} idx={e.idx} pile={pile} r={r} regler={regler} /> : null; }
     case 'mots': return <MesMots r={r} regler={regler} retour={pile.retour} />;
-    default: return <Etagere D={D} pile={pile} r={r} retour={retour} />;
+    case 'dico': return <Dictionnaire r={r} regler={regler} retour={pile.retour} />;
+    default: return <Etagere D={D} pile={pile} r={r} retour={retour} entete={entete} />;
   }
 }
 
@@ -76,7 +101,7 @@ function progressionLivre(l: Livre, chap: Chap[], donnees: Record<string, { bonn
 }
 
 // ------------------------------------------------------------------ étagère
-function Etagere({ D, pile, r, retour }: { D: { livres: Livre[]; documents: Livre[]; parLivre: Map<string, Chap[]>; opp: Ligne[] }; pile: ReturnType<typeof usePile<E>>; r: Reglages; retour: () => void }) {
+function Etagere({ D, pile, r, retour, entete }: { D: { livres: Livre[]; documents: Livre[]; parLivre: Map<string, Chap[]>; opp: Ligne[] }; pile: ReturnType<typeof usePile<E>>; r: Reglages; retour: () => void; entete?: React.ReactNode }) {
   const { c } = useTheme();
   const { donnees } = useProgres();
   const [q, setQ] = useState(''); const [rayon, setRayon] = useState('');
@@ -89,7 +114,10 @@ function Etagere({ D, pile, r, retour }: { D: { livres: Livre[]; documents: Livr
   const objectif = (() => { const auj = new Date().toISOString().slice(0, 10); return Object.values(lectures ?? {}).some(x => x.jour === auj); })();
   return (
     <Ecran bas={40}>
-      <Entete titre="Bibliothèque" sous="Lis, touche les mots, gagne de l'XP" retour={retour} droite={<Pastille label={`${lus} chapitre${lus > 1 ? 's' : ''} lu${lus > 1 ? 's' : ''}`} couleur={c.accent} fond={c.carte} />} />
+      {entete ?? <Entete titre="Bibliothèque" sous="Lis, touche les mots, gagne de l'XP" retour={retour} droite={<Pastille label={`${lus} chapitre${lus > 1 ? 's' : ''} lu${lus > 1 ? 's' : ''}`} couleur={c.accent} fond={c.carte} />} />}
+      <Carte onPress={() => pile.pousser({ t: 'dico' })} accent={c.accent} label="Dictionnaire"><View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', padding: 14 }}>
+        <Ic nom="chercher" taille={26} couleur={c.accent} /><View style={{ flex: 1 }}><T v="carte">Dictionnaire</T><T v="petit">Myènè ⇄ français : écouter, garder dans Mes mots, demander à Kak'Igonjo</T></View><Ic nom="suivant" taille={18} couleur={c.discret} />
+      </View></Carte>
       <Carte plat><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 }}>
         <Mascotte taille={52} humeur={objectif ? 'content' : 'parle'} />
         <View style={{ flex: 1 }}><T v="carte">{objectif ? 'Défi du jour réussi' : 'Défi du jour : lis un chapitre'}</T><T v="petit">{objectif ? 'Ta série continue. Reviens demain !' : 'Un chapitre terminé aujourd\'hui entretient ta série et rapporte de l\'XP.'}</T></View>
@@ -199,7 +227,7 @@ function Lecteur({ l, chap, idx, pile, r, regler }: { l: Livre; chap: Chap[]; id
   const expliquer = async () => {
     if (!sel) return;
     setOccupe(true);
-    try { const rep = await demanderOzangue(`Explique en une ou deux phrases simples le mot « ${sel.mot} » dans cette phrase : « ${sel.phrase} »`); setExplication(rep.reponse); }
+    try { const rep = await demanderKakIgonjo(`Explique en une ou deux phrases simples le mot « ${sel.mot} » dans cette phrase : « ${sel.phrase} »`); setExplication(rep.reponse); }
     catch (e) { toast((e as Error).message, 'erreur'); } finally { setOccupe(false); }
   };
   const suite = idx + 1 < chap.length;
@@ -250,7 +278,7 @@ function Lecteur({ l, chap, idx, pile, r, regler }: { l: Livre; chap: Chap[]; id
           {occupe ? <Chargement lignes={1} /> : <T v="corps">{sel.sens || explication || 'Pas d\'explication dans le glossaire de ce chapitre.'}</T>}
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
             <Bouton label="Garder ce mot" petit large={false} icone="coeur" onPress={garder} />
-            {!sel.sens && !explication && fonctionActive('assistantIA') && <Bouton label="Demander à Ozangué" petit large={false} variante="fantome" onPress={expliquer} />}
+            {!sel.sens && !explication && fonctionActive('assistantIA') && <Bouton label="Demander à Kak'Igonjo" petit large={false} variante="fantome" onPress={expliquer} />}
           </View>
         </Pressable>}
         </Pressable>
@@ -292,14 +320,69 @@ function MesMots({ r, regler, retour }: { r: Reglages; regler: (p: Partial<Regla
   const liste = ordre ? [...r.mots].sort((a, b) => a.mot.localeCompare(b.mot, 'fr')) : r.mots;
   return (
     <Ecran bas={40}>
-      <Entete titre="Mes mots" sous={`${r.mots.length} mot${r.mots.length > 1 ? 's' : ''} gardés en lisant`} retour={retour} />
-      {r.mots.length === 0 ? <EtatVide mascotte titre="Aucun mot pour l'instant" texte="Pendant la lecture, touche un mot puis « Garder ce mot »." /> : <>
+      <Entete titre="Mes mots" sous={`${r.mots.length} mot${r.mots.length > 1 ? 's' : ''} : leçons, lectures, dictionnaire`} retour={retour} />
+      {r.mots.length === 0 ? <EtatVide mascotte titre="Aucun mot pour l'instant" texte="Les mots de tes leçons arrivent ici. Pendant la lecture, touche un mot puis « Garder ce mot »." /> : <>
         <Rangee><Puce label="Récents" actif={!ordre} onPress={() => setOrdre(false)} /><Puce label="A → Z" actif={ordre} onPress={() => setOrdre(true)} /></Rangee>
         {liste.map(m => <Carte key={m.mot + m.le} plat><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}>
           <View style={{ flex: 1 }}><T v="carte">{m.mot}</T>{!!m.sens && <T v="corps">{m.sens}</T>}<T v="petit">{m.livre}</T></View>
           <Pressable accessibilityRole="button" accessibilityLabel={`Retirer ${m.mot}`} hitSlop={10} onPress={() => regler({ mots: r.mots.filter(x => x !== m) })}><Ic nom="fermer" taille={20} couleur={c.discret} /></Pressable>
         </View></Carte>)}
       </>}
+    </Ecran>
+  );
+}
+
+// ------------------------------------------------------------------ dictionnaire interactif (demande de Capp, 13 nov. 2026)
+/**
+ * Recherche dans les deux sens (myènè ⇄ français) parmi les fiches du corpus présentes sur l'appareil (catalogue local, hors ligne).
+ * Chaque entrée : mot, traduction, dialecte, référence, écoute si un enregistrement existe, « Mes mots », explication par Kak'Igonjo.
+ */
+function Dictionnaire({ r, regler, retour }: { r: Reglages; regler: (f: (a: Reglages) => Partial<Reglages>) => void; retour: () => void }) {
+  const { c } = useTheme();
+  const toast = useToast();
+  const [q, setQ] = useState('');
+  const [res, setRes] = useState<QuestionnaireItem[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
+  const [cherche, setCherche] = useState(false);
+  const [explique, setExplique] = useState<QuestionnaireItem | null>(null);
+  useEffect(() => { catalogue.compter().then(setTotal).catch(() => setTotal(0)); }, []);
+  useEffect(() => {
+    const t = q.trim();
+    if (t.length < 2) { setRes([]); return; }
+    setCherche(true);
+    const h = setTimeout(() => { catalogue.rechercher({ texte: t, limite: 40, decalage: 0 }).then(l => setRes(l.filter(f => f.status !== 'archived'))).catch(() => setRes([])).finally(() => setCherche(false)); }, 250);
+    return () => clearTimeout(h);
+  }, [q]);
+  const garder = (f: QuestionnaireItem) => {
+    if (r.mots.some(x => x.mot.toLowerCase() === f.myeneText.toLowerCase())) { toast('Déjà dans Mes mots.'); return; }
+    regler(a => ({ mots: [{ mot: f.myeneText, sens: f.frenchText, livre: 'Dictionnaire', le: Date.now() }, ...a.mots] }));
+    toast('Ajouté à Mes mots.', 'succes');
+  };
+  return (
+    <Ecran bas={40}>
+      <Entete titre="Dictionnaire" sous="Myènè ⇄ français" retour={retour} recherche={false} />
+      <Champ valeur={q} onChange={setQ} placeholder="Un mot en myènè ou en français" icone="chercher" auto="none" focus />
+      {total === 0 && <EtatVide mascotte titre="Le dictionnaire n'est pas encore sur ce téléphone" texte="Il se télécharge avec la partie Contribuer (fiches du corpus). Ouvre-la une fois avec du réseau." />}
+      {cherche && <Chargement />}
+      {!cherche && q.trim().length >= 2 && res.length === 0 && total !== 0 && <EtatVide icone="chercher" titre="Aucun mot trouvé" texte="Essaie une autre orthographe ou demande à Kak'Igonjo." />}
+      {res.map(f => (
+        <Carte key={f.id} plat><View style={{ padding: 14, gap: 6 }}>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+            <View style={{ flex: 1 }}><T v="sousTitre" style={{ fontStyle: 'italic' }}>{f.myeneText}</T><T v="corps">{f.frenchText}</T></View>
+            {!!f.sampleAudioUrl && <Son audio={f.sampleAudioUrl} />}
+          </View>
+          <T v="petit">{[f.dialect, f.theme || f.category, f.sourceRef].filter(Boolean).join(' · ')}</T>
+          {!!f.contextNotes && <T v="petit" numberOfLines={3}>{f.contextNotes}</T>}
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Puce label="Mes mots" icone="ajouter" onPress={() => garder(f)} />
+            <Puce label="Kak'Igonjo explique" icone="info" onPress={() => setExplique(f)} />
+          </View>
+        </View></Carte>
+      ))}
+      {explique && <KakIgonjoFeuille visible onClose={() => setExplique(null)} titre={explique.myeneText}
+        consigne={`Explique-moi simplement le mot ou l'expression myènè « ${explique.myeneText} » (${explique.frenchText}), dialecte ${explique.dialect}${explique.sourceRef ? `, référence ${explique.sourceRef}` : ''}. Donne un exemple d'usage seulement si tu le trouves dans le corpus, et dis d'où il vient.`}
+        affiche={`Que veut dire « ${explique.myeneText} » ?`} />}
+      <T v="petit" style={{ color: c.discret }}>Les fiches viennent du corpus Ompangano ; certaines sont encore en cours de validation par les locuteurs.</T>
     </Ecran>
   );
 }

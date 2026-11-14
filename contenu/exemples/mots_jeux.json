@@ -50,16 +50,6 @@
   "publie": true
  },
  {
-  "id": "m-inioi",
-  "myene": "Inioï",
-  "francais": "La voix",
-  "theme": "corps",
-  "niveau": 1,
-  "dialecte": "",
-  "source": "[EQ] ; cf. [RW] « Inoï »",
-  "publie": true
- },
- {
   "id": "m-nkala",
   "myene": "Nkala",
   "francais": "Le village",
@@ -87,6 +77,836 @@
   "niveau": 1,
   "dialecte": "",
   "source": "[LEC] Bonjour",
+  "publie": true
+ },
+ {
+  "id": "corps-ewondjo",
+  "myene": "Ewondjo",
+  "francais": "La tête",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-itwe",
+  "myene": "Itwé",
+  "francais": "Les cheveux",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-intcho",
+  "myene": "Intcho",
+  "francais": "L'œil",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-aroyi",
+  "myene": "Aroyi",
+  "francais": "Les oreilles",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ompele",
+  "myene": "Ompélé",
+  "francais": "Le cou",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ompombo",
+  "myene": "Ompombo",
+  "francais": "Le nez",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ino",
+  "myene": "Ino",
+  "francais": "La dent",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-oneme",
+  "myene": "Onèmè",
+  "francais": "La langue",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-onumbu",
+  "myene": "Onumbu",
+  "francais": "La lèvre",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-elelu",
+  "myene": "Elèlu",
+  "francais": "La barbe",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ntono",
+  "myene": "Ntono",
+  "francais": "La poitrine",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ogo",
+  "myene": "Ogô",
+  "francais": "Le bras",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ikaka",
+  "myene": "Ikaka",
+  "francais": "La main",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-omeno",
+  "myene": "Oméno",
+  "francais": "Le doigt",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ororo",
+  "myene": "Orôrô",
+  "francais": "Le nombril",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ompende",
+  "myene": "Ompéndé",
+  "francais": "La jambe",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ivuva",
+  "myene": "Ivuva",
+  "francais": "Le genou",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ogholo",
+  "myene": "Ogholo",
+  "francais": "Le pied",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ntumbu",
+  "myene": "Ntumbu",
+  "francais": "Le talon",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-imwa",
+  "myene": "Imwa",
+  "francais": "Les poils",
+  "theme": "corps",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-nkogozo",
+  "myene": "Nkôgôzô",
+  "francais": "Le coude",
+  "theme": "corps",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "corps-ndjegelu",
+  "myene": "Ndjègèlu",
+  "francais": "Le menton",
+  "theme": "corps",
+  "niveau": 3,
+  "dialecte": "",
+  "source": "[LEC] Le Corps humain",
+  "publie": true
+ },
+ {
+  "id": "maison-nago",
+  "myene": "Nago",
+  "francais": "La maison",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-tavulu",
+  "myene": "Tavulu",
+  "francais": "La table",
+  "theme": "maison",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-ebongo",
+  "myene": "Ebongo",
+  "francais": "Le banc",
+  "theme": "maison",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-kisini",
+  "myene": "Kisini",
+  "francais": "La cuisine",
+  "theme": "maison",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-puka",
+  "myene": "Puka",
+  "francais": "Le sac",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-ogoni",
+  "myene": "Ogoni",
+  "francais": "Le feu",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-winde",
+  "myene": "Windè",
+  "francais": "La fenêtre",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-odo",
+  "myene": "Odo",
+  "francais": "Le lit",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-elinga",
+  "myene": "Elinga",
+  "francais": "La robe",
+  "theme": "maison",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-owaro",
+  "myene": "Owaro",
+  "francais": "La pirogue",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-epokolo",
+  "myene": "Epokolo",
+  "francais": "Le chapeau",
+  "theme": "maison",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-elasi",
+  "myene": "Elasi",
+  "francais": "Le verre",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-ezombolo",
+  "myene": "Ezômbôlô",
+  "francais": "Le balai",
+  "theme": "maison",
+  "niveau": 3,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "maison-ogoli",
+  "myene": "Ogôli",
+  "francais": "La corde",
+  "theme": "maison",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-iga",
+  "myene": "Iga",
+  "francais": "La forêt",
+  "theme": "nature",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-ntsuwa",
+  "myene": "Ntsuwa",
+  "francais": "La mer",
+  "theme": "nature",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-okili",
+  "myene": "Okili",
+  "francais": "La route",
+  "theme": "nature",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-ogweli",
+  "myene": "Ogwèli",
+  "francais": "La lune",
+  "theme": "nature",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-ningo",
+  "myene": "Ningo",
+  "francais": "La pluie",
+  "theme": "nature",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-idyavi",
+  "myene": "Idyavi",
+  "francais": "Les feuilles",
+  "theme": "nature",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-ntche",
+  "myene": "Ntché",
+  "francais": "La terre",
+  "theme": "nature",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature",
+  "publie": true
+ },
+ {
+  "id": "nature-omweyi",
+  "myene": "Omwèyi",
+  "francais": "Le soleil",
+  "theme": "nature",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La Nature ; soleil chez les Ôrungu : Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md)",
+  "publie": true
+ },
+ {
+  "id": "animaux-embongo",
+  "myene": "Embongo",
+  "francais": "Le lion",
+  "theme": "animaux",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-ndjego",
+  "myene": "Ndjègô",
+  "francais": "La panthère",
+  "theme": "animaux",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-mbwa",
+  "myene": "Mbwa",
+  "francais": "Le chien",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-pusi",
+  "myene": "Pusi",
+  "francais": "Le chat",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-nkambi",
+  "myene": "Nkambi",
+  "francais": "L'antilope",
+  "theme": "animaux",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon ; Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md)",
+  "publie": true
+ },
+ {
+  "id": "animaux-mboni",
+  "myene": "Mboni",
+  "francais": "Le cabri",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-ngowa",
+  "myene": "Ngowa",
+  "francais": "Le sanglier",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-homba",
+  "myene": "Homba",
+  "francais": "Le porc-épic",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-manga",
+  "myene": "Manga",
+  "francais": "Le lamantin",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-ipi",
+  "myene": "Ipi",
+  "francais": "Le pangolin",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-nguwu",
+  "myene": "Nguwu",
+  "francais": "L'hippopotame",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-ndjogu",
+  "myene": "Ndjôgu",
+  "francais": "L'éléphant",
+  "theme": "animaux",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-ndjina",
+  "myene": "Ndjina",
+  "francais": "Le gorille",
+  "theme": "animaux",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-kema",
+  "myene": "Kèma",
+  "francais": "Le singe",
+  "theme": "animaux",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "animaux-ntchigo",
+  "myene": "Ntchigo",
+  "francais": "Le chimpanzé",
+  "theme": "animaux",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Animaux du Gabon",
+  "publie": true
+ },
+ {
+  "id": "aliments-ntogolo",
+  "myene": "Ntogôlo",
+  "francais": "Le piment",
+  "theme": "aliments",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-ilasa",
+  "myene": "Ilasa",
+  "francais": "L'orange",
+  "theme": "aliments",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-onembe",
+  "myene": "Onêmbè",
+  "francais": "Le miel",
+  "theme": "aliments",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-itoto",
+  "myene": "Itôtô",
+  "francais": "La banane douce",
+  "theme": "aliments",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-ikondo",
+  "myene": "Ikôndô",
+  "francais": "La banane plantain",
+  "theme": "aliments",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-ololo",
+  "myene": "Olôlô",
+  "francais": "La papaye",
+  "theme": "aliments",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-mbenda",
+  "myene": "Mbenda",
+  "francais": "L'arachide",
+  "theme": "aliments",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-ewere",
+  "myene": "Ewèrè",
+  "francais": "Le poisson",
+  "theme": "aliments",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "aliments-ike",
+  "myene": "Iké",
+  "francais": "L'œuf",
+  "theme": "aliments",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] LES ALIMENTS",
+  "publie": true
+ },
+ {
+  "id": "nombres-mori",
+  "myene": "Môri",
+  "francais": "Un",
+  "theme": "nombres",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-mbani",
+  "myene": "Mbani",
+  "francais": "Deux",
+  "theme": "nombres",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-nayi",
+  "myene": "Nayi",
+  "francais": "Quatre",
+  "theme": "nombres",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-otani",
+  "myene": "Otani",
+  "francais": "Cinq",
+  "theme": "nombres",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-orowa",
+  "myene": "Orowa",
+  "francais": "Six",
+  "theme": "nombres",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-enanayi",
+  "myene": "Enanayi",
+  "francais": "Huit",
+  "theme": "nombres",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-enogomi",
+  "myene": "Enogomi",
+  "francais": "Neuf",
+  "theme": "nombres",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "nombres-igomi",
+  "myene": "Igomi",
+  "francais": "Dix",
+  "theme": "nombres",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] Comptons",
+  "publie": true
+ },
+ {
+  "id": "famille-rere",
+  "myene": "Rérè",
+  "francais": "Papa",
+  "theme": "famille",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "famille-ngwe",
+  "myene": "Ngwè",
+  "francais": "Maman",
+  "theme": "famille",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "famille-ombalo",
+  "myene": "Ombalo",
+  "francais": "L'oncle",
+  "theme": "famille",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "famille-ironda",
+  "myene": "Irônda",
+  "francais": "L'ami, l'amie",
+  "theme": "famille",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "famille-ogoyi",
+  "myene": "Ogôyi",
+  "francais": "Le beau-frère",
+  "theme": "famille",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La famille",
+  "publie": true
+ },
+ {
+  "id": "nombres-ntcharo",
+  "myene": "Ntcharo",
+  "francais": "Trois",
+  "theme": "nombres",
+  "niveau": 2,
+  "dialecte": "",
+  "source": "[LEC] Comptons (« Ntcaro ») ; forme ntcharo : Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md)",
+  "publie": true
+ },
+ {
+  "id": "aliments-nyama",
+  "myene": "Nyama",
+  "francais": "La viande",
+  "theme": "aliments",
+  "niveau": 1,
+  "dialecte": "",
+  "source": "[LEC] La Nature ; Corrections de Capp, 31 oct. 2026 (00_CORRECTIONS_Capp_2026-10-31.md)",
   "publie": true
  }
 ]

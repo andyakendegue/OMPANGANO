@@ -3,7 +3,9 @@
 Surveille et prévient par e-mail :
   * l'API : panne (2 contrôles ratés d'affilée) et rétablissement, conteneurs arrêtés ou en mauvaise santé ;
   * les erreurs du serveur (5xx, exceptions) et des navigateurs (table app_errors), regroupées par empreinte ;
-  * l'espace disque (> 85 %), les sauvegardes trop anciennes (> 36 h).
+  * l'espace disque (> 85 %), les sauvegardes trop anciennes (> 36 h), la copie hors site absente ou ancienne (> 48 h) ;
+  * la sécurité (ISO 27001 A.8.16) : promotion en administrateur, actions d'administration sensibles, rafale de SMS (> 50 / h),
+    rafale de refus de connexion, purge des données en retard (> 48 h).
 Config : /opt/ompangano/secrets/smtp.env (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM, MAIL_TO), comme mail-backup.py.
 État : /var/lib/ompangano-alertes.json. Au plus 6 e-mails par heure ; ce qui n'a pas pu partir est envoyé au passage suivant.
 Options : --dry-run (affiche au lieu d'envoyer, n'enregistre rien), --test (envoie un e-mail d'essai).
@@ -188,7 +190,54 @@ def anomalies_systeme(etat):
         age_h = (time.time() - os.path.getmtime(dumps[-1])) / 3600
         if age_h > 36 and etat.get('sauvegarde_alerte') != jour:
             out.append(('sauvegarde_alerte', f'La dernière sauvegarde de la base date de {round(age_h)} h ({os.path.basename(dumps[-1])}).'))
+    hors_site = os.path.join(SAUVEGARDES, 'derniere_copie_hors_site')
+    age_hs = (time.time() - os.path.getmtime(hors_site)) / 3600 if os.path.exists(hors_site) else None
+    if (age_hs is None or age_hs > 48) and etat.get('hors_site_alerte') != jour:
+        out.append(('hors_site_alerte', 'Aucune copie des sauvegardes hors du VPS depuis 48 h (BACKUP_REMOTE non défini ou en échec) : une panne du VPS ferait tout perdre.'))
     return out
+
+
+def requete(sql, timeout=60):
+    """Lignes (listes de champs) d'une requête SQL lancée dans le conteneur Postgres."""
+    sep = '\x1f'
+    r = sh(f"docker exec ompangano-postgres-1 psql -U ompangano -d ompangano -At -F '{sep}' -c \"{sql}\"", timeout)
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr.strip()[:200])
+    return [l.split(sep) for l in r.stdout.splitlines() if l]
+
+
+def evenements_securite(etat):
+    """Événements de sécurité depuis le dernier passage. Renvoie (sujet, texte) ou None."""
+    lignes = []
+    dernier = etat.get('journal_id')
+    if dernier is None:
+        etat['journal_id'] = int((requete("select coalesce(max(id),0) from journal_admin") or [['0']])[0][0])
+        return None
+    sensibles = "('utilisateur_modifie','sessions_revoquees','suppression','compte_supprime','droit_accorde','paiement_confirme')"
+    for i, par, action, cible, detail, at in requete(
+            f"select id, par, action, coalesce(cible,''), detail::text, to_char(at,'YYYY-MM-DD HH24:MI') from journal_admin "
+            f"where id > {int(dernier)} and action in {sensibles} order by id limit 200"):
+        etat['journal_id'] = max(etat['journal_id'], int(i))
+        promo = '"apres": "admin"' in detail or '"apres":"admin"' in detail
+        if promo or action in ('sessions_revoquees', 'suppression', 'compte_supprime') or '"statut"' in detail:
+            lignes.append(f"{at}  {'PROMOTION ADMIN — ' if promo else ''}{action}  par {par}  sur {cible}")
+    sms = int((requete("select count(*) from sms_essais where genre='envoi' and at > now() - interval '1 hour'") or [['0']])[0][0])
+    if sms > 100:  # deux lignes par envoi (numéro et IP)
+        lignes.append(f"Rafale de SMS : {sms // 2} envois dans la dernière heure (coût Twilio, tentative d'abus ?).")
+    refus = int((requete("select count(*) from sms_essais where genre='verif' and not ok and at > now() - interval '1 hour'") or [['0']])[0][0])
+    if refus > 50:
+        lignes.append(f"{refus} codes SMS faux dans la dernière heure (essais de connexion forcée ?).")
+    jour = time.strftime('%Y-%m-%d')
+    try:
+        age = requete("select extract(epoch from now() - max(at))/3600 from purges")
+        if (not age or not age[0][0] or float(age[0][0]) > 48) and etat.get('purge_alerte') != jour:
+            lignes.append("La purge des données (durées de conservation) n'a pas tourné depuis plus de 48 h.")
+            etat['purge_alerte'] = jour
+    except Exception:
+        pass  # table « purges » pas encore créée (migration 017 non déployée)
+    if not lignes:
+        return None
+    return ('OMPANGANO — sécurité : ' + lignes[0][:60], "Événements de sécurité :\n\n" + "\n".join(lignes))
 
 
 def main():
@@ -231,7 +280,14 @@ def main():
                 etat['dernier_id'] = lignes[-1][0]
     except Exception as e:
         print('erreurs :', e, file=sys.stderr)
-    # 3. Disque et sauvegardes
+    # 3. Sécurité
+    try:
+        ev = evenements_securite(etat)
+        if ev and peut_envoyer(etat):
+            envoyer(*ev); noter_envoi(etat)
+    except Exception as e:
+        print('sécurité :', e, file=sys.stderr)
+    # 4. Disque et sauvegardes
     for cle, texte in anomalies_systeme(etat):
         if peut_envoyer(etat):
             envoyer('OMPANGANO — anomalie système', texte)

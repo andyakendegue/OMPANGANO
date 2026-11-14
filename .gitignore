@@ -10,6 +10,7 @@ coverage/
 
 # Base de démonstration locale (PGlite)
 server/.demo-data/
+server/.demo-data-*/
 
 # Projets natifs générés par expo prebuild
 apps/nkala/ios/
@@ -21,3 +22,4 @@ apps/nkala/google-services.json
 apps/nkala/GoogleService-Info.plist
 apps/nkala/src/firebase.config.json
 firebase-applet-config.json
+__pycache__/

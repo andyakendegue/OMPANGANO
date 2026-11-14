@@ -11,6 +11,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Queryable } from './db.ts';
+import { libellesFichier } from '../../../packages/noyau/src/lecture.ts';
 import { configIa, indexerDocument, type FournisseurEmbedding } from './ia.ts';
 import { vecteursParDefaut } from './vecteurs.ts';
 
@@ -25,6 +26,8 @@ export interface EtatDossier {
   dossier: string; enCours: boolean; debut?: string; fin?: string; declencheur?: string;
   fichiers: number; ajoutes: number; modifies: number; inchanges: number; supprimes: number; ignores: number;
   erreurs: { fichier: string; message: string }[]; morceaux: number; embedding: string;
+  /** Fichiers dont l'indexation est reportée (service d'embeddings indisponible). */
+  reportes?: number;
 }
 
 export const dossierEmbeddings = (env = process.env) => env.EMBEDDINGS_DIR || '/data/embeddings';
@@ -95,26 +98,40 @@ export async function synchroniserDossier(q: Queryable, embed: FournisseurEmbedd
     try { await fs.access(racine); } catch { etat.erreurs.push({ fichier: racine, message: 'Dossier introuvable ou non monté.' }); return etat; }
     const cfg = await configIa(q);
     const vus = new Set<string>();
+    // Après 3 échecs d'embeddings de suite, le service est jugé indisponible pour ce passage : les fichiers restants sont gardés
+    // tels quels (rien n'est purgé) et seront indexés au passage suivant. Une seule erreur est signalée.
+    let coupe = false, echecsSuite = 0;
     for (const rel of await lister(racine)) {
       etat.fichiers++;
       const abs = path.join(racine, rel);
       const id = 'f_' + createHash('sha1').update(rel).digest('hex').slice(0, 20);
+      if (coupe) { vus.add(id); etat.reportes = (etat.reportes ?? 0) + 1; continue; }
       try {
         const st = await fs.stat(abs);
         if (st.size > TAILLE_MAX || st.size === 0) { etat.ignores++; continue; }
         const brut = await fs.readFile(abs);
         const empreinte = createHash('sha256').update(brut).update(String(cfg.chunkTaille)).update(String(cfg.chunkChevauchement)).update(embed.modele).digest('hex');
         vus.add(id);
-        const ancien = (await q.query<any>(`SELECT empreinte, nb_chunks FROM ia_documents WHERE id = $1`, [id]))[0];
+        // Titre lisible pour les sources citées par l'assistant : « Thèses › Monde myène › Titre du document ».
+        const lib = libellesFichier(rel);
+        const titre = [...lib.chemin, lib.auteur ? `${lib.titre} (${lib.auteur})` : lib.titre].join(' › ').slice(0, 200);
+        const ancien = (await q.query<any>(`SELECT empreinte, nb_chunks, titre FROM ia_documents WHERE id = $1`, [id]))[0];
+        if (ancien && ancien.titre !== titre) await q.query(`UPDATE ia_documents SET titre = $2 WHERE id = $1`, [id, titre]);
         if (ancien && ancien.empreinte === empreinte && ancien.nb_chunks > 0) { etat.inchanges++; continue; }
         const texte = ((await extraireTexte(abs)) ?? null);
         if (texte === null) { etat.ignores++; vus.delete(id); continue; }
         const propre = texte.replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').trim().slice(0, TEXTE_MAX);
         if (propre.length < 10) { etat.ignores++; vus.delete(id); continue; }
         await q.query(`INSERT INTO ia_documents (id, titre, source, texte, par, chemin, empreinte) VALUES ($1,$2,$3,$4,'dossier',$5,$6)
-          ON CONFLICT (id) DO UPDATE SET titre = EXCLUDED.titre, source = EXCLUDED.source, texte = EXCLUDED.texte, chemin = EXCLUDED.chemin, empreinte = EXCLUDED.empreinte, updated_at = clock_timestamp()`,
-          [id, rel.replace(/\.[^.]+$/, '').slice(0, 200), 'dossier:' + rel, propre, rel, empreinte]);
-        etat.morceaux += await indexerDocument(q, embed, id, cfg);
+          ON CONFLICT (id) DO UPDATE SET titre = EXCLUDED.titre, source = EXCLUDED.source, texte = EXCLUDED.texte, chemin = EXCLUDED.chemin, empreinte = EXCLUDED.empreinte, nb_chunks = 0, updated_at = clock_timestamp()`,
+          [id, titre, 'dossier:' + rel, propre, rel, empreinte]);
+        try { etat.morceaux += await indexerDocument(q, embed, id, cfg); echecsSuite = 0; }
+        catch (e) {
+          // Texte gardé sans morceaux (nb_chunks = 0) : il sera repris au prochain passage.
+          etat.reportes = (etat.reportes ?? 0) + 1;
+          if (++echecsSuite >= 3) { coupe = true; etat.erreurs.push({ fichier: '(service d\'embeddings)', message: `Service d'embeddings indisponible (${(e as Error).message.slice(0, 160)}) : indexation reportée au passage suivant.` }); }
+          continue;
+        }
         if (ancien) etat.modifies++; else etat.ajoutes++;
       } catch (e) { etat.erreurs.push({ fichier: rel, message: (e as Error).message.slice(0, 300) }); }
       if ((etat.ajoutes + etat.modifies) % 5 === 0) await sauver(etat).catch(() => {});

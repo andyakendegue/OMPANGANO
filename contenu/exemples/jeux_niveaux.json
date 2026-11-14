@@ -1,0 +1,69 @@
+[
+ {
+  "id": "pendu-p1",
+  "jeu_id": "pendu",
+  "niveau": 1,
+  "titre": "Petit feu",
+  "description": "Niveaux 1 à 50 : ouverts à tous.",
+  "rang_min": 1,
+  "plans": [],
+  "produit_id": null,
+  "publie": true
+ },
+ {
+  "id": "pendu-p2",
+  "jeu_id": "pendu",
+  "niveau": 51,
+  "titre": "Feu de veillée",
+  "description": "Niveaux 51 à 150 : au rang Omwana.",
+  "rang_min": 2,
+  "plans": [],
+  "produit_id": null,
+  "publie": true
+ },
+ {
+  "id": "pendu-p3",
+  "jeu_id": "pendu",
+  "niveau": 151,
+  "titre": "Grand feu",
+  "description": "Niveaux 151 à 300 : au rang Iwanjo.",
+  "rang_min": 3,
+  "plans": [],
+  "produit_id": null,
+  "publie": true
+ },
+ {
+  "id": "pendu-p4",
+  "jeu_id": "pendu",
+  "niveau": 301,
+  "titre": "Feu du village",
+  "description": "Niveaux 301 à 500 : au rang Olèngwani.",
+  "rang_min": 4,
+  "plans": [],
+  "produit_id": null,
+  "publie": true
+ },
+ {
+  "id": "pendu-p5",
+  "jeu_id": "pendu",
+  "niveau": 501,
+  "titre": "Feu des anciens",
+  "description": "Niveaux 501 à 800 : au rang Okengele.",
+  "rang_min": 5,
+  "plans": [],
+  "produit_id": null,
+  "publie": true
+ },
+ {
+  "id": "pendu-p6",
+  "jeu_id": "pendu",
+  "niveau": 801,
+  "titre": "Feu des maîtres",
+  "description": "Niveaux 801 à 1000 : au rang Onerwama. Trois bûches seulement.",
+  "rang_min": 6,
+  "plans": [],
+  "produit_id": null,
+  "publie": true,
+  "erreurs_max": 3
+ }
+]

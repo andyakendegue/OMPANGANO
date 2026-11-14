@@ -128,7 +128,7 @@ Mascotte oui/non ; variante claire dès le départ ou plus tard ; teinte d'accen
 ### Décisions de Capp (10 nov. 2026)
 - **Navigation** : Accueil · Apprendre · Jouer · Écouter · Village. Ompangano dans le menu « Plus ». Carte, Annuaire, Annonces, Actus, Commune+ deviennent les onglets internes du Village.
 - **Accent d'Azeva** : jaune `#FDE047`.
-- **Mascotte** : oui. Elle s'appelle **Ozangué** (« la lumière » en ôrungu) : la barre de voix du symbole, avec deux yeux. Elle guide les leçons, sert d'assistant IA et accompagne les états.
+- **Mascotte** : oui. **Décision du 13 nov. 2026 : la mascotte est Kak'Igonjo** (Kaka Igonjo), le vieux sage bienveillant du village (dessin du vieil Ôrungu en okoruè). Il guide les leçons, sert d'assistant IA et accompagne les états. *(Remplace la proposition du 10 nov. : « Ozangué », barre de voix du symbole avec deux yeux.)*
 - **Thème clair** : dès la première version ; suit le réglage du téléphone.
 - **Animations sur téléphones modestes** : légères (onde sonore et 20 confettis au plus ; flamme et rebonds coupés).
 - **Publicité récompensée dans les jeux** : au choix du joueur, 3 par jour au plus, écran de fin de partie seulement, jamais en mode enfant ni dans une leçon.

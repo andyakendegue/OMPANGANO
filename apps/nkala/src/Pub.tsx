@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { melangerPubs, demanderFilPub, demanderPub, fonctionActive, type PubFil, profilAgeDepuis, signalerPub, zoneAffichable, ZONES, type CreationPub, type ZonePub } from '@nkala/noyau';
+import { melangerPubs, demanderFilPub, demanderPub, fonctionActive, modulesSansPub, type PubFil, profilAgeDepuis, signalerPub, zoneAffichable, ZONES, type CreationPub, type ZonePub } from '@nkala/noyau';
+import { Modal } from 'react-native';
 import { useAuth } from './AuthProvider';
-import { useDroits } from './Droits';
+import { useDroits, useFormules } from './Droits';
+import { useContenu } from './useContenu';
 import { Visuel } from './kit';
 import { useTheme } from './Prefs';
 import { polices } from './theme';
@@ -22,6 +24,19 @@ export function useSansPublicite(actif = true) {
   }, [actif]);
 }
 
+
+/**
+ * Parties de l'application sans publicité pour l'utilisateur, selon ses formules (colonne « sans_pub » des formules).
+ * Un ancien abonnement sans formule précisée garde l'effet d'avant : aucune publicité nulle part.
+ */
+function useSansPub(): { abonne: boolean; sansPub: string[] } {
+  const { abonne } = useDroits();
+  const { plans } = useFormules();
+  const { lignes } = useContenu('plans');
+  const sansPub = modulesSansPub(plans, lignes as unknown as { id: string; sans_pub?: unknown }[]);
+  return { abonne: abonne && plans.length === 0, sansPub };
+}
+
 /**
  * Emplacement publicitaire (NKALA_AUDIT_COMPLET.md §10bis.1). Ne rend rien si la publicité est coupée par le serveur, si l'utilisateur
  * est abonné, enfant ou sans compte, hors ligne ou en pleine activité. Sinon la passerelle de l'API (GET /v1/pub) choisit une création ;
@@ -29,7 +44,7 @@ export function useSansPublicite(actif = true) {
  */
 export function EmplacementPub({ zone }: { zone: ZonePub }) {
   const { profil } = useAuth();
-  const { abonne } = useDroits();
+  const { abonne, sansPub } = useSansPub();
   const { c } = useTheme();
   const [enLigne, setEnLigne] = useState(true);
   const [creation, setCreation] = useState<CreationPub | null>(null);
@@ -38,7 +53,7 @@ export function EmplacementPub({ zone }: { zone: ZonePub }) {
   useEffect(() => NetInfo.addEventListener(e => setEnLigne(e.isConnected !== false)), []);
   useEffect(() => { const f = () => rafraichir(n => n + 1); ecouteurs.add(f); return () => { ecouteurs.delete(f); }; }, []);
   const visible = !!profil && zoneAffichable(zone, {
-    active: fonctionActive('publicite'), abonne, enLigne, profil: profilAgeDepuis(profil?.birthDate), activiteEnCours: activites > 0,
+    active: fonctionActive('publicite'), abonne, sansPub, enLigne, profil: profilAgeDepuis(profil?.birthDate), activiteEnCours: activites > 0,
   });
   useEffect(() => {
     if (!visible) { setCreation(null); return; }
@@ -65,12 +80,12 @@ export function EmplacementPub({ zone }: { zone: ZonePub }) {
 /** Autorise-t-on les publicités dans les listes ? Mêmes raisons de s'abstenir que les bandeaux. */
 function usePubsAutorisees(zone: ZonePub) {
   const { profil } = useAuth();
-  const { abonne } = useDroits();
+  const { abonne, sansPub } = useSansPub();
   const [enLigne, setEnLigne] = useState(true);
   const [, rafraichir] = useState(0);
   useEffect(() => NetInfo.addEventListener(e => setEnLigne(e.isConnected !== false)), []);
   useEffect(() => { const f = () => rafraichir(n => n + 1); ecouteurs.add(f); return () => { ecouteurs.delete(f); }; }, []);
-  return !!profil && zoneAffichable(zone, { active: fonctionActive('publicite'), abonne, enLigne, profil: profilAgeDepuis(profil?.birthDate), activiteEnCours: activites > 0 });
+  return !!profil && zoneAffichable(zone, { active: fonctionActive('publicite'), abonne, sansPub, enLigne, profil: profilAgeDepuis(profil?.birthDate), activiteEnCours: activites > 0 });
 }
 
 /** Créations à glisser dans une liste (voir melangerPubs). Liste vide quand la publicité est interdite ou indisponible. */
@@ -111,4 +126,44 @@ export function PubDansListe({ pub }: { pub: PubFil }) {
 export function FilAvecPubs<T>({ items, zone, cle, rendu, premier = 2, intervalle = 5 }: { items: readonly T[]; zone: ZonePub; cle: (i: T) => string; rendu: (i: T) => React.ReactNode; premier?: number; intervalle?: number }) {
   const pubs = useFilPub(zone);
   return <>{melangerPubs(items, pubs, cle, { premier, intervalle }).map(e => (e.type === 'pub' ? <PubDansListe key={e.cle} pub={e.pub} /> : <View key={e.cle}>{rendu(e.item)}</View>))}</>;
+}
+
+// ------------------------------------------------------------------ publicité sponsorisée entre deux écrans (jeux gratuits)
+let derniereInterstitielle = 0, ecransDepuis = 0;
+/** Fréquence : une annonce plein écran au plus toutes les 3 fins de partie et 3 minutes. */
+const INTERSTITIEL = { toutesLes: 3, delaiMs: 3 * 60_000, fermetureApres: 5 } as const;
+
+/**
+ * Annonce plein écran montrée entre deux écrans (fin de partie d'Azeva). Mêmes règles que les bandeaux (formule, âge, hors ligne, activité) ;
+ * le bouton « Fermer » apparaît après 5 secondes. À placer sur l'écran de résultats : elle se décide une fois, au montage.
+ */
+export function PubEntreEcrans({ zone = 'interstitiel_jeux', toujours }: { zone?: ZonePub; /** Sans règle de fréquence (avant une vidéo gratuite avec publicité). */ toujours?: boolean }) {
+  const autorise = usePubsAutorisees(zone);
+  const { c } = useTheme();
+  const [creation, setCreation] = useState<CreationPub | null>(null);
+  const [reste, setReste] = useState<number>(INTERSTITIEL.fermetureApres);
+  const decide = useRef(false);
+  useEffect(() => {
+    if (decide.current) return; decide.current = true;
+    if (!toujours) ecransDepuis++;
+    if (!autorise || (!toujours && (ecransDepuis < INTERSTITIEL.toutesLes || Date.now() - derniereInterstitielle < INTERSTITIEL.delaiMs))) return;
+    demanderPub(zone).then(r => { if (r.pub) { if (!toujours) { ecransDepuis = 0; derniereInterstitielle = Date.now(); } setCreation(r.pub); signalerPub('affichage', r.pub.id, zone).catch(() => {}); } }).catch(() => {});
+  }, [autorise, zone]);
+  useEffect(() => { if (!creation || reste <= 0) return; const t = setTimeout(() => setReste(n => n - 1), 1000); return () => clearTimeout(t); }, [creation, reste]);
+  if (!creation) return null;
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={() => { if (reste <= 0) setCreation(null); }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(8,4,2,0.92)', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
+        <Text style={{ fontFamily: polices.corpsGras, fontSize: 12, color: '#A8826D' }}>Publicité{creation.annonceur ? ` · ${creation.annonceur}` : ''} · {zone === 'video_igolani' ? 'elle finance les vidéos gratuites' : 'elle finance les jeux gratuits'}</Text>
+        <Pressable accessibilityRole={creation.lien ? 'link' : 'image'} accessibilityLabel={`Publicité : ${creation.texte_alt}`} onPress={() => { if (creation.lien) { signalerPub('clic', creation.id, zone).catch(() => {}); Linking.openURL(creation.lien).catch(() => {}); } }}
+          style={{ width: '100%', maxWidth: 420, borderRadius: 20, overflow: 'hidden', backgroundColor: c.carte }}>
+          <Visuel uri={creation.image} largeur="100%" hauteur={320} rayon={0} icone="etiquette" />
+          <View style={{ padding: 14 }}><Text style={{ fontFamily: polices.corpsMoyen, fontSize: 15, color: c.fort }}>{creation.titre || creation.texte_alt}</Text></View>
+        </Pressable>
+        <Pressable accessibilityRole="button" disabled={reste > 0} onPress={() => setCreation(null)} style={{ paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14, backgroundColor: reste > 0 ? '#27150C' : '#F59E0B' }}>
+          <Text style={{ fontFamily: polices.corpsGras, fontSize: 15, color: reste > 0 ? '#A8826D' : '#170D08' }}>{reste > 0 ? `Fermer dans ${reste} s` : 'Fermer'}</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
 }

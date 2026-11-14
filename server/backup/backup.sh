@@ -11,6 +11,8 @@ KEY="${BACKUP_KEY_FILE:-/opt/ompangano/secrets/backup.key}"
 STAMP=$(date +%Y%m%d-%H%M%S)
 mkdir -p "$DEST/db" "$DEST/media"; chmod 700 "$DEST"
 enc() { openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass "file:$KEY"; }
+# Intégrité (le CBC seul ne détecte pas une altération) : HMAC-SHA256 du fichier chiffré, clé dérivée de backup.key ; vérifié par restore.sh
+sceller() { openssl dgst -sha256 -mac HMAC -macopt "hexkey:$(openssl dgst -sha256 -r "$KEY" | cut -d' ' -f1)" -r "$1" | cut -d' ' -f1 > "$1.hmac"; }
 
 docker compose exec -T postgres pg_dump -U ompangano -Fc ompangano | enc > "$DEST/db/ompangano-$STAMP.dump.enc"
 
@@ -21,10 +23,17 @@ docker run --rm --network "$NET" -v "$TMP:/data" \
   amazon/aws-cli s3 sync "s3://${S3_BUCKET:-ompangano}" /data --endpoint-url http://garage:3900 --only-show-errors
 tar -C "$TMP" -czf - . | enc > "$DEST/media/media-$STAMP.tar.gz.enc"
 
-find "$DEST/db" -name '*.enc' -mtime +14 -delete
-find "$DEST/media" -name '*.enc' -mtime +14 -delete
+sceller "$DEST/db/ompangano-$STAMP.dump.enc"; sceller "$DEST/media/media-$STAMP.tar.gz.enc"
+
+find "$DEST/db" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
+find "$DEST/media" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
 chmod 600 "$DEST"/db/* "$DEST"/media/* 2>/dev/null || true
 
-# Copie hors du VPS (facultatif) : rsync si BACKUP_REMOTE est défini
-if [ -n "${BACKUP_REMOTE:-}" ]; then rsync -a --delete "$DEST/" "$BACKUP_REMOTE/"; fi
+# Copie hors du VPS (ISO 27001 A.8.13 : obligatoire) : rsync vers BACKUP_REMOTE (ex. user@autre-serveur:/sauvegardes/ompangano).
+# Les fichiers sont déjà chiffrés et scellés ; le témoin « derniere_copie_hors_site » est surveillé par alertes.py (> 48 h = alerte).
+if [ -n "${BACKUP_REMOTE:-}" ]; then
+  rsync -a --delete --exclude derniere_copie_hors_site "$DEST/db" "$DEST/media" "$BACKUP_REMOTE/" && touch "$DEST/derniere_copie_hors_site"
+else
+  echo "ATTENTION : BACKUP_REMOTE non défini, aucune copie hors du VPS." >&2
+fi
 echo "Sauvegarde $STAMP terminée ($(du -h "$DEST/db/ompangano-$STAMP.dump.enc" | cut -f1) base, $(du -h "$DEST/media/media-$STAMP.tar.gz.enc" | cut -f1) fichiers)."

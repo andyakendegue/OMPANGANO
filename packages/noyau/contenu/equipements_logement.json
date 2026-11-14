@@ -1,0 +1,725 @@
+{
+  "version": 1,
+  "note": "Catalogue des types de bien, pièces et équipements des annonces de logement Nkala. icon = nom Ionicons (à vérifier contre Ionicons.glyphMap). type : bool (case), number (quantité), option (choix unique dans options).",
+  "typesDeBien": [
+    {
+      "id": "chambre",
+      "label": "Chambre simple",
+      "icon": "bed"
+    },
+    {
+      "id": "studio",
+      "label": "Studio",
+      "icon": "bed-outline"
+    },
+    {
+      "id": "chambre_salon",
+      "label": "Chambre-salon",
+      "icon": "home-outline"
+    },
+    {
+      "id": "appartement",
+      "label": "Appartement",
+      "icon": "business"
+    },
+    {
+      "id": "maison",
+      "label": "Maison",
+      "icon": "home"
+    },
+    {
+      "id": "villa",
+      "label": "Villa",
+      "icon": "home"
+    },
+    {
+      "id": "duplex",
+      "label": "Duplex",
+      "icon": "layers"
+    },
+    {
+      "id": "immeuble",
+      "label": "Immeuble",
+      "icon": "business-outline"
+    },
+    {
+      "id": "terrain",
+      "label": "Terrain",
+      "icon": "map"
+    },
+    {
+      "id": "bureau",
+      "label": "Bureau",
+      "icon": "briefcase"
+    },
+    {
+      "id": "local_commercial",
+      "label": "Local commercial / boutique",
+      "icon": "storefront"
+    },
+    {
+      "id": "entrepot",
+      "label": "Entrepôt / magasin",
+      "icon": "cube"
+    }
+  ],
+  "pieces": [
+    {
+      "id": "facade",
+      "label": "Façade"
+    },
+    {
+      "id": "salon",
+      "label": "Salon"
+    },
+    {
+      "id": "salle_a_manger",
+      "label": "Salle à manger"
+    },
+    {
+      "id": "chambre",
+      "label": "Chambre"
+    },
+    {
+      "id": "cuisine",
+      "label": "Cuisine"
+    },
+    {
+      "id": "salle_de_bain",
+      "label": "Salle de bain"
+    },
+    {
+      "id": "wc",
+      "label": "WC"
+    },
+    {
+      "id": "buanderie",
+      "label": "Buanderie"
+    },
+    {
+      "id": "garage",
+      "label": "Garage"
+    },
+    {
+      "id": "cour",
+      "label": "Cour / jardin"
+    },
+    {
+      "id": "terrasse",
+      "label": "Terrasse / balcon"
+    },
+    {
+      "id": "rue_acces",
+      "label": "Rue / accès"
+    },
+    {
+      "id": "autre",
+      "label": "Autre"
+    }
+  ],
+  "groupes": [
+    {
+      "id": "securite",
+      "label": "Sécurité",
+      "icon": "shield-checkmark",
+      "items": [
+        {
+          "id": "gardien_jour",
+          "label": "Gardien de jour",
+          "icon": "person",
+          "type": "bool"
+        },
+        {
+          "id": "gardien_nuit",
+          "label": "Gardien de nuit",
+          "icon": "moon",
+          "type": "bool"
+        },
+        {
+          "id": "societe_surveillance",
+          "label": "Société de surveillance",
+          "icon": "shield",
+          "type": "bool"
+        },
+        {
+          "id": "cameras",
+          "label": "Caméras de surveillance",
+          "icon": "videocam",
+          "type": "number",
+          "unit": "caméra(s)"
+        },
+        {
+          "id": "alarme",
+          "label": "Alarme",
+          "icon": "notifications",
+          "type": "bool"
+        },
+        {
+          "id": "cloture",
+          "label": "Clôture / mur d'enceinte",
+          "icon": "git-commit",
+          "type": "bool"
+        },
+        {
+          "id": "portail",
+          "label": "Portail",
+          "icon": "enter",
+          "type": "option",
+          "options": [
+            {
+              "id": "manuel",
+              "label": "Manuel"
+            },
+            {
+              "id": "motorise",
+              "label": "Motorisé"
+            }
+          ]
+        },
+        {
+          "id": "grilles",
+          "label": "Grilles anti-effraction",
+          "icon": "grid",
+          "type": "bool"
+        },
+        {
+          "id": "eclairage_exterieur",
+          "label": "Éclairage extérieur",
+          "icon": "bulb",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "electricite",
+      "label": "Électricité et énergie",
+      "icon": "flash",
+      "items": [
+        {
+          "id": "electricite_seeg",
+          "label": "Raccordé au réseau électrique (SEEG)",
+          "icon": "flash-outline",
+          "type": "bool"
+        },
+        {
+          "id": "compteur_electricite",
+          "label": "Compteur d'électricité",
+          "icon": "speedometer",
+          "type": "option",
+          "options": [
+            {
+              "id": "individuel",
+              "label": "Individuel"
+            },
+            {
+              "id": "prepaye",
+              "label": "Prépayé (à carte)"
+            },
+            {
+              "id": "partage",
+              "label": "Partagé"
+            }
+          ]
+        },
+        {
+          "id": "groupe_electrogene",
+          "label": "Groupe électrogène (dynamo)",
+          "icon": "battery-full",
+          "type": "bool"
+        },
+        {
+          "id": "groupe_electrogene_partage",
+          "label": "Groupe électrogène partagé",
+          "icon": "battery-full",
+          "type": "bool"
+        },
+        {
+          "id": "panneaux_solaires",
+          "label": "Panneaux solaires",
+          "icon": "sunny",
+          "type": "bool"
+        },
+        {
+          "id": "onduleur",
+          "label": "Onduleur / batteries",
+          "icon": "battery-charging",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "eau",
+      "label": "Eau",
+      "icon": "water",
+      "items": [
+        {
+          "id": "eau_seeg",
+          "label": "Raccordé au réseau d'eau (SEEG)",
+          "icon": "water-outline",
+          "type": "bool"
+        },
+        {
+          "id": "compteur_eau",
+          "label": "Compteur d'eau",
+          "icon": "speedometer",
+          "type": "option",
+          "options": [
+            {
+              "id": "individuel",
+              "label": "Individuel"
+            },
+            {
+              "id": "partage",
+              "label": "Partagé"
+            }
+          ]
+        },
+        {
+          "id": "forage",
+          "label": "Forage / puits",
+          "icon": "build",
+          "type": "bool"
+        },
+        {
+          "id": "citerne",
+          "label": "Citerne / réservoir",
+          "icon": "beaker",
+          "type": "bool"
+        },
+        {
+          "id": "surpresseur",
+          "label": "Surpresseur",
+          "icon": "contract",
+          "type": "bool"
+        },
+        {
+          "id": "chauffe_eau",
+          "label": "Chauffe-eau",
+          "icon": "thermometer",
+          "type": "bool"
+        },
+        {
+          "id": "filtre_eau",
+          "label": "Filtre / traitement de l'eau",
+          "icon": "funnel",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "communication",
+      "label": "Internet et télévision",
+      "icon": "wifi",
+      "items": [
+        {
+          "id": "fibre",
+          "label": "Fibre optique installée",
+          "icon": "git-network",
+          "type": "bool"
+        },
+        {
+          "id": "internet_4g",
+          "label": "Box 4G / 5G installée",
+          "icon": "wifi",
+          "type": "bool"
+        },
+        {
+          "id": "internet_inclus",
+          "label": "Internet inclus dans le loyer",
+          "icon": "radio",
+          "type": "bool"
+        },
+        {
+          "id": "bonne_couverture",
+          "label": "Bonne couverture réseau mobile",
+          "icon": "cellular",
+          "type": "bool"
+        },
+        {
+          "id": "parabole",
+          "label": "Parabole / bouquet TV",
+          "icon": "tv",
+          "type": "bool"
+        },
+        {
+          "id": "interphone",
+          "label": "Interphone / visiophone",
+          "icon": "call",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "confort",
+      "label": "Confort intérieur",
+      "icon": "bed-outline",
+      "items": [
+        {
+          "id": "climatisation",
+          "label": "Climatisation",
+          "icon": "snow",
+          "type": "number",
+          "unit": "appareil(s)"
+        },
+        {
+          "id": "ventilateurs_plafond",
+          "label": "Ventilateurs de plafond",
+          "icon": "sync",
+          "type": "number",
+          "unit": "ventilateur(s)"
+        },
+        {
+          "id": "cuisine_equipee",
+          "label": "Cuisine équipée",
+          "icon": "restaurant",
+          "type": "bool"
+        },
+        {
+          "id": "gaziniere",
+          "label": "Gazinière / plaques",
+          "icon": "flame",
+          "type": "bool"
+        },
+        {
+          "id": "refrigerateur",
+          "label": "Réfrigérateur / congélateur",
+          "icon": "restaurant",
+          "type": "bool"
+        },
+        {
+          "id": "machine_a_laver",
+          "label": "Machine à laver",
+          "icon": "shirt",
+          "type": "bool"
+        },
+        {
+          "id": "placards",
+          "label": "Placards intégrés",
+          "icon": "file-tray-stacked",
+          "type": "bool"
+        },
+        {
+          "id": "moustiquaires",
+          "label": "Moustiquaires aux fenêtres",
+          "icon": "apps",
+          "type": "bool"
+        },
+        {
+          "id": "faux_plafond",
+          "label": "Faux plafond",
+          "icon": "home-outline",
+          "type": "bool"
+        },
+        {
+          "id": "carrelage",
+          "label": "Sol carrelé",
+          "icon": "grid-outline",
+          "type": "bool"
+        },
+        {
+          "id": "accessible_pmr",
+          "label": "Accessible aux personnes à mobilité réduite",
+          "icon": "accessibility",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "exterieur",
+      "label": "Extérieur et annexes",
+      "icon": "leaf",
+      "items": [
+        {
+          "id": "garage",
+          "label": "Garage fermé",
+          "icon": "car",
+          "type": "number",
+          "unit": "véhicule(s)"
+        },
+        {
+          "id": "parking",
+          "label": "Parking dans la cour",
+          "icon": "car-outline",
+          "type": "number",
+          "unit": "place(s)"
+        },
+        {
+          "id": "buanderie",
+          "label": "Buanderie",
+          "icon": "shirt",
+          "type": "bool"
+        },
+        {
+          "id": "cour",
+          "label": "Cour",
+          "icon": "leaf",
+          "type": "bool"
+        },
+        {
+          "id": "jardin",
+          "label": "Jardin",
+          "icon": "flower",
+          "type": "bool"
+        },
+        {
+          "id": "terrasse",
+          "label": "Terrasse",
+          "icon": "sunny-outline",
+          "type": "bool"
+        },
+        {
+          "id": "balcon",
+          "label": "Balcon",
+          "icon": "albums",
+          "type": "bool"
+        },
+        {
+          "id": "piscine",
+          "label": "Piscine",
+          "icon": "water",
+          "type": "bool"
+        },
+        {
+          "id": "dependance",
+          "label": "Dépendance / case de passage",
+          "icon": "home-outline",
+          "type": "bool"
+        },
+        {
+          "id": "logement_gardien",
+          "label": "Logement du gardien",
+          "icon": "person-circle",
+          "type": "bool"
+        },
+        {
+          "id": "magasin",
+          "label": "Magasin / débarras",
+          "icon": "archive",
+          "type": "bool"
+        },
+        {
+          "id": "ascenseur",
+          "label": "Ascenseur",
+          "icon": "swap-vertical",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "label": "Services inclus",
+      "icon": "sparkles",
+      "items": [
+        {
+          "id": "entretien_parties_communes",
+          "label": "Entretien des parties communes",
+          "icon": "sparkles-outline",
+          "type": "bool"
+        },
+        {
+          "id": "menage",
+          "label": "Ménage inclus",
+          "icon": "sparkles-outline",
+          "type": "bool"
+        },
+        {
+          "id": "ramassage_ordures",
+          "label": "Ramassage des ordures",
+          "icon": "trash",
+          "type": "bool"
+        },
+        {
+          "id": "jardinier",
+          "label": "Jardinier",
+          "icon": "leaf-outline",
+          "type": "bool"
+        },
+        {
+          "id": "desinsectisation",
+          "label": "Désinsectisation régulière",
+          "icon": "bug",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "acces_environnement",
+      "label": "Accès et environnement",
+      "icon": "trail-sign",
+      "items": [
+        {
+          "id": "route",
+          "label": "Route d'accès",
+          "icon": "navigate",
+          "type": "option",
+          "options": [
+            {
+              "id": "bitumee",
+              "label": "Bitumée"
+            },
+            {
+              "id": "laterite",
+              "label": "Latérite"
+            },
+            {
+              "id": "piste",
+              "label": "Piste / sable"
+            },
+            {
+              "id": "pieton",
+              "label": "Accès piéton seulement"
+            }
+          ]
+        },
+        {
+          "id": "accessible_saison_pluies",
+          "label": "Accessible en voiture en saison des pluies",
+          "icon": "car-sport",
+          "type": "bool"
+        },
+        {
+          "id": "zone_inondable",
+          "label": "Inondations",
+          "icon": "rainy",
+          "type": "option",
+          "options": [
+            {
+              "id": "jamais",
+              "label": "Jamais inondé"
+            },
+            {
+              "id": "parfois",
+              "label": "Parfois (fortes pluies, grandes marées)"
+            },
+            {
+              "id": "souvent",
+              "label": "Souvent"
+            }
+          ]
+        },
+        {
+          "id": "distance_route_principale",
+          "label": "Distance de la route principale",
+          "icon": "resize",
+          "type": "number",
+          "unit": "m"
+        },
+        {
+          "id": "proche_ecole",
+          "label": "École à proximité",
+          "icon": "school",
+          "type": "bool"
+        },
+        {
+          "id": "proche_marche",
+          "label": "Marché / commerces à proximité",
+          "icon": "basket",
+          "type": "bool"
+        },
+        {
+          "id": "proche_sante",
+          "label": "Pharmacie / centre de santé à proximité",
+          "icon": "medkit",
+          "type": "bool"
+        },
+        {
+          "id": "proche_transport",
+          "label": "Taxis / transports à proximité",
+          "icon": "car",
+          "type": "bool"
+        },
+        {
+          "id": "quartier_calme",
+          "label": "Quartier calme",
+          "icon": "volume-mute",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "filtresCles": [
+    "gardien_nuit",
+    "societe_surveillance",
+    "groupe_electrogene",
+    "forage",
+    "garage",
+    "parking",
+    "fibre",
+    "climatisation"
+  ],
+  "conditions": [
+    {
+      "id": "cautionMois",
+      "label": "Caution",
+      "type": "number",
+      "unit": "mois"
+    },
+    {
+      "id": "avanceMois",
+      "label": "Avance de loyer",
+      "type": "number",
+      "unit": "mois"
+    },
+    {
+      "id": "fraisAgence",
+      "label": "Frais d'agence",
+      "type": "number",
+      "unit": "FCFA"
+    },
+    {
+      "id": "fraisVisite",
+      "label": "Frais de visite",
+      "type": "number",
+      "unit": "FCFA"
+    },
+    {
+      "id": "chargesMontant",
+      "label": "Charges mensuelles",
+      "type": "number",
+      "unit": "FCFA"
+    },
+    {
+      "id": "chargesComprises",
+      "label": "Charges comprises",
+      "type": "multi",
+      "options": [
+        {
+          "id": "eau",
+          "label": "Eau"
+        },
+        {
+          "id": "electricite",
+          "label": "Électricité"
+        },
+        {
+          "id": "internet",
+          "label": "Internet"
+        },
+        {
+          "id": "gardiennage",
+          "label": "Gardiennage"
+        },
+        {
+          "id": "ordures",
+          "label": "Ordures"
+        }
+      ]
+    },
+    {
+      "id": "disponibleLe",
+      "label": "Disponible à partir du",
+      "type": "date"
+    },
+    {
+      "id": "dureeMinimaleMois",
+      "label": "Durée minimale",
+      "type": "number",
+      "unit": "mois"
+    },
+    {
+      "id": "animauxAcceptes",
+      "label": "Animaux acceptés",
+      "type": "bool"
+    }
+  ]
+}

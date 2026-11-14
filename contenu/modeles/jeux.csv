@@ -1,2 +1,2 @@
-﻿id,salle_id,titre,moteur,description,couleur,duree_s,mode_enfant,ordre,publie,rang_min,plans
-ntina-01,,,pendu,,#F59E0B,,,1,oui,1,
+﻿id,salle_id,titre,moteur,description,consigne,couleur,icone,duree_s,theme,banque,corpus,scene,niveaux,mode_enfant,ordre,publie,rang_min,plans
+ntina-01,,,ogoni,,,#F59E0B,,,corps,,,,1000,,1,oui,1,

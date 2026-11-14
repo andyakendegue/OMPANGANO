@@ -1,2 +1,2 @@
-﻿id,lecon_id,type,consigne,mot_myene,mot_francais,options,reponse,indice,image,audio,dialecte,source,ordre
-ntina-01,,ecouter,,,,,,,,,,[LEC] Bonjour,1
+﻿id,lecon_id,type,consigne,mot_myene,mot_francais,options,reponse,indice,image,audio,texte,conseil,jeu_id,dialecte,source,ordre
+ntina-01,,ecouter,,,,,,,,,,C'est la personne qui arrive qui salue la première.,,,[LEC] Bonjour,1

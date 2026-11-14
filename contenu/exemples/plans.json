@@ -1,0 +1,26 @@
+[
+ {
+  "id": "complet",
+  "titre": "Formule complète",
+  "description": "Exemple : tous les cours, sans publicité dans toute l'application.",
+  "tout": true,
+  "rang_min": 1,
+  "sans_pub": [
+   "tout"
+  ],
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "jeux-sans-pub",
+  "titre": "Jeux sans publicité",
+  "description": "Exemple : coupe la publicité des jeux seulement (les jeux restent gratuits pour tous).",
+  "tout": false,
+  "rang_min": 1,
+  "sans_pub": [
+   "azeva"
+  ],
+  "ordre": 2,
+  "publie": false
+ }
+]

@@ -124,5 +124,86 @@
   "reponse": "Yaga",
   "source": "[LEC] Formules de politesse",
   "ordre": 3
+ },
+ {
+  "id": "e1c",
+  "lecon_id": "ntina-l1",
+  "type": "cours",
+  "consigne": "Regarde et écoute avant de t'exercer.",
+  "mot_myene": "Mbolo",
+  "mot_francais": "Bonjour (à une personne)",
+  "texte": "« Mbolo » se dit pour saluer une personne. Écoute le mot, répète-le, puis passe aux exercices.",
+  "conseil": "À plusieurs personnes, on dit « Mbôluani ».",
+  "source": "[LEC] Bonjour ; [RW] p. 284 ; Mbôluani : [EQ], cf. [RW] « Mboloani », [AMB] [mbolwanè]",
+  "ordre": 0
+ },
+ {
+  "id": "e11",
+  "lecon_id": "ntina-l1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « Merci ».",
+  "mot_francais": "Merci",
+  "reponse": "Akéwa/Akewa",
+  "indice": "Il commence par « Ak… ».",
+  "source": "[LEC] Formules de politesse ; [RW] « finiz'akewa »",
+  "ordre": 6
+ },
+ {
+  "id": "e12",
+  "lecon_id": "ntina-l1",
+  "type": "culture",
+  "consigne": "Bon à savoir",
+  "mot_myene": "Mbolo · Mbôluani",
+  "mot_francais": "Saluer une personne · saluer plusieurs personnes",
+  "texte": "Le salut change selon le nombre de personnes : « Mbolo » pour une personne, « Mbôluani » pour plusieurs.",
+  "source": "[LEC] Bonjour ; [RW] p. 284 ; [EQ] ; [AMB] [mbolwanè]",
+  "ordre": 7
+ },
+ {
+  "id": "e13",
+  "lecon_id": "ntina-l1",
+  "type": "jouer",
+  "consigne": "Retiens les mots en jouant (gratuit).",
+  "mot_francais": "Jeu de mémoire",
+  "jeu_id": "memoire",
+  "ordre": 8
+ },
+ {
+  "id": "e14",
+  "lecon_id": "ntina-l2",
+  "type": "comprendre",
+  "consigne": "Lis le petit dialogue. Que dit B pour prendre congé ?",
+  "texte": "A : Mbolo !\nB : Mbolo !\nA : Akéwa.\nB : Ibanga wé. Ka mènè !",
+  "options": [
+   "Ibanga wé. Ka mènè !",
+   "Mbolo",
+   "Akéwa"
+  ],
+  "reponse": "Ibanga wé. Ka mènè !",
+  "indice": "« Ibanga wé. Ka mènè ! » veut dire « Au revoir ».",
+  "source": "[LEC] Bonjour ; [LEC] Formules de politesse ; [RW] p. 284",
+  "ordre": 3
+ },
+ {
+  "id": "e15",
+  "lecon_id": "ntina-l3",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Owaro-mfélo, ré nyènyo ngôri.",
+  "mot_francais": "Dans la pirogue d'autrui, ne prends pas tes aises.",
+  "texte": "Proverbe à rapprocher des mots de politesse de cette unité.",
+  "dialecte": "omyènè",
+  "source": "[LEC] Proverbes O.docx (recueil DONDO, PRV-0001)",
+  "ordre": 4
+ },
+ {
+  "id": "e16",
+  "lecon_id": "ntina-l3",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « S'il te plaît ».",
+  "mot_francais": "S'il te plaît",
+  "reponse": "Kôkôlô/Kokolo",
+  "source": "[LEC] Formules de politesse",
+  "ordre": 5
  }
 ]

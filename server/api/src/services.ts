@@ -1,12 +1,14 @@
 /**
- * Services transversaux : assistant IA avec comptage des jetons (Ozangué), passerelle publicitaire, droits d'accès
+ * Services transversaux : assistant IA avec comptage des jetons (Kak'Igonjo), passerelle publicitaire, droits d'accès
  * (abonnements et achats), licences de lecture protégées, signalisation des cours à distance (4 personnes au plus).
  */
 import { createHmac, randomBytes } from 'node:crypto';
 import { SignJWT } from 'jose';
 import { verifierQuota, estimerJetons, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
 import { peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
-import { zoneAffichable, profilAgeDepuis, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
+import { accesCompletVideo, finPartieGratuite } from '../../../packages/noyau/src/lecons.ts';
+import { prixSeance, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
+import { zoneAffichable, profilAgeDepuis, modulesSansPub, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
 import { construireSysteme } from './ia.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
@@ -19,9 +21,9 @@ import { profilAcces, verifierRegle } from './profil_acces.ts';
 export type { FournisseurIa } from './ia.ts';
 export { fournisseurIaParDefaut } from './ia.ts';
 
-const QUOTA_DEFAUT: QuotaJetons = { parJour: 20_000, parMois: 300_000, parConversation: 8_000 };
+export const QUOTA_DEFAUT: QuotaJetons = { parJour: 20_000, parMois: 300_000, parConversation: 8_000 };
 
-async function consommation(q: Queryable, uid: string, conversation: string) {
+export async function consommation(q: Queryable, uid: string, conversation: string) {
   const r = await q.query<any>(
     `SELECT COALESCE(sum(jetons_entree + jetons_sortie) FILTER (WHERE at >= date_trunc('day', clock_timestamp())), 0)::int AS jour,
             COALESCE(sum(jetons_entree + jetons_sortie) FILTER (WHERE at >= date_trunc('month', clock_timestamp())), 0)::int AS mois,
@@ -47,12 +49,12 @@ export async function droitsDe(q: Queryable, uid: string, role?: string): Promis
 }
 
 // ================================================================== appels (signalisation)
-interface Salle { id: string; hote: string; titre: string; cree: number; membres: Map<string, { nom: string }>; signaux: { n: number; de: string; a: string; data: unknown }[]; n: number }
+interface Salle { id: string; hote: string; titre: string; cree: number; membres: Map<string, { nom: string }>; signaux: { n: number; de: string; a: string; data: unknown }[]; n: number; /** Salle d'un cours prévu : seuls ses inscrits entrent. */ planifie?: boolean }
 const salles = new Map<string, Salle>();
 export const MAX_GROUPE = 4;
 
 export function registerServices(ctx: Ctx) {
-  const { app, db, fail, acteur, ensureUser, env, secret } = ctx;
+  const { app, db, fail, acteur, ensureUser, env, cles } = ctx;
   const admin = async (req: any) => { const a = await acteur(req); if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.'); return a; };
   const staff = async (req: any) => { const a = await acteur(req); if (!a.isStaff) fail(403, 'Réservé aux modérateurs.'); return a; };
   const profilAge = async (uid: string) => profilAgeDepuis((await db.query<any>(`SELECT data->>'birthDate' AS n FROM users WHERE id = $1`, [uid]))[0]?.n);
@@ -63,7 +65,7 @@ export function registerServices(ctx: Ctx) {
     const { message, conversationId, historique } = (req.body || {}) as { message?: string; conversationId?: string; historique?: { role: string; content: string }[] };
     if (!str(message) || !message.trim() || message.length > 2000) return fail(400, 'Message vide ou trop long (2000 caractères au plus).');
     const { fonctions } = await modulesActuels(db, env);
-    if (!fonctions.assistantIA) return fail(503, 'Ozangué n\'est pas encore ouvert.');
+    if (!fonctions.assistantIA) return fail(503, 'Kak\'Igonjo n\'est pas encore là.');
     await ensureUser(db, a.auth);
     const age = await profilAge(a.auth.uid);
     const droits = await droitsDe(db, a.auth.uid, a.role);
@@ -78,7 +80,7 @@ export function registerServices(ctx: Ctx) {
     if (!verdict.ok) return fail(429, verdict.limite === 'conversation' ? 'Cette conversation est trop longue : commence-en une nouvelle.' : verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
     let rep;
     try { rep = await ctx.ia.repondre({ systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }); }
-    catch (e) { return fail(502, 'Ozangué ne répond pas pour le moment. Réessaie dans un instant.'); }
+    catch (e) { return fail(502, 'Kak\'Igonjo ne répond pas pour le moment. Réessaie dans un instant.'); }
     await db.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule]);
     const apres = verifierQuota(quota, await consommation(db, a.auth.uid, conv), 0);
@@ -121,14 +123,28 @@ export function registerServices(ctx: Ctx) {
     if (!str(collection) || !['titres', 'chapitres', 'cours_artisans', 'chaines_tv'].includes(collection) || !str(id)) return fail(400, 'Contenu attendu.');
     const c = await db.query<any>(`SELECT data FROM contenus WHERE collection = $1 AND id = $2 AND publie AND deleted_at IS NULL`, [collection, id]);
     if (!c.length) return fail(404, 'Contenu introuvable.');
-    const d = peutAcceder({ id, acces: (c[0].data.niveau_acces || 'libre') as NiveauAcces, roles: ['admin', 'validator'] }, await droitsDe(db, a.auth.uid, a.role));
+    const droits = await droitsDe(db, a.auth.uid, a.role);
+    // Vidéothèque (décision du 13 nov. 2026) : réglage vidéo par vidéo, sinon 1er chapitre gratuit avec publicité, la suite au forfait
+    // (à l'achat pour un cours d'artisan long). Sans le droit complet, la licence ne couvre que la partie gratuite (« limiteS »).
+    let limiteS: number | null = null;
+    let d = peutAcceder({ id, acces: (c[0].data.niveau_acces || 'libre') as NiveauAcces, roles: ['admin', 'validator'] }, droits);
+    if (collection === 'cours_artisans') {
+      const chap = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'chapitres' AND deleted_at IS NULL AND data->>'cours_id' = $1`, [id])).map(x => ({ ...x.data, id: x.id }));
+      const cours = { ...c[0].data, id };
+      d = peutAcceder({ id, acces: accesCompletVideo(cours, chap), roles: ['admin', 'validator'] }, droits);
+      if (!d.ok && !a.isStaff) {
+        const fin = finPartieGratuite(cours, chap);
+        if (fin === null || fin > 0) { limiteS = fin; d = peutAcceder({ id, acces: 'gratuit_avec_pub' }, droits); }
+      }
+    }
+    if (!d.ok && a.isStaff) d = { ok: true, avecPub: false };
     if (!d.ok) return fail(402, 'Accès réservé : ' + d.motif);
     const r = await verifierRegle(db, a.auth.uid, a.isStaff, c[0].data);
     if (!r.ok) return fail(402, 'Accès réservé : ' + r.motif);
-    const filigrane = createHmac('sha256', secret).update(a.auth.uid).digest('hex').slice(0, 10);
-    const jeton = await new SignJWT({ c: `${collection}/${id}`, fil: filigrane }).setProtectedHeader({ alg: 'HS256' }).setSubject(a.auth.uid).setIssuer('nkala-licence').setExpirationTime('10m').sign(new TextEncoder().encode(secret));
+    const filigrane = createHmac('sha256', cles.filigrane).update(a.auth.uid).digest('hex').slice(0, 10);
+    const jeton = await new SignJWT({ c: `${collection}/${id}`, fil: filigrane }).setProtectedHeader({ alg: 'HS256' }).setSubject(a.auth.uid).setIssuer('nkala-licence').setExpirationTime('10m').sign(new TextEncoder().encode(cles.licences));
     const protege = c[0].data.protege === true;
-    return { jeton, filigrane, expireDans: 600, avecPub: d.avecPub, protection: { niveau: 1, enregistrementEcranInterdit: true, segmentsChiffres: protege }, urlHls: protege ? `${baseApi(req, env)}/media/hls/${collection}/${id}.m3u8?t=${encodeURIComponent(jeton)}` : null };
+    return { jeton, filigrane, expireDans: 600, avecPub: d.avecPub, limiteS, videoUrl: protege ? null : (c[0].data.video_url ?? null), protection: { niveau: 1, enregistrementEcranInterdit: true, segmentsChiffres: protege }, urlHls: protege ? `${baseApi(req, env)}/media/hls/${collection}/${id}.m3u8?t=${encodeURIComponent(jeton)}` : null };
   });
 
   app.get('/v1/admin/droits', async (req) => {
@@ -163,14 +179,28 @@ export function registerServices(ctx: Ctx) {
   };
   const versPub = (c: any, zone: string) => ({ id: c.id, zone, image: c.data.image ?? null, lien: c.data.lien ?? null, titre: c.data.titre ?? null, texte_alt: c.data.texte_alt, annonceur: c.data.annonceur ?? null, cta: c.data.cta ?? null, format: c.data.format ?? 'bandeau' });
 
+  /**
+   * Publicité selon le forfait (décision de Capp, 13 nov. 2026) : chaque formule active coupe la publicité sur « tout » ou sur des modules
+   * (colonne « sans_pub » des formules). Un abonnement sans formule précisée garde l'effet d'avant : aucune publicité. Même règle que l'app (Pub.tsx).
+   */
+  const contextePub = async (uid: string, role?: string) => {
+    const droits = await droitsDe(db, uid, role);
+    const abonneActif = !!droits.abonneJusque && droits.abonneJusque > Date.now();
+    if (!uid || !abonneActif) return { abonne: false, sansPub: [] as string[] };
+    const { plans } = await profilAcces(db, uid);
+    if (!plans.length) return { abonne: true, sansPub: [] as string[] };
+    const lignes = await db.query<any>(`SELECT id, data->'sans_pub' AS sans_pub FROM contenus WHERE collection = 'plans' AND deleted_at IS NULL AND id = ANY($1)`, [plans]);
+    return { abonne: false, sansPub: modulesSansPub(plans, lignes) };
+  };
+
   app.get('/v1/pub', async (req) => {
     const a = await acteur(req);
     const { zone, activite } = req.query as { zone?: string; activite?: string };
     if (!str(zone) || !(zone in ZONES)) return fail(400, 'Zone inconnue.');
     const { fonctions } = await modulesActuels(db, env);
-    const droits = await droitsDe(db, a.auth.uid, a.role);
+    const cp = await contextePub(a.auth.uid, a.role);
     const profil = await profilAge(a.auth.uid);
-    const ok = zoneAffichable(zone as ZonePub, { active: !!fonctions.publicite, abonne: !!droits.abonneJusque && droits.abonneJusque > Date.now(), profil, enLigne: true, activiteEnCours: activite === '1' });
+    const ok = zoneAffichable(zone as ZonePub, { active: !!fonctions.publicite, ...cp, profil, enLigne: true, activiteEnCours: activite === '1' });
     if (!ok) return { pub: null };
     const dispo = await servables(zone);
     if (!dispo.length) return { pub: null };
@@ -183,8 +213,7 @@ export function registerServices(ctx: Ctx) {
     const { zone, n } = req.query as { zone?: string; n?: string };
     if (!str(zone) || !(zone in ZONES)) return fail(400, 'Zone inconnue.');
     const { fonctions } = await modulesActuels(db, env);
-    const droits = await droitsDe(db, a.auth.uid, a.role);
-    const ok = zoneAffichable(zone as ZonePub, { active: !!fonctions.publicite, abonne: !!droits.abonneJusque && droits.abonneJusque > Date.now(), profil: await profilAge(a.auth.uid), enLigne: true, activiteEnCours: false });
+    const ok = zoneAffichable(zone as ZonePub, { active: !!fonctions.publicite, ...(await contextePub(a.auth.uid, a.role)), profil: await profilAge(a.auth.uid), enLigne: true, activiteEnCours: false });
     if (!ok) return { pubs: [] };
     const dispo = (await servables(zone)).sort(() => Math.random() - 0.5).slice(0, Math.min(6, Math.max(1, Number(n) || 3)));
     return { pubs: dispo.map(c => versPub(c, zone)) };
@@ -231,6 +260,8 @@ export function registerServices(ctx: Ctx) {
 
   app.post('/v1/appels', async (req, reply) => {
     const a = await acteur(req);
+    // Salle immédiate, hors planning : administrateurs seulement (essais, assistance). Les cours passent par le planning (prix, inscrits).
+    if (!a.isAdmin) return fail(403, 'Les salles se créent par le planning, par un professeur ou un administrateur.');
     nettoyer();
     const { titre } = (req.body || {}) as { titre?: string };
     const id = randomBytes(4).toString('hex');
@@ -241,6 +272,7 @@ export function registerServices(ctx: Ctx) {
   app.post('/v1/appels/:id/rejoindre', async (req) => {
     const a = await acteur(req);
     const s = salles.get((req.params as any).id) ?? fail(404, 'Cette salle n\'existe plus.');
+    if (s.planifie && !s.membres.has(a.auth.uid)) return fail(403, 'Ce cours est prévu : entre par « Mes cours prévus » après t\'être inscrit.');
     if (!s.membres.has(a.auth.uid)) {
       if (s.membres.size >= MAX_GROUPE) return fail(409, `Ce groupe est complet (${MAX_GROUPE} personnes au maximum).`);
       s.membres.set(a.auth.uid, { nom: await nomDe(a.auth.uid) });
@@ -264,6 +296,120 @@ export function registerServices(ctx: Ctx) {
     const depuis = Number((req.query as any).depuis) || 0;
     return { membres: [...s.membres].map(([uid, m]) => ({ uid, nom: m.nom, hote: uid === s.hote })), signaux: s.signaux.filter(x => x.a === a.auth.uid && x.n > depuis), dernier: s.n };
   });
+  // ---------------------------------------------------------------- planning des cours à distance (14 nov. 2026)
+  const AVANCE_ENTREE_MS = 15 * 60_000;
+  // ---------------------------------------------------------------- professeurs et tarif générique (14 nov. 2026)
+  const estProfesseur = async (uid: string) => (await db.query<any>(`SELECT 1 FROM professeurs WHERE user_id = $1`, [uid])).length > 0;
+  const peutAnimer = async (a: { isAdmin: boolean; auth: { uid: string } }) => a.isAdmin || await estProfesseur(a.auth.uid);
+  const tarifCours = async () => ({ ...TARIF_COURS_DEFAUT, ...(await parametre<Partial<TarifCoursDistance>>(db, 'cours_distance', {})) }) as TarifCoursDistance;
+  /** La place est-elle comprise dans une formule de l'élève ? (personnel : toujours) */
+  const placeIncluse = async (a: { isStaff: boolean; auth: { uid: string } }, t: TarifCoursDistance) => {
+    if (a.isStaff) return true;
+    if (!t.plans_inclus.length) return false;
+    const p = await profilAcces(db, a.auth.uid);
+    return p.tout || p.plans.some(x => t.plans_inclus.includes(x));
+  };
+  app.get('/v1/appels/moi', async (req) => {
+    const a = await acteur(req);
+    const t = await tarifCours();
+    return { peutAnimer: await peutAnimer(a), admin: a.isAdmin, professeur: await estProfesseur(a.auth.uid), tarif: t, inclus: await placeIncluse(a, t) };
+  });
+  app.get('/v1/admin/professeurs', async (req) => {
+    await admin(req);
+    return db.query<any>(`SELECT p.user_id AS uid, COALESCE(u.data->>'fullName', u.data->>'displayName', p.user_id) AS nom, u.data->>'email' AS email, p.created_at AS depuis FROM professeurs p LEFT JOIN users u ON u.id = p.user_id ORDER BY nom`);
+  });
+  app.post('/v1/admin/professeurs', async (req, reply) => {
+    const a = await admin(req);
+    const { userId } = (req.body || {}) as { userId?: string };
+    if (!str(userId) || !(await db.query<any>(`SELECT 1 FROM users WHERE id = $1`, [userId])).length) return fail(404, 'Utilisateur introuvable.');
+    await db.query(`INSERT INTO professeurs (user_id, nomme_par) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [userId, a.auth.uid]);
+    await journaliser(db, a.auth.uid, 'professeur_nomme', userId);
+    return reply.status(201).send({ ok: true });
+  });
+  app.delete('/v1/admin/professeurs/:uid', async (req, reply) => {
+    const a = await admin(req);
+    await db.query(`DELETE FROM professeurs WHERE user_id = $1`, [(req.params as any).uid]);
+    await journaliser(db, a.auth.uid, 'professeur_retire', (req.params as any).uid);
+    return reply.status(204).send();
+  });
+
+  const formePlanning = async (r: any, uid: string) => ({
+    prixFcfa: Number(r.prix_fcfa) || 0,
+    code: r.code, titre: r.titre, debut: new Date(r.debut).toISOString(), dureeMin: r.duree_min, hote: r.hote_id === uid, hoteNom: await nomDe(r.hote_id),
+    inscrits: (r.inscrits as string[]).length, inscrit: (r.inscrits as string[]).includes(uid), places: MAX_GROUPE,
+    ouvert: Date.now() >= new Date(r.debut).getTime() - AVANCE_ENTREE_MS && Date.now() <= new Date(r.debut).getTime() + r.duree_min * 60_000,
+  });
+  const lirePlanning = async (code: string) => (await db.query<any>(`SELECT * FROM cours_planifies WHERE code = $1`, [String(code || '').toLowerCase()]))[0] ?? fail(404, 'Aucun cours prévu avec ce code.');
+  app.post('/v1/appels/planning', async (req, reply) => {
+    const a = await acteur(req);
+    if (!(await peutAnimer(a))) return fail(403, 'Seuls les professeurs et les administrateurs créent des cours à distance.');
+    const { titre, debut, dureeMin, professeurId } = (req.body || {}) as { titre?: string; debut?: string; dureeMin?: number; professeurId?: string };
+    // Un administrateur peut désigner le professeur du cours ; un professeur anime toujours lui-même.
+    let hote = a.auth.uid;
+    if (str(professeurId) && professeurId !== a.auth.uid) {
+      if (!a.isAdmin) return fail(403, 'Seul un administrateur désigne le professeur d\'un cours.');
+      if (!(await estProfesseur(professeurId))) return fail(400, 'Cette personne n\'est pas professeur : nomme-la d\'abord dans la console.');
+      hote = professeurId;
+    }
+    const t = Date.parse(String(debut ?? ''));
+    if (!Number.isFinite(t) || t < Date.now() - 5 * 60_000 || t > Date.now() + 60 * 86_400_000) return fail(400, 'Choisis une date dans les 60 prochains jours.');
+    const duree = Number(dureeMin ?? 60);
+    if (!Number.isInteger(duree) || duree < 15 || duree > 180) return fail(400, 'Durée : entre 15 et 180 minutes.');
+    const n = (await db.query<any>(`SELECT count(*)::int AS n FROM cours_planifies WHERE hote_id = $1 AND debut + make_interval(mins => duree_min) > clock_timestamp()`, [hote]))[0].n;
+    if (n >= 20) return fail(429, 'Ce professeur a déjà 20 cours prévus.');
+    const code = randomBytes(4).toString('hex');
+    // Prix fixé maintenant d'après le tarif générique (un changement de tarif ne touche pas les cours déjà prévus).
+    const prix = prixSeance(await tarifCours(), duree);
+    await db.query(`INSERT INTO cours_planifies (code, hote_id, titre, debut, duree_min, inscrits, prix_fcfa, cree_par) VALUES ($1,$2,$3,$4,$5,ARRAY[$2],$6,$7)`, [code, hote, String(titre || 'Cours à distance').slice(0, 80), new Date(t).toISOString(), duree, prix, a.auth.uid]);
+    return reply.status(201).send(await formePlanning(await lirePlanning(code), a.auth.uid));
+  });
+  app.get('/v1/appels/planning', async (req) => {
+    const a = await acteur(req);
+    const r = await db.query<any>(`SELECT * FROM cours_planifies WHERE $1 = ANY(inscrits) AND debut + make_interval(mins => duree_min) > clock_timestamp() ORDER BY debut LIMIT 50`, [a.auth.uid]);
+    return Promise.all(r.map(x => formePlanning(x, a.auth.uid)));
+  });
+  app.get('/v1/appels/planning/:code', async (req) => { const a = await acteur(req); return formePlanning(await lirePlanning((req.params as any).code), a.auth.uid); });
+  app.post('/v1/appels/planning/:code/inscrire', async (req, reply) => {
+    const a = await acteur(req);
+    const p = await lirePlanning((req.params as any).code);
+    if (new Date(p.debut).getTime() + p.duree_min * 60_000 < Date.now()) return fail(410, 'Ce cours est terminé.');
+    if (!p.inscrits.includes(a.auth.uid) && Number(p.prix_fcfa) > 0 && !(await placeIncluse(a, await tarifCours()))) {
+      if (p.inscrits.length >= MAX_GROUPE) return fail(409, `Ce cours est complet (${MAX_GROUPE} personnes au maximum).`);
+      return reply.status(402).send({ error: `Place payante : ${p.prix_fcfa} FCFA.`, paiement: { produitId: `seance:${p.code}`, prixFcfa: Number(p.prix_fcfa) } });
+    }
+    if (!p.inscrits.includes(a.auth.uid)) {
+      const r = await db.query<any>(`UPDATE cours_planifies SET inscrits = array_append(inscrits, $2) WHERE code = $1 AND NOT ($2 = ANY(inscrits)) AND cardinality(inscrits) < $3 RETURNING code`, [p.code, a.auth.uid, MAX_GROUPE]);
+      if (!r.length) return fail(409, `Ce cours est complet (${MAX_GROUPE} personnes au maximum).`);
+    }
+    return formePlanning(await lirePlanning(p.code), a.auth.uid);
+  });
+  app.post('/v1/appels/planning/:code/desinscrire', async (req, reply) => {
+    const a = await acteur(req);
+    const p = await lirePlanning((req.params as any).code);
+    const payants = Number(p.prix_fcfa) > 0 && (p.inscrits as string[]).length > 1;
+    if ((p.hote_id === a.auth.uid || a.isAdmin) && payants && !a.isAdmin) return fail(409, 'Des élèves ont payé leur place : seul un administrateur peut annuler ce cours (remboursements).');
+    if (p.hote_id === a.auth.uid || (a.isAdmin && !p.inscrits.includes(a.auth.uid))) {
+      if (payants) await journaliser(db, a.auth.uid, 'cours_annule_a_rembourser', p.code, { inscrits: p.inscrits, prix: p.prix_fcfa });
+      await db.query(`DELETE FROM cours_planifies WHERE code = $1`, [p.code]);
+    }
+    else await db.query(`UPDATE cours_planifies SET inscrits = array_remove(inscrits, $2) WHERE code = $1`, [p.code, a.auth.uid]);
+    return reply.status(204).send();
+  });
+  /** Entrer dans la salle d'un cours prévu : 15 minutes avant l'heure jusqu'à la fin, pour les inscrits seulement. */
+  app.post('/v1/appels/planning/:code/entrer', async (req) => {
+    const a = await acteur(req);
+    const p = await lirePlanning((req.params as any).code);
+    if (!p.inscrits.includes(a.auth.uid)) return fail(403, 'Inscris-toi d\'abord à ce cours.');
+    const debut = new Date(p.debut).getTime();
+    if (Date.now() < debut - AVANCE_ENTREE_MS) return fail(425, 'La salle ouvre 15 minutes avant le cours.');
+    if (Date.now() > debut + p.duree_min * 60_000) return fail(410, 'Ce cours est terminé.');
+    nettoyer();
+    let s = salles.get(p.code);
+    if (!s) { s = { id: p.code, hote: p.hote_id, titre: p.titre, cree: Date.now(), membres: new Map(), signaux: [], n: 0, planifie: true }; salles.set(p.code, s); }
+    if (!s.membres.has(a.auth.uid)) s.membres.set(a.auth.uid, { nom: await nomDe(a.auth.uid) });
+    return { id: s.id, titre: s.titre, membres: [...s.membres].map(([uid, m]) => ({ uid, nom: m.nom, hote: uid === s!.hote })) };
+  });
+
   app.post('/v1/appels/:id/quitter', async (req, reply) => {
     const a = await acteur(req);
     const s = salles.get((req.params as any).id);

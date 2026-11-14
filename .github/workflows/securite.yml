@@ -1,0 +1,43 @@
+# Contrôle de sécurité à chaque envoi (SECURITE_ISO27001.md, règles S1, F1, API4, P1).
+name: Sécurité
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 5 * * 1'   # chaque lundi : nouvelles failles publiées dans les dépendances
+permissions:
+  contents: read
+jobs:
+  controle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Secrets dans les fichiers versionnés
+        run: scripts/secrets_interdits.sh --tout
+      - name: Secrets dans l'historique (clés déjà révoquées exclues)
+        run: |
+          trouve=$(git log -p --all | grep -ohE 'AIza[0-9A-Za-z_-]{35}|sk-ant-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}' | sort -u | grep -vE '^AIza(SyAYtb|SyApKx|SyBXuS|SyBxTH)' || true)
+          if [ -n "$trouve" ]; then echo "Secret dans l'historique : $(echo "$trouve" | cut -c1-8)…"; exit 1; fi
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: "Serveur : dépendances"
+        working-directory: server
+        run: npm ci
+      - name: "Serveur : types"
+        working-directory: server
+        run: npx tsc --noEmit -p .
+      - name: "Serveur : tests"
+        working-directory: server
+        run: npm test
+      - name: "Serveur : failles high/critical (bloquant)"
+        working-directory: server
+        run: npm audit --omit=dev --audit-level=high
+      - name: "App : types"
+        working-directory: apps/nkala
+        run: npm ci --ignore-scripts && npx tsc --noEmit
+      - name: "App et site : failles (signalées)"
+        run: |
+          (cd apps/nkala && npm audit --omit=dev --audit-level=high) || echo "::warning::App : failles high/critical à traiter avant le prochain build"
+          (npm audit --omit=dev --audit-level=high) || echo "::warning::Site : failles high/critical à traiter"

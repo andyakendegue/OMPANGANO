@@ -14,6 +14,8 @@ export interface AuthUser {
   picture?: string;
   /** Numéro E.164 pour les comptes créés par SMS. */
   phone?: string;
+  /** Date d'émission du jeton (secondes) : sert à la révocation des sessions SMS. */
+  iat?: number;
 }
 
 export type TokenVerifier = (token: string) => Promise<AuthUser>;
@@ -33,7 +35,8 @@ export function userFromClaims(p: Record<string, any>, projectId = FIREBASE_PROJ
     emailVerified: p.email_verified === true,
     provider,
     name: typeof p.name === 'string' ? p.name : undefined,
-    picture: typeof p.picture === 'string' ? p.picture : undefined
+    picture: typeof p.picture === 'string' ? p.picture : undefined,
+    iat: typeof p.auth_time === 'number' ? p.auth_time : typeof p.iat === 'number' ? p.iat : undefined
   };
 }
 

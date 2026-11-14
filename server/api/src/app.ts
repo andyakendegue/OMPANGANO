@@ -9,17 +9,22 @@ import { EventEmitter } from 'node:events';
 import type { Db, Queryable } from './db.ts';
 import type { AuthUser, TokenVerifier } from './auth.ts';
 import type { MediaStorage } from './storage.ts';
-import { MAX_UPLOAD_BYTES, SUPER_ADMIN_EMAIL, UPLOAD_URL_TTL_S } from './config.ts';
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_VIDEO_BYTES, MAX_ENVOIS_ANNONCES_JOUR, SUPER_ADMIN_EMAIL, UPLOAD_URL_TTL_S } from './config.ts';
 import {
   CURSOR_SQL, cleanData, contributionRow, genericRow, isGenericTable, isSyncTable, iso, serializeRow, userRow,
   type GenericTable, type SyncTable
 } from './model.ts';
 import { importItems } from './importItems.ts';
 import { journaliserErreur } from './erreurs.ts';
+import { journaliser as journaliserAdmin } from './ctx.ts';
+import { deriverCles } from './cles.ts';
+import { empreinteCompte, registerDonnees } from './donnees.ts';
 import { estJetonSession, fournisseurParDefaut, lireSession, type FournisseurSms } from './sms.ts';
 import { registerContenus } from './contenus.ts';
 import { registerJeux } from './jeux.ts';
+import { registerAzeva } from './azeva.ts';
 import { registerServices } from './services.ts';
+import { registerChats } from './chats.ts';
 import { fournisseurEmbeddingParDefaut, fournisseurIaParDefaut, registerIaAdmin, type FournisseurEmbedding, type FournisseurIa } from './ia.ts';
 import { registerSupervision } from './supervision.ts';
 import { registerMedia } from './media.ts';
@@ -29,6 +34,7 @@ import { registerLivres } from './livres.ts';
 import { registerPush } from './push.ts';
 import { registerAchats } from './achats.ts';
 import { registerMobileMoney } from './mobilemoney.ts';
+import { registerNkorouna } from './nkorouna.ts';
 import { registerExemples } from './exemples.ts';
 import { registerComptes } from './comptes.ts';
 import { enregistrerVisite, lireStatistiques, tropDeRequetes } from './visites.ts';
@@ -86,6 +92,8 @@ const RECORD_ID_RE = /^[A-Za-z0-9_.-]{1,200}$/;
 const CONTRIBUTION_STATUSES: string[] = ['pending', 'approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
 const VALIDATION_STATUSES: ContributionStatus[] = ['approved', 'rejected', 'needs_revision', 'audio_approved_text_revision', 'text_approved_audio_revision'];
 const ROLES = ['user', 'validator', 'admin'];
+/** Durée de validité des droits d'administration d'une session SMS (ADMIN_TELEPHONES). */
+const ADMIN_TEL_FRAICHEUR_S = 12 * 3600;
 const ACCOUNT_STATUSES = ['active', 'flagged', 'suspended'];
 /** Champs d'une contribution que le navigateur ne fixe jamais. */
 const CONTRIBUTION_SERVER_FIELDS = [
@@ -117,9 +125,15 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   // Garde-fous du corpus : phrases écartées et correction des anciennes phrases de départ (idempotent)
   await db.tx(q => preparerProtection(q));
   const app = Fastify({
-    logger: deps.logger === false ? false : { level: 'info', redact: ['req.headers.authorization', 'req.headers.cookie'] },
+    // Journaux : jamais de jeton ni de paramètre d'adresse (licences ?t=…, recherches) ; méthode, chemin et IP seulement (ISO 27001 A.8.15)
+    logger: deps.logger === false ? false : {
+      level: 'info',
+      redact: ['req.headers.authorization', 'req.headers.cookie'],
+      serializers: { req: (r: any) => ({ method: r.method, url: String(r.url || '').split('?')[0], ip: r.ip }) }
+    },
     bodyLimit: 8 * 1024 * 1024,
-    trustProxy: true,
+    // Seul le Caddy du VPS (réseaux Docker 172.16.0.0/12) ou la machine elle-même peuvent fixer X-Forwarded-For
+    trustProxy: process.env.TRUST_PROXY || '127.0.0.1,::1,172.16.0.0/12',
     disableRequestLogging: false
   });
   const bus = new EventEmitter();
@@ -148,6 +162,16 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return reply.status(500).send({ error: 'Erreur interne.' });
   });
 
+  // En-têtes de sécurité sur toutes les réponses de l'API (ISO 27001 A.8.26) ; données personnelles jamais mises en cache
+  app.addHook('onSend', async (req, reply, payload) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('Referrer-Policy', 'no-referrer');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    if (/^\/(v1|auth)\//.test(req.url) && !reply.hasHeader('Cache-Control')) reply.header('Cache-Control', 'no-store');
+    return payload;
+  });
+
   app.get('/health', async () => {
     await db.query('SELECT 1');
     return { ok: true };
@@ -165,6 +189,17 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     } catch {
       fail(401, 'Jeton invalide ou expiré.');
     }
+    // Révocation (ISO 27001 A.8.5) : jeton émis avant la suppression du compte ou avant « déconnecter partout » ; session SMS d'un compte fusionné.
+    // Firebase : `iat` vaut ici auth_time (date de connexion, conservée quand le jeton se renouvelle), donc la révocation oblige à se reconnecter.
+    const au = req.auth!;
+    if (au.iat) {
+      const r = (await db.query<any>(
+        `SELECT (SELECT data->>'sessionsRevoqueesAvant' FROM users WHERE id = $1) AS revoque,
+                (SELECT deleted_at FROM users WHERE id = $1) AS fusionne,
+                (SELECT at FROM comptes_supprimes WHERE empreinte = $2) AS supprime`, [au.uid, empreinteCompte(au.uid)]))[0] ?? {};
+      const avant = (d: unknown) => { const t = d ? new Date(d as string).getTime() : NaN; return !Number.isNaN(t) && au.iat! <= Math.floor(t / 1000); };
+      if (avant(r.revoque) || avant(r.supprime) || (au.provider === 'phone' && r.fusionne)) fail(401, 'Session révoquée. Reconnecte-toi.');
+    }
   });
 
   await app.register(rateLimit, {
@@ -172,7 +207,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     timeWindow: '1 minute',
     hook: 'preHandler',
     keyGenerator: (req) => req.auth?.uid || req.ip,
-    allowList: (req) => !req.url.startsWith('/v1/')
+    // Toutes les routes sont limitées (routes publiques /pub, /auth et /media comprises), sauf la sonde de santé
+    allowList: (req) => req.url === '/health'
   });
 
   // ------------------------------------------------------------------ utilitaires métier
@@ -182,7 +218,10 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const isSuper = isSuperAdmin(auth);
     // Administrateurs désignés par numéro (ADMIN_TELEPHONES=+24106123456,…) : utile avec la connexion par SMS
     const parTel = !!auth.phone && (process.env.ADMIN_TELEPHONES || '').split(',').map(x => x.trim()).filter(Boolean).includes(auth.phone);
-    const isAdmin = isSuper || parTel || adm.length > 0;
+    // Session SMS = un seul facteur : droits d'administration seulement pour une connexion de moins de 12 h (vol de jeton borné).
+    // Les jetons sans date (tests) gardent leurs droits.
+    const frais = auth.provider !== 'phone' || !auth.iat || Date.now() / 1000 - auth.iat < ADMIN_TEL_FRAICHEUR_S;
+    const isAdmin = isSuper || (frais && (parTel || adm.length > 0));
     const role = isAdmin ? 'admin' : rows[0]?.role || 'user';
     return { auth, isSuper, isAdmin, isStaff: isAdmin || role === 'validator', role, status: rows[0]?.status || 'active', exists: rows.length > 0 };
   }
@@ -268,6 +307,13 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       if (!isAdmin) return 'Les images sont réservées aux administrateurs.';
       return /^images\/[A-Za-z0-9._\/-]{1,250}$/.test(path) ? null : 'Chemin invalide.';
     }
+    if (path.startsWith('annonces/')) {
+      // Médias d'annonce : annonces/{uid}/{brouillonId}/{fichier}, chacun dans son propre dossier.
+      if (kind) return 'Chemin incompatible avec le type de fichier.';
+      const m = /^annonces\/([^/]+)\/([A-Za-z0-9_-]{6,64})\/[A-Za-z0-9._-]{1,120}$/.exec(path);
+      if (!m) return 'Chemin invalide.';
+      return m[1] === uid ? null : 'Vous ne pouvez envoyer des médias que dans votre propre dossier.';
+    }
     return 'Dossier inconnu.';
   }
 
@@ -279,10 +325,34 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return userRow(row);
   });
 
+  /** Déconnecte toutes les sessions SMS du compte (téléphone perdu ou volé) ; l'appareil courant doit se reconnecter. */
+  app.post('/v1/me/sessions/revoquer', async (req) => {
+    await db.tx(async q => {
+      await ensureUser(q, req.auth!);
+      await q.query(`UPDATE users SET data = data || jsonb_build_object('sessionsRevoqueesAvant', $2::text) WHERE id = $1`, [req.auth!.uid, new Date().toISOString()]);
+      await journaliserAdmin(q, req.auth!.uid, 'sessions_revoquees', req.auth!.uid);
+    });
+    return { revoque: true };
+  });
+
+  app.post('/v1/admin/users/:id/sessions/revoquer', async (req) => {
+    const { id } = req.params as { id: string };
+    const a = await actorOf(req);
+    if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
+    if (!ID_RE.test(id)) fail(400, 'Identifiant invalide.');
+    const r = await db.tx(async q => {
+      const n = await q.query(`UPDATE users SET data = data || jsonb_build_object('sessionsRevoqueesAvant', $2::text) WHERE id = $1 RETURNING id`, [id, new Date().toISOString()]);
+      if (n.length) await journaliserAdmin(q, a.auth.uid, 'sessions_revoquees', id);
+      return n.length;
+    });
+    if (!r) fail(404, 'Utilisateur introuvable.');
+    return { revoque: true };
+  });
+
   app.patch('/v1/me', async (req) => {
     const body = (req.body || {}) as Record<string, unknown>;
     // Champs protégés ignorés (jamais d'erreur : un ancien client peut encore les envoyer)
-    const safe = cleanData(stripProtectedUserFields(body as Partial<UserProfile>, 'user') as Record<string, unknown>, ['email', 'createdAt', 'role']);
+    const safe = cleanData(stripProtectedUserFields(body as Partial<UserProfile>, 'user') as Record<string, unknown>, ['email', 'createdAt', 'role', 'sessionsRevoqueesAvant']);
     const row = await db.tx(async q => {
       await ensureUser(q, req.auth!);
       await q.query(`UPDATE users SET data = data || $2::jsonb WHERE id = $1`, [req.auth!.uid, JSON.stringify(safe)]);
@@ -585,7 +655,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       }
       if (body.weeklyProgress !== undefined) set('weekly_progress', JSON.stringify(body.weeklyProgress || {}));
       if (body.completedChallenges !== undefined) set('completed_challenges', JSON.stringify(body.completedChallenges || []));
-      const rest = cleanData(body, [...PROTECTED_USER_FIELDS, 'email', 'createdAt']);
+      const rest = cleanData(body, [...PROTECTED_USER_FIELDS, 'email', 'createdAt', 'sessionsRevoqueesAvant']);
       if (Object.keys(rest).length) set('data', JSON.stringify({ ...cur.data, ...rest }));
       if (sets.length) await q.query(`UPDATE users SET ${sets.join(', ')} WHERE id = $1`, vals);
       if (body.role !== undefined) {
@@ -595,6 +665,12 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
           await q.query(`UPDATE admins SET deleted_at = clock_timestamp() WHERE id = $1 AND deleted_at IS NULL`, [id]);
         }
       }
+      // Traçabilité des actions d'administration (ISO 27001 A.8.15) : qui a changé quoi sur quel compte
+      await journaliserAdmin(q, a.auth.uid, 'utilisateur_modifie', id, {
+        champs: Object.keys(body).filter(k => k !== 'updatedAt'),
+        ...(body.role !== undefined ? { role: { avant: cur.role, apres: body.role } } : {}),
+        ...(body.status !== undefined ? { statut: { avant: cur.status, apres: body.status } } : {})
+      });
       return (await q.query<any>(`SELECT * FROM users WHERE id = $1`, [id]))[0];
     });
     notify('users');
@@ -1048,6 +1124,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const a = await actorOf(req);
     if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.');
     await db.query(`UPDATE ${collection} SET deleted_at = clock_timestamp() WHERE id = $1 AND deleted_at IS NULL`, [id]);
+    await journaliserAdmin(db, a.auth.uid, 'suppression', `${collection}/${id}`);
     notify(collection);
     return reply.status(204).send();
   });
@@ -1062,6 +1139,19 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     const err = mediaPathError(path, a.auth.uid, a.isAdmin);
     if (err) fail(403, err);
     const ct = str(body.contentType) ? body.contentType.split(';')[0].trim().toLowerCase() : '';
+    if (str(path) && path.startsWith('annonces/')) {
+      // Annonces : photos (jpeg, png, webp) 15 Mo, vidéos (mp4, quicktime) 50 Mo ; 60 URL par jour et par compte.
+      const video = /^video\/(mp4|quicktime)$/.test(ct);
+      if (!video && !/^image\/(jpeg|png|webp)$/.test(ct)) fail(400, 'Seules les photos (JPEG, PNG, WebP) et les vidéos (MP4, MOV) sont acceptées.');
+      const taille = Number(body.size);
+      if (!Number.isFinite(taille) || taille <= 0) fail(400, 'Taille du fichier requise.');
+      if (taille > (video ? MAX_UPLOAD_VIDEO_BYTES : MAX_UPLOAD_BYTES)) fail(413, video ? 'Vidéo trop lourde (50 Mo maximum).' : 'Photo trop lourde (15 Mo maximum).');
+      const n = await db.query<any>(`SELECT count(*)::int AS n FROM medias_annonces_envois WHERE user_id = $1 AND at > clock_timestamp() - interval '1 day'`, [a.auth.uid]);
+      if (n[0].n >= MAX_ENVOIS_ANNONCES_JOUR) fail(429, 'Trop de médias envoyés aujourd\'hui. Réessayez demain.');
+      await db.query(`INSERT INTO medias_annonces_envois (user_id, chemin, octets) VALUES ($1,$2,$3)`, [a.auth.uid, path, taille]);
+      const uploadUrl = await storage.presignPut(path, ct, taille, UPLOAD_URL_TTL_S);
+      return { uploadUrl, path, headers: { 'Content-Type': ct }, expiresIn: UPLOAD_URL_TTL_S };
+    }
     if (!(isImage ? /^image\/[a-z0-9.+-]+$/ : /^audio\/[a-z0-9.+-]+$/).test(ct)) fail(400, isImage ? 'Seuls les fichiers image sont acceptés.' : 'Seuls les fichiers audio sont acceptés.');
     const size = Number(body.size);
     if (!Number.isFinite(size) || size <= 0) fail(400, 'Taille du fichier requise.');
@@ -1072,7 +1162,12 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
 
   app.get('/v1/media/url', async (req) => {
     const path = (req.query as { path?: string }).path;
-    if (!str(path) || path.includes('..') || !(path.startsWith('recordings/') || path.startsWith('images/'))) fail(400, 'Chemin invalide.');
+    if (!str(path) || path.includes('..') || !(path.startsWith('recordings/') || path.startsWith('images/') || path.startsWith('annonces/'))) fail(400, 'Chemin invalide.');
+    if (path!.startsWith('annonces/')) {
+      // Brouillon d'annonce : l'auteur ou un modérateur seulement (les annonces publiées sortent signées par /pub/annonces).
+      const a = await actorOf(req);
+      if (!a.isStaff && !path!.startsWith(`annonces/${a.auth.uid}/`)) fail(403, 'Accès refusé.');
+    }
     return { url: await storage.presignGet(path!, 3600), expiresIn: 3600 };
   });
 
@@ -1097,20 +1192,24 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   const nk = {
     app, db, fail,
     acteur: async (req: FastifyRequest) => { const a = await actorOf(req); return { auth: a.auth, isAdmin: a.isAdmin, isStaff: a.isStaff, role: a.role, status: a.status }; },
-    ensureUser, notify, env: process.env, sms: deps.sms ?? fournisseurParDefaut(), ia: deps.ia ?? fournisseurIaParDefaut(), embed: deps.embed ?? fournisseurEmbeddingParDefaut(), secret
+    ensureUser, notify, env: process.env, sms: deps.sms ?? fournisseurParDefaut(), ia: deps.ia ?? fournisseurIaParDefaut(), embed: deps.embed ?? fournisseurEmbeddingParDefaut(), secret, cles: deriverCles(secret)
   };
-  registerContenus(nk);
+  registerContenus(nk, storage);
   registerJeux(nk);
+  registerAzeva(nk);
   registerServices(nk);
+  registerChats(nk);
   registerIaAdmin(nk);
   registerSupervision(nk);
   registerMedia(nk, storage);
+  registerDonnees(nk, storage);
   registerRegie(nk);
   registerRadio(nk);
   registerLivres(nk);
   registerPush(nk);
   registerAchats(nk);
   registerMobileMoney(nk);
+  registerNkorouna(nk);
   registerExemples(nk);
   registerComptes(nk);
 

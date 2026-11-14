@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ecrireSecret, effacerSecret, lireSecret } from './coffre';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (copie && (copie.id === auth.currentUser?.uid || (uidCourant === 'sms' && String(copie.id).startsWith('tel_'))) && (((e as { status?: number }).status ?? 0) === 0 || ((e as { status?: number }).status ?? 0) >= 500)) { setProfil(prev => prev ?? copie); setErreurProfil(null); return; }
       } catch { /* pas de copie */ }
       // Session SMS expirée ou révoquée : retour à l'écran de connexion
-      if ((e as { status?: number }).status === 401 && jetonSessionSms() && !auth.currentUser) { definirSessionSms(null); AsyncStorage.removeItem(CLE_SMS).catch(() => {}); setProfil(null); return; }
+      if ((e as { status?: number }).status === 401 && jetonSessionSms() && !auth.currentUser) { definirSessionSms(null); effacerSecret(CLE_SMS); setProfil(null); return; }
       setErreurProfil((e as Error).message);
     }
   }, []);
@@ -81,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Session SMS restaurée au démarrage
   useEffect(() => {
-    AsyncStorage.getItem(CLE_SMS).then(v => { if (v) definirSessionSms(JSON.parse(v).jeton); }).catch(() => {}).finally(() => setSmsPret(true));
+    lireSecret(CLE_SMS).then(v => { if (v) definirSessionSms(JSON.parse(v).jeton); }).catch(() => {}).finally(() => setSmsPret(true));
   }, []);
 
   useEffect(() => { if (!smsPret) return; return onAuthStateChanged(auth, async (u) => {
@@ -92,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const connexionSms = useCallback(async (telephone: string, code: string) => {
     const r = await verifierCodeSms(telephone, code);
     definirSessionSms(r.jeton);
-    await AsyncStorage.setItem(CLE_SMS, JSON.stringify({ jeton: r.jeton, uid: r.uid, telephone: r.telephone }));
+    await ecrireSecret(CLE_SMS, JSON.stringify({ jeton: r.jeton, uid: r.uid, telephone: r.telephone }));
     regler({ invite: false });
     await recharger();
   }, [recharger, regler]);
@@ -116,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const deconnexion = useCallback(async () => {
     if (auth.currentUser) await fbSignOut(auth);
-    definirSessionSms(null); AsyncStorage.removeItem(CLE_SMS).catch(() => {});
+    definirSessionSms(null); effacerSecret(CLE_SMS);
     setProfil(null); regler({ invite: false }); AsyncStorage.removeItem('nkala_profil_cache').catch(() => {});
   }, [regler]);
 
