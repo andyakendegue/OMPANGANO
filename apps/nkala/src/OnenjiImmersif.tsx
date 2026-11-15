@@ -136,9 +136,9 @@ export function CarteSon({ ex, enfant, onSuite, Son }: { ex: Exercice; enfant: b
   const p = phonemeDe(ex.graphie);
   const exemples = exemplesSon(ex.options);
   // Exemples du contenu d'abord, puis ceux de la table des sons (Ambouroue, avec les tons) qui ne font pas doublon.
-  const duContenu = exemples.map(e => ({ ...exempleComplet(e), illustration: e.illustration, source: null as string | null }));
+  const duContenu = exemples.map(e => ({ ...exempleComplet(e), illustration: e.illustration }));
   // Chaque mot avec son écriture, sa transcription (tons) et son sens : l'écriture vient de la transcription si le corpus ne la donne pas.
-  const deLaTable = (p?.exemples ?? []).map(e => ({ ...exempleComplet(e), illustration: null as string | null, source: e.source as string | null }));
+  const deLaTable = (p?.exemples ?? []).map(e => ({ ...exempleComplet(e), illustration: null as string | null }));
   const cle = (e: { mot: string; sens: string }) => `${e.mot.toLowerCase()}|${e.sens.toLowerCase()}`;
   const liste = [...duContenu, ...deLaTable.filter(e => !duContenu.some(d => cle(d) === cle(e) || (!!e.mot && d.mot.toLowerCase() === e.mot.toLowerCase())))];
   return (
@@ -162,7 +162,7 @@ export function CarteSon({ ex, enfant, onSuite, Son }: { ex: Exercice; enfant: b
             <View style={{ flex: 1 }}>
               {!!e.mot && <T v="carte" style={{ fontStyle: 'italic' }}>{e.mot}</T>}
               {!!e.phonetique && <T v="corps" couleur={c.accent}>{e.phonetique}</T>}
-              <T v="petit">« {e.sens} »{e.source ? ` · ${e.source}` : ''}</T>
+              <T v="petit">« {e.sens} »</T>
             </View>
           </View></Carte>
         ))}

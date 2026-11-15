@@ -20,7 +20,7 @@ export function decrireExercice(ex: Exercice, donnee?: string | null): string {
     `Exercice (${ex.type}) : ${ex.consigne ?? ''}`.trim(),
     ex.mot_myene ? `Myènè : ${ex.mot_myene}` : '', ex.mot_francais ? `Français : ${ex.mot_francais}` : '', ex.texte ? `Texte : ${ex.texte.slice(0, 800)}` : '',
     ex.reponse ? `Bonne réponse : ${ex.reponse}` : '', donnee ? `Réponse de l'apprenant : ${donnee}` : '',
-    ex.dialecte ? `Dialecte : ${ex.dialecte}` : '', ex.source ? `Source : ${ex.source}` : '', ex.indice ? `Indice prévu : ${ex.indice}` : '',
+    ex.dialecte ? `Dialecte : ${ex.dialecte}` : '', ex.indice ? `Indice prévu : ${ex.indice}` : '',
   ];
   return l.filter(Boolean).join('\n');
 }
@@ -79,7 +79,7 @@ export function KakIgonjoFeuille({ visible, onClose, titre, consigne, affiche }:
         {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
         <Champ valeur={texte} onChange={setTexte} placeholder="Réponds ou pose une question…" auto="sentences" maxLength={1000} onSubmit={() => { const m = texte.trim(); if (m && !occupe) { setTexte(''); envoyer(m, m); } }} />
         <Bouton label="Envoyer" icone="envoyer" petit charge={occupe} desactive={!texte.trim()} onPress={() => { const m = texte.trim(); if (m) { setTexte(''); envoyer(m, m); } }} />
-        <T v="petit">Kak'Igonjo s'appuie sur les mots vérifiés de la leçon et cite sa source. S'il ne sait pas, il le dit.</T>
+        <T v="petit">Kak'Igonjo s'appuie sur les mots vérifiés de la leçon. S'il ne sait pas, il le dit.</T>
       </>}
     </Feuille>
   );
@@ -90,9 +90,9 @@ export const consignes = {
   expliquer: (lecon: string, ex: Exercice, donnee?: string | null) =>
     `Je suis dans la leçon « ${lecon} » d'Onenji et je me suis trompé. Explique-moi simplement pourquoi, en deux ou trois phrases, puis donne-moi un moyen de m'en souvenir. N'utilise que les mots ci-dessous et dis d'où ils viennent.\n${decrireExercice(ex, donnee)}`,
   question: (lecon: string, ex: Exercice) =>
-    `Je suis dans la leçon « ${lecon} » d'Onenji, sur cet exercice. Aide-moi à le comprendre sans me donner la réponse tout de suite : pose-moi une question pour me mettre sur la voie.\n${decrireExercice(ex)}`,
+    `Je suis dans la leçon « ${lecon} » d'Onenji, sur cet exercice. Aide-moi à le comprendre sans me donner la réponse tout de suite : pose-moi une question pour me mettre sur la voie. Ne cite ni auteur, ni ouvrage, ni page.\n${decrireExercice(ex)}`,
   pratiquer: (lecon: string, exercices: Exercice[]) => {
-    const mots = exercices.filter(e => e.mot_myene).slice(0, 12).map(e => `- ${e.mot_myene}${e.mot_francais ? ` = ${e.mot_francais}` : ''}${e.source ? ` (${e.source})` : ''}`).join('\n');
-    return `Je viens de terminer la leçon « ${lecon} » d'Onenji. Fais-moi pratiquer ces mots dans une petite scène de la vie au village : pose une seule question à la fois, attends ma réponse, corrige-moi avec bienveillance, trois échanges au plus, puis dis-moi ce que je dois retenir. N'utilise que ces mots myènè :\n${mots}`;
+    const mots = exercices.filter(e => e.mot_myene).slice(0, 12).map(e => `- ${e.mot_myene}${e.mot_francais ? ` = ${e.mot_francais}` : ''}`).join('\n');
+    return `Je viens de terminer la leçon « ${lecon} » d'Onenji. Fais-moi pratiquer ces mots dans une petite scène de la vie au village : pose une seule question à la fois, attends ma réponse, corrige-moi avec bienveillance, trois échanges au plus, puis dis-moi ce que je dois retenir. Ne cite ni auteur, ni ouvrage, ni page. N'utilise que ces mots myènè :\n${mots}`;
   },
 };

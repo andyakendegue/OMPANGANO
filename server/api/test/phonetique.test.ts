@@ -104,3 +104,16 @@ test('objets du quotidien, espace, temps, nombres : unités du programme, mots s
   assert.deepEqual([nb.trois, nb.sept, nb.huit], ['ntcharo', 'orwagénomo', 'énanayi'], 'formes corrigées (Leçon 13, corrections du 31 oct. 2026)');
   assert.ok(!JSON.stringify(mots).includes('mbongo'), 'mot écarté par Capp');
 });
+
+test('aucune référence aux documents sources dans ce que voit l\'apprenant (décision de Capp, 15 nov. 2026)', async () => {
+  const REF = /Ambouroue|\bAMB\b|RÈGLES|Teisser|Raponda|Le Berre|\[LEC\]|LEC-ÉCR|décision de Capp|relecteur|\bp\. ?\d|§/;
+  for (const p of [...VOYELLES, ...CONSONNES]) for (const t of [p.articulation, p.distribution ?? '']) assert.doesNotMatch(t, REF, `${p.api} : ${t}`);
+  for (const t of TONS) assert.doesNotMatch(`${t.description}`, REF, t.nom);
+  const champs = ['consigne', 'texte', 'conseil', 'indice', 'mot_francais', 'mot_myene', 'options', 'reponse', 'zones'];
+  for (const e of SEEDS.exercices as Record<string, any>[]) for (const c of champs) if (e[c] != null) assert.doesNotMatch(JSON.stringify(e[c]), REF, `${e.id}.${c}`);
+  const { readFileSync } = await import('node:fs');
+  for (const f of ['OnenjiLecon.tsx', 'OnenjiImmersif.tsx', 'OnenjiGrammaire.tsx', 'KakIgonjoCours.tsx']) {
+    const code = readFileSync(new URL(`../../../apps/nkala/src/${f}`, import.meta.url), 'utf8');
+    assert.doesNotMatch(code, /Source : \$\{|\.source \?/, `${f} affiche encore une source`);
+  }
+});

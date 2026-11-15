@@ -1,6 +1,6 @@
 /**
  * Onenji : leçon interactive en 9 étapes (écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier), fin de leçon,
- * contrôle d'unité (4 sur 5), certificat numéroté. Dialecte et source affichés sous chaque exercice, écoute lente à 0,7×.
+ * contrôle d'unité (4 sur 5), certificat numéroté. Dialecte affiché sous l'exercice (jamais la source : décision de Capp, 15 nov. 2026), écoute lente à 0,7×.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -52,11 +52,14 @@ function Image2({ src, taille, rayon = 24 }: { src?: string | null; taille: numb
 const LIBELLES_DIALECTE: Record<string, string> = { orungu: 'Ôrungu', mpongwe: 'Mpongwè', galwa: 'Galwa', galoa: 'Galwa', nkomi: 'Nkomi', adyumba: 'Adyumba', enenga: 'Enenga' };
 export const libelleDialecte = (d?: string | null) => { const k = (d ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); return LIBELLES_DIALECTE[k] ?? (d ? d.charAt(0).toUpperCase() + d.slice(1) : ''); };
 
-/** Dialecte et source de l'exercice (audit §3.E, maquettes du 10 nov.) : toujours visibles sous l'exercice. */
+/**
+ * Dialecte de l'exercice, sous l'exercice. La source (document ayant servi à créer l'exercice) n'est jamais montrée à l'apprenant
+ * (décision de Capp, 15 nov. 2026) : elle reste dans les données, pour la console et la relecture.
+ */
 function Provenance({ ex }: { ex: Exercice }) {
   const { c } = useTheme();
-  if ((!ex.dialecte && !ex.source) || ex.type === 'jouer') return null;
-  return <T v="petit" style={{ color: c.discret, textAlign: 'center' }}>{[ex.dialecte ? libelleDialecte(ex.dialecte) : null, ex.source ? `Source : ${ex.source}` : null].filter(Boolean).join(' · ')}</T>;
+  if (!ex.dialecte || ex.type === 'jouer') return null;
+  return <T v="petit" style={{ color: c.discret, textAlign: 'center' }}>{libelleDialecte(ex.dialecte)}</T>;
 }
 /** Conseil culturel en bulle. */
 function Conseil({ texte }: { texte?: string | null }) {

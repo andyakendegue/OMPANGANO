@@ -67,10 +67,10 @@ export function FicheGrammaire({ fiche, retour }: { fiche: Ligne | undefined; re
           {!!x.audio && <Son audio={x.audio} lent />}
         </View></Carte>
       ))}</>}
-      <T v="petit" style={{ color: c.discret }}>{[fiche.dialecte ? libelleDialecte(fiche.dialecte) : null, fiche.source ? `Source : ${fiche.source}` : null].filter(Boolean).join(' · ')}</T>
+      <T v="petit" style={{ color: c.discret }}>{fiche.dialecte ? libelleDialecte(fiche.dialecte) : ''}</T>
       {ia.raison !== 'enfant' && <Puce label="Kak'Igonjo m'explique" icone="info" onPress={() => setExplique(true)} />}
       {explique && <KakIgonjoFeuille visible onClose={() => setExplique(false)} titre={fiche.titre}
-        consigne={`Explique-moi simplement cette fiche de grammaire myènè, « ${fiche.titre} » : ${String(fiche.contenu ?? '').slice(0, 1500)}. Exemples de la fiche : ${exemples.map(x => `${x.myene} = ${x.francais}`).join(' ; ')}. Source : ${fiche.source}. N'ajoute aucun mot myènè qui n'est ni dans la fiche ni dans le corpus.`}
+        consigne={`Explique-moi simplement cette fiche de grammaire myènè, « ${fiche.titre} » : ${String(fiche.contenu ?? '').slice(0, 1500)}. Exemples de la fiche : ${exemples.map(x => `${x.myene} = ${x.francais}`).join(' ; ')}. N'ajoute aucun mot myènè qui n'est ni dans la fiche ni dans le corpus.`}
         affiche={`Explique-moi « ${fiche.titre} ».`} />}
     </Ecran>
   );
