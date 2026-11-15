@@ -88,6 +88,28 @@ test('prompt : grammaire myènè, lexique trouvé, formes refusées, aucune réf
   assert.equal((await call('GET', '/v1/admin/ia/lexique?q=viande', tok('x1', 'x1@x.com'))).status, 403);
 });
 
+test('RAG : documents myènè d\'abord, phrases validées v2.0 seulement, versions dépassées jamais', async () => {
+  const { rechercherRag, TITRES_MYENE, TITRES_EXCLUS } = await import('../src/ia.ts');
+  const docs: [string, string, string][] = [
+    ['g1', 'Sources myene › Dictionnaires grammaires › Ambouroue 2007', 'Le connectif nkala ozombi grammaire'],
+    ['v2', 'Donnees › Ompangano › Final v2 regles 2026-11-10 › Import 2 nouveau v2 40125', 'Igomi ny\'imboni nkala ozombi'],
+    ['old', 'Donnees › Ompangano › Corpus myene GEMINI origine 10000', 'Igomi gni mboni nkala ozombi'],
+    ['mod', 'Donnees › Ompangano › Final v2 regles 2026-11-10 › Modifications regles v2', 'avant Igomi gni mboni nkala ozombi'],
+    ['loi', 'Textes officiels › Code civil', 'nkala ozombi article premier'],
+  ];
+  for (const [id, titre, texte] of docs) {
+    await db.query(`INSERT INTO ia_documents (id, titre, texte) VALUES ($1,$2,$3)`, [id, titre, texte]);
+    await db.query(`INSERT INTO ia_chunks (document_id, ordre, texte, embedding) VALUES ($1,0,$2,'[1,0]')`, [id, texte]);
+  }
+  const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
+  const myene = (await rechercherRag(db, embed, 'nkala ozombi', 10, 0, 2000, TITRES_MYENE)).map(r => r.document).sort();
+  assert.deepEqual(myene, ['g1', 'v2']);
+  const general = (await rechercherRag(db, embed, 'nkala ozombi', 10, 0, 2000, undefined, TITRES_EXCLUS)).map(r => r.document).sort();
+  assert.deepEqual(general, ['g1', 'loi'], 'aucune version de phrases dans le passage général');
+  await db.query(`DELETE FROM ia_chunks WHERE document_id = ANY($1::text[])`, [docs.map(d => d[0])]);
+  await db.query(`DELETE FROM ia_documents WHERE id = ANY($1::text[])`, [docs.map(d => d[0])]);
+});
+
 test('le socle myènè (grammaire + lexique) ne compte pas dans le contexte inclus du chat de l\'utilisateur', async () => {
   // Fournisseur de simulation : il mesure l'entrée réelle (prompt complet + messages), comme un vrai modèle.
   await call('PUT', '/v1/admin/parametres/ia_quotas', ADMIN, { valeur: { parJour: 10_000_000, parMois: 100_000_000, parConversation: 100_000 } });
@@ -105,6 +127,24 @@ test('le socle myènè (grammaire + lexique) ne compte pas dans le contexte incl
   assert.equal(r.status, 200, JSON.stringify(r.body));
   assert.ok(r.body.chat.contexte.jetons < 3000, `contexte compté : ${r.body.chat.contexte.jetons} (prompt complet : ${estimerJetons(systeme)})`);
   assert.equal(r.body.chat.contexte.exces, 0, 'aucun frais dès le premier message');
+});
+
+test('traducteur : JSON lu, mots non attestés signalés, phrase composée « à vérifier », avantage requis', async () => {
+  const { lireJsonTraduction } = await import('../src/traduction.ts');
+  const { motsNonAttestes } = await import('../src/lexiqueMyene.ts');
+  assert.equal(lireJsonTraduction('Voici : ```json\n{"traduction":"Mi nya nyama","mot_a_mot":[{"myene":"mi","fr":"je"}],"compose":true}\n```')!.traduction, 'Mi nya nyama');
+  assert.equal(lireJsonTraduction('pas de json'), null);
+  assert.deepEqual(motsNonAttestes("Mi zorbak nyama n'ozèwè"), ['zorbak'], 'mot inventé signalé ; mi (outil), nyama, ozèwè attestés ; élision lue');
+  assert.deepEqual(motsNonAttestes('Wi dendé *grève*', ['grève']), ['dendé']);
+  const u = tok('trad', 't@x.com'); await call('GET', '/v1/me', u);
+  assert.equal((await call('POST', '/v1/traduction', u, { texte: 'Bonjour', sens: 'fr-myene' })).status, 402);
+  assert.equal((await call('POST', '/v1/traduction', ADMIN, { texte: 'Bonjour' })).status, 400, 'sens obligatoire');
+  // Modèle de simulation : réponse hors format → renvoyée telle quelle, « à vérifier »
+  const r = await call('POST', '/v1/traduction', ADMIN, { texte: 'La viande', sens: 'fr-myene' });
+  assert.equal(r.status, 200, JSON.stringify(r.body)); assert.equal(r.body.confiance, 'a_verifier');
+  // Myènè → français depuis une transcription phonétique (sortie future de la reconnaissance vocale)
+  const p = await call('POST', '/v1/traduction', ADMIN, { api: '[ɲàmá]', sens: 'myene-fr' });
+  assert.equal(p.body.source, 'nyama');
 });
 
 test('synthèse audio : réservée à l\'avantage synthese_audio, API prioritaire, texte converti sans tons, cache', async () => {

@@ -113,4 +113,38 @@ export function blocLexique(question: string, max = 30): string {
   return b;
 }
 
+/** Mots-outils de la grammaire (pronoms, marques de temps, particules, formules) : toujours connus. */
+const OUTILS = ('mi ma mya my myè myé wé we wa é e a ayè zé ze za zwa azwè azwé nwé nwe né ne na nwa anwè wi wawo awè bé be go g gô ni n ga pa i re ré '
+  + 'zélé zele wéré were ndô ndo kondènè sé se nde nd ndé w y z ny m s mbolo mbôluani akéwa mpolo salé nyéza izami iyami izô iyô izè iyè izazo iyazo izani iyani izawo iyawo '
+  + 'igomi agom ambani araro anayi atani nkama ntozèni').split(' ');
+
+let formes: { cle: string; ensemble: Set<string> } | null = null;
+/** Le mot (graphie DONDO) est-il attesté : lexique, cours, mots fixés de la grammaire ? Comparaison sans accents ni majuscules. */
+export function formeConnue(mot: string): boolean {
+  const idx = indexLexique();
+  const cle = `${idx.entrees.length}:${idx.mtime}`;
+  if (!formes || formes.cle !== cle) {
+    const ensemble = new Set<string>(OUTILS.map(radicalMyene));
+    for (const e of idx.entrees) for (const m of e.f.split(/[\s,;:!?.()«»"…/]+/)) for (const p of m.split(/['’]/)) { const r = radicalMyene(p); if (r) ensemble.add(r); }
+    formes = { cle, ensemble };
+  }
+  const r = radicalMyene(mot);
+  return !r || formes.ensemble.has(r);
+}
+const radicalMyene = (m: string) => sansAccents(m).replace(/[^a-z0-9ɛɔñ]/g, '');
+
+/** Mots myènè d'un texte qui ne sont pas attestés (les mots entre astérisques, gardés en français, sont ignorés). */
+export function motsNonAttestes(texte: string, francaisGardes: string[] = []): string[] {
+  const garde = new Set(francaisGardes.flatMap(f => f.split(/\s+/)).map(radicalMyene));
+  const sans = texte.replace(/\*[^*]+\*/g, ' ');
+  const vus = new Set<string>(), sortie: string[] = [];
+  for (const brut of sans.split(/[\s,;:!?.()«»"…/—–-]+/)) for (const m of brut.split(/['’]/)) {
+    const r = radicalMyene(m);
+    if (!r || /^\d+$/.test(r) || garde.has(r) || vus.has(r)) continue;
+    vus.add(r);
+    if (!formeConnue(m)) sortie.push(m);
+  }
+  return sortie;
+}
+
 export const etatLexique = () => { const i = indexLexique(); return { entrees: i.entrees.length, corpus: !!i.charge, fichier: fichierLexique() }; };

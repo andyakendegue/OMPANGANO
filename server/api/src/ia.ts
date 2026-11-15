@@ -28,7 +28,18 @@ const vecteurs = vecteursParDefaut();
 export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number }
 export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4 };
 /** Documents myènè du corpus (titres construits par l'indexeur à partir des dossiers). */
-export const TITRES_MYENE = ['Sources myene%', 'Edition dondo myene%', 'Donnees › Ompangano%', '%Lecons omyene%'];
+export const TITRES_MYENE = [
+  'Sources myene%',                 // dictionnaires, grammaires, leçons omyènè, textes en mpongwè, livres scannés
+  'Theses › Monde myene%',          // thèses et études sur le monde myènè (Rekanga, Ayamine-Anguilet…)
+  '%Dictionnaire mpongwe francais', // Raponda-Walker (JSON)
+  'Documents pedagogiques › Proverbes%',
+  'Edition dondo myene%',
+  // Phrases validées avec les règles v2.0 (10 nov. 2026) : seulement les fichiers d'import, sans la colonne de l'ancien texte.
+  'Donnees › Ompangano › Final v2 regles 2026-11-10 › Import 1 ancien v2 10000',
+  'Donnees › Ompangano › Final v2 regles 2026-11-10 › Import 2 nouveau v2 40125',
+];
+/** Versions dépassées des phrases (antérieures aux règles v2.0, phrases rejetées) : jamais dans le passage général. */
+export const TITRES_EXCLUS = ['Donnees › Ompangano%'];
 export const configIa = async (q: Queryable): Promise<ConfigIa> => ({ ...CONFIG_IA_DEFAUT, ...(await parametre<Partial<ConfigIa>>(q, 'ia_config', {})) });
 
 // ------------------------------------------------------------------ fournisseur de modèle
@@ -213,11 +224,11 @@ export interface ResultatRag { id: number; document: string; titre: string; sour
  * Recherche dans le corpus : vecteurs (sens) + mots-clés (plein texte), fusionnés par rang réciproque, avec un bonus quand le titre
  * du document répond à la question. Le seuil s'applique au score des vecteurs ; un morceau trouvé par ses mots-clés est gardé même sous le seuil.
  */
-export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000, titres?: string[]): Promise<ResultatRag[]> {
+export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000, titres?: string[], exclus?: string[]): Promise<ResultatRag[]> {
   // Filtre facultatif sur le titre du document (ILIKE) : sert à chercher d'abord dans les documents myènè.
-  const avecTitres = !!titres?.length;
-  const filtre = (n: number) => avecTitres ? ` AND d.titre ILIKE ANY($${n}::text[])` : '';
-  const pt = avecTitres ? [titres] : [];
+  const avecTitres = !!titres?.length, avecExclus = !!exclus?.length;
+  const filtre = (n: number) => (avecTitres ? ` AND d.titre ILIKE ANY($${n}::text[])` : '') + (avecExclus ? ` AND NOT (d.titre ILIKE ANY($${n + (avecTitres ? 1 : 0)}::text[]))` : '');
+  const pt: string[][] = [...(avecTitres ? [titres!] : []), ...(avecExclus ? [exclus!] : [])];
   // Rien d'indexé : inutile d'appeler le service d'embeddings.
   if (!(await q.query<any>(`SELECT 1 FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif${filtre(1)} LIMIT 1`, pt)).length) return [];
   const N = Math.max(30, k * 6);
@@ -321,7 +332,8 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
     // D'abord les documents myènè (leçons, grammaires, dictionnaires), noyés sinon parmi plus d'un million de morceaux, puis tout le corpus.
     const [myene, general] = await Promise.all([
       cfg.ragMyeneK > 0 ? rechercherRag(q, embed, o.message, cfg.ragMyeneK, cfg.seuil, delai, TITRES_MYENE).catch(() => []) : Promise.resolve([]),
-      rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, delai).catch(() => []),
+      // Passage général : sans les versions dépassées des phrases (les phrases validées viennent par le passage myènè).
+      rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, delai, undefined, TITRES_EXCLUS).catch(() => []),
     ]);
     const vus = new Set<number>();
     contexte = [...myene, ...general].filter(c => !vus.has(c.id) && !!vus.add(c.id)).slice(0, cfg.topK + cfg.ragMyeneK);
