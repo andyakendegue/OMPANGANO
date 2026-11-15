@@ -4626,5 +4626,2802 @@
   "mot_francais": "les femmes n'ont pas eu peur",
   "source": "Ambouroue 2007, p. 55",
   "ordre": 18
+ },
+ {
+  "id": "nl15-cours",
+  "type": "cours",
+  "consigne": "Un, deux, trois, quatre, cinq",
+  "texte": "Les nombres de 1 à 5 se comportent comme des adjectifs : ils suivent le nom et prennent sa marque d'accord. Ici, on les apprend d'abord seuls.",
+  "conseil": "Compte sur tes doigts en disant chaque nombre.",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026 ; Ambouroue 2007, p. 144-145",
+  "lecon_id": "ntina-l15",
+  "ordre": 0
+ },
+ {
+  "id": "nl15-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "môri",
+  "mot_francais": "un",
+  "phonetique": "[mɔ̀ɾì]",
+  "illustration": "1️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 1
+ },
+ {
+  "id": "nl15-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mbani",
+  "mot_francais": "deux",
+  "illustration": "2️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 2
+ },
+ {
+  "id": "nl15-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntcharo",
+  "mot_francais": "trois",
+  "phonetique": "[ncáɾó]",
+  "illustration": "3️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 3
+ },
+ {
+  "id": "nl15-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « trois » ?",
+  "options": [
+   "ntcharo",
+   "mbani",
+   "môri"
+  ],
+  "reponse": "ntcharo",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 4
+ },
+ {
+  "id": "nl15-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nayi",
+  "mot_francais": "quatre",
+  "illustration": "4️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 5
+ },
+ {
+  "id": "nl15-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "otani",
+  "mot_francais": "cinq",
+  "phonetique": "[òtání]",
+  "illustration": "5️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 6
+ },
+ {
+  "id": "nl15-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « un ».",
+  "mot_francais": "un",
+  "reponse": "môri",
+  "indice": "Il commence par « mô… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 7
+ },
+ {
+  "id": "nl15-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « deux ».",
+  "mot_francais": "deux",
+  "reponse": "mbani",
+  "indice": "Il commence par « mb… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l15",
+  "ordre": 8
+ },
+ {
+  "id": "nl15-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ntina-l15",
+  "ordre": 9
+ },
+ {
+  "id": "nl16-cours",
+  "type": "cours",
+  "consigne": "Six, sept, huit, neuf, dix",
+  "texte": "De 6 à 10, les nombres sont des noms : ils ne changent pas selon la chose comptée.",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 0
+ },
+ {
+  "id": "nl16-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "orowa",
+  "mot_francais": "six",
+  "illustration": "6️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 1
+ },
+ {
+  "id": "nl16-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "orwagénomo",
+  "mot_francais": "sept",
+  "illustration": "7️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 2
+ },
+ {
+  "id": "nl16-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "énanayi",
+  "mot_francais": "huit",
+  "illustration": "8️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 3
+ },
+ {
+  "id": "nl16-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « huit » ?",
+  "options": [
+   "énanayi",
+   "igomi",
+   "môri"
+  ],
+  "reponse": "énanayi",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 4
+ },
+ {
+  "id": "nl16-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "énogomi",
+  "mot_francais": "neuf",
+  "illustration": "9️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 5
+ },
+ {
+  "id": "nl16-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi",
+  "mot_francais": "dix",
+  "illustration": "🔟",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 6
+ },
+ {
+  "id": "nl16-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "môri",
+  "mot_francais": "un",
+  "phonetique": "[mɔ̀ɾì]",
+  "illustration": "1️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 7
+ },
+ {
+  "id": "nl16-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « môri » ?",
+  "mot_myene": "môri",
+  "options": [
+   "un",
+   "six",
+   "sept"
+  ],
+  "reponse": "un",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 8
+ },
+ {
+  "id": "nl16-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntcharo",
+  "mot_francais": "trois",
+  "phonetique": "[ncáɾó]",
+  "illustration": "3️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 9
+ },
+ {
+  "id": "nl16-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "otani",
+  "mot_francais": "cinq",
+  "phonetique": "[òtání]",
+  "illustration": "5️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 10
+ },
+ {
+  "id": "nl16-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « six ».",
+  "mot_francais": "six",
+  "reponse": "orowa",
+  "indice": "Il commence par « or… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 11
+ },
+ {
+  "id": "nl16-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « sept ».",
+  "mot_francais": "sept",
+  "reponse": "orwagénomo",
+  "indice": "Il commence par « or… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l16",
+  "ordre": 12
+ },
+ {
+  "id": "nl16-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ntina-l16",
+  "ordre": 13
+ },
+ {
+  "id": "nl17-cours",
+  "type": "cours",
+  "consigne": "Le nombre s'accorde avec le nom",
+  "texte": "De 1 à 5, le nombre se place après le nom et s'accorde avec lui : nago ntcharo, trois maisons. Après une nasale, raro devient ntcharo. Pour dix, on dit igomi gni devant le nom : igomi gni mboni, dix chèvres.",
+  "conseil": "De 6 à 9, le nombre suit le nom sans changer.",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026 ; Ambouroue 2007, p. 144-145",
+  "lecon_id": "ntina-l17",
+  "ordre": 0
+ },
+ {
+  "id": "nl17-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nago ntcharo",
+  "mot_francais": "trois maisons",
+  "illustration": "🏠",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l17",
+  "ordre": 1
+ },
+ {
+  "id": "nl17-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi gni mboni",
+  "mot_francais": "dix chèvres",
+  "illustration": "🐐",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l17",
+  "ordre": 2
+ },
+ {
+  "id": "nl17-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "swaka ntcharo",
+  "mot_francais": "trois couteaux",
+  "phonetique": "[swàkà ncáɾó]",
+  "illustration": "🔪",
+  "source": "Ambouroue 2007, p. 144",
+  "lecon_id": "ntina-l17",
+  "ordre": 3
+ },
+ {
+  "id": "nl17-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « trois couteaux » ?",
+  "options": [
+   "swaka ntcharo",
+   "atot atani",
+   "igomi gni mboni"
+  ],
+  "reponse": "swaka ntcharo",
+  "source": "Ambouroue 2007, p. 144",
+  "lecon_id": "ntina-l17",
+  "ordre": 4
+ },
+ {
+  "id": "nl17-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nyama ntcharo",
+  "mot_francais": "trois animaux",
+  "phonetique": "[nyàmà ncáɾó]",
+  "source": "Ambouroue 2007, p. 144",
+  "lecon_id": "ntina-l17",
+  "ordre": 5
+ },
+ {
+  "id": "nl17-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "yango raro",
+  "mot_francais": "trois livres",
+  "phonetique": "[yàŋgò ɾáɾó]",
+  "illustration": "📚",
+  "source": "Ambouroue 2007, p. 144",
+  "lecon_id": "ntina-l17",
+  "ordre": 6
+ },
+ {
+  "id": "nl17-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "yalina tani",
+  "mot_francais": "cinq peignes",
+  "phonetique": "[yàlìnà tání]",
+  "source": "Ambouroue 2007, p. 145",
+  "lecon_id": "ntina-l17",
+  "ordre": 7
+ },
+ {
+  "id": "nl17-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « yalina tani » ?",
+  "mot_myene": "yalina tani",
+  "options": [
+   "cinq peignes",
+   "trois maisons",
+   "dix chèvres"
+  ],
+  "reponse": "cinq peignes",
+  "source": "Ambouroue 2007, p. 145",
+  "lecon_id": "ntina-l17",
+  "ordre": 8
+ },
+ {
+  "id": "nl17-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ngôy otani",
+  "mot_francais": "cinq chemises",
+  "phonetique": "[ŋgɔ̀y òtání]",
+  "illustration": "👕",
+  "source": "Ambouroue 2007, p. 145",
+  "lecon_id": "ntina-l17",
+  "ordre": 9
+ },
+ {
+  "id": "nl17-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "atot atani",
+  "mot_francais": "cinq bananes douces",
+  "phonetique": "[àtòt àtání]",
+  "illustration": "🍌",
+  "source": "Ambouroue 2007, p. 145",
+  "lecon_id": "ntina-l17",
+  "ordre": 10
+ },
+ {
+  "id": "nl17-phrase-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Mi tanga agom'ambani m'itondo.",
+  "mot_francais": "Je compte vingt paniers.",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ntina-l17",
+  "ordre": 11
+ },
+ {
+  "id": "gl3-cours",
+  "type": "cours",
+  "consigne": "Nago, la maison",
+  "texte": "Voici les mots de la maison : ses parties et ses pièces. Lis chaque mot, écoute-le et répète-le.",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 0
+ },
+ {
+  "id": "gl3-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nago",
+  "mot_francais": "la maison",
+  "illustration": "🏠",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 1
+ },
+ {
+  "id": "gl3-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "omwandja-mwandja",
+  "mot_francais": "le toit",
+  "illustration": "🏚️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 2
+ },
+ {
+  "id": "gl3-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ipaga",
+  "mot_francais": "les murs (épaga : un mur)",
+  "illustration": "🧱",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 3
+ },
+ {
+  "id": "gl3-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « les murs (épaga : un mur) » ?",
+  "options": [
+   "ipaga",
+   "evungu",
+   "iguge"
+  ],
+  "reponse": "ipaga",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 4
+ },
+ {
+  "id": "gl3-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "windè",
+  "mot_francais": "la fenêtre",
+  "illustration": "🪟",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 5
+ },
+ {
+  "id": "gl3-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iguge",
+  "mot_francais": "la porte",
+  "illustration": "🚪",
+  "source": "Teisserès-Dubois 1957, vocabulaire 4 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l3",
+  "ordre": 6
+ },
+ {
+  "id": "gl3-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntché",
+  "mot_francais": "le sol, la terre",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 7
+ },
+ {
+  "id": "gl3-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « ntché » ?",
+  "mot_myene": "ntché",
+  "options": [
+   "le sol, la terre",
+   "la maison",
+   "le toit"
+  ],
+  "reponse": "le sol, la terre",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 8
+ },
+ {
+  "id": "gl3-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nôntché",
+  "mot_francais": "la chambre",
+  "illustration": "🛏️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 9
+ },
+ {
+  "id": "gl3-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "kisini",
+  "mot_francais": "la cuisine",
+  "illustration": "🍳",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 10
+ },
+ {
+  "id": "gl3-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nago-nyango",
+  "mot_francais": "les toilettes",
+  "illustration": "🚻",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 11
+ },
+ {
+  "id": "gl3-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « les toilettes » ?",
+  "options": [
+   "nago-nyango",
+   "evungu",
+   "iguge"
+  ],
+  "reponse": "nago-nyango",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 12
+ },
+ {
+  "id": "gl3-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ozangé",
+  "mot_francais": "la lumière",
+  "illustration": "💡",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 13
+ },
+ {
+  "id": "gl3-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mpandino",
+  "mot_francais": "l'escalier, l'échelle",
+  "illustration": "🪜",
+  "source": "Teisserès-Dubois 1957, vocabulaire 4 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l3",
+  "ordre": 14
+ },
+ {
+  "id": "gl3-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "evungu",
+  "mot_francais": "la véranda",
+  "source": "Teisserès-Dubois 1957, vocabulaire 4 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l3",
+  "ordre": 15
+ },
+ {
+  "id": "gl3-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « evungu » ?",
+  "mot_myene": "evungu",
+  "options": [
+   "la véranda",
+   "la maison",
+   "le toit"
+  ],
+  "reponse": "la véranda",
+  "source": "Teisserès-Dubois 1957, vocabulaire 4 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l3",
+  "ordre": 16
+ },
+ {
+  "id": "gl3-phrase-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Nago yi ré nundjo pa.",
+  "mot_francais": "La maison est fermée.",
+  "illustration": "🔒",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l3",
+  "ordre": 17
+ },
+ {
+  "id": "gl3-phrase-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Nago yi ré zangé.",
+  "mot_francais": "La maison est ouverte.",
+  "illustration": "🔓",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l3",
+  "ordre": 18
+ },
+ {
+  "id": "gl3-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « la maison ».",
+  "mot_francais": "la maison",
+  "reponse": "nago",
+  "indice": "Il commence par « na… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 19
+ },
+ {
+  "id": "gl3-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le toit ».",
+  "mot_francais": "le toit",
+  "reponse": "omwandja-mwandja",
+  "indice": "Il commence par « om… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l3",
+  "ordre": 20
+ },
+ {
+  "id": "gl3-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l3",
+  "ordre": 21
+ },
+ {
+  "id": "gl4-cours",
+  "type": "cours",
+  "consigne": "S'asseoir, dormir, ranger",
+  "texte": "Les meubles et les objets de la chambre. Certains mots viennent d'autres langues et sont devenus myènè, comme tavulu (la table) ou siti (le drap).",
+  "source": "[LEC] La Nature ; Teisserès-Dubois 1957, vocabulaires 5 et 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 0
+ },
+ {
+  "id": "gl4-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "epwé z'atanga",
+  "mot_francais": "la chaise",
+  "illustration": "🪑",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 1
+ },
+ {
+  "id": "gl4-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "tavulu",
+  "mot_francais": "la table",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 2
+ },
+ {
+  "id": "gl4-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ebongo",
+  "mot_francais": "le banc",
+  "phonetique": "[èɓóŋgò]",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 3
+ },
+ {
+  "id": "gl4-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « le banc » ?",
+  "options": [
+   "ebongo",
+   "efu",
+   "epwé z'atanga"
+  ],
+  "reponse": "ebongo",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 4
+ },
+ {
+  "id": "gl4-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "odo",
+  "mot_francais": "le lit",
+  "phonetique": "[òɗó]",
+  "illustration": "🛏️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 5
+ },
+ {
+  "id": "gl4-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "siti",
+  "mot_francais": "le drap",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 6
+ },
+ {
+  "id": "gl4-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nag'ombo",
+  "mot_francais": "la moustiquaire (nago yi mbo)",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 7
+ },
+ {
+  "id": "gl4-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « nag'ombo » ?",
+  "mot_myene": "nag'ombo",
+  "options": [
+   "la moustiquaire (nago yi mbo)",
+   "la chaise",
+   "la table"
+  ],
+  "reponse": "la moustiquaire (nago yi mbo)",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 8
+ },
+ {
+  "id": "gl4-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "kôbôti y'ozira",
+  "mot_francais": "le placard",
+  "illustration": "🗄️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 9
+ },
+ {
+  "id": "gl4-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "efu",
+  "mot_francais": "la couverture",
+  "phonetique": "[èfú]",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 10
+ },
+ {
+  "id": "gl4-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "etava",
+  "mot_francais": "la natte",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 11
+ },
+ {
+  "id": "gl4-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « la natte » ?",
+  "options": [
+   "etava",
+   "ebongo",
+   "efu"
+  ],
+  "reponse": "etava",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 12
+ },
+ {
+  "id": "gl4-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "eyeno",
+  "mot_francais": "le miroir",
+  "illustration": "🪞",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 13
+ },
+ {
+  "id": "gl4-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ezalina",
+  "mot_francais": "le peigne",
+  "phonetique": "[èzàlìnà]",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 14
+ },
+ {
+  "id": "gl4-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "otondo",
+  "mot_francais": "le panier",
+  "phonetique": "[òtóndò]",
+  "illustration": "🧺",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 15
+ },
+ {
+  "id": "gl4-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « otondo » ?",
+  "mot_myene": "otondo",
+  "options": [
+   "le panier",
+   "la chaise",
+   "la table"
+  ],
+  "reponse": "le panier",
+  "source": "Teisserès-Dubois 1957, vocabulaire 7 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l4",
+  "ordre": 16
+ },
+ {
+  "id": "gl4-mot-13",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ezômbôlô",
+  "mot_francais": "le balai",
+  "illustration": "🧹",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 17
+ },
+ {
+  "id": "gl4-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « la table ».",
+  "mot_francais": "la table",
+  "reponse": "tavulu",
+  "indice": "Il commence par « ta… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 18
+ },
+ {
+  "id": "gl4-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le banc ».",
+  "mot_francais": "le banc",
+  "reponse": "ebongo",
+  "indice": "Il commence par « eb… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l4",
+  "ordre": 19
+ },
+ {
+  "id": "gl4-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l4",
+  "ordre": 20
+ },
+ {
+  "id": "gl5-cours",
+  "type": "cours",
+  "consigne": "Préparer et manger",
+  "texte": "Les ustensiles de la cuisine, ce qu'on met sur la table et quelques aliments. Le pluriel se fait souvent avec i- : swaka, un couteau ; iswaka, des couteaux.",
+  "source": "[LEC] La Nature ; Teisserès-Dubois 1957, vocabulaires 6 et 9 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l5",
+  "ordre": 0
+ },
+ {
+  "id": "gl5-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "intchwana",
+  "mot_francais": "les marmites",
+  "illustration": "🍲",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 1
+ },
+ {
+  "id": "gl5-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "izèwè",
+  "mot_francais": "les cuillères",
+  "illustration": "🥄",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 2
+ },
+ {
+  "id": "gl5-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "intuma",
+  "mot_francais": "les fourchettes",
+  "illustration": "🍴",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 3
+ },
+ {
+  "id": "gl5-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « les fourchettes » ?",
+  "options": [
+   "intuma",
+   "agali",
+   "aningo"
+  ],
+  "reponse": "intuma",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 4
+ },
+ {
+  "id": "gl5-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iswaka",
+  "mot_francais": "les couteaux",
+  "illustration": "🔪",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 5
+ },
+ {
+  "id": "gl5-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "swaka",
+  "mot_francais": "un couteau",
+  "phonetique": "[swàkà]",
+  "illustration": "🔪",
+  "source": "Teisserès-Dubois 1957, vocabulaire 6 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l5",
+  "ordre": 6
+ },
+ {
+  "id": "gl5-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "epèlè",
+  "mot_francais": "l'assiette",
+  "illustration": "🍽️",
+  "source": "Teisserès-Dubois 1957, vocabulaire 9 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l5",
+  "ordre": 7
+ },
+ {
+  "id": "gl5-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « epèlè » ?",
+  "mot_myene": "epèlè",
+  "options": [
+   "l'assiette",
+   "les marmites",
+   "les cuillères"
+  ],
+  "reponse": "l'assiette",
+  "source": "Teisserès-Dubois 1957, vocabulaire 9 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l5",
+  "ordre": 8
+ },
+ {
+  "id": "gl5-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "elasi",
+  "mot_francais": "le verre",
+  "illustration": "🥛",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 9
+ },
+ {
+  "id": "gl5-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "kopu",
+  "mot_francais": "la tasse",
+  "illustration": "☕",
+  "source": "Teisserès-Dubois 1957, vocabulaire 9 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l5",
+  "ordre": 10
+ },
+ {
+  "id": "gl5-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogoni",
+  "mot_francais": "le feu",
+  "illustration": "🔥",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 11
+ },
+ {
+  "id": "gl5-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « le feu » ?",
+  "options": [
+   "ogoni",
+   "agali",
+   "aningo"
+  ],
+  "reponse": "ogoni",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 12
+ },
+ {
+  "id": "gl5-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "inu",
+  "mot_francais": "le foyer",
+  "phonetique": "[ínù]",
+  "source": "Teisserès-Dubois 1957, vocabulaire 6 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l5",
+  "ordre": 13
+ },
+ {
+  "id": "gl5-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "inyéla",
+  "mot_francais": "la poubelle",
+  "illustration": "🗑️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 14
+ },
+ {
+  "id": "gl5-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "aningo",
+  "mot_francais": "l'eau",
+  "illustration": "💧",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l5",
+  "ordre": 15
+ },
+ {
+  "id": "gl5-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « aningo » ?",
+  "mot_myene": "aningo",
+  "options": [
+   "l'eau",
+   "les marmites",
+   "les cuillères"
+  ],
+  "reponse": "l'eau",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l5",
+  "ordre": 16
+ },
+ {
+  "id": "gl5-mot-13",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "orési",
+  "mot_francais": "le riz",
+  "illustration": "🍚",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 17
+ },
+ {
+  "id": "gl5-mot-14",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nyama",
+  "mot_francais": "la viande",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 18
+ },
+ {
+  "id": "gl5-mot-15",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agali",
+  "mot_francais": "l'huile",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 19
+ },
+ {
+  "id": "gl5-choix-05",
+  "type": "choix",
+  "consigne": "Comment dit-on « l'huile » ?",
+  "options": [
+   "agali",
+   "aningo",
+   "elasi"
+  ],
+  "reponse": "agali",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 20
+ },
+ {
+  "id": "gl5-mot-16",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ezanga",
+  "mot_francais": "le sel",
+  "illustration": "🧂",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 21
+ },
+ {
+  "id": "gl5-phrase-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Va myè aningo.",
+  "mot_francais": "Donne-moi de l'eau.",
+  "illustration": "💧",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l5",
+  "ordre": 22
+ },
+ {
+  "id": "gl5-phrase-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Zé nya ndé ?",
+  "mot_francais": "On mange quoi ?",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l5",
+  "ordre": 23
+ },
+ {
+  "id": "gl5-phrase-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Wa namba ndé ?",
+  "mot_francais": "Tu as préparé quoi ?",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l5",
+  "ordre": 24
+ },
+ {
+  "id": "gl5-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « les marmites ».",
+  "mot_francais": "les marmites",
+  "reponse": "intchwana",
+  "indice": "Il commence par « in… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 25
+ },
+ {
+  "id": "gl5-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « les cuillères ».",
+  "mot_francais": "les cuillères",
+  "reponse": "izèwè",
+  "indice": "Il commence par « iz… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l5",
+  "ordre": 26
+ },
+ {
+  "id": "gl5-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l5",
+  "ordre": 27
+ },
+ {
+  "id": "gl6-cours",
+  "type": "cours",
+  "consigne": "S'habiller, porter, se déplacer",
+  "texte": "Les habits et les objets qu'on emporte : le sac, l'argent, la corde, et pour voyager, la voiture et la pirogue.",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 0
+ },
+ {
+  "id": "gl6-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ambôra",
+  "mot_francais": "les habits",
+  "illustration": "👚",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 1
+ },
+ {
+  "id": "gl6-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "obati",
+  "mot_francais": "le short",
+  "illustration": "🩳",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 2
+ },
+ {
+  "id": "gl6-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ngôyi",
+  "mot_francais": "le haut (vêtement)",
+  "illustration": "👕",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 3
+ },
+ {
+  "id": "gl6-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « le haut (vêtement) » ?",
+  "options": [
+   "ngôyi",
+   "ambôra",
+   "elinga"
+  ],
+  "reponse": "ngôyi",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 4
+ },
+ {
+  "id": "gl6-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "elinga",
+  "mot_francais": "la robe",
+  "phonetique": "[èlíŋgà]",
+  "illustration": "👗",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 5
+ },
+ {
+  "id": "gl6-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "epokolo",
+  "mot_francais": "le chapeau",
+  "phonetique": "[èpóko̍lò]",
+  "illustration": "👒",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 6
+ },
+ {
+  "id": "gl6-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "panga",
+  "mot_francais": "la chaînette",
+  "illustration": "📿",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 7
+ },
+ {
+  "id": "gl6-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « panga » ?",
+  "mot_myene": "panga",
+  "options": [
+   "la chaînette",
+   "les habits",
+   "le short"
+  ],
+  "reponse": "la chaînette",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 8
+ },
+ {
+  "id": "gl6-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "puka",
+  "mot_francais": "le sac",
+  "illustration": "👜",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 9
+ },
+ {
+  "id": "gl6-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "sika",
+  "mot_francais": "l'argent",
+  "illustration": "💰",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 10
+ },
+ {
+  "id": "gl6-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogôli",
+  "mot_francais": "la corde",
+  "illustration": "🪢",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 11
+ },
+ {
+  "id": "gl6-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « la corde » ?",
+  "options": [
+   "ogôli",
+   "ambôra",
+   "elinga"
+  ],
+  "reponse": "ogôli",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 12
+ },
+ {
+  "id": "gl6-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oyombô",
+  "mot_francais": "le parfum",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 13
+ },
+ {
+  "id": "gl6-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "loto",
+  "mot_francais": "la voiture",
+  "illustration": "🚗",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 14
+ },
+ {
+  "id": "gl6-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "owaro",
+  "mot_francais": "la pirogue",
+  "illustration": "🛶",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 15
+ },
+ {
+  "id": "gl6-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « owaro » ?",
+  "mot_myene": "owaro",
+  "options": [
+   "la pirogue",
+   "les habits",
+   "le short"
+  ],
+  "reponse": "la pirogue",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 16
+ },
+ {
+  "id": "gl6-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « les habits ».",
+  "mot_francais": "les habits",
+  "reponse": "ambôra",
+  "indice": "Il commence par « am… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 17
+ },
+ {
+  "id": "gl6-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le short ».",
+  "mot_francais": "le short",
+  "reponse": "obati",
+  "indice": "Il commence par « ob… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l6",
+  "ordre": 18
+ },
+ {
+  "id": "gl6-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l6",
+  "ordre": 19
+ },
+ {
+  "id": "gl7-cours",
+  "type": "cours",
+  "consigne": "Du village à la mer",
+  "texte": "Les lieux de tous les jours, de la maison au village, de la forêt à la mer.",
+  "source": "[LEC] La Nature ; Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 0
+ },
+ {
+  "id": "gl7-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkala",
+  "mot_francais": "le village",
+  "illustration": "🏘️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 1
+ },
+ {
+  "id": "gl7-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "okili",
+  "mot_francais": "la route, le chemin",
+  "illustration": "🛣️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 2
+ },
+ {
+  "id": "gl7-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igala",
+  "mot_francais": "la cour, la rue",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 3
+ },
+ {
+  "id": "gl7-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « la cour, la rue » ?",
+  "options": [
+   "igala",
+   "ezeni",
+   "iga"
+  ],
+  "reponse": "igala",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 4
+ },
+ {
+  "id": "gl7-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mbôra",
+  "mot_francais": "la place, l'endroit",
+  "illustration": "📍",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 5
+ },
+ {
+  "id": "gl7-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntchombo",
+  "mot_francais": "le quartier",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 6
+ },
+ {
+  "id": "gl7-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iga",
+  "mot_francais": "la forêt",
+  "illustration": "🌳",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 7
+ },
+ {
+  "id": "gl7-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « iga » ?",
+  "mot_myene": "iga",
+  "options": [
+   "la forêt",
+   "le village",
+   "la route, le chemin"
+  ],
+  "reponse": "la forêt",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 8
+ },
+ {
+  "id": "gl7-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntchuwa",
+  "mot_francais": "la mer",
+  "illustration": "🌊",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 9
+ },
+ {
+  "id": "gl7-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mbene",
+  "mot_francais": "le fleuve, l'étendue d'eau",
+  "illustration": "🏞️",
+  "source": "Teisserès-Dubois 1957, vocabulaire 6 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 10
+ },
+ {
+  "id": "gl7-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ezeni",
+  "mot_francais": "le débarcadère",
+  "source": "Teisserès-Dubois 1957, vocabulaire 6 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 11
+ },
+ {
+  "id": "gl7-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « le débarcadère » ?",
+  "options": [
+   "ezeni",
+   "iga",
+   "igala"
+  ],
+  "reponse": "ezeni",
+  "source": "Teisserès-Dubois 1957, vocabulaire 6 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l7",
+  "ordre": 12
+ },
+ {
+  "id": "gl7-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "sikul",
+  "mot_francais": "l'école",
+  "illustration": "🏫",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l7",
+  "ordre": 13
+ },
+ {
+  "id": "gl7-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntché",
+  "mot_francais": "la terre",
+  "illustration": "🌍",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 14
+ },
+ {
+  "id": "gl7-phrase-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Mi kènda go sikul.",
+  "mot_francais": "Je vais à l'école.",
+  "illustration": "🏫",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l7",
+  "ordre": 15
+ },
+ {
+  "id": "gl7-phrase-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Wé nkènda na gwé ?",
+  "mot_francais": "Tu vas où ?",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l7",
+  "ordre": 16
+ },
+ {
+  "id": "gl7-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le village ».",
+  "mot_francais": "le village",
+  "reponse": "nkala",
+  "indice": "Il commence par « nk… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 17
+ },
+ {
+  "id": "gl7-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « la route, le chemin ».",
+  "mot_francais": "la route, le chemin",
+  "reponse": "okili",
+  "indice": "Il commence par « ok… ».",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l7",
+  "ordre": 18
+ },
+ {
+  "id": "gl7-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l7",
+  "ordre": 19
+ },
+ {
+  "id": "gl8-cours",
+  "type": "cours",
+  "consigne": "Dedans, dehors, dessus, dessous",
+  "texte": "Les positions se disent avec go (à, dans, pour les choses) suivi d'un nom de lieu : go nyuma, derrière ; g'igala, dehors. Pour une personne, on dit gore (chez, auprès de).",
+  "conseil": "Devant une voyelle, go devient g' : g'igala.",
+  "source": "Teisserès-Dubois 1957, leçons 2, 25 et 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 0
+ },
+ {
+  "id": "gl8-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go",
+  "mot_francais": "à, dans, vers (pour les choses)",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 1
+ },
+ {
+  "id": "gl8-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gore",
+  "mot_francais": "chez, auprès de (pour les personnes)",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 2
+ },
+ {
+  "id": "gl8-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go gare ntché",
+  "mot_francais": "dedans, à l'intérieur",
+  "illustration": "📦",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 3
+ },
+ {
+  "id": "gl8-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « dedans, à l'intérieur » ?",
+  "options": [
+   "go gare ntché",
+   "bo",
+   "g'igala"
+  ],
+  "reponse": "go gare ntché",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 4
+ },
+ {
+  "id": "gl8-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "g'igala",
+  "mot_francais": "dehors",
+  "illustration": "🌤️",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 5
+ },
+ {
+  "id": "gl8-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "g'igono",
+  "mot_francais": "sur, en haut",
+  "illustration": "⬆️",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 6
+ },
+ {
+  "id": "gl8-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "g'odolongo",
+  "mot_francais": "sous, en bas",
+  "illustration": "⬇️",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 7
+ },
+ {
+  "id": "gl8-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « g'odolongo » ?",
+  "mot_myene": "g'odolongo",
+  "options": [
+   "sous, en bas",
+   "à, dans, vers (pour les choses)",
+   "chez, auprès de (pour les personnes)"
+  ],
+  "reponse": "sous, en bas",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 8
+ },
+ {
+  "id": "gl8-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go boso",
+  "mot_francais": "devant",
+  "illustration": "➡️",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 9
+ },
+ {
+  "id": "gl8-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go nyuma",
+  "mot_francais": "derrière",
+  "illustration": "⬅️",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 10
+ },
+ {
+  "id": "gl8-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go nkoṽa",
+  "mot_francais": "à côté de",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 11
+ },
+ {
+  "id": "gl8-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « à côté de » ?",
+  "options": [
+   "go nkoṽa",
+   "bo",
+   "g'igala"
+  ],
+  "reponse": "go nkoṽa",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 12
+ },
+ {
+  "id": "gl8-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go ntché",
+  "mot_francais": "par terre",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 13
+ },
+ {
+  "id": "gl8-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "pyèrè",
+  "mot_francais": "près",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 14
+ },
+ {
+  "id": "gl8-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "bo",
+  "mot_francais": "loin",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 15
+ },
+ {
+  "id": "gl8-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « bo » ?",
+  "mot_myene": "bo",
+  "options": [
+   "loin",
+   "à, dans, vers (pour les choses)",
+   "chez, auprès de (pour les personnes)"
+  ],
+  "reponse": "loin",
+  "source": "Teisserès-Dubois 1957, vocabulaire 2 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 16
+ },
+ {
+  "id": "gl8-mot-13",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gunu",
+  "mot_francais": "ici",
+  "illustration": "📍",
+  "source": "Teisserès-Dubois 1957, leçon 25 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 17
+ },
+ {
+  "id": "gl8-mot-14",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "vingovingo",
+  "mot_francais": "tout autour",
+  "illustration": "🔄",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 18
+ },
+ {
+  "id": "gl8-phrase-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Eré na gwé ?",
+  "mot_francais": "Il est où ?",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l8",
+  "ordre": 19
+ },
+ {
+  "id": "gl8-phrase-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Réryô ré na gwé ?",
+  "mot_francais": "Ton père est où ?",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l8",
+  "ordre": 20
+ },
+ {
+  "id": "gl8-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « à, dans, vers (pour les choses) ».",
+  "mot_francais": "à, dans, vers (pour les choses)",
+  "reponse": "go",
+  "indice": "Il commence par « go… ».",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 21
+ },
+ {
+  "id": "gl8-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « chez, auprès de (pour les personnes) ».",
+  "mot_francais": "chez, auprès de (pour les personnes)",
+  "reponse": "gore",
+  "indice": "Il commence par « go… ».",
+  "source": "Teisserès-Dubois 1957, leçon 26 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l8",
+  "ordre": 22
+ },
+ {
+  "id": "gl8-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l8",
+  "ordre": 23
+ },
+ {
+  "id": "gl9-cours",
+  "type": "cours",
+  "consigne": "Du matin au soir",
+  "texte": "Les moments de la journée et ce qu'on voit dans le ciel. Chez les Ôrungu, le soleil se dit omwèyi.",
+  "source": "[LEC] La Nature ; Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2) ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l9",
+  "ordre": 0
+ },
+ {
+  "id": "gl9-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ibanga",
+  "mot_francais": "le matin",
+  "illustration": "🌅",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 1
+ },
+ {
+  "id": "gl9-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "owéndja",
+  "mot_francais": "la journée",
+  "phonetique": "[òɥénjà]",
+  "illustration": "☀️",
+  "source": "Ambouroue 2007, annexe 1, p. 361",
+  "lecon_id": "ogendo-l9",
+  "ordre": 2
+ },
+ {
+  "id": "gl9-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "omanda",
+  "mot_francais": "le jour (opposé à la nuit)",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 3
+ },
+ {
+  "id": "gl9-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « le jour (opposé à la nuit) » ?",
+  "options": [
+   "omanda",
+   "ibanga",
+   "igwèra"
+  ],
+  "reponse": "omanda",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 4
+ },
+ {
+  "id": "gl9-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkolo",
+  "mot_francais": "le soir",
+  "illustration": "🌇",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 5
+ },
+ {
+  "id": "gl9-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogwèra",
+  "mot_francais": "la nuit",
+  "illustration": "🌃",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 6
+ },
+ {
+  "id": "gl9-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntchugu",
+  "mot_francais": "le jour (vingt-quatre heures)",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 7
+ },
+ {
+  "id": "gl9-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « ntchugu » ?",
+  "mot_myene": "ntchugu",
+  "options": [
+   "le jour (vingt-quatre heures)",
+   "le matin",
+   "la journée"
+  ],
+  "reponse": "le jour (vingt-quatre heures)",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 8
+ },
+ {
+  "id": "gl9-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igwèra",
+  "mot_francais": "l'heure",
+  "illustration": "🕐",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 9
+ },
+ {
+  "id": "gl9-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkôla",
+  "mot_francais": "la montre",
+  "illustration": "⌚",
+  "source": "[LEC] Nkôla",
+  "lecon_id": "ogendo-l9",
+  "ordre": 10
+ },
+ {
+  "id": "gl9-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "omwèyi",
+  "mot_francais": "le soleil",
+  "illustration": "☀️",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l9",
+  "ordre": 11
+ },
+ {
+  "id": "gl9-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « le soleil » ?",
+  "options": [
+   "omwèyi",
+   "ibanga",
+   "igwèra"
+  ],
+  "reponse": "omwèyi",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l9",
+  "ordre": 12
+ },
+ {
+  "id": "gl9-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogwèli",
+  "mot_francais": "la lune, le mois",
+  "illustration": "🌙",
+  "source": "[LEC] La Nature",
+  "lecon_id": "ogendo-l9",
+  "ordre": 13
+ },
+ {
+  "id": "gl9-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogègèni",
+  "mot_francais": "l'étoile",
+  "illustration": "⭐",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 14
+ },
+ {
+  "id": "gl9-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "inanga",
+  "mot_francais": "le clair de lune",
+  "phonetique": "[ìnáŋgà]",
+  "illustration": "🌕",
+  "source": "Ambouroue 2007, annexe 1, p. 368",
+  "lecon_id": "ogendo-l9",
+  "ordre": 15
+ },
+ {
+  "id": "gl9-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « inanga » ?",
+  "mot_myene": "inanga",
+  "options": [
+   "le clair de lune",
+   "le matin",
+   "la journée"
+  ],
+  "reponse": "le clair de lune",
+  "source": "Ambouroue 2007, annexe 1, p. 368",
+  "lecon_id": "ogendo-l9",
+  "ordre": 16
+ },
+ {
+  "id": "gl9-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le matin ».",
+  "mot_francais": "le matin",
+  "reponse": "ibanga",
+  "indice": "Il commence par « ib… ».",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l9",
+  "ordre": 17
+ },
+ {
+  "id": "gl9-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « la journée ».",
+  "mot_francais": "la journée",
+  "reponse": "owéndja",
+  "indice": "Il commence par « ow… ».",
+  "source": "Ambouroue 2007, annexe 1, p. 361",
+  "lecon_id": "ogendo-l9",
+  "ordre": 18
+ },
+ {
+  "id": "gl9-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l9",
+  "ordre": 19
+ },
+ {
+  "id": "gl10-cours",
+  "type": "cours",
+  "consigne": "Dire quand",
+  "texte": "Les mots pour situer un moment : hier, aujourd'hui, demain, et pour compter le temps : la semaine, le mois, l'année, la saison.",
+  "conseil": "Après-demain se dit mbani, « deux » : deux jours plus tard.",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 et leçon 25 (graphie DONDO, RÈGLES § 2) ; [LEC] Comment écrire l'Omyènè",
+  "lecon_id": "ogendo-l10",
+  "ordre": 0
+ },
+ {
+  "id": "gl10-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "dyao",
+  "mot_francais": "hier",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 1
+ },
+ {
+  "id": "gl10-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "dyôni",
+  "mot_francais": "avant-hier",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 2
+ },
+ {
+  "id": "gl10-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nèno",
+  "mot_francais": "aujourd'hui",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 3
+ },
+ {
+  "id": "gl10-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « aujourd'hui » ?",
+  "options": [
+   "nèno",
+   "bikoze",
+   "dambè"
+  ],
+  "reponse": "nèno",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 4
+ },
+ {
+  "id": "gl10-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mènè",
+  "mot_francais": "demain",
+  "phonetique": "[mɛ́nɛ́]",
+  "source": "Ambouroue 2007, p. 53",
+  "lecon_id": "ogendo-l10",
+  "ordre": 5
+ },
+ {
+  "id": "gl10-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mbani",
+  "mot_francais": "après-demain",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 6
+ },
+ {
+  "id": "gl10-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "bikoze",
+  "mot_francais": "le lendemain",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 7
+ },
+ {
+  "id": "gl10-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « bikoze » ?",
+  "mot_myene": "bikoze",
+  "options": [
+   "le lendemain",
+   "hier",
+   "avant-hier"
+  ],
+  "reponse": "le lendemain",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 8
+ },
+ {
+  "id": "gl10-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "sônô",
+  "mot_francais": "la semaine",
+  "illustration": "📅",
+  "source": "[LEC] Comment écrire l'Omyènè",
+  "lecon_id": "ogendo-l10",
+  "ordre": 9
+ },
+ {
+  "id": "gl10-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogwèli",
+  "mot_francais": "le mois",
+  "illustration": "🗓️",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 10
+ },
+ {
+  "id": "gl10-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ompuma",
+  "mot_francais": "l'année",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 11
+ },
+ {
+  "id": "gl10-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « l'année » ?",
+  "options": [
+   "ompuma",
+   "bikoze",
+   "dambè"
+  ],
+  "reponse": "ompuma",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 12
+ },
+ {
+  "id": "gl10-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "egômbe",
+  "mot_francais": "le temps, la saison, l'époque",
+  "source": "[LEC] Comment écrire l'Omyènè ; Teisserès-Dubois 1957, vocabulaire 13",
+  "lecon_id": "ogendo-l10",
+  "ordre": 13
+ },
+ {
+  "id": "gl10-mot-11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ntchèla",
+  "mot_francais": "la saison des pluies",
+  "illustration": "🌧️",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 14
+ },
+ {
+  "id": "gl10-mot-12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "enomo",
+  "mot_francais": "la saison sèche",
+  "illustration": "🌞",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 15
+ },
+ {
+  "id": "gl10-assoc-04",
+  "type": "associer",
+  "consigne": "Que veut dire « enomo » ?",
+  "mot_myene": "enomo",
+  "options": [
+   "la saison sèche",
+   "hier",
+   "avant-hier"
+  ],
+  "reponse": "la saison sèche",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 16
+ },
+ {
+  "id": "gl10-mot-13",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "go tè",
+  "mot_francais": "maintenant",
+  "source": "Teisserès-Dubois 1957, leçon 25 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 17
+ },
+ {
+  "id": "gl10-mot-14",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "dambè",
+  "mot_francais": "bientôt",
+  "source": "Teisserès-Dubois 1957, leçon 25 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 18
+ },
+ {
+  "id": "gl10-mot-15",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "egombe zodu",
+  "mot_francais": "toujours",
+  "source": "Teisserès-Dubois 1957, leçon 25 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 19
+ },
+ {
+  "id": "gl10-choix-05",
+  "type": "choix",
+  "consigne": "Comment dit-on « toujours » ?",
+  "options": [
+   "egombe zodu",
+   "bikoze",
+   "dambè"
+  ],
+  "reponse": "egombe zodu",
+  "source": "Teisserès-Dubois 1957, leçon 25 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 20
+ },
+ {
+  "id": "gl10-mot-16",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ni mori",
+  "mot_francais": "jamais",
+  "source": "Teisserès-Dubois 1957, leçon 25 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 21
+ },
+ {
+  "id": "gl10-phrase-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Ibanga wé. Ka mènè !",
+  "mot_francais": "Au revoir. À demain !",
+  "source": "[LEC] Bonjour",
+  "lecon_id": "ogendo-l10",
+  "ordre": 22
+ },
+ {
+  "id": "gl10-phrase-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "Mi kènda go dèwa.",
+  "mot_francais": "Je vais dormir.",
+  "illustration": "😴",
+  "source": "[LEC] Les incontournables",
+  "lecon_id": "ogendo-l10",
+  "ordre": 23
+ },
+ {
+  "id": "gl10-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « hier ».",
+  "mot_francais": "hier",
+  "reponse": "dyao",
+  "indice": "Il commence par « dy… ».",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 24
+ },
+ {
+  "id": "gl10-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « avant-hier ».",
+  "mot_francais": "avant-hier",
+  "reponse": "dyôni",
+  "indice": "Il commence par « dy… ».",
+  "source": "Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2)",
+  "lecon_id": "ogendo-l10",
+  "ordre": 25
+ },
+ {
+  "id": "gl10-jeu",
+  "type": "jouer",
+  "jeu_id": "memoire",
+  "consigne": "Retiens les mots en jouant.",
+  "mot_francais": "Jeu de mémoire",
+  "lecon_id": "ogendo-l10",
+  "ordre": 26
+ },
+ {
+  "id": "gl11-cours",
+  "type": "cours",
+  "consigne": "Dix et encore",
+  "texte": "Après dix, on ajoute avec ni (« et ») : igomi ni môri, onze. Les dizaines se disent agoma suivi du nombre : agoma mbani, vingt (dix deux fois). Devant une voyelle, ni devient n' : igomi n'otani, quinze.",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 0
+ },
+ {
+  "id": "gl11-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi ni môri",
+  "mot_francais": "onze",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 1
+ },
+ {
+  "id": "gl11-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi ni mbani",
+  "mot_francais": "douze",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 2
+ },
+ {
+  "id": "gl11-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi ni tcharo",
+  "mot_francais": "treize",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 3
+ },
+ {
+  "id": "gl11-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « treize » ?",
+  "options": [
+   "igomi ni tcharo",
+   "agom'otani",
+   "agoma mbani"
+  ],
+  "reponse": "igomi ni tcharo",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 4
+ },
+ {
+  "id": "gl11-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi n'otani",
+  "mot_francais": "quinze",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 5
+ },
+ {
+  "id": "gl11-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igomi n'énogomi",
+  "mot_francais": "dix-neuf",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 6
+ },
+ {
+  "id": "gl11-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agoma mbani",
+  "mot_francais": "vingt",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 7
+ },
+ {
+  "id": "gl11-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « agoma mbani » ?",
+  "mot_myene": "agoma mbani",
+  "options": [
+   "vingt",
+   "onze",
+   "douze"
+  ],
+  "reponse": "vingt",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 8
+ },
+ {
+  "id": "gl11-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agoma mbani ni môri",
+  "mot_francais": "vingt et un",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 9
+ },
+ {
+  "id": "gl11-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agoma raro",
+  "mot_francais": "trente",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 10
+ },
+ {
+  "id": "gl11-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agoma nayi",
+  "mot_francais": "quarante",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 11
+ },
+ {
+  "id": "gl11-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « quarante » ?",
+  "options": [
+   "agoma nayi",
+   "agom'otani",
+   "agoma mbani"
+  ],
+  "reponse": "agoma nayi",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 12
+ },
+ {
+  "id": "gl11-mot-10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agom'otani",
+  "mot_francais": "cinquante",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 13
+ },
+ {
+  "id": "gl11-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « cinquante ».",
+  "mot_francais": "cinquante",
+  "reponse": "agom'otani",
+  "indice": "Il commence par « ag… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l11",
+  "ordre": 14
+ },
+ {
+  "id": "gl12-cours",
+  "type": "cours",
+  "consigne": "Les grands nombres",
+  "texte": "Cent se dit nkama ; mille, agomi mi nkama, « une dizaine de cent ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 0
+ },
+ {
+  "id": "gl12-mot-01",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agom'orowa",
+  "mot_francais": "soixante",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 1
+ },
+ {
+  "id": "gl12-mot-02",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agom'orwagénomo",
+  "mot_francais": "soixante-dix",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 2
+ },
+ {
+  "id": "gl12-mot-03",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agom'énanayi",
+  "mot_francais": "quatre-vingts",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 3
+ },
+ {
+  "id": "gl12-choix-01",
+  "type": "choix",
+  "consigne": "Comment dit-on « quatre-vingts » ?",
+  "options": [
+   "agom'énanayi",
+   "agom'orowa",
+   "agom'orwagénomo"
+  ],
+  "reponse": "agom'énanayi",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 4
+ },
+ {
+  "id": "gl12-mot-04",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agom'énogomi",
+  "mot_francais": "quatre-vingt-dix",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 5
+ },
+ {
+  "id": "gl12-mot-05",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkama",
+  "mot_francais": "cent",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 6
+ },
+ {
+  "id": "gl12-mot-06",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkama ni môri",
+  "mot_francais": "cent un",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 7
+ },
+ {
+  "id": "gl12-assoc-02",
+  "type": "associer",
+  "consigne": "Que veut dire « nkama ni môri » ?",
+  "mot_myene": "nkama ni môri",
+  "options": [
+   "cent un",
+   "soixante",
+   "soixante-dix"
+  ],
+  "reponse": "cent un",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 8
+ },
+ {
+  "id": "gl12-mot-07",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkam'otani",
+  "mot_francais": "cinq cents",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 9
+ },
+ {
+  "id": "gl12-mot-08",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agomi mi nkama",
+  "mot_francais": "mille",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 10
+ },
+ {
+  "id": "gl12-mot-09",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "agomi mi nkama mbani",
+  "mot_francais": "deux mille",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 11
+ },
+ {
+  "id": "gl12-choix-03",
+  "type": "choix",
+  "consigne": "Comment dit-on « deux mille » ?",
+  "options": [
+   "agomi mi nkama mbani",
+   "agom'orowa",
+   "agom'orwagénomo"
+  ],
+  "reponse": "agomi mi nkama mbani",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 12
+ },
+ {
+  "id": "gl12-dictee-1",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « soixante ».",
+  "mot_francais": "soixante",
+  "reponse": "agom'orowa",
+  "indice": "Il commence par « ag… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 13
+ },
+ {
+  "id": "gl12-dictee-2",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « soixante-dix ».",
+  "mot_francais": "soixante-dix",
+  "reponse": "agom'orwagénomo",
+  "indice": "Il commence par « ag… ».",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "lecon_id": "ogendo-l12",
+  "ordre": 14
  }
 ]

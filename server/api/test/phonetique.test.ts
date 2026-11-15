@@ -92,3 +92,15 @@ test('chaque mot appris porte son écriture, sa transcription et son sens ; plus
   assert.ok(repeter.length >= 250, 'unité « Dire juste » : beaucoup de mots à répéter');
   for (const e of repeter.filter(e => e.type === 'choix')) assert.ok(e.options.includes(e.reponse), e.id);
 });
+
+test('objets du quotidien, espace, temps, nombres : unités du programme, mots sourcés, nombres corrigés par Capp', () => {
+  const U = SEEDS.unites as Record<string, any>[], L = SEEDS.lecons as Record<string, any>[], E = SEEDS.exercices as Record<string, any>[];
+  for (const id of ['ntina-u5', 'ogendo-u2', 'ogendo-u3', 'ogendo-u4', 'ogendo-u5']) assert.ok(U.some(u => u.id === id), id);
+  const nouvelles = new Set(L.filter(l => ['ntina-u5', 'ogendo-u2', 'ogendo-u3', 'ogendo-u4', 'ogendo-u5'].includes(l.unite_id)).map(l => l.id));
+  const mots = E.filter(e => nouvelles.has(e.lecon_id) && e.type === 'ecouter');
+  assert.ok(mots.length >= 150);
+  for (const e of mots) { assert.ok(e.mot_myene && e.mot_francais && e.source, e.id); if (e.phonetique) assert.equal(graphieDondo(e.phonetique).replace(/é/g, 'e'), e.mot_myene.toLowerCase().replace(/é/g, 'e').replace(/[’']/g, ''), e.id); }
+  const nb = Object.fromEntries(mots.filter(e => e.lecon_id === 'ntina-l15' || e.lecon_id === 'ntina-l16').map(e => [e.mot_francais, e.mot_myene]));
+  assert.deepEqual([nb.trois, nb.sept, nb.huit], ['ntcharo', 'orwagénomo', 'énanayi'], 'formes corrigées (Leçon 13, corrections du 31 oct. 2026)');
+  assert.ok(!JSON.stringify(mots).includes('mbongo'), 'mot écarté par Capp');
+});
