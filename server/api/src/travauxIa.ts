@@ -59,11 +59,17 @@ export function lancerTravail(uid: string, fn: (reply: FastifyReply) => Promise<
  * Enveloppe d'une route : si le corps demande `asynchrone: true`, la route s'exécute en arrière-plan et répond 202 tout de suite.
  * `verifier` fait les contrôles rapides (compte, saisie) avant de répondre 202, pour que les erreurs simples restent immédiates.
  */
-export function differable(app: Ctx['app'], acteur: Ctx['acteur'], route: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>, verifier?: (req: FastifyRequest) => void) {
+export type Acteur = Awaited<ReturnType<Ctx['acteur']>>;
+/** Refus prêt à envoyer (statut et corps), renvoyé par `verifier` pour répondre tout de suite sans lancer le travail. */
+export interface RefusImmediat { code: number; corps: unknown }
+
+export function differable(app: Ctx['app'], acteur: Ctx['acteur'], route: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>,
+  verifier?: (req: FastifyRequest, a: Acteur) => void | RefusImmediat | Promise<void | RefusImmediat>) {
   return async (req: FastifyRequest, reply: FastifyReply) => {
     if ((req.body as any)?.asynchrone !== true) return route(req, reply);
     const a = await acteur(req);
-    verifier?.(req);
+    const refus = await verifier?.(req, a);
+    if (refus) return reply.status(refus.code).send(refus.corps);
     const id = lancerTravail(a.auth.uid, rep => route(req, rep), e => req.log.error({ err: e }, 'travail IA'));
     if (!id) return reply.status(429).send({ error: 'Kak\'Igonjo prépare déjà tes réponses : attends qu\'elles arrivent.' });
     return reply.status(202).send({ travail: id, attente: true });

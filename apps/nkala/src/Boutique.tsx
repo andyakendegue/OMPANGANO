@@ -81,7 +81,7 @@ export function BoutiqueFeuille() {
             <Carte key={p.id}><View style={{ padding: 16, gap: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><T v="carte" style={{ flex: 1 }}>{p.titre}</T>{possede && <Pastille label="Acquis" couleur={c.succes} fond={c.carte} />}</View>
               <T v="sousTitre" couleur={c.accent}>{p.prix_fcfa ? prix(p) : ''}{p.prix_fcfa && p.prix_nkr ? ' · ' : ''}{p.prix_nkr ? formatNkr(p.prix_nkr) : ''}{!p.prix_fcfa && !p.prix_nkr ? prix(p) : ''}</T>
-              <T v="petit">{p.type === 'abonnement' ? 'Plus de publicité, accès aux contenus abonnés.' : p.type === 'achat' ? 'Achat à l\'unité, à vie.' : 'Consommable.'}</T>
+              <T v="petit">{p.type === 'abonnement' ? 'Kak\'Igonjo sans limite de questions, plus de publicité, vidéos d\'Igolani du forfait. Les cours et la bibliothèque restent gratuits pour tous.' : p.type === 'achat' ? 'Achat à l\'unité, à vie.' : 'Consommable.'}</T>
               {possede ? <Bouton label="Déjà acquis" variante="ambre" desactive onPress={() => {}} /> : <>
                 {(!p.prix_nkr || p.prix_fcfa) && <Bouton label={p.prix_nkr ? 'Payer en FCFA' : 'Acheter'} variante="ambre" charge={occupe === p.id} onPress={() => { setEnNkr(null); acheter(p); }} />}
                 {!!p.prix_nkr && <Bouton label={`Payer ${formatNkr(p.prix_nkr)}`} icone="piece" variante={p.prix_fcfa ? 'fantome' : 'ambre'} onPress={() => ouvrirNkr(p)} />}

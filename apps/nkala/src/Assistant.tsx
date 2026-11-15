@@ -27,6 +27,7 @@ export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 
 // Le dessin du vieux sage est dans KakIgonjo.tsx (partagé avec la mascotte du kit).
 import { VieilOrungu, texteAttenteKakIgonjo } from './KakIgonjo';
+import { AppelForfait, estRefusForfait, texteQuestionsGratuites } from './ForfaitIa';
 export { VieilOrungu };
 
 
@@ -146,7 +147,9 @@ export function AssistantFlottant() {
   const [attente, setAttente] = useState<number | null>(null);
   /** Envoi refusé par le serveur (contexte en excès ou plein), avec le message en attente. */
   const [refus, setRefus] = useState<(RefusChat & { message: string; erreur: string }) | null>(null);
-  const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean } | null>(null);
+  const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean; gratuitesRestantes?: number | null } | null>(null);
+  /** Questions gratuites de la semaine épuisées (402 « forfait ») : message du serveur. */
+  const [forfait, setForfait] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const liste = useRef<ScrollView>(null);
   const charges = useRef(false);
@@ -214,7 +217,7 @@ export function AssistantFlottant() {
   const envoyer = async (repris?: { message: string; accepteFrais: boolean }) => {
     const m = (repris?.message ?? texte).trim(); if (!m || occupe) return;
     if (!repris) { setTexte(''); setBulles(b => [...b, { role: 'user', content: m }]); }
-    setErreur(null); setRefus(null); setOccupe(true); setAttente(null);
+    setErreur(null); setRefus(null); setForfait(null); setOccupe(true); setAttente(null);
     try {
       let id = chat?.id;
       if (!id) { const n = await creerChat(); id = n.chat.id; setChat(n.chat); }
@@ -223,7 +226,8 @@ export function AssistantFlottant() {
       void rafraichir();
     } catch (e) {
       const corps = e instanceof ApiError ? e.corps : null;
-      if (corps?.code) setRefus({ ...corps, message: m, erreur: (e as Error).message });
+      if (estRefusForfait(e)) setForfait((e as Error).message);
+      else if (corps?.code) setRefus({ ...corps, message: m, erreur: (e as Error).message });
       else setErreur((e as Error).message);
     } finally { setOccupe(false); }
   };
@@ -359,8 +363,10 @@ export function AssistantFlottant() {
                       </View>
                     </View>
                   )}
+                  {!!forfait && <AppelForfait message={forfait} />}
                   {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
                   {quota?.alerte && <T v="petit" couleur={c.accent}>Il te reste peu de messages aujourd'hui.</T>}
+                  {!forfait && !!texteQuestionsGratuites(quota?.gratuitesRestantes) && <T v="petit" couleur={c.accent}>{texteQuestionsGratuites(quota?.gratuitesRestantes)}</T>}
                 </>}
             </ScrollView>
           )}

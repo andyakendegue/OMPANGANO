@@ -38,7 +38,7 @@ export function PortefeuilleNkorouna({ portefeuille, erreur }: { portefeuille: P
         </View>
         {portefeuille?.gele && <Pastille label="Compte gelé" couleur={c.erreur} fond={c.carte} />}
       </View>
-      <T v="petit">Achète des Nkorouna en FCFA (Mobile Money), puis paie tes livres, leçons et jeux en un toucher.</T>
+      <T v="petit">Achète des Nkorouna en FCFA (Mobile Money), puis paie ton forfait et les vidéos d'Igolani en un toucher.</T>
 
       {portefeuille && (
         <Pressable onPress={() => setOuvert(o => !o)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

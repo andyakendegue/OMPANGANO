@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Modal, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { demanderKakIgonjo, ficheLivre, fonctionActive, listerLivres, quizLecture, rayonsBibliotheque, texteChapitre, type ChapitreListe, type ChapitreTexte, type Ligne, type LivreListe, type NiveauAcces, type QuestionLecture, type QuestionnaireItem } from '@nkala/noyau';
+import { demanderKakIgonjo, regleSansFormule, ficheLivre, fonctionActive, listerLivres, quizLecture, rayonsBibliotheque, texteChapitre, type ChapitreListe, type ChapitreTexte, type Ligne, type LivreListe, type NiveauAcces, type QuestionLecture, type QuestionnaireItem } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { KakIgonjoFeuille } from './KakIgonjoCours';
@@ -238,7 +238,8 @@ function FicheLivreVue({ l, chap, pile, r }: { l: Livre; chap: Chap[]; pile: Pil
         </View>
       </View>
       {!!l.resume && <T v="corps">{l.resume as string}</T>}
-      <Verrou contenu={{ id: l.id, acces: ((l.niveau_acces as NiveauAcces) || 'libre'), roles: ['admin', 'validator'] }} regle={l as unknown as Record<string, any>}>
+      {/* Bibliothèque gratuite (15 nov. 2026) : seuls un livre « reserve » (personnel) ou un rang minimal la retiennent. */}
+      <Verrou contenu={{ id: l.id, acces: (l.niveau_acces === 'reserve' ? 'reserve' : 'libre') as NiveauAcces, roles: ['admin', 'validator'] }} regle={regleSansFormule(l as { rang_min?: unknown })}>
         <Bouton label={p.faits === 0 && !r.position[l.id] ? 'Commencer la lecture' : p.faits === p.total ? 'Relire depuis le début' : 'Reprendre la lecture'} icone="livre" variante="ambre" onPress={() => pile.pousser({ t: 'lire', livreId: l.id, idx: p.faits === p.total ? 0 : reprise })} />
         <SectionTitre titre="Chapitres" />
         {chap.map((x, i) => { const res = donnees.lectures?.[x.id]; return (

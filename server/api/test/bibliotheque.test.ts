@@ -28,31 +28,33 @@ before(async () => {
   // Données inventées pour le test (D5).
   const livres = Array.from({ length: 45 }, (_, i) => ({ id: `lv-essai-${i}`, titre: `Livre d'essai ${i}`, auteur: i % 2 ? 'Auteur Pair' : 'Écrivaine Impaire', categorie: i < 40 ? 'Romans' : 'Decrets', minutes: 3, publie: 'oui' }));
   livres.push({ id: 'lv-reserve', titre: 'Livre réservé', auteur: 'X', categorie: 'Romans', minutes: 1, publie: 'oui', niveau_acces: 'abonnement' } as any);
+  livres.push({ id: 'lv-perso', titre: 'Livre du personnel', auteur: 'X', categorie: 'Romans', minutes: 1, publie: 'oui', niveau_acces: 'reserve' } as any);
   livres.push({ id: 'lv-vide', titre: 'Sans chapitre', auteur: 'X', categorie: 'Romans', minutes: 0, publie: 'oui' } as any);
   await importer('bibliotheque', livres);
   const rc = await importer('livre_chapitres', [
     { id: 'lv-essai-1-001', livre_id: 'lv-essai-1', titre: 'Un', texte: 'Il était une fois une pirogue sur la lagune.', ordre: 1, publie: 'oui' },
     { id: 'lv-essai-1-002', livre_id: 'lv-essai-1', titre: 'Deux', texte: 'La pirogue revint au village.', ordre: 2, publie: 'oui' },
     { id: 'lv-reserve-001', livre_id: 'lv-reserve', titre: 'Secret', texte: 'Texte réservé aux abonnés.', ordre: 1, publie: 'oui' },
+    { id: 'lv-perso-001', livre_id: 'lv-perso', titre: 'Interne', texte: 'Texte du personnel.', ordre: 1, publie: 'oui' },
     ...Array.from({ length: 45 }, (_, i) => i).filter(i => i !== 1).map(i => ({ id: `lv-essai-${i}-001`, livre_id: `lv-essai-${i}`, titre: 'Seul', texte: 'Court.', ordre: 1, publie: 'oui' })),
   ]);
-  assert.equal(rc.body.ecrit, 47);
+  assert.equal(rc.body.ecrit, 48);
 });
 after(async () => { await app.close(); await db.close(); });
 
 test('liste paginée, recherche sans accents, rayon, livres sans chapitre exclus', async () => {
   const p0 = await call('GET', '/pub/bibliotheque?n=30');
-  assert.equal(p0.status, 200); assert.equal(p0.body.total, 46, '45 + le réservé, pas le livre sans chapitre'); assert.equal(p0.body.livres.length, 30);
+  assert.equal(p0.status, 200); assert.equal(p0.body.total, 47, '45 + les deux marqués, pas le livre sans chapitre'); assert.equal(p0.body.livres.length, 30);
   assert.equal(p0.body.livres[0].fichier, undefined, 'champs techniques non envoyés');
-  assert.equal((await call('GET', '/pub/bibliotheque?n=30&page=1')).body.livres.length, 16);
+  assert.equal((await call('GET', '/pub/bibliotheque?n=30&page=1')).body.livres.length, 17);
   assert.equal((await call('GET', '/pub/bibliotheque?q=ecrivaine%20impaire')).body.total, 23);
   assert.equal((await call('GET', '/pub/bibliotheque?rayon=Decrets')).body.total, 5);
   assert.deepEqual((await call('GET', '/pub/bibliotheque?ids=lv-essai-3,lv-essai-4')).body.livres.map((l: any) => l.id).sort(), ['lv-essai-3', 'lv-essai-4']);
   const r = await call('GET', '/pub/bibliotheque/rayons');
-  assert.deepEqual(r.body.rayons[0], { rayon: 'Romans', n: 41 }); assert.equal(r.body.total, 46);
+  assert.deepEqual(r.body.rayons[0], { rayon: 'Romans', n: 42 }); assert.equal(r.body.total, 47);
 });
 
-test('fiche sans texte, chapitre un par un, accès du livre respecté', async () => {
+test('fiche sans texte, chapitre un par un ; bibliothèque gratuite (15 nov. 2026), sauf livre « reserve »', async () => {
   const f = await call('GET', '/pub/bibliotheque/lv-essai-1');
   assert.equal(f.status, 200); assert.deepEqual(f.body.chapitres.map((c: any) => [c.id, c.mots]), [['lv-essai-1-001', 7], ['lv-essai-1-002', 5]]);
   assert.equal(f.body.chapitres[0].texte, undefined);
@@ -61,11 +63,13 @@ test('fiche sans texte, chapitre un par un, accès du livre respecté', async ()
   assert.equal((await call('GET', '/pub/bibliotheque/lv-essai-2/chapitres/lv-essai-1-002')).status, 404, 'chapitre d\'un autre livre');
   assert.equal((await call('GET', '/pub/bibliotheque/inconnu')).status, 404);
   assert.equal((await call('GET', '/pub/bibliotheque/a%20b')).status, 400);
-  assert.equal((await call('GET', '/pub/bibliotheque/lv-reserve/chapitres/lv-reserve-001')).status, 401, 'sans compte');
-  assert.equal((await call('GET', '/v1/bibliotheque/lv-reserve/chapitres/lv-reserve-001')).status, 401, 'route /v1 sans jeton');
+  assert.equal((await call('GET', '/pub/bibliotheque/lv-reserve/chapitres/lv-reserve-001')).status, 200, 'gratuit, même marqué « abonnement », sans compte');
+  assert.equal((await call('GET', '/v1/bibliotheque/lv-reserve/chapitres/lv-reserve-001')).status, 401, 'route /v1 sans jeton : compte exigé par la route elle-même');
   const u = tok('lecteur', { email: 'lecteur@x.com' }); await call('GET', '/v1/me', u);
-  assert.equal((await call('GET', '/v1/bibliotheque/lv-reserve/chapitres/lv-reserve-001', u)).status, 402, 'sans forfait');
-  assert.equal((await call('GET', '/v1/bibliotheque/lv-reserve/chapitres/lv-reserve-001', ADMIN)).status, 200, 'personnel');
+  assert.equal((await call('GET', '/v1/bibliotheque/lv-reserve/chapitres/lv-reserve-001', u)).status, 200, 'sans forfait');
+  assert.equal((await call('GET', '/pub/bibliotheque/lv-perso/chapitres/lv-perso-001')).status, 401, 'livre du personnel : sans compte');
+  assert.equal((await call('GET', '/v1/bibliotheque/lv-perso/chapitres/lv-perso-001', u)).status, 403, 'livre du personnel : utilisateur');
+  assert.equal((await call('GET', '/v1/bibliotheque/lv-perso/chapitres/lv-perso-001', ADMIN)).status, 200, 'personnel');
   assert.equal((await call('GET', '/pub/contenus/livre_chapitres')).status, 403, 'plus de lecture en bloc');
 });
 

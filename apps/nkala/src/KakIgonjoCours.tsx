@@ -8,6 +8,7 @@ import { View } from 'react-native';
 import { demanderKakIgonjo, fonctionActive, type Exercice } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { texteAttenteKakIgonjo } from './KakIgonjo';
+import { AppelForfait, estRefusForfait } from './ForfaitIa';
 import { Bouton, Champ, Feuille, Mascotte, T } from './kit';
 import { usePrefs, useTheme } from './Prefs';
 
@@ -45,16 +46,17 @@ export function KakIgonjoFeuille({ visible, onClose, titre, consigne, affiche }:
   const [occupe, setOccupe] = useState(false);
   const [attente, setAttente] = useState<number | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [forfait, setForfait] = useState<string | null>(null);
   const lance = useRef<string | null>(null);
   const envoyer = async (message: string, montre: string) => {
-    setErreur(null); setOccupe(true); setAttente(null);
+    setErreur(null); setForfait(null); setOccupe(true); setAttente(null);
     setBulles(b => [...b, { role: 'user', content: montre }]);
     try {
       const r = await demanderKakIgonjo(message, conv, hist, setAttente);
       setConv(r.conversationId);
       setHist(h => [...h, { role: 'user', content: message }, { role: 'assistant', content: r.reponse }]);
       setBulles(b => [...b, { role: 'assistant', content: r.reponse }]);
-    } catch (e) { setErreur((e as Error).message); } finally { setOccupe(false); }
+    } catch (e) { if (estRefusForfait(e)) setForfait((e as Error).message); else setErreur((e as Error).message); } finally { setOccupe(false); }
   };
   useEffect(() => {
     if (!visible || !ia.ok || lance.current === consigne) return;
@@ -73,6 +75,7 @@ export function KakIgonjoFeuille({ visible, onClose, titre, consigne, affiche }:
           </View>
         ))}
         {occupe && <T v="petit" accessibilityLiveRegion="polite">{texteAttenteKakIgonjo(attente)}</T>}
+        {!!forfait && <AppelForfait message={forfait} />}
         {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
         <Champ valeur={texte} onChange={setTexte} placeholder="Réponds ou pose une question…" auto="sentences" maxLength={1000} onSubmit={() => { const m = texte.trim(); if (m && !occupe) { setTexte(''); envoyer(m, m); } }} />
         <Bouton label="Envoyer" icone="envoyer" petit charge={occupe} desactive={!texte.trim()} onPress={() => { const m = texte.trim(); if (m) { setTexte(''); envoyer(m, m); } }} />

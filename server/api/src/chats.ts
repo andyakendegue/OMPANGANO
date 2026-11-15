@@ -18,7 +18,7 @@ import { consigneActions, extraireActions } from '../../../packages/noyau/src/ac
 import type { Queryable } from './db.ts';
 import { parametre, str, type Ctx } from './ctx.ts';
 import { modulesActuels } from './contenus.ts';
-import { QUOTA_DEFAUT, consommation, droitsDe } from './services.ts';
+import { QUOTA_DEFAUT, consommation, droitIaDe, droitsDe, refusForfaitIa, verifierForfaitIa } from './services.ts';
 
 export const reglesContexte = async (q: Queryable): Promise<ReglesContexte> => {
   const r = { ...REGLES_CONTEXTE_DEFAUT, ...(await parametre<Partial<ReglesContexte>>(q, 'ia_contexte', {})) };
@@ -109,6 +109,9 @@ export function registerChats(ctx: Ctx) {
     const moi = (await db.query<any>(`SELECT data->>'birthDate' AS n, COALESCE(NULLIF(data->>'displayName', ''), data->>'fullName') AS nom FROM users WHERE id = $1`, [a.auth.uid]))[0];
     const age = profilAgeDepuis(moi?.n);
     const droits = await droitsDe(db, a.auth.uid, a.role);
+    // L'IA demande un forfait (15 nov. 2026) : sans forfait, quelques questions gratuites par semaine.
+    const droitIaV = await droitIaDe(db, a, droits);
+    if (!droitIaV.ok) { const r = refusForfaitIa(droitIaV); return reply.status(r.code).send(r.corps); }
     const base = { ...QUOTA_DEFAUT, ...(await parametre<Partial<QuotaJetons>>(db, 'ia_quotas', {})) };
     const f = age === 'enfant' ? 0.25 : droits.abonneJusque && droits.abonneJusque > Date.now() ? 4 : 1;
     // Dans un chat, la longueur est gouvernée par les règles de contexte, pas par le quota « par conversation ».
@@ -160,9 +163,9 @@ export function registerChats(ctx: Ctx) {
       reponse: lisible, actions, simule: rep.simule, sources: sources.map(s => ({ titre: s.titre, source: s.source ?? null })),
       appel: { entree: rep.usage.entree, sortie: rep.usage.sortie, jetonsExces: reel.jetons, frais, devise: tarif.devise, ...(a.isAdmin ? { cout, modele: rep.modele } : {}) },
       chat: fiche(await lire(db, c.id, a.auth.uid), regles, tarif, a.isAdmin),
-      quota: apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true },
+      quota: { ...(apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true }), gratuitesRestantes: droitIaV.restantes },
     };
-  }, req => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); }));
+  }, async (req, a) => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); return verifierForfaitIa(db)(req, a); }));
 
   // ---------------------------------------------------------------- console : combien ça coûte
   app.get('/v1/admin/ia/couts', async (req) => {

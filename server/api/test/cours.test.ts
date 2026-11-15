@@ -128,15 +128,15 @@ test('les nouveaux types d\'exercice et la grammaire s\'importent', async () => 
   assert.ok(ids.includes('g1') && !ids.includes('g2'), 'une fiche sans source est refusée');
 });
 
-test('accès des leçons côté serveur : 1re unité gratuite, la suite au forfait, niveau_acces prioritaire', async () => {
+test('accès des leçons côté serveur : cours gratuits sans forfait (15 nov. 2026)', async () => {
   const u = await user();
   const lecon = (id: string) => call('POST', '/v1/progression/lecon', u.token, { leconId: id, bonnes: 3, erreurs: 0 });
   assert.equal((await lecon('pa-l1')).status, 200);
-  assert.equal((await lecon('pa-l2')).status, 402);
+  assert.equal((await lecon('pa-l2')).status, 200, 'deuxième unité : gratuite aussi');
   assert.equal((await lecon('pa-l3')).status, 200);
   await importer('produits', [{ id: 'abo', titre: 'Forfait', type: 'abonnement', prix_fcfa: 1000, periode: 'mois', publie: 'oui' }]);
-  await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo', jours: 30 });
-  assert.equal((await lecon('pa-l2')).status, 200, 'le forfait ouvre la suite');
+  await importer('lecons', [{ id: 'pa-perso', unite_id: 'pa-u2', titre: 'Personnel', niveau_acces: 'reserve', publie: 'oui' }]);
+  assert.equal((await lecon('pa-perso')).status, 402, 'leçon « reserve » : fermée au public');
 });
 
 test('certificat : refusé avant la fin, numéroté une seule fois, vérifiable publiquement', async () => {
@@ -194,17 +194,16 @@ test('planning des cours à distance : création, inscription par code (4 au plu
   assert.equal((await call('GET', `/v1/appels/planning/${tard.body.code}`, hote.token)).status, 404, 'l\'hôte annule le cours');
 });
 
-test('exercices servis selon les droits ; adresse des vidéos retirée de la lecture publique', async () => {
-  await importer('exercices', [{ id: 'g-1', lecon_id: 'pa-l1', type: 'choix', options: 'a|b', reponse: 'a', source: 'x', ordre: 1 }, { id: 'p-1', lecon_id: 'pa-l2', type: 'choix', options: 'a|b', reponse: 'a', source: 'x', ordre: 1 }]);
+test('exercices de toutes les leçons servis sans compte (cours gratuits) ; « reserve » au personnel ; adresse des vidéos retirée', async () => {
+  await importer('exercices', [{ id: 'g-1', lecon_id: 'pa-l1', type: 'choix', options: 'a|b', reponse: 'a', source: 'x', ordre: 1 }, { id: 'p-1', lecon_id: 'pa-l2', type: 'choix', options: 'a|b', reponse: 'a', source: 'x', ordre: 1 }, { id: 'r-1', lecon_id: 'pa-perso', type: 'choix', options: 'a|b', reponse: 'a', source: 'x', ordre: 1 }]);
   const ids = (r: any) => r.body.lignes.map((l: { id: string }) => l.id);
   const invite = await call('GET', '/pub/onenji/exercices');
-  { const anc = await call('GET', '/pub/contenus/exercices'); assert.equal(anc.status, 200, 'versions 0.1.x'); assert.ok(ids(anc).includes('g-1') && !ids(anc).includes('p-1'), 'versions 0.1.x : leçons gratuites seulement'); }
-  assert.ok(ids(invite).includes('g-1') && !ids(invite).includes('p-1'), 'sans compte : leçons gratuites seulement');
+  { const anc = await call('GET', '/pub/contenus/exercices'); assert.equal(anc.status, 200, 'versions 0.1.x'); assert.ok(ids(anc).includes('g-1') && ids(anc).includes('p-1'), 'versions 0.1.x : toutes les leçons'); }
+  assert.ok(ids(invite).includes('g-1') && ids(invite).includes('p-1') && !ids(invite).includes('r-1'), 'sans compte : toutes les leçons sauf « reserve »');
   const u = await user();
-  assert.ok(!ids(await call('GET', '/v1/onenji/exercices', u.token)).includes('p-1'));
-  await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo', jours: 30 });
-  { const r = await call('GET', '/v1/onenji/exercices', u.token); assert.ok(ids(r).includes('p-1'), 'forfait : leçon ouverte ' + JSON.stringify(r.body.lecons) + JSON.stringify(await call('GET', '/v1/droits', u.token))); }
-  assert.ok(ids(await call('GET', '/v1/onenji/exercices', ADMIN)).includes('p-1'), 'personnel : tout');
+  assert.ok(ids(await call('GET', '/v1/onenji/exercices', u.token)).includes('p-1'), 'compte sans forfait : leçon ouverte');
+  assert.ok(!ids(await call('GET', '/v1/onenji/exercices', u.token)).includes('r-1'));
+  assert.ok(ids(await call('GET', '/v1/onenji/exercices', ADMIN)).includes('r-1'), 'personnel : tout');
   await importer('cours_artisans', [{ id: 'v-url', titre: 'Avec adresse', video_url: 'https://exemple.test/v.m3u8', publie: 'oui' }]);
   const v = (await call('GET', '/pub/contenus/cours_artisans')).body.lignes.find((l: any) => l.id === 'v-url');
   assert.equal(v.video_url, undefined); assert.equal(v.video, true);

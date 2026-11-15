@@ -34,7 +34,7 @@ export const chargerDefiDuJour = () => api<{ jour: string; defi: { id: string; t
 export const ajouterAmi = (telephone: string) => api<{ ajoute: { id: string; nom: string } }>('POST', '/v1/progression/amis', { telephone });
 
 // ------------------------------------------------------------------ assistant IA (Kak'Igonjo)
-export interface ReponseIa { reponse: string; conversationId: string; usage: { entree: number; sortie: number }; simule: boolean; quota: { restantJour: number; restantMois: number; alerte: boolean } }
+export interface ReponseIa { reponse: string; conversationId: string; usage: { entree: number; sortie: number }; simule: boolean; quota: { restantJour: number; restantMois: number; alerte: boolean; gratuitesRestantes?: number | null } }
 /**
  * Réponse différée de l'assistant (14 nov. 2026) : le modèle tourne en serverless et son réveil peut prendre plusieurs minutes,
  * bien plus que le délai d'une requête (30 s). L'envoi part avec `asynchrone: true` ; le serveur répond aussitôt un numéro de travail
@@ -63,7 +63,8 @@ export async function attendreReponseIa<T>(depart: Promise<unknown>, surAttente?
 
 export const demanderKakIgonjo = (message: string, conversationId?: string, historique?: { role: 'user' | 'assistant'; content: string }[], surAttente?: (secondes: number) => void) =>
   attendreReponseIa<ReponseIa>(api('POST', '/v1/ia/message', { message, conversationId, historique, asynchrone: true }), surAttente);
-export const consommationIa = () => api<{ consommation: { jour: number; mois: number; conversation: number }; quota: { parJour: number; parMois: number; parConversation: number } }>('GET', '/v1/ia/usage');
+/** `forfait` : l'IA est incluse ; sinon `gratuitesRestantes` questions gratuites cette semaine (décision du 15 nov. 2026). */
+export const consommationIa = () => api<{ consommation: { jour: number; mois: number; conversation: number }; quota: { parJour: number; parMois: number; parConversation: number }; forfait?: boolean; gratuitesRestantes?: number | null }>('GET', '/v1/ia/usage');
 
 // ------------------------------------------------------------------ chats de l'assistant (contexte, excès, coût)
 export interface FicheChat {
@@ -77,7 +78,7 @@ export interface MessageChat { role: 'user' | 'assistant'; content: string; at?:
 export interface ReponseChat {
   reponse: string; actions?: ActionIa[]; simule: boolean; sources: { titre: string; source: string | null }[]; chat: FicheChat;
   appel: { entree: number; sortie: number; jetonsExces: number; frais: number; devise: string; cout?: number; modele?: string };
-  quota: { restantJour: number; restantMois: number; alerte: boolean };
+  quota: { restantJour: number; restantMois: number; alerte: boolean; gratuitesRestantes?: number | null };
 }
 /** Refus d'un envoi : `frais` = accord à donner, `exces` = bloqué, `plein` = plafond atteint. */
 export interface RefusChat { code: 'frais' | 'exces' | 'plein'; contexte: EtatContexte; fraisEstimes: number; devise: string }

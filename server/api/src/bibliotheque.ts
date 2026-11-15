@@ -6,10 +6,9 @@
  * - texte d'un chapitre, un par un, avec le contrôle d'accès du livre (gratuit sans compte ; sinon droits du compte).
  * Aucune donnée personnelle n'est renvoyée par les routes /pub.
  */
-import { peutAcceder, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
 import { str, type Ctx } from './ctx.ts';
 import { verifierRegle } from './profil_acces.ts';
-import { droitsDe } from './services.ts';
+import { regleSansFormule } from '../../../packages/noyau/src/formules.ts';
 
 const ID_RE = /^[A-Za-z0-9_.:-]{1,200}$/;
 const DUREE_CACHE_MS = 5 * 60_000;
@@ -20,11 +19,11 @@ type LivreLeger = Record<string, unknown> & { id: string; titre: string };
 const sansAccents = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const nombre = (v: unknown, defaut: number, min: number, max: number) => { const n = Math.floor(Number(v)); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : defaut; };
 
-/** Livre lisible sans compte : gratuit (libre ou gratuit avec publicité) et sans règle de rang ni de formule. */
-export const livreGratuit = (d: Record<string, any>) => {
-  const n = (d.niveau_acces || 'libre') as string;
-  return (n === 'libre' || n === 'gratuit_avec_pub') && !(Number(d.rang_min) > 0) && !(Array.isArray(d.plans) && d.plans.length);
-};
+/**
+ * La bibliothèque est gratuite (décision de Capp, 15 nov. 2026, noyau/formules.ts) : tout livre se lit sans compte, sauf un
+ * livre « reserve » (personnel) ou retenu par un rang (« rang_min », compte nécessaire). Niveau payant et formules ignorés.
+ */
+export const livreGratuit = (d: Record<string, any>) => d.niveau_acces !== 'reserve' && !regleSansFormule(d).rang_min;
 
 export function registerBibliotheque({ app, db, fail, acteur }: Ctx) {
   let cache: { t: number; livres: LivreLeger[]; rayons: { rayon: string; n: number }[] } | null = null;
@@ -97,9 +96,8 @@ export function registerBibliotheque({ app, db, fail, acteur }: Ctx) {
       if (!avecCompte) return fail(401, 'Connecte-toi pour lire ce livre.');
       const a = await acteur(req);
       if (!a.isStaff) {
-        const d = peutAcceder({ id, acces: (l.data.niveau_acces || 'libre') as NiveauAcces, roles: ['admin', 'validator'] }, await droitsDe(db, a.auth.uid, a.role));
-        if (!d.ok) return fail(402, 'Ce livre est réservé : passe à un forfait ou achète-le.');
-        if (!(await verifierRegle(db, a.auth.uid, a.isStaff, l.data)).ok) return fail(402, 'Ce livre s\'ouvre à un rang ou avec une formule supérieurs.');
+        if (l.data.niveau_acces === 'reserve') return fail(403, 'Ce livre n\'est pas encore ouvert au public.');
+        if (!(await verifierRegle(db, a.auth.uid, a.isStaff, regleSansFormule(l.data))).ok) return fail(402, 'Ce livre s\'ouvre à un rang supérieur.');
       }
     }
     const c = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'livre_chapitres' AND id = $1 AND data->>'livre_id' = $2 AND publie AND deleted_at IS NULL`, [cid, id]))[0];

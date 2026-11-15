@@ -57,7 +57,7 @@ export const SCHEMAS: SchemaContenu[] = [
     id, { nom: 'parcours_id', type: 'texte', requis: true, ref: 'parcours', aide: 'Parcours parent.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'titre_myene', type: 'texte', aide: 'Titre en myènè.' },
     { nom: 'description', type: 'long', aide: 'Description.' }, ordre, publie, rangMin, plans] },
-  { id: 'lecons', module: 'onenji', titre: 'Leçons', description: 'Une leçon = une suite d\'exercices courts.', champs: [
+  { id: 'lecons', module: 'onenji', titre: 'Leçons', description: 'Une leçon = une suite d\'exercices courts. Les cours sont gratuits (15 nov. 2026) : « niveau_acces » et « plans » ne ferment plus une leçon ; seuls « reserve » (personnel) et « rang_min » la retiennent.', champs: [
     id, { nom: 'unite_id', type: 'texte', requis: true, ref: 'unites', aide: 'Unité parente.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'titre_myene', type: 'texte', aide: 'Titre en myènè.' },
     { nom: 'duree_min', type: 'entier', aide: 'Durée estimée en minutes.', exemple: '5' },
@@ -96,7 +96,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du chapitre.' }, { nom: 'debut_s', type: 'entier', aide: 'Début dans la vidéo (secondes).' },
     { nom: 'duree_s', type: 'entier', aide: 'Durée en secondes.' },
     { ...acces, aide: 'Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n\'en a pas : 1er chapitre gratuit avec publicité, la suite au forfait, à l\'achat pour un cours d\'artisan de plus de 60 min).', exemple: '' }, ordre] },
-  { id: 'bibliotheque', module: 'onenji', titre: 'Bibliothèque', description: 'Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l\'application.', champs: [
+  { id: 'bibliotheque', module: 'onenji', titre: 'Bibliothèque', description: 'Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l\'application. La bibliothèque est gratuite (15 nov. 2026) : seuls « reserve » (personnel) et « rang_min » retiennent un livre.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'auteur', type: 'texte', aide: 'Auteur.' },
     { nom: 'type', type: 'choix', choix: ['livre', 'annale', 'fiche', 'audio', 'autre'], aide: 'Type.' },
     { nom: 'langue', type: 'texte', aide: 'Langue.' }, { nom: 'url', type: 'url', aide: 'Fichier ou page (facultatif si les chapitres sont dans l\'application).' },

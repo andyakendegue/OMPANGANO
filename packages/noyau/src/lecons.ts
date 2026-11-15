@@ -195,11 +195,14 @@ export function etapeParAge(age: number): 'ntina' | 'ogendo' | 'emeno' | 'ikoko'
   return age < 7 ? 'ntina' : age < 13 ? 'ogendo' : age < 21 ? 'emeno' : 'ikoko';
 }
 
-/** Accès d'une leçon : la colonne « niveau_acces » si elle est remplie ; sinon la première unité de chaque étape est libre, le reste demande un forfait. */
-export function accesLecon(lecon: Lecon, unite: Unite, unitesDuParcours: Unite[]): string {
-  if (lecon.niveau_acces) return lecon.niveau_acces;
-  const premiere = [...unitesDuParcours].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0))[0];
-  return premiere && premiere.id === unite.id ? 'libre' : 'abonnement';
+/**
+ * Accès d'une leçon : les cours d'Onenji sont gratuits (décision de Capp, 15 nov. 2026 ; voir formules.ts). La colonne
+ * « niveau_acces » n'ouvre plus de cadenas payant ; seul « reserve » (leçon gardée pour le personnel) reste respecté.
+ * Les paramètres `unite` et `unitesDuParcours` sont gardés pour les appels existants.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function accesLecon(lecon: Lecon, _unite?: Unite, _unitesDuParcours?: Unite[]): string {
+  return lecon.niveau_acces === 'reserve' ? 'reserve' : 'libre';
 }
 
 // ------------------------------------------------------------------ unité en 9 étapes (programme ; audit Apprendre §8)

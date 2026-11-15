@@ -392,13 +392,12 @@ test('accès par rang et par formule : plans, rang minimal, personnel exempté',
   assert.equal((await partie('jeu-libre')).status, 200);
   assert.equal((await partie('jeu-rang3')).status, 402, 'rang 1 < 3');
   assert.equal((await partie('jeu-jeux')).status, 200, 'jeux gratuits (13 nov. 2026) : la formule citée par le jeu est ignorée');
-  assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 402);
+  assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 200, 'cours gratuits (15 nov. 2026) : la formule citée par la leçon est ignorée');
   const av = await call('POST', '/v1/acces/verifier', u.token, { collection: 'jeux', id: 'jeu-rang3' });
   assert.equal(av.body.autorise, false); assert.equal(av.body.rangMin, 3);
-  // formule « jeux » : ouvre le jeu qui la cite, pas la leçon réservée à « complet »
+  // formule « jeux »
   await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo-jeux', jours: 30 });
   assert.equal((await partie('jeu-jeux')).status, 200);
-  assert.equal((await call('POST', '/v1/progression/lecon', u.token, { leconId: 'lecon-plan', bonnes: 1, erreurs: 0 })).status, 402);
   assert.deepEqual((await call('GET', '/v1/droits/acces', u.token)).body.plans, ['jeux']);
   // publicité selon le forfait : la formule « jeux » coupe la publicité des jeux seulement
   await j('pub_creations', [{ id: 'pa', zone: 'bandeau_accueil', texte_alt: 'A', publie: 'oui' }, { id: 'pj', zone: 'bandeau_jeux', texte_alt: 'J', publie: 'oui' }]);

@@ -186,9 +186,9 @@ export function InterrupteursAdmin() {
   const toast = useToast();
   const [eff, setEff] = useState<{ modules: Record<string, boolean>; fonctions: Record<string, boolean> } | null>(null);
   const [p, setP] = useState<Record<string, any>>({});
-  const [q, setQ] = useState({ parJour: '', parMois: '', parConversation: '' });
+  const [q, setQ] = useState({ parJour: '', parMois: '', parConversation: '', questionsGratuitesSemaine: '' });
   const [pl, setPl] = useState({ recompensesParJour: '', parCreationJour: '' });
-  const charger = useCallback(() => adminParametres().then(r => { setEff(r.effectif); setP(r.parametres); setQ({ parJour: String(r.parametres.ia_quotas?.parJour ?? ''), parMois: String(r.parametres.ia_quotas?.parMois ?? ''), parConversation: String(r.parametres.ia_quotas?.parConversation ?? '') }); setPl({ recompensesParJour: String(r.parametres.pub_plafonds?.recompensesParJour ?? ''), parCreationJour: String(r.parametres.pub_plafonds?.parCreationJour ?? '') }); }).catch(e => toast((e as Error).message, 'erreur')), [toast]);
+  const charger = useCallback(() => adminParametres().then(r => { setEff(r.effectif); setP(r.parametres); setQ({ parJour: String(r.parametres.ia_quotas?.parJour ?? ''), parMois: String(r.parametres.ia_quotas?.parMois ?? ''), parConversation: String(r.parametres.ia_quotas?.parConversation ?? ''), questionsGratuitesSemaine: String(r.parametres.ia_quotas?.questionsGratuitesSemaine ?? '') }); setPl({ recompensesParJour: String(r.parametres.pub_plafonds?.recompensesParJour ?? ''), parCreationJour: String(r.parametres.pub_plafonds?.parCreationJour ?? '') }); }).catch(e => toast((e as Error).message, 'erreur')), [toast]);
   useEffect(() => { charger(); }, [charger]);
   const basculer = async (cle: 'modules' | 'fonctions', id: string, v: boolean) => { try { await adminEcrireParametre(cle, { ...(p[cle] ?? {}), ...(eff?.[cle] ?? {}), [id]: v }); toast('Enregistré.', 'succes'); charger(); void chargerModules(); } catch (e) { toast((e as Error).message, 'erreur'); } };
   const nombres = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== '' && Number(v) >= 0).map(([k, v]) => [k, Number(v)]));
@@ -230,6 +230,8 @@ export function InterrupteursAdmin() {
       <Ligne cle="fonctions" id="salleParis" label="Salle des paris" fige="Fermée : le dossier juridique de cinq pièces n'est pas réuni." />
       <SectionTitre titre="Quotas de l'assistant (jetons)" />
       {([['parJour', 'Par jour'], ['parMois', 'Par mois'], ['parConversation', 'Par conversation']] as const).map(([k, l]) => <Champ key={k} valeur={q[k]} onChange={t => setQ({ ...q, [k]: t.replace(/\D/g, '') })} placeholder={`${l} (adulte ; enfants : ¼, abonnés : ×4)`} clavier="number-pad" />)}
+      <T v="petit">L'IA demande un forfait. Sans forfait : questions gratuites par semaine (5 par défaut, 0 pour les couper).</T>
+      <Champ valeur={q.questionsGratuitesSemaine} onChange={t => setQ({ ...q, questionsGratuitesSemaine: t.replace(/\D/g, '') })} placeholder="Questions gratuites par semaine sans forfait (5)" clavier="number-pad" />
       <Bouton label="Enregistrer les quotas" petit variante="fantome" onPress={async () => { try { await adminEcrireParametre('ia_quotas', nombres(q)); toast('Quotas enregistrés.', 'succes'); } catch (e) { toast((e as Error).message, 'erreur'); } }} />
       <SectionTitre titre="Plafonds publicitaires" />
       <Champ valeur={pl.recompensesParJour} onChange={t => setPl({ ...pl, recompensesParJour: t.replace(/\D/g, '') })} placeholder="Annonces récompensées par jour et par joueur (3)" clavier="number-pad" />

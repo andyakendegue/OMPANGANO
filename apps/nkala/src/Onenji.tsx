@@ -8,13 +8,14 @@ import { Linking, Platform, Pressable, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ScreenCapture from 'expo-screen-capture';
 import {
-  accesChapitreVideo, accesCompletVideo, accesLecon, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, etapesCouvertes, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
+  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, etapesCouvertes, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
   progressionUnite, resoudreMedia, uniteSuivante, VARIANTES_TRIBALES, type EtatLecon, type Exercice, type Lecon, type Ligne, type NiveauAcces, type Parcours, type Unite,
 } from '@nkala/noyau';
 import { texteAccueil, useAccueilKakIgonjo } from './Assistant';
 import { texteAttenteKakIgonjo } from './KakIgonjo';
 import { useAuth } from './AuthProvider';
 import { Bouton, Carte, Ecran, Entete, EtatVide, Feuille, Ic, Mascotte, Pastille, Rangee, SectionTitre, T, Visuel, Champ, Barre, Chargement, Puce, useToast } from './kit';
+import { AppelForfait, estRefusForfait, texteQuestionsGratuites } from './ForfaitIa';
 import { ajouterMesMots, Bibliotheque } from './Bibliotheque';
 import { CoursDistance } from './CoursDistance';
 import { useDroits } from './Droits';
@@ -381,10 +382,10 @@ function LeconFlux({ e, D, pile }: { e: Extract<E, { t: 'lecon' }>; D: Donnees; 
       <Bouton label="Passer le test" variante="ambre" onPress={() => pile.remplacer({ t: 'test' })} />
     </Ecran>
   );
-  // Accès : colonne « niveau_acces » de la leçon, sinon première unité de chaque étape gratuite et le reste au forfait (une formule citée dans « plans » l'ouvre aussi).
-  const acces = accesLecon(e.lecon, e.unite, D.unites.filter(u => u.parcours_id === e.parcours.id)) as NiveauAcces;
+  // Accès (15 nov. 2026) : les cours sont gratuits ; seule une leçon « reserve » (personnel) ou un rang minimal la retiennent.
+  const acces = accesLecon(e.lecon) as NiveauAcces;
   return (
-    <Verrou contenu={{ id: e.lecon.id, acces, roles: ['admin', 'validator'] }} regle={e.lecon as unknown as Record<string, any>}>
+    <Verrou contenu={{ id: e.lecon.id, acces, roles: ['admin', 'validator'] }} regle={regleSansFormule(e.lecon as { rang_min?: unknown })}>
       <LeconRunner titre={e.lecon.titre} exercices={ex} onQuitter={pile.retour} onFin={async res => {
         const r = await terminerLecon(e.lecon, res.bonnes, res.erreurs);
         // « Mes mots » nourri par les leçons : les mots de la leçon rejoignent le carnet (sans doublon).
@@ -550,16 +551,17 @@ function KakIgonjoChat({ retour }: { retour: () => void }) {
   const [occupe, setOccupe] = useState(false);
   const [attente, setAttente] = useState<number | null>(null);
   const [conv, setConv] = useState<string | undefined>();
-  const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean } | null>(null);
+  const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean; gratuitesRestantes?: number | null } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [forfait, setForfait] = useState<string | null>(null);
   useSansPublicite(true);
   const envoyer = async () => {
     const m = texte.trim(); if (!m || occupe) return;
-    setTexte(''); setErreur(null); setOccupe(true); setAttente(null);
+    setTexte(''); setErreur(null); setForfait(null); setOccupe(true); setAttente(null);
     const hist = bulles.slice(1);
     setBulles(b => [...b, { role: 'user', content: m }]);
     try { const r = await demanderKakIgonjo(m, conv, hist, setAttente); setConv(r.conversationId); setQuota(r.quota); setBulles(b => [...b, { role: 'assistant', content: r.reponse }]); }
-    catch (e) { setErreur((e as Error).message); }
+    catch (e) { if (estRefusForfait(e)) setForfait((e as Error).message); else setErreur((e as Error).message); }
     finally { setOccupe(false); }
   };
   return (
@@ -576,6 +578,8 @@ function KakIgonjoChat({ retour }: { retour: () => void }) {
         {occupe && <T v="petit" accessibilityLiveRegion="polite">{texteAttenteKakIgonjo(attente)}</T>}
         {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
         {quota?.alerte && <T v="petit" couleur={c.accent}>Il te reste peu de messages aujourd'hui.</T>}
+        {!!forfait && <AppelForfait message={forfait} />}
+        {!forfait && !!texteQuestionsGratuites(quota?.gratuitesRestantes) && <T v="petit" couleur={c.accent}>{texteQuestionsGratuites(quota?.gratuitesRestantes)}</T>}
         <Champ valeur={texte} onChange={setTexte} placeholder="Écris ta question…" auto="sentences" onSubmit={envoyer} maxLength={2000} />
         <Bouton label="Envoyer" icone="envoyer" charge={occupe} desactive={!texte.trim()} onPress={envoyer} />
         <T v="petit">Kak'Igonjo n'utilise que des mots myènè vérifiés. S'il ne connaît pas un mot, il te le dit.</T>

@@ -11,6 +11,7 @@ import { getLevelForXp } from '../../../shared/levels.ts';
 import type { Queryable } from './db.ts';
 import { parametre, str, type Ctx } from './ctx.ts';
 import { verifierRegle } from './profil_acces.ts';
+import { regleSansFormule } from '../../../packages/noyau/src/formules.ts';
 import { lireJetonManche } from './azeva.ts';
 import { JEUX_GRATUITS } from '../../../packages/noyau/src/difficulte.ts';
 
@@ -46,21 +47,14 @@ async function donnerXp(q: Queryable, uid: string, xp: number) {
 }
 
 export function registerJeux({ app, db, fail, acteur, ensureUser, notify, cles }: Ctx) {
-  /** Niveau d'accès d'une leçon (même règle que l'application, `accesLecon`) ; unité inconnue : la leçon reste ouverte. */
-  const niveauLecon = async (leconId: string, data: Record<string, any>): Promise<NiveauAcces> => {
-    if (data.niveau_acces) return data.niveau_acces as NiveauAcces;
-    const u = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'unites' AND id = $1 AND deleted_at IS NULL`, [data.unite_id]))[0];
-    if (!u) return 'libre';
-    const soeurs = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'unites' AND publie AND deleted_at IS NULL AND data->>'parcours_id' = $1`, [u.data.parcours_id]))
-      .map(x => ({ ...x.data, id: x.id }) as Unite);
-    return accesLecon({ ...data, id: leconId } as any, { ...u.data, id: u.id } as Unite, soeurs.length ? soeurs : [{ ...u.data, id: u.id }]) as NiveauAcces;
-  };
+  /** Niveau d'accès d'une leçon (même règle que l'application, `accesLecon`) : les cours sont gratuits (15 nov. 2026). */
+  const niveauLecon = (leconId: string, data: Record<string, any>): NiveauAcces => accesLecon({ ...data, id: leconId } as any) as NiveauAcces;
 
   // ---------------------------------------------------------------- exercices d'Onenji (collection privée, 14 nov. 2026)
   /**
-   * Exercices des leçons que le demandeur peut ouvrir : sans compte, les leçons gratuites (première unité de chaque étape, « libre »,
-   * « gratuit_avec_pub ») ; avec un compte, aussi celles couvertes par ses droits (forfait, achat) ; le personnel reçoit tout.
-   * Les règles « rang_min » et « plans » de la leçon s'appliquent en plus.
+   * Exercices des leçons que le demandeur peut ouvrir. Les cours sont gratuits (décision du 15 nov. 2026, noyau/formules.ts) :
+   * toutes les leçons publiées, avec ou sans compte, sauf celles marquées « reserve » (personnel) ou retenues par un rang
+   * (« rang_min », compte nécessaire). Les formules (« plans ») ne s'appliquent plus aux cours.
    */
   const exercicesOuverts = async (req: any, reply: any, avecCompte: boolean) => {
     const a = avecCompte ? await acteur(req) : null;
@@ -71,13 +65,13 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify, cles }
     for (const l of lecons) {
       if (a?.isStaff) { ouvertes.add(l.id); continue; }
       const u = unites.find(x => x.id === l.unite_id);
-      const niveau = (l.niveau_acces || (u ? accesLecon(l, u, unites.filter(x => x.parcours_id === u.parcours_id)) : 'libre')) as NiveauAcces;
-      const regle = Number(l.rang_min) > 0 || (Array.isArray(l.plans) && l.plans.length > 0);
+      const niveau = accesLecon(l, u) as NiveauAcces;
+      const regle = !!regleSansFormule(l).rang_min;
       const gratuite = (niveau === 'libre' || niveau === 'gratuit_avec_pub') && !regle;
       if (gratuite) { ouvertes.add(l.id); continue; }
       if (!a) continue;
       if (!peutAcceder({ id: l.id, acces: niveau, roles: ['admin', 'validator'] }, droits).ok) continue;
-      if (regle && !(await verifierRegle(db, a.auth.uid, a.isStaff, l)).ok) continue;
+      if (regle && !(await verifierRegle(db, a.auth.uid, a.isStaff, regleSansFormule(l))).ok) continue;
       ouvertes.add(l.id);
     }
     const rows = await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'exercices' AND publie AND deleted_at IS NULL ORDER BY (data->>'ordre')::numeric NULLS LAST, id`);
@@ -164,10 +158,10 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify, cles }
     if (!str(leconId) || !Number.isInteger(bonnes) || !Number.isInteger(erreurs) || bonnes < 0 || erreurs < 0 || bonnes + erreurs > 60) return fail(400, 'Résultat de leçon invalide.');
     const l = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'lecons' AND id = $1 AND publie AND deleted_at IS NULL`, [leconId]);
     if (!l.length) return fail(404, 'Leçon introuvable.');
-    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, l[0].data); if (!r.ok) return fail(402, 'Cette leçon demande un niveau ou un abonnement supérieur.'); }
-    // Accès des cours (13 nov. 2026) : « niveau_acces » de la leçon, sinon première unité de chaque étape gratuite et le reste au forfait.
+    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, regleSansFormule(l[0].data)); if (!r.ok) return fail(402, 'Cette leçon s\'ouvre à un rang supérieur.'); }
+    // Accès des cours (15 nov. 2026) : gratuits ; seule une leçon « reserve » (personnel) reste fermée.
     if (!a.isStaff) {
-      const niveau = await niveauLecon(leconId, l[0].data);
+      const niveau = niveauLecon(leconId, l[0].data);
       const d = peutAcceder({ id: leconId, acces: niveau, roles: ['admin', 'validator'] }, await droitsDe(db, a.auth.uid, a.role));
       if (!d.ok) return fail(402, 'Cette leçon est réservée : passe à un forfait ou achète-la.');
     }
@@ -260,7 +254,7 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify, cles }
     const livre = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'bibliotheque' AND id = $1 AND publie AND deleted_at IS NULL`, [b.livreId]);
     const chap = await db.query<any>(`SELECT 1 FROM contenus WHERE collection = 'livre_chapitres' AND id = $1 AND data->>'livre_id' = $2 AND publie AND deleted_at IS NULL`, [b.chapitreId, b.livreId]);
     if (!livre.length || !chap.length) return fail(404, 'Chapitre introuvable.');
-    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, livre[0].data); if (!r.ok) return fail(402, 'Ce livre demande un niveau ou un abonnement supérieur.'); }
+    { const r = await verifierRegle(db, a.auth.uid, a.isStaff, regleSansFormule(livre[0].data)); if (!r.ok) return fail(402, 'Ce livre s\'ouvre à un rang supérieur.'); }
     const out = await db.tx(async q => {
       await ensureUser(q, a.auth);
       const d = await lireProgression(q, a.auth.uid);

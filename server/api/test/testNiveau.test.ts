@@ -28,11 +28,13 @@ test('placement : première étape sous les deux tiers', () => {
   assert.equal(placementTest([], [], P, U).parcoursId, 'ntina');
 });
 test('étape par âge', () => { assert.equal(etapeParAge(5), 'ntina'); assert.equal(etapeParAge(10), 'ogendo'); assert.equal(etapeParAge(30), 'ikoko'); });
-test('première unité libre, la suite au forfait', () => {
+test('cours gratuits (15 nov. 2026) : toute leçon est libre, même marquée payante ; « reserve » reste fermée', () => {
   const us = U.filter(u => u.parcours_id === 'ntina');
   assert.equal(accesLecon(L[0], us[0], us), 'libre');
-  assert.equal(accesLecon(L[1], us[1], us), 'abonnement');
-  assert.equal(accesLecon({ ...L[1], niveau_acces: 'achat' }, us[1], us), 'achat');
+  assert.equal(accesLecon(L[1], us[1], us), 'libre');
+  assert.equal(accesLecon({ ...L[1], niveau_acces: 'achat' }, us[1], us), 'libre');
+  assert.equal(accesLecon({ ...L[1], niveau_acces: 'abonnement' }), 'libre');
+  assert.equal(accesLecon({ ...L[1], niveau_acces: 'reserve' }), 'reserve');
 });
 test('jeux gratuits : formule et achat ignorés, rang gardé', () => {
   assert.deepEqual(accesNiveau({ id: 'x', rang_min: 0, plans: ['plus'], produit_id: 'p1' }, { rang: 1, plans: [], tout: false, achats: [] }), { ok: true });

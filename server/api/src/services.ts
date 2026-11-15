@@ -5,7 +5,8 @@
 import { createHmac, randomBytes } from 'node:crypto';
 import { SignJWT } from 'jose';
 import { verifierQuota, estimerJetons, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
-import { peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
+import { abonne, peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
+import { droitIa, messageForfaitIa, type DroitIa } from '../../../packages/noyau/src/formules.ts';
 import { accesCompletVideo, finPartieGratuite } from '../../../packages/noyau/src/lecons.ts';
 import { differable } from './travauxIa.ts';
 import { prixSeance, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
@@ -23,6 +24,33 @@ export type { FournisseurIa } from './ia.ts';
 export { fournisseurIaParDefaut } from './ia.ts';
 
 export const QUOTA_DEFAUT: QuotaJetons = { parJour: 20_000, parMois: 300_000, parConversation: 8_000 };
+
+/** Questions posées à l'IA depuis lundi 0 h (une ligne d'ia_usage par réponse du modèle). */
+export async function questionsIaSemaine(q: Queryable, uid: string): Promise<number> {
+  return Number((await q.query<any>(`SELECT count(*)::int AS n FROM ia_usage WHERE user_id = $1 AND at >= date_trunc('week', clock_timestamp())`, [uid]))[0]?.n ?? 0);
+}
+
+/**
+ * L'IA demande un forfait (décision de Capp, 15 nov. 2026, noyau/formules.ts) : abonnés et personnel sans limite de questions
+ * (les quotas de jetons s'appliquent toujours) ; les autres ont `ia_quotas.questionsGratuitesSemaine` questions par semaine.
+ */
+export async function droitIaDe(q: Queryable, a: { auth: { uid: string }; role?: string; isStaff?: boolean }, droits?: DroitsUtilisateur): Promise<DroitIa> {
+  if (a.isStaff) return droitIa({ abonne: false, personnel: true, questionsSemaine: 0 });
+  const d = droits ?? await droitsDe(q, a.auth.uid, a.role);
+  if (abonne(d)) return droitIa({ abonne: true, questionsSemaine: 0 });
+  const cfg = await parametre<Record<string, number>>(q, 'ia_quotas', {});
+  return droitIa({ abonne: false, questionsSemaine: await questionsIaSemaine(q, a.auth.uid), gratuitesSemaine: cfg.questionsGratuitesSemaine });
+}
+
+/** Réponse 402 « forfait » : questions gratuites de la semaine épuisées (code lu par l'application pour proposer le forfait). */
+export const refusForfaitIa = (v: Extract<DroitIa, { ok: false }>) =>
+  ({ code: 402, corps: { error: messageForfaitIa(v.gratuitesSemaine), code: 'forfait', gratuitesSemaine: v.gratuitesSemaine } });
+
+/** Vérification rapide avant une réponse différée (travauxIa.differable) : le refus « forfait » reste immédiat. */
+export const verifierForfaitIa = (db: Queryable) => async (_req: unknown, a: { auth: { uid: string }; role?: string; isStaff?: boolean }) => {
+  const v = await droitIaDe(db, a);
+  return v.ok ? undefined : refusForfaitIa(v);
+};
 
 export async function consommation(q: Queryable, uid: string, conversation: string) {
   const r = await q.query<any>(
@@ -62,7 +90,7 @@ export function registerServices(ctx: Ctx) {
 
   // ---------------------------------------------------------------- IA
   // Réponse différée possible (`asynchrone: true`, travauxIa.ts) : le worker serverless du modèle peut mettre plusieurs minutes à se réveiller.
-  app.post('/v1/ia/message', differable(app, acteur, async (req) => {
+  app.post('/v1/ia/message', differable(app, acteur, async (req, reply) => {
     const a = await acteur(req);
     const { message, conversationId, historique, asynchrone } = (req.body || {}) as { message?: string; conversationId?: string; historique?: { role: string; content: string }[]; asynchrone?: boolean };
     if (!str(message) || !message.trim() || message.length > 2000) return fail(400, 'Message vide ou trop long (2000 caractères au plus).');
@@ -71,6 +99,8 @@ export function registerServices(ctx: Ctx) {
     await ensureUser(db, a.auth);
     const age = await profilAge(a.auth.uid);
     const droits = await droitsDe(db, a.auth.uid, a.role);
+    const droitIaV = await droitIaDe(db, a, droits);
+    if (!droitIaV.ok) { const r = refusForfaitIa(droitIaV); return reply.status(r.code).send(r.corps); }
     const base = { ...QUOTA_DEFAUT, ...(await parametre<Partial<QuotaJetons>>(db, 'ia_quotas', {})) };
     const f = age === 'enfant' ? 0.25 : droits.abonneJusque && droits.abonneJusque > Date.now() ? 4 : 1;
     const quota: QuotaJetons = { parJour: Math.floor(base.parJour * f), parMois: Math.floor(base.parMois * f), parConversation: Math.floor(base.parConversation * f) };
@@ -86,13 +116,14 @@ export function registerServices(ctx: Ctx) {
     await db.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule]);
     const apres = verifierQuota(quota, await consommation(db, a.auth.uid, conv), 0);
-    return { reponse: rep.texte, conversationId: conv, usage: { entree: rep.usage.entree, sortie: rep.usage.sortie }, simule: rep.simule, quota: apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true } };
-  }, req => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); }));
+    return { reponse: rep.texte, conversationId: conv, usage: { entree: rep.usage.entree, sortie: rep.usage.sortie }, simule: rep.simule, quota: { ...(apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true }), gratuitesRestantes: droitIaV.restantes } };
+  }, async (req, a) => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); return verifierForfaitIa(db)(req, a); }));
 
   app.get('/v1/ia/usage', async (req) => {
     const a = await acteur(req);
     const base = { ...QUOTA_DEFAUT, ...(await parametre<Partial<QuotaJetons>>(db, 'ia_quotas', {})) };
-    return { consommation: await consommation(db, a.auth.uid, ''), quota: base };
+    const v = await droitIaDe(db, a);
+    return { consommation: await consommation(db, a.auth.uid, ''), quota: base, forfait: v.forfait, gratuitesRestantes: v.ok ? (v.forfait ? null : v.restantes + 1) : 0 };
   });
 
   // ---------------------------------------------------------------- droits et accès
