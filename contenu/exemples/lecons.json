@@ -31,5 +31,45 @@
   "niveau_acces": "libre",
   "ordre": 1,
   "publie": true
+ },
+ {
+  "id": "ntina-l4",
+  "unite_id": "ntina-u3",
+  "titre": "Les sept voyelles",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "ntina-l5",
+  "unite_id": "ntina-u3",
+  "titre": "La lagune",
+  "duree_min": 5,
+  "xp": 15,
+  "mode": "tous",
+  "ordre": 2,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l1",
+  "unite_id": "ogendo-u1",
+  "titre": "Les consonnes de l'ôrungu",
+  "duree_min": 12,
+  "xp": 25,
+  "mode": "tous",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l2",
+  "unite_id": "ogendo-u1",
+  "titre": "Les tons",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "ordre": 2,
+  "publie": true
  }
 ]

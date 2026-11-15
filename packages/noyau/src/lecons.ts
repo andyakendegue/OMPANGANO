@@ -14,9 +14,16 @@ import type { NiveauAcces } from './acces';
  * - comprendre : petit dialogue ou texte (colonne « texte »), puis une question à choix (notée) ;
  * - proverbe et culture : cartes à lire et écouter, non notées ;
  * - jouer : renvoie vers un jeu gratuit d'Azeva (colonne « jeu_id »), non noté.
+ * Formats immersifs (15 nov. 2026, lecture et phonétique, inspirés des parcours de la maternelle à l'université) :
+ * - son : carte d'un son décrit dans son propre système (API, articulation, schéma animé de la bouche, distribution, mots d'exemple
+ *   avec transcription tonale), jamais par comparaison au français (consigne de Capp, 15 nov. 2026), non notée ;
+ * - ton : mélodie d'un mot dessinée syllabe par syllabe (haut, bas, haut-abaissé, descendant, haut abaissé-bas) et paires tonales, non notée ;
+ * - quel_son : on voit et on entend un mot, on trouve la lettre ou le son qu'il contient (noté) ;
+ * - tracer : écrire la lettre au doigt sur un modèle (exercice d'entraînement, non noté) ;
+ * - scene : paysage animé (colonne « scene ») où l'on touche les éléments (colonne « zones ») pour les découvrir, puis on retrouve ceux qu'on nomme (noté).
  */
-export type TypeExercice = 'ecouter' | 'associer' | 'ordre' | 'dire' | 'choix' | 'trou' | 'saisie' | 'cours' | 'dictee' | 'comprendre' | 'proverbe' | 'culture' | 'jouer';
-export const TYPES_EXERCICE: readonly TypeExercice[] = ['ecouter', 'associer', 'ordre', 'dire', 'choix', 'trou', 'saisie', 'cours', 'dictee', 'comprendre', 'proverbe', 'culture', 'jouer'];
+export type TypeExercice = 'ecouter' | 'associer' | 'ordre' | 'dire' | 'choix' | 'trou' | 'saisie' | 'cours' | 'dictee' | 'comprendre' | 'proverbe' | 'culture' | 'jouer' | 'son' | 'quel_son' | 'ton' | 'tracer' | 'scene';
+export const TYPES_EXERCICE: readonly TypeExercice[] = ['ecouter', 'associer', 'ordre', 'dire', 'choix', 'trou', 'saisie', 'cours', 'dictee', 'comprendre', 'proverbe', 'culture', 'jouer', 'son', 'quel_son', 'ton', 'tracer', 'scene'];
 export interface Exercice {
   id: string; lecon_id: string; type: TypeExercice; consigne?: string | null; mot_myene?: string | null; mot_francais?: string | null;
   options?: string[]; reponse?: string | null; indice?: string | null; image?: string | null; audio?: string | null; dialecte?: string | null; source?: string | null; ordre?: number | null;
@@ -26,6 +33,26 @@ export interface Exercice {
   conseil?: string | null;
   /** Étape « jouer » : jeu d'Azeva proposé. */
   jeu_id?: string | null;
+  /** Illustration : émoji (« 🐘 ») ou dessin intégré (« svg:soleil ») ; l'image (colonne « image ») passe devant si elle existe. */
+  illustration?: string | null;
+  /** Crédit de l'image (auteur, licence, lien), affiché sous la photo. */
+  credit_image?: string | null;
+  /** Types « son », « quel_son », « tracer » : le son travaillé, en API ([ɓ]) ou en graphie DONDO (è). */
+  graphie?: string | null;
+  /** Transcription phonétique avec les tons (notation d'Ambouroue), ex. « [àwáná] » ; affichée et dessinée en mélodie. */
+  phonetique?: string | null;
+  /** Type « scene » : paysage intégré (lagune, village). */
+  scene?: string | null;
+  /** Type « scene » : éléments à toucher [{ "x": 0-100, "y": 0-100, "mot": "…", "sens": "…", "illustration": "🐘", "audio": "…" }]. */
+  zones?: ZoneScene[] | string | null;
+}
+export interface ZoneScene { x: number; y: number; mot: string; sens: string; illustration?: string | null; audio?: string | null; image?: string | null }
+/** Zones d'une scène, depuis la colonne JSON (tableau ou texte JSON) ; les entrées incomplètes sont écartées. */
+export function zonesDe(ex: Pick<Exercice, 'zones'>): ZoneScene[] {
+  let z: unknown = ex.zones;
+  if (typeof z === 'string') { try { z = JSON.parse(z); } catch { z = []; } }
+  return (Array.isArray(z) ? z : []).filter((x): x is ZoneScene => !!x && typeof x === 'object' && typeof (x as ZoneScene).mot === 'string' && (x as ZoneScene).mot.trim() !== '' && Number.isFinite(Number((x as ZoneScene).x)) && Number.isFinite(Number((x as ZoneScene).y)))
+    .map(x => ({ ...x, x: Math.min(95, Math.max(5, Number(x.x))), y: Math.min(92, Math.max(8, Number(x.y))) }));
 }
 export interface Lecon { id: string; unite_id: string; titre: string; titre_myene?: string | null; duree_min?: number | null; xp?: number | null; mode?: string | null; niveau_acces?: string | null; ordre?: number | null }
 export interface Unite { id: string; parcours_id: string; titre: string; titre_myene?: string | null; description?: string | null; ordre?: number | null }
@@ -49,7 +76,7 @@ export function optionsDe(ex: Exercice, hasard: Hasard = Math.random): string[] 
 }
 
 /** Types qui ne se notent pas : imitation (écouter, dire) et cartes (cours, proverbe, culture, jouer). */
-export const TYPES_NON_NOTES: readonly TypeExercice[] = ['ecouter', 'dire', 'cours', 'proverbe', 'culture', 'jouer'];
+export const TYPES_NON_NOTES: readonly TypeExercice[] = ['ecouter', 'dire', 'cours', 'proverbe', 'culture', 'jouer', 'son', 'ton', 'tracer'];
 const nonNote = (t: TypeExercice) => TYPES_NON_NOTES.includes(t);
 
 /** Ponctuation ignorée dans une réponse écrite (dictée, saisie) : on juge les mots, pas les points. */
@@ -107,7 +134,7 @@ export const progressionUnite = (lecons: Lecon[], p: ProgressionOnenji) => lecon
 
 // ------------------------------------------------------------------ test de niveau (décision de Capp, 13 nov. 2026)
 /** Types d'exercice qui se notent (les autres ne servent pas au test). */
-export const TYPES_NOTES = ['associer', 'choix', 'ordre', 'trou', 'saisie', 'dictee', 'comprendre'] as const;
+export const TYPES_NOTES = ['associer', 'choix', 'ordre', 'trou', 'saisie', 'dictee', 'comprendre', 'quel_son'] as const;
 export interface QuestionTest { ex: Exercice; parcoursId: string; uniteId: string }
 /** Fin du test : 3 erreurs de suite. */
 export const TEST_ERREURS_DE_SUITE = 3;
@@ -184,7 +211,9 @@ export const ETAPES_UNITE: { id: EtapeUnite; label: string }[] = [
 /** Étape du programme à laquelle appartient un exercice. */
 export function etapeDe(ex: Pick<Exercice, 'type' | 'image'>): EtapeUnite {
   switch (ex.type) {
-    case 'ecouter': return 'ecouter';
+    case 'ecouter': case 'son': case 'quel_son': case 'ton': return 'ecouter';
+    case 'scene': return 'voir';
+    case 'tracer': return 'ecrire';
     case 'cours': return ex.image ? 'voir' : 'ecouter';
     case 'associer': return 'voir';
     case 'dire': return 'dire';

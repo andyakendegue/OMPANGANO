@@ -36,6 +36,7 @@ export * from './moteurs';
 export * from './moteurs2';
 export * from './difficulte';
 export * from './lecons';
+export * from './phonetique';
 export * from './coursDistance';
 export * from './ressources';
 export * from './nkalaApi';

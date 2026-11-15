@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import { avancerLecon, composerTestNiveau, etapeDe, etapeParAge, ETAPES_UNITE, exerciceNote, jugerReponse, justesse, melanger, nouvelleLecon, optionsDe, placementTest, repliques, SEUIL_UNITE, testTermine, TYPES_NOTES, type EtatLecon, type Exercice, type Lecon, type Parcours, type Unite } from '@nkala/noyau';
 import { useMedia } from './OnenjiHorsLigne';
+import { CarteSon, CarteTon, EntreeAnimee, Illustration, QuelSon, SceneImmersive, Tracer } from './OnenjiImmersif';
 import { consignes, KakIgonjoFeuille, useIaCours } from './KakIgonjoCours';
 import { noterReponse } from './OnenjiEtat';
 import { Confettis } from './Confettis';
@@ -73,8 +74,9 @@ function CarteLecture({ ex, enfant, libelle, onSuite, bouton = 'Continuer' }: { 
   return (
     <View style={{ gap: 16, alignItems: 'center' }}>
       <T v="libelle" couleur={c.accent}>{libelle}</T>
-      {!!ex.image && <Image2 src={ex.image} taille={enfant ? 220 : 170} rayon={28} />}
+      {(!!ex.image || !!ex.illustration) && <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={enfant ? 220 : 170} />}
       {!!ex.mot_myene && <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>}
+      {!!ex.phonetique && <T v="sousTitre" couleur={c.accent} style={{ textAlign: 'center' }}>{ex.phonetique}</T>}
       {!!ex.mot_francais && <T v="corps" style={{ textAlign: 'center' }}>{ex.mot_francais}</T>}
       {!!ex.audio && <Son audio={ex.audio} auto lent grand={ex.type === 'cours'} />}
       {!!ex.texte && <Carte plat style={{ alignSelf: 'stretch' }}><View style={{ padding: 14, gap: 8 }}>{ex.texte.split(/\n{2,}/).map((p, i) => <T key={i} v="corps">{p}</T>)}</View></Carte>}
@@ -127,14 +129,22 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
 
   if (ex.type === 'ecouter') return (
     <View style={{ alignItems: 'center', gap: 18 }}>
-      <Image2 src={ex.image} taille={enfant ? 220 : 180} rayon={28} />
+      {ex.image || ex.illustration ? <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={enfant ? 220 : 180} /> : <Image2 src={ex.image} taille={enfant ? 220 : 180} rayon={28} />}
       <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>
+      {!!ex.phonetique && <T v="sousTitre" couleur={c.accent}>{ex.phonetique}</T>}
       {!enfant && <T v="corps">{ex.mot_francais}</T>}
       <Son audio={ex.audio} auto grand lent={!enfant} />
       <Bouton label={enfant ? 'Suivant' : 'J\'ai répété'} onPress={() => onRepondre(true)} />
     </View>
   );
   if (ex.type === 'dire') return (<View style={{ gap: 14, alignItems: 'center' }}><T v="titre" style={{ fontStyle: 'italic' }}>{ex.mot_myene}</T><T v="corps">{ex.mot_francais}</T><Dire modele={ex.audio} onFini={() => onRepondre(true)} /></View>);
+
+  // formats immersifs (15 nov. 2026) : sons dans leur propre système, tons, écriture au doigt, scènes à explorer
+  if (ex.type === 'son') return <CarteSon ex={ex} enfant={enfant} onSuite={() => onRepondre(true)} Son={Son} />;
+  if (ex.type === 'ton') return <CarteTon ex={ex} onSuite={() => onRepondre(true)} />;
+  if (ex.type === 'tracer') return <Tracer ex={ex} onSuite={() => onRepondre(true)} />;
+  if (ex.type === 'scene') return <SceneImmersive ex={ex} onRepondre={onRepondre} Son={Son} />;
+  if (ex.type === 'quel_son') return <QuelSon ex={ex} onRepondre={onRepondre} Son={Son} opts={opts} />;
 
   // étape « cours » : on montre et on fait entendre avant de contrôler
   if (ex.type === 'cours') return <CarteLecture ex={ex} enfant={enfant} libelle="À découvrir" onSuite={() => onRepondre(true)} bouton="J'ai compris" />;
@@ -272,7 +282,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
   return (
     <View style={{ gap: 14 }}>
       {ex.mot_myene && <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>}
-      {ex.image && <View style={{ alignItems: 'center' }}><Image2 src={ex.image} taille={160} /></View>}
+      {(ex.image || ex.illustration) && <View style={{ alignItems: 'center' }}><Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={150} /></View>}
       {ex.audio && <View style={{ alignItems: 'center' }}><Son audio={ex.audio} /></View>}
       <View style={enfant ? { gap: 10, flexDirection: 'row', flexWrap: 'wrap' } : { gap: 10 }}>
         {opts.map(o => {
@@ -335,7 +345,7 @@ export function LeconRunner({ titre, exercices, onFin, onQuitter, notes }: { tit
           <Mascotte taille={28} humeur="parle" /><T v="petit" style={{ flex: 1 }}>Tu t'es trompé juste avant. Kak'Igonjo t'explique pourquoi ?</T><Ic nom="suivant" taille={16} couleur={c.accent} />
         </Pressable>
       )}
-      <Question ex={ex} onRepondre={suite} enfant={enfant} />
+      <EntreeAnimee cle={ex.id}>{/* key : chaque exercice repart d'un état neuf, même quand deux exercices du même type se suivent */}<Question key={ex.id} ex={ex} onRepondre={suite} enfant={enfant} /></EntreeAnimee>
       <Provenance ex={ex} />
       {aide && <KakIgonjoFeuille visible onClose={() => setAide(null)} titre={aide.titre} consigne={aide.consigne} affiche={aide.affiche} />}
     </Ecran>
@@ -439,7 +449,7 @@ export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuit
       </View>
       <T v="libelle" couleur={p?.couleur ?? c.accent}>Test de niveau · {p?.titre}</T>
       {!!q.ex.consigne && <T v="sousTitre">{q.ex.consigne}</T>}
-      <Question ex={q.ex} onRepondre={repondre} enfant={false} />
+      <Question key={q.ex.id} ex={q.ex} onRepondre={repondre} enfant={false} />
     </Ecran>
   );
 }

@@ -205,5 +205,560 @@
   "reponse": "Kôkôlô/Kokolo",
   "source": "[LEC] Formules de politesse",
   "ordre": 5
+ },
+ {
+  "id": "son-v-i",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "i",
+  "options": [
+   "kisini = la cuisine"
+  ],
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 1
+ },
+ {
+  "id": "son-v-e",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "e",
+  "options": [
+   "éréré = un arbre = [èréré] = 🌳"
+  ],
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 2
+ },
+ {
+  "id": "son-v-e-ouvert",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "ɛ",
+  "options": [
+   "mbèrè = une sardine = [m̀bɛ́rɛ́] = 🐟"
+  ],
+  "source": "Ambouroue 2007, p. 12 et 53 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 3
+ },
+ {
+  "id": "son-v-a",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "a",
+  "options": [
+   "awana = des enfants = [àwáná] = 🧒"
+  ],
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 4
+ },
+ {
+  "id": "son-v-o-ouvert",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "ɔ",
+  "options": [
+   "akôndô = des bananes plantains = [àkɔ̀ndɔ̀] = 🍌"
+  ],
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 5
+ },
+ {
+  "id": "son-v-o",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "o",
+  "options": [
+   "épokolo = le chapeau = = 👒"
+  ],
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 6
+ },
+ {
+  "id": "son-v-u",
+  "lecon_id": "ntina-l4",
+  "type": "son",
+  "consigne": "Regarde le geste, écoute, répète.",
+  "graphie": "u",
+  "options": [
+   "ékuru = le hibou = = 🦉"
+  ],
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 7
+ },
+ {
+  "id": "qs-v-1",
+  "lecon_id": "ntina-l4",
+  "type": "quel_son",
+  "consigne": "Quelle voyelle entends-tu à la fin ?",
+  "mot_myene": "awana",
+  "phonetique": "[àwáná]",
+  "mot_francais": "des enfants",
+  "illustration": "🧒",
+  "options": [
+   "a",
+   "é",
+   "ô"
+  ],
+  "reponse": "a",
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 8
+ },
+ {
+  "id": "qs-v-2",
+  "lecon_id": "ntina-l4",
+  "type": "quel_son",
+  "consigne": "Quelle voyelle se répète dans ce mot ?",
+  "mot_myene": "akôndô",
+  "phonetique": "[àkɔ̀ndɔ̀]",
+  "mot_francais": "des bananes plantains",
+  "illustration": "🍌",
+  "options": [
+   "o",
+   "ô",
+   "u"
+  ],
+  "reponse": "ô",
+  "indice": "ô est mi-ouverte et arrondie : [ɔ].",
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 9
+ },
+ {
+  "id": "qs-v-3",
+  "lecon_id": "ntina-l4",
+  "type": "quel_son",
+  "consigne": "Quelle voyelle entends-tu après mb ?",
+  "mot_myene": "mbèrè",
+  "phonetique": "[m̀bɛ́rɛ́]",
+  "mot_francais": "une sardine",
+  "illustration": "🐟",
+  "options": [
+   "é",
+   "è",
+   "i"
+  ],
+  "reponse": "è",
+  "indice": "è est antérieure et mi-ouverte : [ɛ].",
+  "source": "Ambouroue 2007, p. 53 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 10
+ },
+ {
+  "id": "qs-v-4",
+  "lecon_id": "ntina-l4",
+  "type": "quel_son",
+  "consigne": "Par quelle voyelle commence ce mot ?",
+  "mot_myene": "éréré",
+  "phonetique": "[èréré]",
+  "mot_francais": "un arbre",
+  "illustration": "🌳",
+  "options": [
+   "é",
+   "è",
+   "a"
+  ],
+  "reponse": "é",
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 11
+ },
+ {
+  "id": "tr-v-1",
+  "lecon_id": "ntina-l4",
+  "type": "tracer",
+  "consigne": "Écris la voyelle.",
+  "graphie": "è",
+  "source": "RÈGLES DONDO v2.0 § 2.1",
+  "ordre": 12
+ },
+ {
+  "id": "tr-v-2",
+  "lecon_id": "ntina-l4",
+  "type": "tracer",
+  "consigne": "Écris la voyelle.",
+  "graphie": "ô",
+  "source": "RÈGLES DONDO v2.0 § 2.1",
+  "ordre": 13
+ },
+ {
+  "id": "sc-lagune",
+  "lecon_id": "ntina-l5",
+  "type": "scene",
+  "consigne": "Explore la lagune.",
+  "scene": "lagune",
+  "zones": [
+   {
+    "x": 62,
+    "y": 76,
+    "mot": "nguwu",
+    "sens": "hippopotame",
+    "illustration": "🦛"
+   },
+   {
+    "x": 13,
+    "y": 30,
+    "mot": "ngozo",
+    "sens": "perroquet",
+    "illustration": "🦜"
+   },
+   {
+    "x": 12,
+    "y": 86,
+    "mot": "ekaga",
+    "sens": "tortue (terrestre)",
+    "illustration": "🐢"
+   },
+   {
+    "x": 22,
+    "y": 60,
+    "mot": "djôgu",
+    "sens": "éléphant",
+    "illustration": "🐘"
+   },
+   {
+    "x": 50,
+    "y": 28,
+    "mot": "owonya-wonya",
+    "sens": "papillon",
+    "illustration": "🦋"
+   },
+   {
+    "x": 82,
+    "y": 16,
+    "mot": "omwèyi",
+    "sens": "soleil",
+    "illustration": "☀️"
+   }
+  ],
+  "source": "[LEC] 06_illustrations (nguwu, ngozo, ekaga, djôgu, owonya-wonya) ; Corrections de Capp du 31 oct. 2026 (omwèyi = soleil chez les Ôrungu) ; papillon [òwónyàwónyà] : Ambouroue 2007, p. 57",
+  "ordre": 1
+ },
+ {
+  "id": "ton-papillon",
+  "lecon_id": "ntina-l5",
+  "type": "ton",
+  "consigne": "Écoute la voix monter et descendre.",
+  "mot_myene": "owonya-wonya",
+  "phonetique": "[òwónyàwónyà]",
+  "mot_francais": "le papillon",
+  "texte": "Bas, haut, bas, haut, bas : la voix danse comme le papillon. Et plus on avance dans le mot, plus chaque ton se réalise un peu plus bas (downdrift).",
+  "illustration": "🦋",
+  "source": "Ambouroue 2007, p. 57",
+  "ordre": 2
+ },
+ {
+  "id": "son-c-b-implosif",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ɓ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 1
+ },
+ {
+  "id": "son-c-d-implosif",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ɗ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 2
+ },
+ {
+  "id": "son-c-ph",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "pʰ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 3
+ },
+ {
+  "id": "son-c-th",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "tʰ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 4
+ },
+ {
+  "id": "son-c-beta",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "β",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 5
+ },
+ {
+  "id": "son-c-gamma",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ɣ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 6
+ },
+ {
+  "id": "son-c-r-battu",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ɾ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 7
+ },
+ {
+  "id": "son-c-n-velaire",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ŋ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 8
+ },
+ {
+  "id": "son-c-n-palatal",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ɲ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 9
+ },
+ {
+  "id": "son-c-c",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "c",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 10
+ },
+ {
+  "id": "son-c-ndj",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ⁿɟ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 11
+ },
+ {
+  "id": "son-c-w-palatal",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air.",
+  "graphie": "ɥ",
+  "source": "Ambouroue 2007, p. 12-19 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 12
+ },
+ {
+  "id": "son-c-minasales",
+  "lecon_id": "ogendo-l1",
+  "type": "son",
+  "consigne": "Une seule consonne : la nasale et l'occlusive au même lieu.",
+  "graphie": "ᵐp · ᵐb · ᵐf · ⁿt · ⁿd · ᵑk · ᵑg",
+  "source": "Ambouroue 2007, p. 13 ; RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 13
+ },
+ {
+  "id": "qs-c-1",
+  "lecon_id": "ogendo-l1",
+  "type": "quel_son",
+  "consigne": "Comment se réalise le b de ce mot ?",
+  "mot_myene": "ébanda",
+  "phonetique": "[èɓándá]",
+  "mot_francais": "une peau",
+  "options": [
+   "ɓ",
+   "b",
+   "β"
+  ],
+  "reponse": "ɓ",
+  "indice": "Hors d'une nasale, l'occlusive sonore est implosive.",
+  "source": "Ambouroue 2007, p. 13 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 14
+ },
+ {
+  "id": "qs-c-2",
+  "lecon_id": "ogendo-l1",
+  "type": "quel_son",
+  "consigne": "Quel son entends-tu au début de chaque syllabe ?",
+  "phonetique": "[pʰúpʰú]",
+  "mot_francais": "blanc",
+  "options": [
+   "p",
+   "pʰ",
+   "ɓ"
+  ],
+  "reponse": "pʰ",
+  "indice": "Devant /u/, p est aspiré.",
+  "source": "Ambouroue 2007, p. 13",
+  "ordre": 15
+ },
+ {
+  "id": "qs-c-3",
+  "lecon_id": "ogendo-l1",
+  "type": "quel_son",
+  "consigne": "Quelle consonne entends-tu entre les voyelles ?",
+  "mot_myene": "iṽaṽa",
+  "phonetique": "[ìβàβá]",
+  "mot_francais": "une aile",
+  "options": [
+   "v",
+   "β",
+   "w"
+  ],
+  "reponse": "β",
+  "indice": "Les deux lèvres se rapprochent sans se fermer : fricative bilabiale.",
+  "source": "Ambouroue 2007, p. 13 ; graphie ṽ : RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 16
+ },
+ {
+  "id": "qs-c-4",
+  "lecon_id": "ogendo-l1",
+  "type": "quel_son",
+  "consigne": "Comment se réalise /g/ ici ?",
+  "phonetique": "[òɣèɥé]",
+  "mot_francais": "un banquet",
+  "options": [
+   "g",
+   "ɣ",
+   "k"
+  ],
+  "reponse": "ɣ",
+  "indice": "[g] seulement après une nasale ; [ɣ] partout ailleurs.",
+  "source": "Ambouroue 2007, p. 14 et 18",
+  "ordre": 17
+ },
+ {
+  "id": "tr-c-1",
+  "lecon_id": "ogendo-l1",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "ṽ",
+  "source": "RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 18
+ },
+ {
+  "id": "tr-c-2",
+  "lecon_id": "ogendo-l1",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "ñ",
+  "source": "RÈGLES DONDO v2.0 § 2.2",
+  "ordre": 19
+ },
+ {
+  "id": "ton-h",
+  "lecon_id": "ogendo-l2",
+  "type": "ton",
+  "consigne": "Le ton haut",
+  "phonetique": "[òɾámbáká]",
+  "mot_francais": "une racine",
+  "texte": "Trois tons ponctuels : haut (accent aigu), bas (accent grave), haut-abaissé (trait vertical). La graphie DONDO ne les écrit pas : on les apprend par l'oreille et la transcription.",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 1
+ },
+ {
+  "id": "ton-b",
+  "lecon_id": "ogendo-l2",
+  "type": "ton",
+  "consigne": "Le ton bas",
+  "phonetique": "[òmàmbà]",
+  "mot_francais": "un serpent",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 2
+ },
+ {
+  "id": "ton-a",
+  "lecon_id": "ogendo-l2",
+  "type": "ton",
+  "consigne": "Le ton haut-abaissé",
+  "phonetique": "[íla̍sà]",
+  "mot_francais": "l'orange",
+  "texte": "Un niveau entre le haut et le bas.",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 3
+ },
+ {
+  "id": "ton-hb",
+  "lecon_id": "ogendo-l2",
+  "type": "ton",
+  "consigne": "Le ton descendant",
+  "phonetique": "[nyâ]",
+  "mot_francais": "manger",
+  "texte": "Il commence haut et finit bas sur la même syllabe. Le ton montant, lui, n'existe pas en ôrungu.",
+  "source": "Ambouroue 2007, p. 53-54",
+  "ordre": 4
+ },
+ {
+  "id": "ton-paires",
+  "lecon_id": "ogendo-l2",
+  "type": "ton",
+  "consigne": "Le ton change le sens",
+  "texte": "Le ton porte la grammaire : il distingue l'indéfini du défini, le nom de la forme verbale.",
+  "options": [
+   "èzó = un mortier = [èzó]",
+   "ézò = le mortier = [ézò]",
+   "pá = des os = [pá]",
+   "pâ = donner (type A) = [pâ]"
+  ],
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 5
+ },
+ {
+  "id": "qs-t-1",
+  "lecon_id": "ogendo-l2",
+  "type": "quel_son",
+  "consigne": "Quel ton porte la dernière syllabe de « le mortier » ?",
+  "phonetique": "[ézò]",
+  "mot_francais": "le mortier",
+  "options": [
+   "haut",
+   "bas",
+   "haut-abaissé"
+  ],
+  "reponse": "bas",
+  "indice": "[ézò] : haut puis bas. « Un mortier » se dit [èzó] : bas puis haut.",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 6
+ },
+ {
+  "id": "qs-t-2",
+  "lecon_id": "ogendo-l2",
+  "type": "quel_son",
+  "consigne": "Quel ton porte la syllabe du milieu ?",
+  "phonetique": "[íla̍sà]",
+  "mot_francais": "l'orange",
+  "options": [
+   "haut",
+   "haut-abaissé",
+   "bas"
+  ],
+  "reponse": "haut-abaissé",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 7
+ },
+ {
+  "id": "qs-t-3",
+  "lecon_id": "ogendo-l2",
+  "type": "quel_son",
+  "consigne": "Quel ton porte ce mot ?",
+  "phonetique": "[pâ]",
+  "mot_francais": "donner (type A)",
+  "options": [
+   "haut",
+   "descendant",
+   "montant"
+  ],
+  "reponse": "descendant",
+  "indice": "Le ton montant n'est jamais réalisé en ôrungu.",
+  "source": "Ambouroue 2007, p. 54 et 56",
+  "ordre": 8
  }
 ]
