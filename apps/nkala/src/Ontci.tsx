@@ -16,6 +16,8 @@ import { EmplacementPub } from './Pub';
 import { useContenus } from './useContenu';
 import { useTempsOnglet } from './Mesure';
 import { Verrou } from './Verrou';
+import { useDroits } from './Droits';
+import { aAvantage } from '@nkala/noyau';
 
 type E = { t: 'accueil' } | { t: 'album'; id: string } | { t: 'chercher' } | { t: 'ma' } | { t: 'radio' } | { t: 'tv' } | { t: 'chaine'; id: string } | { t: 'playlist'; id: string };
 type Pile = ReturnType<typeof usePile<E>>;
@@ -94,13 +96,15 @@ function LigneTitre({ p, onPress, fav, onFav }: { p: Piste; onPress: () => void;
   const { c } = useTheme();
   const toast = useToast();
   const [etat, setEtat] = useState<'non' | 'cours' | 'oui'>('non');
+  // Musique hors ligne : avantage des formules qui l'incluent (Inina et au-dessus ; 15 nov. 2026).
+  const horsLigne = aAvantage(useDroits(), 'musique_hors_ligne');
   useEffect(() => { if (onFav && telechargeable(p)) uriLocale(p.id).then(u => setEtat(u ? 'oui' : 'non')); }, [p.id]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${p.titre}, ${p.artiste}`} onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 6, borderRadius: 14, backgroundColor: pressed ? c.carte : 'transparent' })}>
       <Visuel uri={p.pochette} couleur={p.couleur ?? undefined} taille={48} rayon={12} icone="musique" />
       <View style={{ flex: 1 }}><T v="carte" numberOfLines={1}>{p.titre}</T><T v="petit" numberOfLines={1}>{p.artiste}</T></View>
       {p.niveau_acces && p.niveau_acces !== 'libre' && <Ic nom="verrou" taille={16} couleur={c.discret} />}
-      {onFav && telechargeable(p) && <Pressable accessibilityRole="button" accessibilityLabel={etat === 'oui' ? 'Retirer le téléchargement' : 'Télécharger pour écouter sans réseau'} hitSlop={10} disabled={etat === 'cours'} onPress={() => { if (etat === 'oui') { supprimerTelechargement(p.id).then(() => setEtat('non')); return; } setEtat('cours'); telecharger(p).then(() => { setEtat('oui'); toast('Téléchargé : écoute possible sans réseau.', 'succes'); }).catch(e => { setEtat('non'); toast((e as Error).message, 'erreur'); }); }}>{etat === 'cours' ? <ActivityIndicator size="small" color={c.discret} /> : <Ic nom="telecharger" taille={22} couleur={etat === 'oui' ? c.succes : c.discret} />}</Pressable>}
+      {onFav && telechargeable(p) && (horsLigne || etat === 'oui') && <Pressable accessibilityRole="button" accessibilityLabel={etat === 'oui' ? 'Retirer le téléchargement' : 'Télécharger pour écouter sans réseau'} hitSlop={10} disabled={etat === 'cours'} onPress={() => { if (etat === 'oui') { supprimerTelechargement(p.id).then(() => setEtat('non')); return; } setEtat('cours'); telecharger(p).then(() => { setEtat('oui'); toast('Téléchargé : écoute possible sans réseau.', 'succes'); }).catch(e => { setEtat('non'); toast((e as Error).message, 'erreur'); }); }}>{etat === 'cours' ? <ActivityIndicator size="small" color={c.discret} /> : <Ic nom="telecharger" taille={22} couleur={etat === 'oui' ? c.succes : c.discret} />}</Pressable>}
       {onFav && <Pressable accessibilityRole="button" accessibilityLabel={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'} hitSlop={10} onPress={onFav}><Ic nom="coeur" taille={22} couleur={fav ? c.erreur : c.discret} /></Pressable>}
     </Pressable>
   );

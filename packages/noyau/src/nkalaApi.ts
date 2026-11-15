@@ -105,7 +105,7 @@ export interface CreationPub { id: string; zone: string; image: string | null; l
 export const demanderPub = (zone: string, activite = false) => api<{ pub: CreationPub | null }>('GET', `/v1/pub?zone=${zone}${activite ? '&activite=1' : ''}`);
 export const signalerPub = (type: 'affichage' | 'clic', creationId: string, zone: string) => api('POST', '/v1/pub/evenement', { type, creationId, zone });
 export const reclamerRecompensePub = (creationId: string, tempsVuMs: number) => api<{ accorde: boolean; coeurs: number; restantAujourdhui: number }>('POST', '/v1/pub/recompense', { creationId, tempsVuMs });
-export interface DroitsServeur { abonne: boolean; abonneJusque: number | null; achats: string[]; igolani?: boolean; historique: { id: number; produit_id: string; type: string; fin: string | null; statut: string }[] }
+export interface DroitsServeur { abonne: boolean; abonneJusque: number | null; achats: string[]; igolani?: boolean; ia?: 'aucune' | 'limitee' | 'complete'; avantages?: string[]; historique: { id: number; produit_id: string; type: string; fin: string | null; statut: string }[] }
 export const chargerDroits = () => api<DroitsServeur>('GET', '/v1/droits');
 export const verifierAcces = (collection: string, id: string) => api<{ autorise: boolean; avecPub: boolean; motif: string | null; niveau: string }>('POST', '/v1/acces/verifier', { collection, id });
 /** Licence de lecture. `limiteS` : seconde où s'arrête la partie gratuite d'une vidéo (null = toute la vidéo). */
@@ -204,7 +204,7 @@ export const jouerDuel = (id: string, score: number) => api<Duel>('POST', `/v1/d
 
 // ------------------------------------------------------------------ publicités dans les listes, boutique, notifications
 export const demanderFilPub = (zone: string, n = 3) => api<{ pubs: import('./fil').PubFil[] }>('GET', `/v1/pub/fil?zone=${zone}&n=${n}`);
-export interface Produit { id: string; titre: string; type: 'abonnement' | 'achat' | 'consommable' | 'nkorouna'; prix_fcfa?: number; periode?: string; donne_acces?: string[]; nkorouna?: number; prix_nkr?: number }
+export interface Produit { id: string; titre: string; type: 'abonnement' | 'achat' | 'consommable' | 'nkorouna'; prix_fcfa?: number; periode?: string; donne_acces?: string[]; nkorouna?: number; prix_nkr?: number; plan_id?: string }
 export const chargerProduits = () => api<{ mode: 'simulation' | 'magasins'; produits: Produit[] }>('GET', '/pub/produits');
 export const envoyerRecu = (magasin: string, produitId: string, recu: string) => api<{ ok: boolean; produitId: string; type: string }>('POST', '/v1/achats/recu', { magasin, produitId, recu });
 export const enregistrerJetonPush = (jeton: string, plateforme: string) => api('POST', '/v1/push/jeton', { jeton, plateforme });

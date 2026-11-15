@@ -7,6 +7,7 @@ import { validerTarifCours } from '../../../packages/noyau/src/coursDistance.ts'
 import { validerLignes, validerTexte, modeleCsv } from '../../../packages/noyau/src/contenu/valider.ts';
 import { objetsVersCsv } from '../../../packages/noyau/src/contenu/csv.ts';
 import type { Queryable } from './db.ts';
+import { profilAcces } from './profil_acces.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import type { MediaStorage } from './storage.ts';
 import { cheminsDe, lignePublique, marquerAEffacer, preparerAnnonceLogement, requeteAnnonces, signerLogement } from './annoncesLogement.ts';
@@ -46,7 +47,15 @@ const UTILISATEUR: Record<string, { statut: 'publie' | 'en_attente'; max: number
 
 const ligne = (r: any) => ({ ...r.data, id: r.id });
 
+/** Photos 360° dans les annonces de logement : avantage des formules qui l'incluent (Inina et au-dessus ; 15 nov. 2026). */
+const MESSAGE_360 = 'Les photos 360° sont incluses dans les formules qui les proposent : retire-les ou choisis une formule.';
+
 export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, storage?: MediaStorage) {
+  const photos360Permises = async (a: { isStaff: boolean; auth: { uid: string } }, fiche: any): Promise<boolean> => {
+    const medias = Array.isArray(fiche?.medias) ? fiche.medias : [];
+    if (!medias.some((m: any) => m?.type === 'pano360') || a.isStaff) return true;
+    return (await profilAcces(db, a.auth.uid)).avantages.includes('photos_360');
+  };
   const admin = async (req: any) => { const a = await acteur(req); if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.'); return a; };
   const staff = async (req: any) => { const a = await acteur(req); if (!a.isStaff) fail(403, 'Réservé aux modérateurs.'); return a; };
 
@@ -242,6 +251,7 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
     let privee: unknown = null, lat: number | null = null, lng: number | null = null;
     if (ficheLogement) {
       if (!storage) return fail(503, 'Stockage indisponible.');
+      if (!(await photos360Permises(a, ficheLogement))) return reply.status(402).send({ error: MESSAGE_360, code: 'formule', avantage: 'photos_360' });
       const r = await preparerAnnonceLogement(storage, a.auth.uid, id, ficheLogement, data as any);
       if (!r.ok) return reply.status(400).send({ error: r.erreurs.join(' '), erreurs: r.erreurs });
       data.logement = r.logement; privee = r.privee; lat = r.lat; lng = r.lng;
@@ -269,6 +279,7 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
     if (corps.logement && typeof corps.logement === 'object') {
       if (data.categorie_id !== 'logement') return fail(400, 'Seules les annonces de logement ont une fiche.');
       if (!storage) return fail(503, 'Stockage indisponible.');
+      if (!(await photos360Permises(a, corps.logement))) return reply.status(402).send({ error: MESSAGE_360, code: 'formule', avantage: 'photos_360' });
       const r = await preparerAnnonceLogement(storage, a.auth.uid, id, corps.logement, data as any);
       if (!r.ok) return reply.status(400).send({ error: r.erreurs.join(' '), erreurs: r.erreurs });
       const anciens = new Set(cheminsDe(cur.data.logement)), gardes = new Set(cheminsDe(r.logement));

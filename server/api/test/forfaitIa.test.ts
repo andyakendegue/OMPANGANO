@@ -47,7 +47,7 @@ test('règle pure : forfait et personnel sans limite ; sinon N questions par sem
   assert.deepEqual(droitIa({ abonne: false, questionsSemaine: 0 }), { ok: true, forfait: false, restantes: QUESTIONS_IA_GRATUITES_SEMAINE - 1 });
   assert.deepEqual(droitIa({ abonne: false, questionsSemaine: QUESTIONS_IA_GRATUITES_SEMAINE }), { ok: false, forfait: false, restantes: 0, gratuitesSemaine: QUESTIONS_IA_GRATUITES_SEMAINE });
   assert.equal(droitIa({ abonne: false, questionsSemaine: 0, gratuitesSemaine: 0 }).ok, false, 'les administrateurs peuvent couper les questions gratuites');
-  assert.match(messageForfaitIa(5), /5 questions gratuites de la semaine/);
+  assert.match(messageForfaitIa(5), /5 questions de la semaine/);
   assert.deepEqual(regleSansFormule({ rang_min: 3, plans: ['complet'] } as any), { rang_min: 3 }, 'le rang reste, la formule part');
   assert.deepEqual(regleSansFormule({ plans: ['complet'] } as any), {});
 });
@@ -64,7 +64,7 @@ test('sans forfait : les questions gratuites de la semaine, puis 402 « forfait 
   const refus = await question(u.token);
   assert.equal(refus.status, 402);
   assert.equal(refus.body.code, 'forfait'); assert.equal(refus.body.gratuitesSemaine, 3);
-  assert.match(refus.body.error, /forfait/);
+  assert.match(refus.body.error, /formule/);
   // même refus, immédiat, en mode différé (pas de travail lancé) et dans les chats
   const diff = await question(u.token, { asynchrone: true });
   assert.equal(diff.status, 402); assert.equal(diff.body.code, 'forfait');

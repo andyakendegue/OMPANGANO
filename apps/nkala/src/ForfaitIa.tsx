@@ -23,9 +23,9 @@ export function AppelForfait({ message }: { message: string }) {
   const { ouvrirBoutique } = useGlobale();
   return (
     <View accessibilityRole="alert" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.accent, backgroundColor: c.carte, padding: 12, gap: 10 }}>
-      <T v="corps" fort>Kak'Igonjo est inclus dans le forfait</T>
+      <T v="corps" fort>Kak'Igonjo est inclus dans les formules</T>
       <T v="petit">{message}</T>
-      <Bouton label="Voir le forfait" icone="couronne" variante="ambre" onPress={ouvrirBoutique} />
+      <Bouton label="Voir les formules" icone="couronne" variante="ambre" onPress={ouvrirBoutique} />
     </View>
   );
 }

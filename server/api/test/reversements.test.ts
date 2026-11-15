@@ -166,3 +166,35 @@ test('API : masterclass au prix choisi, annulation tracée, calcul validé et sc
   assert.equal((await db.query<any>(`SELECT statut FROM reversements_calculs WHERE id = $1`, [calc.body.id]))[0].statut, 'remplace');
   assert.equal((await db.query<any>(`SELECT hash_precedent FROM reversements_calculs WHERE id = $1`, [rect.body.id]))[0].hash_precedent, v.body.hash, 'chaîne d\'empreintes');
 });
+
+test('formules Oma, Inina, Anyambiè : créées une fois, IA limitée puis complète, vidéos, avantages, photos 360° réservées', async () => {
+  const r1 = await call('POST', '/v1/admin/formules/initialiser', ADMIN);
+  assert.equal(r1.status, 200); assert.equal(r1.body.crees.length, 6, 'trois formules et trois abonnements');
+  assert.equal((await call('POST', '/v1/admin/formules/initialiser', ADMIN)).body.crees.length, 0, 'jamais écrasées');
+  const prix = Object.fromEntries((await call('GET', '/pub/produits')).body.produits.filter((p: any) => p.plan_id).map((p: any) => [p.plan_id, p.prix_fcfa]));
+  assert.deepEqual(prix, { oma: 5000, inina: 10_000, anyambie: 20_000 });
+  const accorder = async (uid: string, produit: string) => call('POST', '/v1/admin/droits', ADMIN, { userId: uid, type: 'abonnement', produitId: produit, jours: 30 });
+  const t = await user('abonne-oma');
+  await accorder('abonne-oma', 'abo-oma-mois');
+  let d = (await call('GET', '/v1/droits', t)).body;
+  assert.equal(d.ia, 'limitee'); assert.equal(d.igolani, false); assert.deepEqual(d.avantages, []);
+  assert.equal((await call('GET', '/v1/ia/usage', t)).body.gratuitesRestantes, 30, 'IA limitée : 30 questions par semaine');
+  assert.equal((await call('GET', '/v1/pub?zone=bandeau_accueil', t)).body.pub, null, 'Oma coupe la publicité');
+  // photos 360° refusées sans l'avantage (avant tout envoi de fichier)
+  const fiche = { medias: [{ type: 'pano360', chemin: 'x' }] };
+  const refus = await call('POST', '/v1/utilisateur/annonces', t, { titre: 'Maison', categorie_id: 'logement', logement: fiche });
+  assert.equal(refus.status, 402); assert.equal(refus.body.avantage, 'photos_360');
+  await accorder('abonne-oma', 'abo-inina-mois');
+  d = (await call('GET', '/v1/droits', t)).body;
+  assert.equal(d.igolani, true); assert.ok(d.avantages.includes('musique_hors_ligne') && d.avantages.includes('photos_360'));
+  await accorder('abonne-oma', 'abo-anyambie-mois');
+  d = (await call('GET', '/v1/droits', t)).body;
+  assert.equal(d.ia, 'complete'); assert.deepEqual([...d.avantages].sort(), ['musique_hors_ligne', 'photos_360', 'replay', 'synthese_audio', 'traducteur']);
+  assert.equal((await call('GET', '/v1/ia/usage', t)).body.forfait, true, 'Anyambiè : IA sans limite');
+  // réglage dans la console : Oma passe à 50 questions
+  const oma = (await call('GET', '/v1/admin/contenus/plans?page=1&limit=50', ADMIN)).body.items.find((x: any) => x.id === 'oma');
+  assert.equal((await call('PUT', '/v1/admin/contenus/plans/oma', ADMIN, { ...oma, ia_questions_semaine: 50, sans_pub: 'tout', avantages: '', publie: 'oui' })).status, 200);
+  const t2 = await user('abonne-oma2');
+  await accorder('abonne-oma2', 'abo-oma-mois');
+  assert.equal((await call('GET', '/v1/ia/usage', t2)).body.gratuitesRestantes, 50);
+});

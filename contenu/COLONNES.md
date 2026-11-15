@@ -617,6 +617,9 @@ Ce que chaque formule débloque : toute l'application, ou seulement les contenus
 | `description` | long |  | Ce qu'elle apporte. |
 | `tout` | booleen |  | oui = donne accès à tout (contenus soumis à une formule compris) : formule Premium, qui ouvre aussi Igolani. |
 | `igolani` | booleen |  | oui = ouvre les vidéos d'Igolani et les cours d'artisans, en streaming (15 nov. 2026). |
+| `ia` | choix (aucune / limitee / complete) |  | Accès à Kak'Igonjo (IA) : aucune, limitée (questions par semaine) ou complète. |
+| `ia_questions_semaine` | entier |  | IA limitée : questions par semaine (jamais moins que sans formule). |
+| `avantages` | liste |  | Avantages, séparés par \| : traducteur, synthese_audio, musique_hors_ligne, replay, photos_360. |
 | `rang_min` | entier |  | Rang minimal conseillé (information). |
 | `sans_pub` | liste |  | Parties sans publicité : « tout », ou des modules séparés par \| (commun, onenji, azeva, ontci, nkala). Vide = publicité maintenue. « oui » vaut « tout ». |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |

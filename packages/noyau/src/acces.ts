@@ -24,6 +24,10 @@ export interface DroitsUtilisateur {
   locations?: Record<string, number>;
   /** Une formule active ouvre les vidéos d'Igolani (formule « igolani » ou Premium « tout ») : streaming seulement. */
   igolani?: boolean;
+  /** Avantages des formules actives (formules.ts, AVANTAGES) : traducteur, synthese_audio, musique_hors_ligne, replay, photos_360. */
+  avantages?: string[];
+  /** Accès à l'IA donné par les formules actives. */
+  ia?: 'aucune' | 'limitee' | 'complete';
 }
 
 export type MotifRefus = 'abonnement_requis' | 'achat_requis' | 'role_requis' | 'expire';

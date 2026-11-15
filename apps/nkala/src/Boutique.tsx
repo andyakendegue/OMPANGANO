@@ -1,13 +1,14 @@
 /** Achats intégrés et abonnements : offres de la collection « produits », reçu envoyé au serveur (simulation ou magasins), droits rafraîchis. */
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { chargerDroits, chargerModesPaiement, chargerPortefeuilleNkr, chargerProduits, cleNkr, creerPaiement, depenserNkr, declarerPaiement, lirePaiement, normaliserTelephone, simulerPaiement, type DroitsServeur, type Paiement, type PortefeuilleNkr, type Produit } from '@nkala/noyau';
+import { avantagesFormule, chargerDroits, chargerModesPaiement, chargerPortefeuilleNkr, chargerProduits, cleNkr, creerPaiement, depenserNkr, declarerPaiement, lirePaiement, normaliserTelephone, simulerPaiement, type DroitsServeur, type Paiement, type PortefeuilleNkr, type Produit, type ReglagesFormule } from '@nkala/noyau';
 import { PortefeuilleNkorouna, formatNkr } from './Nkorouna';
 import { useAuth } from './AuthProvider';
 import { oublierDroits } from './Droits';
 import { useGlobale } from './Globale';
 import { Bouton, Carte, Champ, Chargement, EtatVide, Feuille, Ic, Pastille, Puce, Rangee, T, useToast } from './kit';
 import { useTheme } from './Prefs';
+import { useContenus } from './useContenu';
 
 const prix = (p: Produit) => (p.prix_fcfa ? `${p.prix_fcfa.toLocaleString('fr-FR')} FCFA${p.periode === 'mois' ? ' / mois' : p.periode === 'an' ? ' / an' : ''}` : 'Prix à venir');
 
@@ -28,6 +29,7 @@ export function BoutiqueFeuille() {
 
   // Paiement Mobile Money : choix de l'opérateur et du numéro, instructions, suivi du statut
   const [flux, setFlux] = useState<Produit | null>(null);
+  const { res: plansRes } = useContenus(['plans']);
   const [modes, setModes] = useState<{ mode: string; operateurs: { id: string; nom: string }[] } | null>(null);
   const [op, setOp] = useState(''), [tel, setTel] = useState(''), [trans, setTrans] = useState('');
   const [pay, setPay] = useState<Paiement | null>(null);
@@ -56,7 +58,10 @@ export function BoutiqueFeuille() {
   };
   const ouvrirNkr = (p: Produit) => { if (!profil) { toast('Connecte-toi pour payer en Nkorouna.', 'info'); return; } setFlux(null); setEnNkr({ produit: p, cle: cleNkr() }); };
   const packs = (offres?.produits ?? []).filter(p => p.type === 'nkorouna').sort((a, b) => (a.nkorouna ?? 0) - (b.nkorouna ?? 0));
-  const autres = (offres?.produits ?? []).filter(p => p.type !== 'nkorouna');
+  // Formules (Oma, Inina, Anyambiè…) : rangées selon leur ordre ; ce qu'elles donnent vient de leurs réglages (console › Formules).
+  const plans = ((plansRes.plans ?? []) as unknown as ReglagesFormule[]);
+  const planDe = (p: Produit) => plans.find(x => x.id === p.plan_id);
+  const autres = (offres?.produits ?? []).filter(p => p.type !== 'nkorouna').sort((a, b) => (planDe(a)?.ordre ?? 99) - (planDe(b)?.ordre ?? 99) || (a.prix_fcfa ?? 0) - (b.prix_fcfa ?? 0));
   const acheter = (p: Produit) => { if (offres?.mode === 'simulation' && !p.prix_fcfa) { toast('Prix à venir.', 'info'); return; } ouvrirPaiement(p); };
   return (
     <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkorouna">
@@ -76,12 +81,14 @@ export function BoutiqueFeuille() {
       </>}
       {erreur ? <EtatVide icone="alerte" titre="Offres indisponibles" texte="Réessaie avec du réseau." action="Réessayer" onAction={charger} /> : !offres ? <Chargement lignes={2} /> : autres.length === 0 && packs.length === 0 ? <EtatVide icone="cadeau" titre="Les offres arrivent bientôt" /> :
         autres.map(p => {
-          const possede = p.type === 'abonnement' ? !!droits?.abonne : (droits?.achats ?? []).some(a => (p.donne_acces ?? [p.id]).includes(a));
+          const possede = p.type === 'abonnement' ? (droits?.historique ?? []).some(h => h.produit_id === p.id && h.statut === 'actif' && (!h.fin || new Date(h.fin).getTime() > Date.now())) : (droits?.achats ?? []).some(a => (p.donne_acces ?? [p.id]).includes(a));
+          const formule = p.type === 'abonnement' ? avantagesFormule(planDe(p)) : [];
           return (
             <Carte key={p.id}><View style={{ padding: 16, gap: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><T v="carte" style={{ flex: 1 }}>{p.titre}</T>{possede && <Pastille label="Acquis" couleur={c.succes} fond={c.carte} />}</View>
               <T v="sousTitre" couleur={c.accent}>{p.prix_fcfa ? prix(p) : ''}{p.prix_fcfa && p.prix_nkr ? ' · ' : ''}{p.prix_nkr ? formatNkr(p.prix_nkr) : ''}{!p.prix_fcfa && !p.prix_nkr ? prix(p) : ''}</T>
-              <T v="petit">{p.type === 'abonnement' ? 'Kak\'Igonjo sans limite de questions, plus de publicité, vidéos d\'Igolani du forfait. Les cours et la bibliothèque restent gratuits pour tous.' : p.type === 'achat' ? 'Achat à l\'unité, à vie.' : 'Consommable.'}</T>
+              {formule.length ? formule.map((x, i) => <T key={i} v="petit">• {x}</T>) : <T v="petit">{p.type === 'abonnement' ? 'Abonnement.' : p.type === 'achat' ? 'Achat à l\'unité, à vie.' : 'Consommable.'}</T>}
+              {p.type === 'abonnement' && <T v="petit" couleur={c.discret}>Les cours, la bibliothèque et les jeux restent gratuits pour tous.</T>}
               {possede ? <Bouton label="Déjà acquis" variante="ambre" desactive onPress={() => {}} /> : <>
                 {(!p.prix_nkr || p.prix_fcfa) && <Bouton label={p.prix_nkr ? 'Payer en FCFA' : 'Acheter'} variante="ambre" charge={occupe === p.id} onPress={() => { setEnNkr(null); acheter(p); }} />}
                 {!!p.prix_nkr && <Bouton label={`Payer ${formatNkr(p.prix_nkr)}`} icone="piece" variante={p.prix_fcfa ? 'fantome' : 'ambre'} onPress={() => ouvrirNkr(p)} />}

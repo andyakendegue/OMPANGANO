@@ -1,9 +1,11 @@
 /** Étape « Médias » : photos (appareil ou galerie), vidéos, photos 360°, étiquette de pièce, ordre (la première photo = couverture), état d'envoi. */
 import { useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
-import { CATALOGUE_LOGEMENT, libellePiece, LIMITES_MEDIAS, VIDEO_MAX_S, type TypeMedia } from '@nkala/noyau';
+import { aAvantage, CATALOGUE_LOGEMENT, libellePiece, LIMITES_MEDIAS, VIDEO_MAX_S, type TypeMedia } from '@nkala/noyau';
 import { Barre, Bouton, Carte, Feuille, Ic, Pastille, Puce, SectionTitre, T, useToast } from '../kit';
 import { useTheme } from '../Prefs';
+import { useDroits } from '../Droits';
+import { useGlobale } from '../Globale';
 import { choisirImages, choisirVideo, preparerImage, type ImageChoisie, type MediaLocal, type Source } from './medias';
 import type { Progression } from './fileMediasAnnonce';
 import { Capture360 } from './Capture360';
@@ -40,7 +42,11 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
     } catch (e) { toast((e as Error).message || 'Image illisible.', 'erreur'); } finally { setOccupe(null); }
   };
 
+  // Photos 360° : avantage des formules qui l'incluent (Inina et au-dessus ; décision de Capp du 15 nov. 2026).
+  const droits = useDroits();
+  const { ouvrirBoutique } = useGlobale();
   const choisir = async (type: TypeMedia, src: Source) => {
+    if (type === 'pano360' && !aAvantage(droits, 'photos_360')) { toast('Les photos 360° sont incluses dans les formules qui les proposent.', 'info'); ouvrirBoutique(); return; }
     if (reste(type) <= 0) { toast(`${LIBELLES[type]} : ${LIMITES_MEDIAS[type]} au plus.`, 'erreur'); return; }
     if (type === 'video') {
       setOccupe('Préparation de la vidéo…');

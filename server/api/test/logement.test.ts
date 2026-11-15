@@ -162,7 +162,11 @@ test('API logement : publication, calculs du serveur, modération, filtres, posi
   assert.equal(manquant.status, 400); assert.match(manquant.body.error, /introuvables/);
   absents.clear();
 
-  // Loin (Port-Gentil), avec 360 ; et une annonce masquée
+  // Loin (Port-Gentil), avec 360 ; et une annonce masquée. Photos 360° : avantage d'une formule (Inina et au-dessus, 15 nov. 2026).
+  const avec360 = { ...base, titre: 'Villa à Port-Gentil', prix: 500000, logement: { ...fiche('lg2'), medias: [media('lg2', 'brouillon1', 1), media('lg2', 'brouillon1', 3, { type: 'pano360', largeur: 4096, hauteur: 2048 })] } };
+  assert.equal((await call('POST', '/v1/utilisateur/annonces', t, avec360)).status, 402, 'photos 360° sans formule');
+  await call('POST', '/v1/admin/formules/initialiser', ADMIN);
+  await call('POST', '/v1/admin/droits', ADMIN, { userId: 'lg2', type: 'abonnement', produitId: 'abo-inina-mois', jours: 30 });
   const loin = await call('POST', '/v1/utilisateur/annonces', t, { ...base, titre: 'Villa à Port-Gentil', prix: 500000, logement: { ...fiche('lg2'), typeBien: 'villa', pieces: { chambres: 4 }, equipements: { piscine: true }, position: { lat: -0.7193, lng: 8.7815 },
     medias: [media('lg2', 'brouillon1', 1), media('lg2', 'brouillon1', 3, { type: 'pano360', largeur: 4096, hauteur: 2048 })] } });
   assert.equal(loin.status, 201, JSON.stringify(loin.body));

@@ -7,6 +7,7 @@
 import type { Queryable } from './db.ts';
 import { journaliser, str, type Ctx } from './ctx.ts';
 import { crediterAchat } from './nkorounaRegistre.ts';
+import { FORMULES_PAR_DEFAUT } from '../../../packages/noyau/src/formules.ts';
 
 export interface RecuVerifie { reference: string; fin?: Date | null }
 
@@ -48,7 +49,33 @@ export async function accorderProduit(q: Queryable, uid: string, produitId: stri
   return { type: d.type };
 }
 
-export function registerAchats({ app, db, fail, acteur, env }: Ctx) {
+/**
+ * Crée les formules Oma, Inina et Anyambiè (et leur abonnement mensuel) si elles n'existent pas encore ; ne touche jamais une
+ * formule déjà présente (ses réglages et son prix se modifient dans la console). Décision de Capp du 15 nov. 2026.
+ */
+export async function initialiserFormules(q: Queryable, par: string): Promise<string[]> {
+  const crees: string[] = [];
+  for (const { plan, prix_fcfa } of FORMULES_PAR_DEFAUT) {
+    const r = await q.query(`INSERT INTO contenus (collection, id, data, publie, statut) VALUES ('plans', $1, $2, true, 'publie') ON CONFLICT (collection, id) DO NOTHING RETURNING id`,
+      [plan.id, JSON.stringify({ ...plan, id: plan.id, publie: true, rang_min: 1 })]);
+    if (r.length) crees.push(`plans/${plan.id}`);
+    const pid = `abo-${plan.id}-mois`;
+    const r2 = await q.query(`INSERT INTO contenus (collection, id, data, publie, statut) VALUES ('produits', $1, $2, true, 'publie') ON CONFLICT (collection, id) DO NOTHING RETURNING id`,
+      [pid, JSON.stringify({ id: pid, titre: plan.titre, type: 'abonnement', prix_fcfa, periode: 'mois', plan_id: plan.id, publie: true })]);
+    if (r2.length) crees.push(`produits/${pid}`);
+  }
+  if (crees.length) await journaliser(q, par, 'formules_initialisees', undefined, { crees });
+  return crees;
+}
+
+export function registerAchats({ app, db, fail, acteur, env, notify }: Ctx) {
+  app.post('/v1/admin/formules/initialiser', async (req) => {
+    const a = await acteur(req);
+    if (!a.isAdmin) return fail(403, 'Réservé aux administrateurs.');
+    const crees = await db.tx(q => initialiserFormules(q, a.auth.uid));
+    if (crees.length) notify('contenus');
+    return { crees };
+  });
   /** Offres visibles sans compte. */
   app.get('/pub/produits', async (_req, reply) => {
     const r = await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'produits' AND publie AND deleted_at IS NULL ORDER BY id`);

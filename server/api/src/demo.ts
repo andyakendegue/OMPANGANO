@@ -9,6 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildApp } from './app.ts';
 import { createPgliteDb, runMigrations } from './db.ts';
+import { initialiserFormules } from './achats.ts';
 import type { MediaStorage } from './storage.ts';
 
 const ici = dirname(fileURLToPath(import.meta.url));
@@ -41,8 +42,9 @@ await db.query(`INSERT INTO regie_annonceurs (id, nom, contact) VALUES ('demo-an
 await db.query(`INSERT INTO regie_campagnes (id, annonceur_id, nom, statut, plafond_jour) VALUES ('demo-ca','demo-an','Campagne d''exemple','active',0) ON CONFLICT DO NOTHING`);
 for (const [i, zone] of ['bandeau_accueil', 'annonce_dans_liste', 'annonce_en_tete', 'bandeau_apprendre', 'bandeau_catalogue', 'bandeau_resultats', 'recompense_coeur', 'bandeau_lecteur'].entries())
   await sem('pub_creations', `demo-pub-${i}`, { zone, campagne_id: 'demo-ca', annonceur: 'Commerce exemple', titre: 'Votre commerce ici : parlez-en à la régie Nkala', texte_alt: 'Publicité d\'exemple', format: zone === 'annonce_dans_liste' ? 'natif' : 'bandeau', cta: 'Découvrir' });
-await sem('produits', 'abo-mensuel', { titre: 'Nkala Plus (mois)', type: 'abonnement', prix_fcfa: 1500, periode: 'mois', donne_acces: ['tout'] });
-await sem('produits', 'abo-annuel', { titre: 'Nkala Plus (an)', type: 'abonnement', prix_fcfa: 15000, periode: 'an', donne_acces: ['tout'] });
+// Formules Oma, Inina, Anyambiè (15 nov. 2026) ; les anciennes « Nkala Plus » de la démo sont dépubliées.
+await initialiserFormules(db, 'demo');
+await db.query(`UPDATE contenus SET publie = false WHERE collection = 'produits' AND id IN ('abo-mensuel', 'abo-annuel')`);
 await sem('produits', 'pack-nkr-500', { titre: '500 Nkorouna', type: 'nkorouna', prix_fcfa: 1000, nkorouna: 500 });
 await sem('produits', 'pack-nkr-1500', { titre: '1 500 Nkorouna', type: 'nkorouna', prix_fcfa: 2500, nkorouna: 1500 });
 await db.query(`INSERT INTO ia_documents (id, titre, source, texte) VALUES ('demo-doc','Salutations','[LEC] Bonjour','Mbolo se dit à une personne pour dire bonjour. Mbôluani se dit à plusies personnes. Akéwa signifie merci. Kôkôlô signifie s''il te plaît.') ON CONFLICT DO NOTHING`);

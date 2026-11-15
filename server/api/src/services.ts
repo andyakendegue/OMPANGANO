@@ -37,10 +37,11 @@ export async function questionsIaSemaine(q: Queryable, uid: string): Promise<num
  */
 export async function droitIaDe(q: Queryable, a: { auth: { uid: string }; role?: string; isStaff?: boolean }, droits?: DroitsUtilisateur): Promise<DroitIa> {
   if (a.isStaff) return droitIa({ abonne: false, personnel: true, questionsSemaine: 0 });
-  const d = droits ?? await droitsDe(q, a.auth.uid, a.role);
-  if (abonne(d)) return droitIa({ abonne: true, questionsSemaine: 0 });
+  // Accès à l'IA selon les formules actives (colonne « ia » : aucune, limitée avec N questions par semaine, complète).
+  const p = await profilAcces(q, a.auth.uid);
+  if (p.ia === 'complete') return droitIa({ abonne: true, ia: 'complete', questionsSemaine: 0 });
   const cfg = await parametre<Record<string, number>>(q, 'ia_quotas', {});
-  return droitIa({ abonne: false, questionsSemaine: await questionsIaSemaine(q, a.auth.uid), gratuitesSemaine: cfg.questionsGratuitesSemaine });
+  return droitIa({ abonne: false, ia: p.ia, questionsFormule: p.iaQuestions, questionsSemaine: await questionsIaSemaine(q, a.auth.uid), gratuitesSemaine: cfg.questionsGratuitesSemaine });
 }
 
 /** Réponse 402 « forfait » : questions gratuites de la semaine épuisées (code lu par l'application pour proposer le forfait). */
@@ -132,7 +133,8 @@ export function registerServices(ctx: Ctx) {
     const a = await acteur(req);
     const d = await droitsDe(db, a.auth.uid, a.role);
     const liste = await db.query<any>(`SELECT id, produit_id, type, contenu_id, debut, fin, source, statut FROM droits WHERE user_id = $1 ORDER BY debut DESC LIMIT 100`, [a.auth.uid]);
-    return { ...d, abonne: !!d.abonneJusque && d.abonneJusque > Date.now(), igolani: (await profilAcces(db, a.auth.uid)).igolani, historique: liste };
+    const p = await profilAcces(db, a.auth.uid);
+    return { ...d, abonne: !!d.abonneJusque && d.abonneJusque > Date.now(), igolani: p.igolani, ia: p.ia, avantages: p.avantages, historique: liste };
   });
 
   app.get('/v1/droits/acces', async (req) => { const a = await acteur(req); await ensureUser(db, a.auth); return profilAcces(db, a.auth.uid); });
