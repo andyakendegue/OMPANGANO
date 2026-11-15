@@ -74,7 +74,7 @@ ERR=$(docker logs --since 1m ompangano-api-1 2>&1 | grep -c '"level":50')
 [ "$ERR" -gt 3 ] && { retour_arriere "$ERR erreurs dans le journal juste après le démarrage"; exit 1; }
 
 # Services annexes versionnés dans le dépôt : mis à jour seulement si leurs fichiers ont changé
-for d in "server/proxies/runpod-embedding-proxy:/opt/runpod-embedding-proxy" "server/regie:/opt/regie"; do
+for d in "server/proxies/runpod-embedding-proxy:/opt/runpod-embedding-proxy" "server/regie:/opt/regie" "server/tts:/opt/tts"; do
   src=${d%%:*}; dst=${d##*:}
   if echo "$CHANGES" | grep -q "^$src/"; then rsync -rlc --exclude '.env*' "$SRC/$src/" "$dst/" && (cd "$dst" && docker compose up -d --build >> "$LOG" 2>&1) && log "$dst mis à jour"; fi
 done

@@ -143,6 +143,8 @@ test('leçons et parties : XP côté serveur, une seule récompense par leçon, 
 
 test('IA : désactivée, comptage des jetons, quota, enfants plus limités', async () => {
   const u = await user();
+  // Le modèle d'essai mesure 100 jetons d'entrée, prompt compris : le socle myènè (testé dans myene.test.ts) est coupé ici.
+  await call('PUT', '/v1/admin/ia/config', ADMIN, { grammaireMyene: false, lexiqueMax: 0 });
   await call('PUT', '/v1/admin/parametres/fonctions', ADMIN, { valeur: { assistantIA: false } });
   assert.equal((await call('POST', '/v1/ia/message', u.token, { message: 'Mbolo' })).status, 503);
   await call('PUT', '/v1/admin/parametres/fonctions', ADMIN, { valeur: { assistantIA: true } });
@@ -158,6 +160,7 @@ test('IA : désactivée, comptage des jetons, quota, enfants plus limités', asy
   const enf = await user(false);
   assert.equal((await call('POST', '/v1/ia/message', enf.token, { message: 'Bonjour' })).status, 429, 'quota enfant = ¼ : 500 jetons < estimation');
   await call('PUT', '/v1/admin/parametres/ia_quotas', ADMIN, { valeur: { parJour: 20000, parMois: 300000, parConversation: 8000 } });
+  await call('PUT', '/v1/admin/ia/config', ADMIN, { grammaireMyene: true, lexiqueMax: 30 });
 });
 
 test('publicité : zone, enfant, abonné, récompense plafonnée', async () => {

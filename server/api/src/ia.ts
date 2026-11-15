@@ -15,12 +15,20 @@ import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import { clientRunpod } from './runpod.ts';
 import { vecteursParDefaut } from './vecteurs.ts';
 import { dossierEnCours, etatDossier, synchroniserDossier } from './dossier.ts';
+import { GRAMMAIRE_MYENE, VERSION_GRAMMAIRE } from './promptMyene.ts';
+import { blocLexique, chercherLexique, etatLexique } from './lexiqueMyene.ts';
 
 const vecteurs = vecteursParDefaut();
 
 // ------------------------------------------------------------------ réglages
-export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number }
-export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120 };
+/**
+ * grammaireMyene : ajoute la compétence myènè (promptMyene.ts) ; lexiqueMax : nombre d'entrées du lexique de référence placées
+ * dans le prompt (0 = coupé) ; ragMyeneK : morceaux pris d'abord dans les documents myènè (leçons, grammaires, dictionnaires), en plus de topK.
+ */
+export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number }
+export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4 };
+/** Documents myènè du corpus (titres construits par l'indexeur à partir des dossiers). */
+export const TITRES_MYENE = ['Sources myene%', 'Edition dondo myene%', 'Donnees › Ompangano%', '%Lecons omyene%'];
 export const configIa = async (q: Queryable): Promise<ConfigIa> => ({ ...CONFIG_IA_DEFAUT, ...(await parametre<Partial<ConfigIa>>(q, 'ia_config', {})) });
 
 // ------------------------------------------------------------------ fournisseur de modèle
@@ -205,21 +213,26 @@ export interface ResultatRag { id: number; document: string; titre: string; sour
  * Recherche dans le corpus : vecteurs (sens) + mots-clés (plein texte), fusionnés par rang réciproque, avec un bonus quand le titre
  * du document répond à la question. Le seuil s'applique au score des vecteurs ; un morceau trouvé par ses mots-clés est gardé même sous le seuil.
  */
-export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000): Promise<ResultatRag[]> {
+export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, requete: string, k: number, seuil: number, delaiMs = 8000, titres?: string[]): Promise<ResultatRag[]> {
+  // Filtre facultatif sur le titre du document (ILIKE) : sert à chercher d'abord dans les documents myènè.
+  const avecTitres = !!titres?.length;
+  const filtre = (n: number) => avecTitres ? ` AND d.titre ILIKE ANY($${n}::text[])` : '';
+  const pt = avecTitres ? [titres] : [];
   // Rien d'indexé : inutile d'appeler le service d'embeddings.
-  if (!(await q.query<any>(`SELECT 1 FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif LIMIT 1`)).length) return [];
+  if (!(await q.query<any>(`SELECT 1 FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif${filtre(1)} LIMIT 1`, pt)).length) return [];
   const N = Math.max(30, k * 6);
   const mots = motsCles(requete);
   // 1) mots-clés (n'attend pas le service d'embeddings)
   const lexical: { id: number; rang: number }[] = mots.length ? (await q.query<any>(
     `SELECT c.id, ts_rank_cd(${TEXTE_RECHERCHE}, to_tsquery('simple'::regconfig, $1)) AS r FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif
-     WHERE ${TEXTE_RECHERCHE} @@ to_tsquery('simple'::regconfig, $1) ORDER BY r DESC LIMIT $2`, [mots.join(' | '), N])).map(x => ({ id: Number(x.id), rang: Number(x.r) })) : [];
+     WHERE ${TEXTE_RECHERCHE} @@ to_tsquery('simple'::regconfig, $1)${filtre(3)} ORDER BY r DESC LIMIT $2`, [mots.join(' | '), N, ...pt])).map(x => ({ id: Number(x.id), rang: Number(x.r) })) : [];
   // 2) vecteurs (une panne ou un délai du service d'embeddings laisse les mots-clés seuls)
   let vect: { id: number; score: number }[] = [];
   try {
     const qv = await vecteurQuestion(embed, requete, delaiMs);
-    if (vecteurs.actif) vect = (await vecteurs.chercher(qv, Math.ceil(N / 3))).slice(0, N);
-    else vect = (await q.query<any>(`SELECT c.id, c.embedding FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif`)).map(r => ({ id: Number(r.id), score: cosinus(qv, r.embedding) })).sort((a, b) => b.score - a.score).slice(0, N);
+    // Base vectorielle : pas de filtre de titre côté Qdrant ; on en demande plus, le filtre s'applique à la lecture des morceaux.
+    if (vecteurs.actif) vect = (await vecteurs.chercher(qv, Math.ceil(N / 3) * (avecTitres ? 4 : 1))).slice(0, N * (avecTitres ? 4 : 1));
+    else vect = (await q.query<any>(`SELECT c.id, c.embedding FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif${filtre(1)}`, pt)).map(r => ({ id: Number(r.id), score: cosinus(qv, r.embedding) })).sort((a, b) => b.score - a.score).slice(0, N);
   } catch (e) { if (!lexical.length) throw e; }
   // 3) fusion par rang réciproque (RRF, constante 60)
   const fusion = new Map<number, { s: number; vecteur?: number; motsCles?: number }>();
@@ -227,7 +240,7 @@ export async function rechercherRag(q: Queryable, embed: FournisseurEmbedding, r
   lexical.forEach((x, i) => { const f = fusion.get(x.id) ?? { s: 0 }; f.s += 1 / (60 + i); f.motsCles = x.rang; fusion.set(x.id, f); });
   const ids = [...fusion.keys()];
   if (!ids.length) return [];
-  const rows = await q.query<any>(`SELECT c.id, c.texte, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif WHERE c.id = ANY($1::bigint[])`, [ids]);
+  const rows = await q.query<any>(`SELECT c.id, c.texte, c.document_id, d.titre, d.source FROM ia_chunks c JOIN ia_documents d ON d.id = c.document_id AND d.actif${filtre(2)} WHERE c.id = ANY($1::bigint[])`, [ids, ...pt]);
   return rows
     .map(r => {
       const f = fusion.get(Number(r.id))!;
@@ -259,8 +272,8 @@ TA MANIÈRE D'ÊTRE
 - Tu restes humble : quand tu ne sais pas, tu le dis simplement (« Cela, je ne le sais pas, mon enfant ») et tu conseilles de demander aux anciens de son village ou à un locuteur.
 
 CE QUE TU NE FAIS JAMAIS
-- RÈGLE ABSOLUE : tu n'écris en myènè que les mots de la liste ci-dessous, les formules d'accueil ci-dessous ou les mots des documents fournis en contexte. Si un mot n'y est pas, tu dis que tu ne le connais pas encore : tu n'inventes jamais un mot, une conjugaison ou une traduction.
-- Tu n'inventes jamais de proverbe, de conte, de chant, de date, de nom d'ancêtre, de coutume ni de fait historique. Tu n'en cites que s'ils figurent dans les documents fournis, en disant d'où ils viennent.
+- RÈGLE ABSOLUE : tu n'écris en myènè que les mots de la liste ci-dessous, les formules d'accueil, les mots fixés de ta connaissance du myènè, le « Lexique trouvé » ou les mots des documents fournis en contexte. Tu les assembles avec la grammaire que tu connais. Si un mot n'y est pas, tu dis que tu ne le connais pas encore (ou tu gardes le mot français pour une notion moderne) : tu n'inventes jamais un mot et tu ne l'empruntes jamais à une autre langue.
+- Tu n'inventes jamais de proverbe, de conte, de chant, de date, de nom d'ancêtre, de coutume ni de fait historique. Tu n'en cites que s'ils figurent dans les documents fournis, sans jamais nommer d'auteur, d'ouvrage ni de page.
 - Tu ne donnes aucun conseil médical, juridique ou financier : tu renvoies avec douceur vers la bonne personne.
 - Tu ne te présentes pas à chaque message : l'utilisateur t'a déjà salué en ouvrant le chat.
 
@@ -274,7 +287,10 @@ Mots vérifiés :
 
 FORME DES RÉPONSES
 - En français, avec les mots myènè en italique entre astérisques (*mbolo*) suivis de leur sens.
-- Courtes : 6 phrases au plus, en paragraphes brefs. Pas de titres, pas de listes longues.`;
+- Courtes : 6 phrases au plus, en paragraphes brefs. Pas de titres, pas de listes longues.
+- Pour une traduction ou une phrase à composer : la phrase en myènè, puis le mot à mot, puis le sens en français.
+
+{{grammaire_myene}}`;
 export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : tu es un grand-père très doux. Phrases très courtes, mots simples, beaucoup d'encouragements, aucun sujet inquiétant, aucune question personnelle ; ramène la conversation vers la langue et les jeux.`;
 
 /** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG. */
@@ -283,18 +299,36 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   const cfg = await configIa(q);
   const actif = (await q.query<any>(`SELECT contenu FROM ia_prompts WHERE actif`))[0]?.contenu ?? PROMPT_DEFAUT;
   let systeme = actif.replace(/\{\{\s*lexique\s*\}\}/g, LEXIQUE());
+  // Compétence myènè : à l'endroit de {{grammaire_myene}}, sinon à la fin (une version de prompt plus ancienne ne la contient pas).
+  const grammaire = cfg.grammaireMyene ? GRAMMAIRE_MYENE : '';
+  const RE_GRAMMAIRE = /\{\{\s*grammaire_myene\s*\}\}/g;
+  systeme = RE_GRAMMAIRE.test(systeme) ? systeme.replace(RE_GRAMMAIRE, grammaire) : systeme + (grammaire ? '\n\n' + grammaire : '');
   if (o.enfant) systeme += PROMPT_ENFANT;
   const prenom = (o.prenom || '').trim().split(/\s+/)[0]?.replace(/[^\p{L}'-]/gu, '').slice(0, 40);
   if (prenom) systeme += `\nTon interlocuteur s'appelle ${prenom}.`;
   // Fiche de l'utilisateur et actions possibles (chats de l'app seulement) : avant le contexte documentaire.
   if (o.fiche) systeme += o.fiche;
   if (o.actions) systeme += o.actions;
+  // Lexique de référence : les mots attestés qui répondent à la question (lexiqueMyene.ts).
+  let lexique = '';
+  if (cfg.lexiqueMax > 0) { try { lexique = blocLexique(o.message, cfg.lexiqueMax); systeme += lexique; } catch { /* jamais bloquant */ } }
+  // Socle myènè (grammaire + lexique) : matériel du service, il ne compte pas dans le contexte inclus du chat de l'utilisateur
+  // (sans cela, chaque chat dépasserait les 6 000 jetons inclus dès le premier message et des frais seraient proposés).
+  const socle = estimerJetons(grammaire + lexique);
   let contexte: Awaited<ReturnType<typeof rechercherRag>> = [];
   if (cfg.ragActif) {
-    try { contexte = await rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, o.delaiRagMs ?? 8000); } catch { /* le RAG ne bloque jamais la réponse */ }
-    if (contexte.length) systeme += `\n\n### Contexte (documents de référence ; cite-les si utile, ne dis rien qui n'y figure pas sur le myènè)\n` + contexte.map((c, i) => `[${i + 1}] ${c.titre}${c.source ? ` (${c.source})` : ''} : ${c.texte}`).join('\n');
+    const delai = o.delaiRagMs ?? 8000;
+    // D'abord les documents myènè (leçons, grammaires, dictionnaires), noyés sinon parmi plus d'un million de morceaux, puis tout le corpus.
+    const [myene, general] = await Promise.all([
+      cfg.ragMyeneK > 0 ? rechercherRag(q, embed, o.message, cfg.ragMyeneK, cfg.seuil, delai, TITRES_MYENE).catch(() => []) : Promise.resolve([]),
+      rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, delai).catch(() => []),
+    ]);
+    const vus = new Set<number>();
+    contexte = [...myene, ...general].filter(c => !vus.has(c.id) && !!vus.add(c.id)).slice(0, cfg.topK + cfg.ragMyeneK);
+    // Le titre aide le modèle à juger le document ; il ne doit jamais le citer à l'apprenant (aucune référence aux sources).
+    if (contexte.length) systeme += `\n\n### Contexte (extraits de documents de référence ; sers-t'en, ne dis rien sur le myènè qui ne figure ni ici ni dans ta connaissance ; ne cite jamais ni auteur, ni ouvrage, ni page)\n` + contexte.map((c, i) => `[${i + 1}] ${c.titre} : ${c.texte}`).join('\n');
   }
-  return { systeme, contexte, cfg };
+  return { systeme, contexte, cfg, socle };
 }
 
 // ------------------------------------------------------------------ routes d'administration
@@ -305,7 +339,7 @@ export function registerIaAdmin(ctx: Ctx) {
 
   app.get('/v1/admin/ia/etat', async (req) => {
     await admin(req);
-    return { fournisseur: ctx.ia.nom, baseVectorielle: vecteurs.actif ? 'qdrant' : 'postgresql', embedding: { nom: embed.nom, modele: embed.modele }, runpod: { simule: runpod.simule }, config: await configIa(db),
+    return { grammaireMyene: VERSION_GRAMMAIRE, lexique: etatLexique(), fournisseur: ctx.ia.nom, baseVectorielle: vecteurs.actif ? 'qdrant' : 'postgresql', embedding: { nom: embed.nom, modele: embed.modele }, runpod: { simule: runpod.simule }, config: await configIa(db),
       documents: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents`))[0].n), chunks: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_chunks`))[0].n),
       // Avancement réel : un document enregistré sans morceau attend encore ses vecteurs (service d'embeddings indisponible ou passage interrompu).
       vectorises: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents WHERE nb_chunks > 0`))[0].n), enAttente: Number((await db.query<any>(`SELECT count(*) AS n FROM ia_documents WHERE nb_chunks = 0`))[0].n) };
@@ -316,9 +350,10 @@ export function registerIaAdmin(ctx: Ctx) {
     const b = (req.body || {}) as Partial<ConfigIa>;
     const propre: Partial<ConfigIa> = {};
     if (str(b.modele)) propre.modele = b.modele.slice(0, 120);
-    for (const [k, min, max] of [['temperature', 0, 2], ['maxTokens', 16, 8000], ['topK', 1, 20], ['seuil', 0, 1], ['chunkTaille', 200, 4000], ['chunkChevauchement', 0, 1000]] as const)
+    for (const [k, min, max] of [['temperature', 0, 2], ['maxTokens', 16, 8000], ['topK', 1, 20], ['seuil', 0, 1], ['chunkTaille', 200, 4000], ['chunkChevauchement', 0, 1000], ['lexiqueMax', 0, 80], ['ragMyeneK', 0, 12]] as const)
       if (typeof b[k] === 'number' && b[k]! >= min && b[k]! <= max) (propre as any)[k] = b[k];
     if (typeof b.ragActif === 'boolean') propre.ragActif = b.ragActif;
+    if (typeof b.grammaireMyene === 'boolean') propre.grammaireMyene = b.grammaireMyene;
     const nouvelle = { ...(await configIa(db)), ...propre };
     await db.tx(async q => { await q.query(`INSERT INTO parametres (cle, valeur, par) VALUES ('ia_config',$1,$2) ON CONFLICT (cle) DO UPDATE SET valeur = EXCLUDED.valeur, par = EXCLUDED.par, updated_at = clock_timestamp()`, [JSON.stringify(nouvelle), a.auth.uid]); await journaliser(q, a.auth.uid, 'ia_config', 'ia_config', propre); });
     return nouvelle;
@@ -380,6 +415,13 @@ export function registerIaAdmin(ctx: Ctx) {
     if (!str(requete) || !requete.trim()) return fail(400, 'Requête attendue.');
     const cfg = await configIa(db);
     return { resultats: await rechercherRag(db, embed, requete, cfg.topK, 0, 120_000) };
+  });
+
+  /** Recherche dans le lexique de référence (contrôle : quels mots une question fait entrer dans le prompt). */
+  app.get('/v1/admin/ia/lexique', async (req) => {
+    await admin(req);
+    const qs = String((req.query as any)?.q ?? '').slice(0, 500);
+    return { ...etatLexique(), resultats: qs.trim() ? chercherLexique(qs, 40) : [] };
   });
 
   /** Essai du prompt et du RAG sans quota ni journal de jetons. */

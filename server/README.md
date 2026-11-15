@@ -45,6 +45,21 @@ Sans Docker, les tests de l'API tournent avec PGlite (PostgreSQL en mémoire) : 
 
 Écarts assumés par rapport à la fiche : SQL écrit à la main (pas de Kysely/Drizzle) avec migrations `.sql` versionnées dans `migrations/` ; l'import CSV reçoit des objets JSON (le CSV est lu par le navigateur) ; l'URL audio n'est plus stockée, elle est délivrée à la demande par `/media/url` (le bucket est privé).
 
+## Myènè : compétence de Kak'Igonjo et synthèse vocale (15 nov. 2026)
+
+**Compétence myènè** (`api/src/promptMyene.ts`, `api/src/lexiqueMyene.ts`) : à chaque question, le prompt système reçoit
+1. la grammaire et la méthode de composition (règles DONDO v2.0 + R1-R22), à l'endroit de `{{grammaire_myene}}` ou à la fin d'une version de prompt qui ne la contient pas ;
+2. le **lexique trouvé** : les mots attestés qui répondent aux mots de la question (cours d'Onenji + lexique consolidé du corpus), avec les formes refusées par Capp ;
+3. des extraits pris d'abord dans les documents myènè (`ragMyeneK`), puis dans tout le corpus.
+Le lexique consolidé dérive d'ouvrages protégés : il n'est **pas** dans le dépôt. Le construire et le copier (dossier caché, ignoré par l'indexeur) :
+```
+python3 server/scripts/construire_lexique_myene.py ~/Projets/DONDO /tmp/lexique_myene.json
+ssh essaka-llm 'mkdir -p /opt/embeddings/.nkala' && scp /tmp/lexique_myene.json essaka-llm:/opt/embeddings/.nkala/
+```
+L'API le relit seule quand le fichier change. Le socle (grammaire + lexique, ≈ 4 400 jetons) est noté à part (`ia_usage.jetons_socle`, migration 021) : compté dans le coût réel, jamais dans les quotas ni le contexte inclus des utilisateurs. Réglages (`PUT /v1/admin/ia/config`) : `grammaireMyene`, `lexiqueMax` (0 = coupé), `ragMyeneK`. Contrôle : `GET /v1/admin/ia/lexique?q=…`, `POST /v1/admin/ia/tester`.
+
+**Synthèse vocale** (`tts/`, déployé dans `/opt/tts` par la veille) : Kokoro-82M (Apache 2.0) lit directement la transcription phonétique (API) ; tons rendus par l'accent. Écoute sur `172.17.0.1:8700` (interne). Dans `.env` de l'API : `TTS_URL=http://172.17.0.1:8700`. Routes : `POST /v1/audio/synthese` (`api` tonale prioritaire, sinon `texte` en graphie DONDO converti sans tons ; avantage `synthese_audio` des formules, administrateurs toujours), `POST /v1/audio/phonemes`, `GET /v1/admin/audio/etat`. Premier démarrage : `cd /opt/tts && docker compose up -d --build`.
+
 ## Protection du corpus contre les écrasements (2 nov. 2026)
 
 Cause d'un incident : la file de modifications hors-ligne d'un navigateur d'administrateur est rejouée automatiquement et le serveur appliquait « la dernière écriture reçue » ; d'anciens textes remplaçaient ainsi les textes corrigés. Garde-fous (`api/src/protection.ts`, migration `002_protection_fiches.sql`) :

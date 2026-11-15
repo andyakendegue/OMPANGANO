@@ -28,7 +28,7 @@ test('dossier : indexe, ne réindexe que le modifié, oublie le retiré, aliment
     r = await synchroniserDossier(db, embed, 'test', env);
     assert.equal(r.modifies, 1); assert.equal(r.inchanges, 1);
     const { systeme, contexte } = await construireSysteme(db, embed, { message: 'que veut dire mbolo bonjour myènè', enfant: false });
-    assert.ok(contexte.length >= 1); assert.match(systeme, /salutations/);
+    assert.ok(contexte.length >= 1); assert.match(systeme, /Mbolo signifie bonjour/, "le texte du morceau entre dans le prompt (sans le chemin du fichier)");
     await rm(path.join(dir, 'pirogues.txt'));
     r = await synchroniserDossier(db, embed, 'test', env);
     assert.equal(r.supprimes, 1);

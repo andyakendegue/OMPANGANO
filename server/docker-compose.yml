@@ -106,6 +106,10 @@ services:
       VECTOR_API_KEY: ${VECTOR_API_KEY:-}
       VECTOR_COLLECTION: ${VECTOR_COLLECTION:-nkala_rag}
       EMBEDDINGS_DIR: /data/embeddings
+      # Lexique de référence du myènè (hors dépôt) : par défaut /data/embeddings/.nkala/lexique_myene.json
+      LEXIQUE_MYENE_FICHIER: ${LEXIQUE_MYENE_FICHIER:-}
+      # Synthèse vocale du myènè (server/tts, déployé dans /opt/tts) : http://172.17.0.1:8700 sur le serveur
+      TTS_URL: ${TTS_URL:-}
       BIBLIOTHEQUE_DIR: /data/bibliotheque
       BIBLIOTHEQUE_RAG: ${BIBLIOTHEQUE_RAG:-}
       AZURACAST_URL: ${AZURACAST_URL:-}

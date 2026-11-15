@@ -1,0 +1,116 @@
+/**
+ * Lexique de référence du myènè, consulté à chaque question posée à Kak'Igonjo : pour chaque mot de la question (français ou myènè),
+ * les entrées attestées du corpus sont placées dans le prompt système. C'est ce qui permet au modèle de composer des phrases
+ * uniquement avec des mots attestés, sans recourir à d'autres langues.
+ *
+ * Deux sources :
+ *  1. le vocabulaire des cours d'Onenji (packages/noyau/contenu/exercices.json, dans le dépôt, déjà relu) ;
+ *  2. le lexique consolidé du corpus, construit par server/scripts/construire_lexique_myene.py et copié HORS du dépôt
+ *     (ouvrages protégés) dans le dossier du corpus : `${EMBEDDINGS_DIR}/.nkala/lexique_myene.json` (dossier caché, non indexé).
+ *     Variable facultative : LEXIQUE_MYENE_FICHIER (chemin complet).
+ * Sans le fichier 2, seuls les mots des cours sont proposés : rien ne casse.
+ * Aucune entrée transmise au modèle ne porte de nom d'auteur ni de page (règle : aucune référence aux sources pour l'apprenant).
+ */
+import { readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { sansAccents } from './ia.ts';
+
+export interface EntreeLexique { f: string; s: string; v: string; r: number; i?: string }
+interface Index { entrees: EntreeLexique[]; parMot: Map<string, number[]>; rejets: { f: string; s: string; regle: string }[]; charge: string; mtime: number }
+
+const ICI = path.dirname(fileURLToPath(import.meta.url));
+const EXERCICES = path.resolve(ICI, '../../../packages/noyau/contenu/exercices.json');
+export const fichierLexique = (env = process.env) => env.LEXIQUE_MYENE_FICHIER || path.join(env.EMBEDDINGS_DIR || '/data/embeddings', '.nkala', 'lexique_myene.json');
+
+/** Mots français sans valeur pour la recherche dans les sens. */
+const VIDES = new Set(('le la les un une des de du d l au aux et ou en dans sur sous par pour avec sans ce cet cette ces qui que quoi dont est sont etre avoir '
+  + 'je tu il elle on nous vous ils elles me te se moi toi lui leur mon ma mes ton ta tes son sa ses notre votre nos vos ne pas plus tres bien '
+  + 'comment dit dire dis traduis traduire traduction phrase phrases mot mots myene omyene orungu langue veut veux voudrais peux pourrais '
+  + 'faire fait donne donner ecris ecrire stp svp merci quel quelle quels quelles est-ce aussi alors mais donc car voici voila cela ca '
+  + 'litt cl caus syn voir sg pl adj adv').split(' '));
+
+/** Forme réduite d'un mot pour l'appariement : sans accents, minuscules, pluriel français simple retiré. */
+export const radical = (m: string) => {
+  let x = sansAccents(m).replace(/[^a-z0-9ɛɔñ]/g, '');
+  if (x.length > 4 && /(s|x)$/.test(x)) x = x.slice(0, -1);
+  return x;
+};
+const mots = (t: string) => sansAccents(t).split(/[^a-z0-9ɛɔñ'’-]+/).flatMap(m => m.split(/['’-]/)).map(radical).filter(m => m.length >= 3 && !VIDES.has(m));
+
+let cache: Index | null = null;
+
+function lireJson(f: string): any { try { return JSON.parse(readFileSync(f, 'utf8')); } catch { return null; } }
+
+function construire(): Index {
+  const entrees: EntreeLexique[] = [];
+  // 1) cours d'Onenji : paires mot myènè / sens, déjà normalisées et relues
+  const ex = lireJson(EXERCICES);
+  const vus = new Set<string>();
+  if (Array.isArray(ex)) for (const e of ex) {
+    const f = String(e?.mot_myene ?? '').trim(), s = String(e?.mot_francais ?? '').trim();
+    if (!f || !s || f.length > 80) continue;
+    const k = `${f.toLowerCase()}|${s.toLowerCase()}`;
+    if (vus.has(k)) continue;
+    vus.add(k);
+    entrees.push({ f, s, v: 'ôrungu (cours)', r: 0.5 });
+  }
+  // 2) lexique consolidé du corpus (hors dépôt)
+  const fichier = fichierLexique();
+  const lex = lireJson(fichier);
+  let mtime = 0;
+  try { mtime = statSync(fichier).mtimeMs; } catch { /* absent */ }
+  if (lex?.entrees) for (const e of lex.entrees as EntreeLexique[]) if (e?.f && e?.s) entrees.push({ f: e.f, s: e.s, v: e.v, r: Number(e.r) || 4, ...(e.i ? { i: e.i } : {}) });
+  const parMot = new Map<string, number[]>();
+  entrees.forEach((e, n) => {
+    for (const m of new Set([...mots(e.s), ...mots(e.f).map(x => 'mye:' + x)])) {
+      const l = parMot.get(m); if (l) l.push(n); else parMot.set(m, [n]);
+    }
+  });
+  return { entrees, parMot, rejets: Array.isArray(lex?.rejets) ? lex.rejets : [], charge: lex ? fichier : '', mtime };
+}
+
+/** Index en mémoire, reconstruit si le fichier du lexique a changé (copie d'une nouvelle version sur le serveur). */
+export function indexLexique(): Index {
+  let mtime = 0;
+  try { mtime = statSync(fichierLexique()).mtimeMs; } catch { /* absent */ }
+  if (!cache || cache.mtime !== mtime) cache = construire();
+  return cache;
+}
+
+/**
+ * Entrées utiles pour une question : un mot de la question qui figure dans le sens (français) ou dans la forme (myènè).
+ * Classement : nombre de mots trouvés, sûreté de la source (validé > cours > ôrungu > galwa > mpongwè), sens court (vraie définition).
+ */
+export function chercherLexique(question: string, max = 30): EntreeLexique[] {
+  const idx = indexLexique();
+  const qm = [...new Set(mots(question))].slice(0, 30);
+  const score = new Map<number, number>();
+  for (const m of qm) {
+    for (const n of idx.parMot.get(m) ?? []) score.set(n, (score.get(n) ?? 0) + 1);
+    for (const n of idx.parMot.get('mye:' + m) ?? []) score.set(n, (score.get(n) ?? 0) + 1.5);
+  }
+  // Chaque mot de la question garde au moins ses meilleures entrées (sinon un mot fréquent écrase les autres).
+  const choisis = new Set<number>();
+  const rang = (n: number) => { const e = idx.entrees[n]; return -(score.get(n) ?? 0) * 10 + e.r + Math.min(e.s.length, 160) / 80; };
+  for (const m of qm) {
+    const l = [...(idx.parMot.get(m) ?? []), ...(idx.parMot.get('mye:' + m) ?? [])].sort((a, b) => rang(a) - rang(b)).slice(0, 4);
+    l.forEach(n => choisis.add(n));
+  }
+  [...score.keys()].sort((a, b) => rang(a) - rang(b)).slice(0, max).forEach(n => choisis.add(n));
+  return [...choisis].sort((a, b) => rang(a) - rang(b)).slice(0, max).map(n => idx.entrees[n]);
+}
+
+/** Bloc du prompt système : entrées trouvées + formes refusées concernées. Vide si rien n'est trouvé. */
+export function blocLexique(question: string, max = 30): string {
+  const t = chercherLexique(question, max);
+  const qm = new Set(mots(question));
+  const rej = indexLexique().rejets.filter(r => mots(r.s + ' ' + r.f).some(m => qm.has(m)));
+  if (!t.length && !rej.length) return '';
+  let b = '\n\n### Lexique trouvé pour cette question (mots attestés ; seuls mots myènè que tu peux employer en plus de la liste vérifiée)\n'
+    + t.map(e => `- ${e.f}${e.i ? ` [${e.i}]` : ''} : ${e.s} — ${e.v}`).join('\n');
+  if (rej.length) b += '\nFormes refusées (ne jamais les employer) :\n' + rej.map(r => `- ${r.f} : ${r.regle}`).join('\n');
+  return b;
+}
+
+export const etatLexique = () => { const i = indexLexique(); return { entrees: i.entrees.length, corpus: !!i.charge, fichier: fichierLexique() }; };

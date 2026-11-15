@@ -273,6 +273,23 @@ export function graphieDondo(transcription?: string | null): string {
     .replace(/ɛ/g, 'è').replace(/ɔ/g, 'ô').replace(/e(?!̀)/g, 'é');
   return t.normalize('NFC');
 }
+/**
+ * Sens inverse : transcription phonétique (API) d'un texte écrit en graphie DONDO, SANS les tons (la graphie ne les note pas).
+ * Sert à la synthèse vocale quand le corpus ne donne pas la transcription tonale d'un mot ou d'une phrase.
+ * Réalisations décrites plus haut : b, d implosives sauf après une nasale ; p, t aspirées devant u ; g → ɣ sauf après une nasale ;
+ * tch → tʃ ; dj → dʒ ; dy → dʲ ; ny → ɲ ; ñ → ŋ ; ṽ → β ; r → ɾ ; y → j ; é/e → e ; è → ɛ ; ô → ɔ ; l'apostrophe d'élision lie les mots.
+ * Ex. « Mbolo » → [mbolo] ; « Nyéza myè » → [ɲeza mjɛ] ; « owana w'inkala » → [owana winkala].
+ */
+export function apiDepuisGraphie(texte?: string | null): string {
+  let t = ` ${(texte ?? '').normalize('NFC').toLocaleLowerCase('fr')} `.replace(/[’']/g, '').replace(/[«»"“”()]/g, ' ');
+  t = t.replace(/ntch/g, 'ntʃ').replace(/tch/g, 'tʃ').replace(/ndj/g, 'ndʒ').replace(/dj/g, 'dʒ').replace(/dy/g, 'dʲ').replace(/ny/g, 'ɲ')
+    .replace(/ñ/g, 'ŋ').replace(/ṉ/g, 'ɲ').replace(/ṽ/g, 'β').replace(/n(?=[gk])/g, 'ŋ')
+    .replace(/(?<![mŋn])b/g, 'ɓ').replace(/(?<![mŋn])d(?![ʒʲ])/g, 'ɗ').replace(/(?<![ŋ])g/g, 'ɣ').replace(/g/g, 'ɡ')
+    .replace(/p(?=u)/g, 'pʰ').replace(/t(?=u)/g, 'tʰ')
+    .replace(/r/g, 'ɾ').replace(/y/g, 'j').replace(/[éeêë]/g, 'e').replace(/è/g, 'ɛ').replace(/ô/g, 'ɔ').replace(/[óò]/g, 'o')
+    .replace(/[àâá]/g, 'a').replace(/[ìíî]/g, 'i').replace(/[ùúû]/g, 'u');
+  return `[${t.replace(/\s+/g, ' ').trim()}]`;
+}
 /** Exemple complet pour l'apprenant : écriture, transcription (tons) et sens ; l'écriture vient de la transcription quand le corpus ne la donne pas. */
 export function exempleComplet(e: { mot?: string | null; phonetique?: string | null; sens: string }): { mot: string; phonetique: string | null; sens: string; ecritureDeduite: boolean } {
   const mot = (e.mot ?? '').trim();

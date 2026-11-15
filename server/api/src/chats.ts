@@ -123,12 +123,13 @@ export function registerChats(ctx: Ctx) {
     // Enfant par l'âge ou par le mode choisi sur le téléphone : pas de changement de mode proposé.
     const modeEnfant = !!etat && typeof etat === 'object' && (etat as any).prefs?.mode === 'enfant';
     const cadre = { enfant: age === 'enfant' || modeEnfant, modules };
-    const { systeme, contexte: sources, cfg } = await construireSysteme(db, ctx.embed, {
+    const { systeme, contexte: sources, cfg, socle } = await construireSysteme(db, ctx.embed, {
       message: texte, enfant: age === 'enfant', prenom: moi?.nom,
       fiche: await ficheUtilisateur(db, a.auth.uid, etat), actions: consigneActions(cadre), delaiRagMs: asynchrone ? 120_000 : 8000,
     });
     // Contexte de cet envoi : la mesure du dernier appel si elle existe, sinon l'estimation ; on garde la plus prudente.
-    const estime = Math.max(estimerJetons(systeme + msgs.map(m => m.content).join('')), c.contexte_jetons + estimerJetons(texte));
+    // Le socle myènè (grammaire + lexique) n'entre pas dans le contexte du chat (voir construireSysteme).
+    const estime = Math.max(estimerJetons(systeme + msgs.map(m => m.content).join('')) - socle, c.contexte_jetons + estimerJetons(texte));
     const avant = etatContexte(regles, estime);
     const prevu = fraisExces(tarif, regles, estime);
     const corps = { contexte: avant, fraisEstimes: prevu.frais, devise: tarif.devise, politique: regles.politique };
@@ -148,13 +149,14 @@ export function registerChats(ctx: Ctx) {
     // Les balises d'action sont retirées du texte gardé : l'historique ne garde que la réponse lisible.
     const { texte: lisible, actions } = extraireActions(rep.texte, cadre);
     const cout = rep.simule ? 0 : coutAppel(tarif, rep.usage);
-    const reel = fraisExces(tarif, regles, rep.usage.entree);
+    const entreeChat = Math.max(0, rep.usage.entree - socle);
+    const reel = fraisExces(tarif, regles, entreeChat);
     const frais = rep.simule ? 0 : reel.frais;
-    const suivant = rep.usage.entree + rep.usage.sortie;
+    const suivant = entreeChat + rep.usage.sortie;
     await db.tx(async q => {
       await q.query(`INSERT INTO ia_messages (chat_id, role, contenu) VALUES ($1,'user',$2), ($1,'assistant',$3)`, [c.id, texte, lisible]);
-      await q.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule, cout, jetons_exces, frais, devise) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-        [a.auth.uid, c.id, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, cout, reel.jetons, frais, tarif.devise]);
+      await q.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule, cout, jetons_exces, frais, devise, jetons_socle) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+        [a.auth.uid, c.id, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, cout, reel.jetons, frais, tarif.devise, rep.usage.entree - entreeChat]);
       await q.query(`UPDATE ia_chats SET contexte_jetons = $2, updated_at = clock_timestamp(), titre = CASE WHEN titre = 'Nouveau chat' THEN $3 ELSE titre END WHERE id = $1`,
         [c.id, suivant, texte.replace(/\s+/g, ' ').slice(0, 48)]);
     });

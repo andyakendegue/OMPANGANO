@@ -1,0 +1,15 @@
+# Synthèse vocale du myènè (voir app.py). Déployée dans /opt/tts par la veille quand server/tts/ change.
+services:
+  tts-myene:
+    build: .
+    container_name: tts-myene
+    network_mode: host          # comme les relais RunPod : n'écoute que sur LISTEN_HOST (passerelle Docker interne)
+    environment:
+      LISTEN_HOST: ${LISTEN_HOST:-172.17.0.1}
+      LISTEN_PORT: ${LISTEN_PORT:-8700}
+      TTS_VOIX: ${TTS_VOIX:-im_nicola}
+      TTS_MODELE: ${TTS_MODELE:-/modele/kokoro-v1.0.onnx}   # ou /modele/kokoro-v1.0.int8.onnx (plus léger)
+      OMP_NUM_THREADS: ${OMP_NUM_THREADS:-2}   # 4 cœurs partagés avec l'API et la base
+    mem_limit: 1500m
+    cpus: 2
+    restart: unless-stopped

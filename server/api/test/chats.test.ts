@@ -37,6 +37,8 @@ before(async () => {
   Object.assign(process.env, { MODULES_ACTIFS: 'ompangano,onenji,azeva,ontci,nkala', FONCTIONS_ACTIVES: 'assistantIA' });
   app = await buildApp({ db, verify, storage, corsOrigins: [], logger: false, rateLimitMax: 100000, ia, sessionSecret: 'secret-de-test-0123456789abcdef' } as any);
   await regler('ia_quotas', { parJour: 10_000_000, parMois: 100_000_000, parConversation: 8000 });
+  // Le modèle d'essai mesure 1000 jetons par message, sans le prompt : le socle myènè (testé dans myene.test.ts) est coupé ici.
+  await call('PUT', '/v1/admin/ia/config', ADMIN, { grammaireMyene: false, lexiqueMax: 0 });
 });
 after(async () => { await app.close(); await db.close(); delete process.env.MODULES_ACTIFS; delete process.env.FONCTIONS_ACTIVES; });
 
