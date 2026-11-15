@@ -13,7 +13,7 @@ import { consignes, KakIgonjoFeuille, useIaCours } from './KakIgonjoCours';
 import { noterReponse } from './OnenjiEtat';
 import { Confettis } from './Confettis';
 import { Bouton, Carte, Champ, Chargement, Ecran, Ic, Mascotte, Onde, Barre, T, Visuel } from './kit';
-import { useSansPublicite } from './Pub';
+import { PUB_LECON_TOUTES_LES, PubObligatoire } from './Pub';
 import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 import { useAuth } from './AuthProvider';
@@ -306,7 +306,10 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
   );
 }
 
-/** Joue une liste d'exercices. `onFin` reçoit les résultats. Aucune publicité pendant la leçon. */
+/**
+ * Joue une liste d'exercices. `onFin` reçoit les résultats. Publicité (décision de Capp du 15 nov. 2026) : bandeau en bas de l'écran,
+ * et une annonce plein écran obligatoire toutes les PUB_LECON_TOUTES_LES étapes, avant de passer à la suite.
+ */
 export function LeconRunner({ titre, exercices, onFin, onQuitter, notes }: { titre: string; exercices: Exercice[]; onFin: (e: EtatLecon) => void; onQuitter: () => void; notes?: boolean }) {
   const { prefs } = usePrefs();
   const { c } = useTheme();
@@ -315,7 +318,7 @@ export function LeconRunner({ titre, exercices, onFin, onQuitter, notes }: { tit
   const ia = useIaCours();
   const [derniereErreur, setDerniereErreur] = useState<Exercice | null>(null);
   const [aide, setAide] = useState<{ titre: string; consigne: string; affiche: string } | null>(null);
-  useSansPublicite(true);
+  const [pub, setPub] = useState(false);
   const enfant = prefs.mode === 'enfant';
   const ex = exercices[etat.index];
   if (!ex) { return (<Ecran><T v="corps">Cette leçon n'a pas encore d'exercices.</T><Bouton label="Retour" onPress={onQuitter} /></Ecran>); }
@@ -326,9 +329,11 @@ export function LeconRunner({ titre, exercices, onFin, onQuitter, notes }: { tit
     const corrige = note === null ? { ...n, bonnes: etat.bonnes, erreurs: etat.erreurs } : n;
     setEtat(corrige);
     if (corrige.termine) onFin(corrige);
+    else if (corrige.index > 0 && corrige.index % PUB_LECON_TOUTES_LES === 0) setPub(true);
   };
   return (
     <Ecran>
+      {pub && <PubObligatoire onFin={() => setPub(false)} onQuitter={() => { setPub(false); onQuitter(); }} />}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Quitter la leçon" onPress={onQuitter} hitSlop={10}><Ic nom="fermer" taille={26} /></Pressable>
         <View style={{ flex: 1 }}><Barre valeur={etat.index / exercices.length} /></View>
@@ -406,7 +411,6 @@ export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuit
   const questions = useMemo(() => composerTestNiveau(parcours, unites, lecons, exercices), [parcours, unites, lecons, exercices]);
   const [demarre, setDemarre] = useState(false);
   const [reponses, setReponses] = useState<boolean[]>([]);
-  useSansPublicite(demarre);
   const enfant = prefs.mode === 'enfant';
   if (enfant) {
     const naissance = profil?.birthDate ? new Date(profil.birthDate).getTime() : NaN;

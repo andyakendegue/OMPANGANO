@@ -40,8 +40,8 @@ for (const f of readdirSync(exemples).filter(x => x.endsWith('.json'))) {
 const sem = async (collection: string, id: string, data: Record<string, unknown>) => db.query(`INSERT INTO contenus (collection, id, data, publie, statut) VALUES ($1,$2,$3,true,'publie') ON CONFLICT DO NOTHING`, [collection, id, JSON.stringify({ id, publie: true, ...data })]);
 await db.query(`INSERT INTO regie_annonceurs (id, nom, contact) VALUES ('demo-an','Commerce exemple','contact@exemple.ga') ON CONFLICT DO NOTHING`);
 await db.query(`INSERT INTO regie_campagnes (id, annonceur_id, nom, statut, plafond_jour) VALUES ('demo-ca','demo-an','Campagne d''exemple','active',0) ON CONFLICT DO NOTHING`);
-for (const [i, zone] of ['bandeau_accueil', 'annonce_dans_liste', 'annonce_en_tete', 'bandeau_apprendre', 'bandeau_catalogue', 'bandeau_resultats', 'recompense_coeur', 'bandeau_lecteur'].entries())
-  await sem('pub_creations', `demo-pub-${i}`, { zone, campagne_id: 'demo-ca', annonceur: 'Commerce exemple', titre: 'Votre commerce ici : parlez-en à la régie Nkala', texte_alt: 'Publicité d\'exemple', format: zone === 'annonce_dans_liste' ? 'natif' : 'bandeau', cta: 'Découvrir' });
+for (const [i, zone] of ['bandeau_accueil', 'annonce_dans_liste', 'annonce_en_tete', 'bandeau_apprendre', 'bandeau_catalogue', 'bandeau_resultats', 'recompense_coeur', 'bandeau_lecteur', 'partout_bandeau', 'partout_plein_ecran'].entries())
+  await sem('pub_creations', `demo-pub-${i}`, { zone, campagne_id: 'demo-ca', annonceur: 'Commerce exemple', titre: 'Votre commerce ici : parlez-en à la régie Nkala', texte_alt: 'Publicité d\'exemple', format: zone === 'annonce_dans_liste' ? 'natif' : zone === 'partout_plein_ecran' ? 'plein_ecran' : 'bandeau', cta: 'Découvrir' });
 // Formules Oma, Inina, Anyambiè (15 nov. 2026) ; les anciennes « Nkala Plus » de la démo sont dépubliées.
 await initialiserFormules(db, 'demo');
 await db.query(`UPDATE contenus SET publie = false WHERE collection = 'produits' AND id IN ('abo-mensuel', 'abo-annuel')`);

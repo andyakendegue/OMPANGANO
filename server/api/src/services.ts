@@ -219,8 +219,13 @@ export function registerServices(ctx: Ctx) {
   // ---------------------------------------------------------------- publicité (passerelle ; Revive viendra derrière)
   const servables = async (zone: string) => {
     const plafonds = await parametre<Record<string, number>>(db, 'pub_plafonds', {});
-    const r = await creationsServables(db, zone, new Date().toISOString().slice(0, 10));
-    return r.filter(x => { const p = Number(x.data.plafond_jour) || plafonds.parCreationJour || 0; const pc = Number(x.plafond_campagne) || 0; return (!p || x.vus < p) && (!pc || x.vus_campagne < pc); });
+    const jour = new Date().toISOString().slice(0, 10);
+    const filtre = (r: any[]) => r.filter(x => { const p = Number(x.data.plafond_jour) || plafonds.parCreationJour || 0; const pc = Number(x.plafond_campagne) || 0; return (!p || x.vus < p) && (!pc || x.vus_campagne < pc); });
+    const propres = filtre(await creationsServables(db, zone, jour));
+    if (propres.length || zone.startsWith('partout_')) return propres;
+    // Aucune création propre à la zone : les créations « partout » du même format (aucun écran sans publicité, 15 nov. 2026).
+    const format = ZONES[zone as ZonePub]?.format === 'plein_ecran' ? 'partout_plein_ecran' : 'partout_bandeau';
+    return filtre(await creationsServables(db, format, jour));
   };
   const versPub = (c: any, zone: string) => ({ id: c.id, zone, image: c.data.image ?? null, lien: c.data.lien ?? null, titre: c.data.titre ?? null, texte_alt: c.data.texte_alt, annonceur: c.data.annonceur ?? null, cta: c.data.cta ?? null, format: c.data.format ?? 'bandeau' });
 
@@ -249,7 +254,9 @@ export function registerServices(ctx: Ctx) {
     if (!ok) return { pub: null };
     const dispo = await servables(zone);
     if (!dispo.length) return { pub: null };
-    return { pub: versPub(dispo[Math.floor(Math.random() * dispo.length)], zone) };
+    // Plein écran : durée minimale d'affichage avant de pouvoir continuer (réglable : pub_plafonds.pleinEcranSecondes).
+    const attente = Math.max(3, Math.min(60, Number((await parametre<Record<string, number>>(db, 'pub_plafonds', {})).pleinEcranSecondes) || 10));
+    return { pub: { ...versPub(dispo[Math.floor(Math.random() * dispo.length)], zone), attente_s: attente } };
   });
 
   /** Fil : plusieurs créations différentes pour les glisser dans une liste (publication sponsorisée, mention « Publicité » côté application). */

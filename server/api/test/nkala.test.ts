@@ -176,6 +176,18 @@ test('publicité : zone, enfant, abonné, récompense plafonnée', async () => {
   assert.equal((await call('POST', '/v1/pub/recompense', e.token, { creationId: 'p2', tempsVuMs: 6000 })).status, 403, 'jamais pour un enfant');
 });
 
+test('publicité partout : repli sur les zones « partout » et attente avant de continuer', async () => {
+  await call('POST', '/v1/admin/contenus/pub_creations/import', ADMIN, { lignes: [{ id: 'pp', zone: 'partout_plein_ecran', texte_alt: 'Plein écran', publie: 'oui' }, { id: 'pbd', zone: 'partout_bandeau', texte_alt: 'Bandeau', publie: 'oui' }], mode: 'ajouter' });
+  const a = await user(), e = await user(false);
+  const r = await call('GET', '/v1/pub?zone=interstitiel_apprendre', a.token);
+  assert.equal(r.body.pub.id, 'pp', 'sans création propre, la leçon prend une annonce plein écran « partout »');
+  assert.equal(r.body.pub.attente_s, 10, 'attente par défaut : 10 s');
+  assert.equal((await call('GET', '/v1/pub?zone=bandeau_profil', a.token)).body.pub.id, 'pbd', 'bandeau des autres écrans');
+  assert.equal((await call('GET', '/v1/pub?zone=interstitiel_apprendre', e.token)).body.pub, null, 'jamais pour un enfant');
+  await call('POST', '/v1/admin/contenus/pub_creations/import', ADMIN, { lignes: [{ id: 'pp', zone: 'partout_plein_ecran', texte_alt: 'x', publie: 'non' }, { id: 'pbd', zone: 'partout_bandeau', texte_alt: 'x', publie: 'non' }], mode: 'ajouter' });
+  assert.equal((await call('GET', '/v1/pub?zone=bandeau_profil', a.token)).body.pub, null, 'dépubliées : plus servies');
+});
+
 test('droits : accès payant, licence de lecture', async () => {
   await call('POST', '/v1/admin/contenus/cours_artisans/import', ADMIN, { lignes: [{ id: 'c1', titre: 'Cours', artisan: 'A', niveau_acces: 'abonnement', publie: 'oui' }], mode: 'ajouter' });
   const u = await user();

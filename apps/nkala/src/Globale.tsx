@@ -13,6 +13,7 @@ import { compterNonLues } from './Alertes';
 import { ecouter, emettre } from './evenements';
 import { Avatar, Bouton, Champ, Feuille, Ic, Mascotte, Onde, T, Visuel } from './kit';
 import { useLecteur } from './Lecteur';
+import { BandeauGlobal } from './Pub';
 import { useProgres } from './Progres';
 import { usePrefs, useTheme } from './Prefs';
 import { degrades, polices } from './theme';
@@ -60,6 +61,7 @@ export function BarreOnglets({ state, descriptors, navigation }: BottomTabBarPro
   const surProfil = plus || ['profil', 'reglages', 'serie', 'parents'].includes(actif ?? '');
   return (
     <View>
+      <BandeauGlobal onglet={actif} />
       {courant && <MiniLecteur onOuvrir={ouvrirLecteur} />}
       <View style={{ backgroundColor: c.verre, borderTopWidth: 1, borderTopColor: c.bord, paddingTop: 8, paddingBottom: Math.max(ins.bottom, 10), flexDirection: 'row', justifyContent: 'space-around', ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(18px)' } as object) : null) }}>
         {ONGLETS.filter(o => (!o.module || moduleActif(o.module)) && state.routes.some(r => r.name === o.route)).map(o => {

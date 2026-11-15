@@ -580,7 +580,6 @@ function KakIgonjoChat({ retour }: { retour: () => void }) {
   const [quota, setQuota] = useState<{ restantJour: number; alerte: boolean; gratuitesRestantes?: number | null } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [forfait, setForfait] = useState<string | null>(null);
-  useSansPublicite(true);
   const envoyer = async () => {
     const m = texte.trim(); if (!m || occupe) return;
     setTexte(''); setErreur(null); setForfait(null); setOccupe(true); setAttente(null);

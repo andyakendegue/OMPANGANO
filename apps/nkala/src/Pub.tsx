@@ -167,3 +167,60 @@ export function PubEntreEcrans({ zone = 'interstitiel_jeux', toujours }: { zone?
     </Modal>
   );
 }
+
+/** Leçons : une annonce plein écran toutes les N étapes (décision de Capp du 15 nov. 2026). */
+export const PUB_LECON_TOUTES_LES = 2;
+
+/**
+ * Annonce obligatoire (leçons) : elle finance les cours gratuits. On ne passe à la suite qu'après le décompte ; le seul autre
+ * choix est de quitter. Sans annonce disponible (régie vide, formule sans publicité, enfant, hors ligne), on continue aussitôt.
+ */
+export function PubObligatoire({ zone = 'interstitiel_apprendre', onFin, onQuitter }: { zone?: ZonePub; onFin: () => void; onQuitter: () => void }) {
+  const autorise = usePubsAutorisees(zone);
+  const { c } = useTheme();
+  const [creation, setCreation] = useState<(CreationPub & { attente_s?: number }) | null>(null);
+  const [reste, setReste] = useState(10);
+  const fini = useRef(false);
+  const finir = () => { if (!fini.current) { fini.current = true; onFin(); } };
+  useEffect(() => {
+    if (!autorise) { finir(); return; }
+    demanderPub(zone).then(r => {
+      const p = r.pub as (CreationPub & { attente_s?: number }) | null;
+      if (!p) { finir(); return; }
+      setCreation(p); setReste(Math.max(3, Number(p.attente_s) || 10)); signalerPub('affichage', p.id, zone).catch(() => {});
+    }).catch(() => finir());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!creation || reste <= 0) return; const t = setTimeout(() => setReste(n => n - 1), 1000); return () => clearTimeout(t); }, [creation, reste]);
+  if (!creation) return null;
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onQuitter}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(8,4,2,0.94)', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
+        <Text style={{ fontFamily: polices.corpsGras, fontSize: 12, color: '#A8826D', textAlign: 'center' }}>Publicité{creation.annonceur ? ` · ${creation.annonceur}` : ''} · elle finance les cours gratuits</Text>
+        <Pressable accessibilityRole={creation.lien ? 'link' : 'image'} accessibilityLabel={`Publicité : ${creation.texte_alt}`} onPress={() => { if (creation.lien) { signalerPub('clic', creation.id, zone).catch(() => {}); Linking.openURL(creation.lien).catch(() => {}); } }}
+          style={{ width: '100%', maxWidth: 420, borderRadius: 20, overflow: 'hidden', backgroundColor: c.carte }}>
+          <Visuel uri={creation.image} largeur="100%" hauteur={320} rayon={0} icone="etiquette" />
+          <View style={{ padding: 14 }}><Text style={{ fontFamily: polices.corpsMoyen, fontSize: 15, color: c.fort }}>{creation.titre || creation.texte_alt}</Text></View>
+        </Pressable>
+        <Pressable accessibilityRole="button" disabled={reste > 0} onPress={finir} style={{ paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14, backgroundColor: reste > 0 ? '#27150C' : '#F59E0B' }}>
+          <Text style={{ fontFamily: polices.corpsGras, fontSize: 15, color: reste > 0 ? '#A8826D' : '#170D08' }}>{reste > 0 ? `La leçon reprend dans ${reste} s` : 'Continuer la leçon'}</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={onQuitter} hitSlop={8}><Text style={{ fontFamily: polices.corpsMoyen, fontSize: 13, color: '#A8826D' }}>Quitter la leçon</Text></Pressable>
+        <Text style={{ fontFamily: polices.corps, fontSize: 11, color: '#7A5E4E', textAlign: 'center' }}>Une formule sans publicité retire ces annonces.</Text>
+      </View>
+    </Modal>
+  );
+}
+
+/** Zone du bandeau global selon l'onglet affiché (aucun écran sans publicité ; décision de Capp du 15 nov. 2026). */
+const ZONE_ONGLET: Record<string, ZonePub> = {
+  index: 'bandeau_accueil', apprendre: 'bandeau_apprendre', azeva: 'bandeau_jeux', ecoute: 'bandeau_catalogue', village: 'annonce_en_tete',
+  contribuer: 'bandeau_profil', profil: 'bandeau_profil', reglages: 'bandeau_profil', serie: 'bandeau_profil', parents: 'bandeau_profil', recherche: 'bandeau_profil',
+};
+/** Bandeau publicitaire au-dessus de la barre d'onglets, sur tous les écrans ; une nouvelle annonce toutes les minutes. */
+export function BandeauGlobal({ onglet }: { onglet?: string }) {
+  const zone = onglet ? ZONE_ONGLET[onglet] : undefined;
+  const [tour, setTour] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTour(n => n + 1), 60_000); return () => clearInterval(t); }, []);
+  if (!zone) return null;
+  return <View style={{ paddingHorizontal: 10, paddingBottom: 6 }}><EmplacementPub key={`${zone}-${tour}`} zone={zone} /></View>;
+}

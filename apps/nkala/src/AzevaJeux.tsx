@@ -15,7 +15,6 @@ import { AideJeu, useAideJeu } from './AzevaAide';
 export type { PropsJeu, ResultatPartie } from './AzevaCadre';
 import { FeuDeBois } from './FeuDeBois';
 import { Son } from './OnenjiLecon';
-import { useSansPublicite } from './Pub';
 import { useTheme } from './Prefs';
 import { JeuSuite } from './AzevaJeux2';
 
@@ -258,7 +257,7 @@ function GrandJeu(p: PropsJeu) {
 
 /** Choisit le bon moteur pour un jeu, et lui attache sa fenêtre « Comment jouer » (ouverte à la première partie, puis par le « ? »). Aucune publicité pendant une partie. */
 export function JeuRunner(p: PropsJeu) {
-  useSansPublicite(true);
+  // Publicité pendant la partie (décision de Capp du 15 nov. 2026 : chaque écran doit en avoir) : plus de blocage ici.
   const aide = useAideJeu(String(p.manche.moteur));
   return (
     <AideCtx.Provider value={{ ouvrir: aide.ouvrir, ouverte: aide.ouverte }}>

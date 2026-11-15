@@ -7,7 +7,8 @@ export type ZonePub =
   | 'bandeau_resultats' | 'recompense_coeur' | 'interstitiel_jeux' | 'bandeau_jeux'
   | 'audio_entre_titres' | 'video_entre_clips' | 'bandeau_lecteur' | 'bandeau_catalogue'
   | 'annonce_en_tete' | 'annonce_dans_liste' | 'carte_partenaire'
-  | 'bandeau_apprendre' | 'video_igolani' | 'enfants_contextuel';
+  | 'bandeau_apprendre' | 'video_igolani' | 'enfants_contextuel'
+  | 'interstitiel_apprendre' | 'bandeau_profil' | 'partout_bandeau' | 'partout_plein_ecran';
 
 export type FormatPub = 'bandeau' | 'plein_ecran' | 'audio' | 'video';
 export type ProfilAge = 'enfant' | 'ado' | 'adulte';
@@ -30,6 +31,12 @@ export const ZONES: Record<ZonePub, { module: 'commun' | 'azeva' | 'ontci' | 'nk
   bandeau_apprendre: { module: 'onenji', format: 'bandeau', hauteur: 50, profils: ['ado', 'adulte'] },
   // Vidéothèque Igolani (13 nov. 2026) : annonce avant la partie gratuite d'une vidéo (premier chapitre gratuit avec publicité).
   video_igolani: { module: 'onenji', format: 'plein_ecran', profils: ['ado', 'adulte'] },
+  // Leçons (décision de Capp du 15 nov. 2026) : annonce plein écran obligatoire toutes les deux étapes ; on ne passe à la suite qu'après l'avoir vue.
+  interstitiel_apprendre: { module: 'onenji', format: 'plein_ecran', profils: ['ado', 'adulte'] },
+  bandeau_profil: { module: 'commun', format: 'bandeau', hauteur: 50, profils: ['ado', 'adulte'] },
+  // Créations « partout » : servies dans toute zone du même format qui n'a pas de création propre (aucun écran sans publicité).
+  partout_bandeau: { module: 'commun', format: 'bandeau', hauteur: 50, profils: ['ado', 'adulte'] },
+  partout_plein_ecran: { module: 'commun', format: 'plein_ecran', profils: ['ado', 'adulte'] },
   // Décision ouverte (REVIVE_ADSERVER.md §3) : aucun profil tant que Capp n'a pas tranché.
   enfants_contextuel: { module: 'commun', format: 'bandeau', hauteur: 50, profils: [] },
 };
