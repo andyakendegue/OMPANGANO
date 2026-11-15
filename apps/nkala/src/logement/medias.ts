@@ -26,6 +26,33 @@ export interface MediaLocal extends MediaAnnonce {
 
 export const nouvelId = () => Crypto.randomUUID().replace(/-/g, '').slice(0, 20);
 
+/** Demande l'accès à la position AVANT d'ouvrir l'appareil photo (deux fenêtres système en même temps se gênent sur iPhone). */
+export async function autoriserPosition(): Promise<boolean> {
+  if (Platform.OS === 'web') return true;
+  try {
+    const p = await Location.getForegroundPermissionsAsync();
+    if (p.granted) return true;
+    if (!p.canAskAgain) return false;
+    return (await Location.requestForegroundPermissionsAsync()).granted;
+  } catch { return false; }
+}
+
+/** Lance la lecture de la position pendant que l'appareil photo est ouvert : elle est prête au retour. */
+async function positionPourPrise(): Promise<() => Promise<{ lat: number; lng: number } | null>> {
+  const ok = await autoriserPosition();
+  if (!ok) return async () => null;
+  const p = positionActuelle();
+  return () => p;
+}
+
+/** Message lisible pour une erreur du sélecteur ou de l'appareil photo. */
+export const messageErreurMedia = (e: unknown) => {
+  const m = (e as Error)?.message || '';
+  if (/mettez l'application à jour/i.test(m)) return m;
+  if (/camera|cam[ée]ra/i.test(m) && /unavailable|not available|simulator/i.test(m)) return "Aucun appareil photo disponible sur cet appareil.";
+  return m ? `L'appareil photo n'a pas pu s'ouvrir : ${m}` : "L'appareil photo n'a pas pu s'ouvrir.";
+};
+
 /** Position au moment de la prise (5 s au plus ; null si refusée ou indisponible). */
 export async function positionActuelle(): Promise<{ lat: number; lng: number } | null> {
   try {
@@ -69,6 +96,8 @@ export type Source = 'camera' | 'galerie';
 async function permission(source: Source, video = false): Promise<string | null> {
   if (source === 'camera') {
     if (Platform.OS === 'web') return null;
+    if (!(await ImagePicker.getCameraPermissionsAsync()).granted && !(await ImagePicker.getCameraPermissionsAsync()).canAskAgain)
+      return "L'accès à l'appareil photo a été refusé. Autorisez-le dans Réglages > Nkala > Appareil photo.";
     const p = await ImagePicker.requestCameraPermissionsAsync();
     if (!p.granted) return "L'accès à l'appareil photo est refusé. Autorisez-le dans les réglages du téléphone.";
     if (video) { /* le micro est demandé par le sélecteur lui-même */ }
@@ -80,22 +109,58 @@ async function permission(source: Source, video = false): Promise<string | null>
 }
 
 /** Résultat brut d'une image choisie, avant la question « C'est une photo 360° ? ». */
-export interface ImageChoisie { uri: string; largeur: number; hauteur: number; capturedInApp: boolean; capturedAt?: string; capturedLat?: number; capturedLng?: number; probable360: boolean }
+export interface ImageChoisie {
+  uri: string; largeur: number; hauteur: number; capturedInApp: boolean; capturedAt?: string; capturedLat?: number; capturedLng?: number; probable360: boolean;
+  /** Panorama partiel (capture guidée) : angles couverts. */
+  pano?: { haov: number; vaov: number; vOffset?: number };
+}
 
 export async function choisirImages(source: Source, maximum: number): Promise<{ images: ImageChoisie[]; erreur?: string }> {
-  const err = await permission(source);
-  if (err) return { images: [], erreur: err };
-  const opts: ImagePickerT.ImagePickerOptions = { mediaTypes: ['images'], quality: 1, exif: false, allowsMultipleSelection: source === 'galerie' && maximum > 1, selectionLimit: Math.max(1, maximum) };
-  const r = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
-  if (r.canceled) return { images: [] };
-  const pos = source === 'camera' ? await positionActuelle() : null;
+  try {
+    const err = await permission(source);
+    if (err) return { images: [], erreur: err };
+    const lirePos = source === 'camera' ? await positionPourPrise() : async () => null;
+    const opts: ImagePickerT.ImagePickerOptions = { mediaTypes: ['images'], quality: 1, exif: false, allowsMultipleSelection: source === 'galerie' && maximum > 1, selectionLimit: Math.max(1, maximum) };
+    const r = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
+    if (r.canceled) return { images: [] };
+    const pos = await lirePos();
+    return { images: versImages(r.assets, maximum, source, pos) };
+  } catch (e) { return { images: [], erreur: messageErreurMedia(e) }; }
+}
+function versImages(assets: ImagePickerT.ImagePickerAsset[], maximum: number, source: Source, pos: { lat: number; lng: number } | null): ImageChoisie[] {
   const maintenant = new Date().toISOString();
-  return {
-    images: r.assets.slice(0, maximum).map(a => ({
-      uri: a.uri, largeur: a.width, hauteur: a.height, probable360: estEquirectangulaire(a.width, a.height),
-      capturedInApp: source === 'camera', ...(source === 'camera' ? { capturedAt: maintenant, ...(pos ? { capturedLat: pos.lat, capturedLng: pos.lng } : {}) } : {}),
-    })),
-  };
+  return assets.slice(0, maximum).map(a => ({
+    uri: a.uri, largeur: a.width, hauteur: a.height, probable360: estEquirectangulaire(a.width, a.height),
+    capturedInApp: source === 'camera', ...(source === 'camera' ? { capturedAt: maintenant, ...(pos ? { capturedLat: pos.lat, capturedLng: pos.lng } : {}) } : {}),
+  }));
+}
+
+/** Une photo de la capture 360° guidée : appareil photo, avec l'EXIF (focale) pour calculer le champ de vision. */
+export async function prendrePhoto360(): Promise<{ uri: string; largeur: number; hauteur: number; exif?: Record<string, unknown> | null } | { erreur: string } | null> {
+  try {
+    const err = await permission('camera');
+    if (err) return { erreur: err };
+    const r = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.9, exif: true });
+    if (r.canceled || !r.assets[0]) return null;
+    const a = r.assets[0];
+    return { uri: a.uri, largeur: a.width, hauteur: a.height, exif: a.exif ?? null };
+  } catch (e) { return { erreur: messageErreurMedia(e) }; }
+}
+
+/** Réduit une photo et la renvoie en data URI (pour l'assemblage du panorama). */
+export async function reduireEnDataUri(uri: string, largeur: number, hauteur: number, max = 1280): Promise<string> {
+  const action = largeur >= hauteur ? (largeur > max ? [{ resize: { width: max } }] : []) : (hauteur > max ? [{ resize: { height: max } }] : []);
+  const r = await Manipulateur.manipulateAsync(uri, action, { compress: 0.82, format: Manipulateur.SaveFormat.JPEG, base64: true });
+  return `data:image/jpeg;base64,${r.base64}`;
+}
+
+/** Enregistre un data URI JPEG dans un fichier (téléphone) ; sur le web, le data URI sert tel quel. */
+export async function fichierDepuisDataUri(data: string, nom: string): Promise<string> {
+  if (Platform.OS === 'web') return data;
+  const FS = await import('expo-file-system/legacy');
+  const chemin = `${FS.cacheDirectory}${nom}`;
+  await FS.writeAsStringAsync(chemin, data.replace(/^data:[^,]+,/, ''), { encoding: FS.EncodingType.Base64 });
+  return chemin;
 }
 
 /** Photo : 1600 px ; 360° : 4096 px (+ 6000 px si l'original est plus grand) ; vignette 400 px. */
@@ -111,14 +176,19 @@ export async function preparerImage(img: ImageChoisie, type: Extract<TypeMedia, 
     uriVignette: vignette.uri, octetsVignette: vignette.octets,
     ...(hd && hd.octets <= IMAGE_MAX_OCTETS ? { uriHd: hd.uri, octetsHd: hd.octets } : {}),
     ...(img.capturedInApp ? { capturedInApp: true, capturedAt: img.capturedAt, capturedLat: img.capturedLat, capturedLng: img.capturedLng } : {}),
+    ...(type === 'pano360' && img.pano ? { pano: img.pano } : {}),
     envoye: {},
   };
 }
 
 /** Vidéo : 60 s et 50 Mo au plus ; jamais de lecture automatique. */
 export async function choisirVideo(source: Source, ordre: number): Promise<{ media?: MediaLocal; erreur?: string }> {
+  try { return await choisirVideo0(source, ordre); } catch (e) { return { erreur: messageErreurMedia(e) }; }
+}
+async function choisirVideo0(source: Source, ordre: number): Promise<{ media?: MediaLocal; erreur?: string }> {
   const err = await permission(source, true);
   if (err) return { erreur: err };
+  const lirePos = source === 'camera' ? await positionPourPrise() : async () => null;
   const opts: ImagePickerT.ImagePickerOptions = { mediaTypes: ['videos'], videoMaxDuration: VIDEO_MAX_S, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium, quality: 0.7 };
   const r = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
   if (r.canceled || !r.assets[0]) return {};
@@ -138,7 +208,7 @@ export async function choisirVideo(source: Source, ordre: number): Promise<{ med
       uriVignette = v.uri; octetsVignette = v.octets;
     } catch { /* icône lecture à la place */ }
   }
-  const pos = source === 'camera' ? await positionActuelle() : null;
+  const pos = await lirePos();
   return {
     media: {
       id: nouvelId(), type: 'video', chemin: '', ordre, mime, uri: a.uri, octets, dureeS, largeur: a.width, hauteur: a.height,

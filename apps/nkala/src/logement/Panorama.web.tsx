@@ -6,11 +6,11 @@ import { createElement, forwardRef, useEffect, useImperativeHandle, useMemo, use
 import { htmlPanorama } from './pannellumHtml';
 
 export interface PanoramaRef { gyro: (on: boolean) => void; zoom: (d: number) => void }
-export interface PanoramaProps { url: string; apercu?: string; onCharge?: () => void; onErreur?: (m: string) => void }
+export interface PanoramaProps { url: string; apercu?: string; pano?: { haov: number; vaov: number; vOffset?: number }; onCharge?: () => void; onErreur?: (m: string) => void }
 
-export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama({ url, apercu, onCharge, onErreur }, ref) {
+export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama({ url, apercu, pano, onCharge, onErreur }, ref) {
   const cadre = useRef<HTMLIFrameElement | null>(null);
-  const html = useMemo(() => htmlPanorama({ url, apercu }), [url, apercu]);
+  const html = useMemo(() => htmlPanorama({ url, apercu, pano }), [url, apercu, pano?.haov, pano?.vaov]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const ecoute = (ev: MessageEvent) => {
       if (ev.source !== cadre.current?.contentWindow) return;

@@ -19,6 +19,11 @@ export type LogementVu = Partial<LogementPublic> & { medias?: MediaVu[]; couvert
 export interface AnnonceVue { id?: string; titre?: string; description?: string; prix?: number; ville?: string; telephone?: string; auteur?: string; distance_m?: number; logement: LogementVu }
 
 const src = (m: MediaVu) => m.url ?? m.uri;
+/**
+ * Angles d'une photo 360°. Une bande plus de 2,2 fois plus large que haute vient de la capture guidée : 360° de large et
+ * 360 × hauteur / largeur de haut. Sert aussi quand le serveur n'a pas encore gardé le champ « pano ».
+ */
+const anglesPanorama = (m: MediaVu) => m.pano ?? (m.largeur && m.hauteur && m.largeur / m.hauteur > 2.2 ? { haov: 360, vaov: Math.round((3600 * m.hauteur) / m.largeur) / 10 } : undefined);
 const vignette = (m: MediaVu) => m.urlVignette ?? m.uriVignette ?? (m.type !== 'video' ? src(m) : undefined);
 export const prixAnnonce = (a: AnnonceVue) => (a.prix ? formaterPrix(a.prix, a.logement.periode === 'total' ? undefined : a.logement.periode) : 'Prix sur demande');
 
@@ -58,7 +63,7 @@ function Galerie({ medias }: { medias: MediaVu[] }) {
   const [plein, setPlein] = useState<number | null>(null);
   const [video, setVideo] = useState<string | null>(null);
   const [pano, setPano] = useState<number | null>(null);
-  const listePanos: Pano[] = panos.map(p => ({ id: p.id, url: src(p)!, urlHd: p.urlHd ?? p.uriHd, apercu: vignette(p), piece: p.piece })).filter(p => !!p.url);
+  const listePanos: Pano[] = panos.map(p => ({ id: p.id, url: src(p)!, urlHd: p.urlHd ?? p.uriHd, apercu: vignette(p), piece: p.piece, pano: anglesPanorama(p) })).filter(p => !!p.url);
   if (!medias.length) return <View style={{ height: 180, borderRadius: 18, backgroundColor: c.carte, alignItems: 'center', justifyContent: 'center' }}><Ic nom="image" taille={40} couleur={c.discret} /></View>;
   return (
     <View style={{ gap: 10 }}>

@@ -1,11 +1,12 @@
 /** Étape « Médias » : photos (appareil ou galerie), vidéos, photos 360°, étiquette de pièce, ordre (la première photo = couverture), état d'envoi. */
 import { useState } from 'react';
-import { Image, Platform, Pressable, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 import { CATALOGUE_LOGEMENT, libellePiece, LIMITES_MEDIAS, VIDEO_MAX_S, type TypeMedia } from '@nkala/noyau';
 import { Barre, Bouton, Carte, Feuille, Ic, Pastille, Puce, SectionTitre, T, useToast } from '../kit';
 import { useTheme } from '../Prefs';
 import { choisirImages, choisirVideo, preparerImage, type ImageChoisie, type MediaLocal, type Source } from './medias';
 import type { Progression } from './fileMediasAnnonce';
+import { Capture360 } from './Capture360';
 
 const LIBELLES: Record<TypeMedia, string> = { photo: 'Photos', video: 'Vidéos', pano360: 'Photos 360°' };
 
@@ -23,7 +24,7 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
   const [occupe, setOccupe] = useState<string | null>(null);
   const [aConfirmer, setAConfirmer] = useState<ImageChoisie[]>([]);
   const [piecePour, setPiecePour] = useState<string | null>(null);
-  const [source, setSource] = useState<{ type: TypeMedia } | null>(null);
+  const [capture360, setCapture360] = useState(false);
   const compte = (t: TypeMedia) => medias.filter(m => m.type === t).length;
   const reste = (t: TypeMedia) => LIMITES_MEDIAS[t] - compte(t);
 
@@ -40,7 +41,6 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
   };
 
   const choisir = async (type: TypeMedia, src: Source) => {
-    setSource(null);
     if (reste(type) <= 0) { toast(`${LIBELLES[type]} : ${LIMITES_MEDIAS[type]} au plus.`, 'erreur'); return; }
     if (type === 'video') {
       setOccupe('Préparation de la vidéo…');
@@ -48,7 +48,9 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
       finally { setOccupe(null); }
       return;
     }
-    const r = await choisirImages(src, reste(type));
+    if (type === 'pano360' && src === 'camera') { setCapture360(true); return; }
+    setOccupe(src === 'camera' ? 'Ouverture de l\'appareil photo…' : 'Ouverture de la galerie…');
+    const r = await choisirImages(src, reste(type)).finally(() => setOccupe(null));
     if (r.erreur) { toast(r.erreur, 'erreur'); return; }
     if (type === 'pano360') {
       const ok = r.images.filter(i => i.probable360), non = r.images.length - ok.length;
@@ -74,17 +76,22 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
   return (
     <View style={{ gap: 14 }}>
       <T v="corps">Ajoutez au moins une photo. Les vidéos et photos 360° aident beaucoup les personnes qui ne peuvent pas se déplacer.</T>
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        {(['photo', 'video', 'pano360'] as TypeMedia[]).map(t => (
-          <Pressable key={t} accessibilityRole="button" accessibilityLabel={`Ajouter : ${LIBELLES[t]}`} disabled={!!occupe} onPress={() => (t === 'pano360' ? choisir('pano360', 'galerie') : setSource({ type: t }))}
-            style={{ flex: 1, minHeight: 92, borderRadius: 18, padding: 12, gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: c.carte, borderWidth: 1, borderColor: c.bordAmbre, opacity: occupe ? 0.5 : 1 }}>
-            <Ic nom={t === 'photo' ? 'camera' : t === 'video' ? 'video' : 'globe-outline'} taille={28} couleur={c.accent} />
-            <T v="petit" fort style={{ textAlign: 'center' }}>{LIBELLES[t]}</T>
+      {(['photo', 'video', 'pano360'] as TypeMedia[]).map(t => (
+        <Carte key={t} plat><View style={{ padding: 12, gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Ic nom={t === 'photo' ? 'camera' : t === 'video' ? 'video' : 'globe-outline'} taille={22} couleur={c.accent} />
+            <T v="carte" style={{ flex: 1 }}>{LIBELLES[t]}</T>
             <T v="petit" couleur={c.discret}>{compte(t)} / {LIMITES_MEDIAS[t]}</T>
-          </Pressable>
-        ))}
-      </View>
-      <T v="petit">Photos 360° : importez une image d'appareil 360° (Insta360, Ricoh Theta…) ou du mode « Panorama 360 / Photo Sphere » de votre téléphone. Vidéos : {VIDEO_MAX_S} secondes et 50 Mo au plus.</T>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Bouton label={t === 'photo' ? 'Prendre' : t === 'video' ? 'Filmer' : 'Capturer'} icone={t === 'video' ? 'video' : t === 'pano360' ? 'globe-outline' : 'camera'} petit desactive={!!occupe || reste(t) <= 0} onPress={() => choisir(t, 'camera')} style={{ flex: 1 }} />
+            <Bouton label="Galerie" icone="image" variante="fantome" petit desactive={!!occupe || reste(t) <= 0} onPress={() => choisir(t, 'galerie')} style={{ flex: 1 }} />
+          </View>
+          {t === 'pano360' && <T v="petit">« Capturer » vous guide pour prendre 8 à 10 photos en tournant sur vous-même ; « Galerie » importe une image d'appareil 360° (Insta360, Ricoh Theta…) ou du mode Photo Sphere.</T>}
+          {t === 'video' && <T v="petit">{VIDEO_MAX_S} secondes et 50 Mo au plus.</T>}
+        </View></Carte>
+      ))}
+      <T v="petit">Prises sur place avec Nkala, vos photos, vidéos et 360° comptent pour le badge « Visite certifiée » (au moins 3, dont une vidéo ou une 360°, à moins de 150 m du logement).</T>
       {occupe && <Carte plat><View style={{ padding: 14 }}><T v="petit">{occupe}</T></View></Carte>}
 
       {medias.length > 0 && (
@@ -132,11 +139,7 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
         </View>
       ))}
 
-      <Feuille visible={!!source} onClose={() => setSource(null)} titre={source?.type === 'video' ? 'Ajouter une vidéo' : 'Ajouter des photos'}>
-        {Platform.OS !== 'web' && <Bouton label={source?.type === 'video' ? 'Filmer maintenant' : 'Prendre une photo'} icone={source?.type === 'video' ? 'video' : 'camera'} onPress={() => source && choisir(source.type, 'camera')} />}
-        <Bouton label="Choisir dans la galerie" icone="image" variante="fantome" onPress={() => source && choisir(source.type, 'galerie')} />
-        <T v="petit">Prises sur place avec l'appareil photo de Nkala, vos photos et vidéos comptent pour le badge « Visite certifiée » (au moins 3, dont une vidéo ou une 360°, à moins de 150 m du logement).</T>
-      </Feuille>
+      <Capture360 visible={capture360} onClose={() => setCapture360(false)} onTermine={img => { setCapture360(false); traiter([img], 'pano360'); }} />
       <Feuille visible={aConfirmer.length > 0} onClose={() => repondre360(false)} titre="C'est une photo 360° ?">
         {aConfirmer[0] && <Image source={{ uri: aConfirmer[0].uri }} style={{ width: '100%', height: 140, borderRadius: 14 }} resizeMode="cover" />}
         <T v="corps">Cette image a le format d'une photo 360° (largeur égale à deux fois la hauteur). Si oui, on pourra la regarder tout autour dans la visionneuse.</T>

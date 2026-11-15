@@ -9,7 +9,7 @@ import { libellePiece } from '@nkala/noyau';
 import { Ic, T } from '../kit';
 import { Panorama, type PanoramaRef } from './Panorama';
 
-export interface Pano { id: string; url: string; urlHd?: string; apercu?: string; piece?: string }
+export interface Pano { id: string; url: string; urlHd?: string; apercu?: string; piece?: string; pano?: { haov: number; vaov: number; vOffset?: number } }
 
 function BoutonRond({ icone, label, onPress, actif }: { icone: string; label: string; onPress: () => void; actif?: boolean }) {
   return (
@@ -26,7 +26,7 @@ export function Panorama360({ pano, hauteur = 260 }: { pano: Pano; hauteur?: num
   const [erreur, setErreur] = useState<string | null>(null);
   return (
     <View style={{ height: hauteur, borderRadius: 18, overflow: 'hidden', backgroundColor: '#170D08' }}>
-      <Panorama key={pano.id} url={pano.url} apercu={pano.apercu} onCharge={() => setCharge(true)} onErreur={setErreur} />
+      <Panorama key={pano.id} url={pano.url} apercu={pano.apercu} pano={pano.pano} onCharge={() => setCharge(true)} onErreur={setErreur} />
       {!charge && !erreur && pano.apercu && <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}><Image source={{ uri: pano.apercu }} blurRadius={8} style={{ width: '100%', height: '100%' }} /></View>}
       {erreur && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 20 }}><T v="petit" couleur="#FED7AA" style={{ textAlign: 'center' }}>{erreur}</T></View>}
     </View>
@@ -50,7 +50,7 @@ export function Visionneuse360({ panos, depart = 0, visible, onClose }: { panos:
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent supportedOrientations={['portrait', 'landscape']}>
       <View style={{ flex: 1, backgroundColor: '#170D08' }}>
-        <Panorama key={`${p.id}-${hd ? 'hd' : 'n'}`} ref={ref} url={url} apercu={p.apercu} onCharge={() => setCharge(true)} onErreur={setErreur} />
+        <Panorama key={`${p.id}-${hd ? 'hd' : 'n'}`} ref={ref} url={url} apercu={p.apercu} pano={p.pano} onCharge={() => setCharge(true)} onErreur={setErreur} />
         {!charge && !erreur && p.apercu && <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}><Image source={{ uri: p.apercu }} blurRadius={10} style={{ width: '100%', height: '100%' }} /></View>}
         {erreur && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 24 }}><T v="corps" couleur="#FED7AA" style={{ textAlign: 'center' }}>{erreur}</T></View>}
         <View pointerEvents="box-none" style={{ position: 'absolute', top: ins.top + 10, left: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>

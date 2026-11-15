@@ -51,6 +51,14 @@ test('logement : refus (équipement inconnu, mauvais type, chemin d\'autrui, 21 
   refus({ ...fiche(), medias: [media('u1', 'brouillon1', 1, { chemin: 'annonces/u1/brouillon1/../x.jpg' })] }, /chemin/);
 });
 
+test('logement : panorama partiel de la capture guidée (angles validés)', () => {
+  const p = (pano: unknown) => validerFicheLogement({ ...fiche(), medias: [media('u1', 'brouillon1', 1), media('u1', 'brouillon1', 2, { type: 'pano360', pano } as never)] }, 'u1');
+  const ok = p({ haov: 360, vaov: 52.4 });
+  assert.ok(ok.ok); assert.deepEqual(ok.fiche.medias[1].pano, { haov: 360, vaov: 52.4 });
+  assert.equal(p({ haov: 400, vaov: 50 }).ok, false);
+  assert.equal(p({ haov: 360, vaov: 'x' }).ok, false);
+});
+
 test('logement : certification (3 médias pris dans l\'app à moins de 150 m, dont une vidéo ou une 360)', () => {
   const pris = (i: number, m: number, type: MediaAnnonce['type'] = 'photo') => media('u1', 'brouillon1', i, { type, capturedInApp: true, capturedLat: decale(m).lat, capturedLng: decale(m).lng });
   assert.equal(calculerCertification({ position: LIBREVILLE, medias: [pris(1, 10), pris(2, 50), pris(3, 80, 'video')] }), true);

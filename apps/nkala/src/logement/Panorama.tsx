@@ -21,7 +21,7 @@ function webView(): typeof WebViewT | null {
 }
 
 export interface PanoramaRef { gyro: (on: boolean) => void; zoom: (d: number) => void }
-export interface PanoramaProps { url: string; apercu?: string; onCharge?: () => void; onErreur?: (m: string) => void }
+export interface PanoramaProps { url: string; apercu?: string; pano?: { haov: number; vaov: number; vOffset?: number }; onCharge?: () => void; onErreur?: (m: string) => void }
 
 const nomCache = (url: string) => {
   let h = 0; for (let i = 0; i < url.length; i++) h = (Math.imul(31, h) + url.charCodeAt(i)) | 0;
@@ -46,7 +46,7 @@ async function enDataUri(url: string): Promise<string> {
   return `data:image/jpeg;base64,${b64}`;
 }
 
-export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama({ url, apercu, onCharge, onErreur }, ref) {
+export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama({ url, apercu, pano, onCharge, onErreur }, ref) {
   const vue = useRef<WebViewT>(null);
   const WebView = webView();
   const [html, setHtml] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export const Panorama = forwardRef<PanoramaRef, PanoramaProps>(function Panorama
     let vivant = true;
     setHtml(null);
     if (!WebView) { onErreur?.(new MiseAJourNecessaire().message); return; }
-    enDataUri(url).then(d => { if (vivant) setHtml(htmlPanorama({ url: d })); }).catch(e => vivant && onErreur?.((e as Error).message));
+    enDataUri(url).then(d => { if (vivant) setHtml(htmlPanorama({ url: d, pano })); }).catch(e => vivant && onErreur?.((e as Error).message));
     return () => { vivant = false; };
   }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
   useImperativeHandle(ref, () => ({

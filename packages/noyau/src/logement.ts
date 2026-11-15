@@ -21,6 +21,8 @@ export interface MediaAnnonce {
   ordre: number;
   largeur?: number; hauteur?: number; dureeS?: number; octets: number;
   capturedInApp?: boolean; capturedAt?: string; capturedLat?: number; capturedLng?: number;
+  /** Panorama partiel (capture guidée dans l'app) : angles couverts en degrés. Absent = sphère complète (360 × 180). */
+  pano?: { haov: number; vaov: number; vOffset?: number };
   /** V2 : visite virtuelle (points cliquables entre les 360). */
   hotspots?: { cible: string; yaw: number; pitch: number; label?: string }[];
 }
@@ -318,6 +320,11 @@ export function validerFicheLogement(x: unknown, uid: string): Resultat {
       md.capturedInApp = true;
       if (typeof m.capturedAt === 'string' && !Number.isNaN(Date.parse(m.capturedAt))) md.capturedAt = m.capturedAt.slice(0, 40);
       if (estNombre(m.capturedLat) && estNombre(m.capturedLng) && Math.abs(m.capturedLat) <= 90 && Math.abs(m.capturedLng) <= 180) { md.capturedLat = m.capturedLat; md.capturedLng = m.capturedLng; }
+    }
+    if (type === 'pano360' && m.pano && typeof m.pano === 'object') {
+      const p = m.pano as Record<string, unknown>;
+      if (!estNombre(p.haov) || p.haov < 30 || p.haov > 360 || !estNombre(p.vaov) || p.vaov < 10 || p.vaov > 180 || (p.vOffset !== undefined && (!estNombre(p.vOffset) || Math.abs(p.vOffset) > 90))) { e.push(`${n} : angles du panorama invalides.`); continue; }
+      md.pano = { haov: p.haov, vaov: p.vaov, ...(estNombre(p.vOffset) ? { vOffset: p.vOffset } : {}) };
     }
     if (Array.isArray(m.hotspots)) {
       md.hotspots = m.hotspots.slice(0, 20).filter((h: any) => h && typeof h.cible === 'string' && estNombre(h.yaw) && estNombre(h.pitch))

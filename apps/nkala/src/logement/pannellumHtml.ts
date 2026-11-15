@@ -17,13 +17,15 @@ export interface OptionsPanorama {
   /** Angle de vue initial (degrés). */
   yaw?: number;
   titre?: string;
+  /** Panorama partiel : angles couverts (degrés). */
+  pano?: { haov: number; vaov: number; vOffset?: number };
 }
 
 const echapper = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 
 /** Page HTML autonome : WebView (téléphone) ou iframe srcDoc (web). */
 export function htmlPanorama(o: OptionsPanorama): string {
-  const cfg = { url: o.url, apercu: o.apercu ?? null, yaw: o.yaw ?? 0 };
+  const cfg = { url: o.url, apercu: o.apercu ?? null, yaw: o.yaw ?? 0, haov: o.pano?.haov ?? 360, vaov: o.pano?.vaov ?? 180, vOffset: o.pano?.vOffset ?? 0 };
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <style>${PANNELLUM_CSS}</style>
 <style>html,body,#p{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#170D08}.pnlm-load-box{background:rgba(23,13,8,.8);border-radius:14px}.pnlm-load-box p{font-family:system-ui,sans-serif}</style>
@@ -36,18 +38,22 @@ var v;
 try{
 v=pannellum.viewer('p',{type:'equirectangular',panorama:cfg.url,preview:cfg.apercu||undefined,autoLoad:true,showControls:false,showZoomCtrl:false,showFullscreenCtrl:false,
 compass:false,orientationOnByDefault:false,mouseZoom:true,draggable:true,keyboardZoom:true,hfov:100,minHfov:35,maxHfov:120,yaw:cfg.yaw,
-crossOrigin:'anonymous',friction:0.15,
+crossOrigin:'anonymous',friction:0.15,haov:cfg.haov,vaov:cfg.vaov,vOffset:cfg.vOffset,minPitch:cfg.vaov<180?cfg.vOffset-cfg.vaov/2:-90,maxPitch:cfg.vaov<180?cfg.vOffset+cfg.vaov/2:90,
 strings:{loadButtonLabel:'Toucher pour charger la photo 360°',loadingLabel:'Chargement…',bylineLabel:'par %s',
 noPanoramaError:'Aucune image 360° indiquée.',fileAccessError:'Le fichier %s est inaccessible.',malformedURLError:'Adresse de l\\'image incorrecte.',
 iOS8WebGLError:'Ce téléphone ne peut pas afficher les photos 360°.',genericWebGLError:'Votre appareil ne peut pas afficher les photos 360° (WebGL indisponible).',
 textureSizeError:'Image trop grande pour cet appareil (%s px de large ; au plus %s px).',unknownError:'Erreur inconnue. Vérifiez votre connexion.'}});
-v.on('load',function(){envoyer({t:'chargee'});});
+// Panorama partiel (capture guidée) : l'angle de vue s'adapte pour que la bande remplisse l'écran, sans fond noir.
+function ajuster(){if(!v||cfg.vaov>=180)return;var el=document.getElementById('p');var a=el.clientWidth/Math.max(1,el.clientHeight);
+var hm=2*Math.atan(Math.tan(cfg.vaov*Math.PI/360)*a)*180/Math.PI;hm=Math.min(120,hm);try{v.setHfovBounds([Math.min(35,hm*0.5),hm]);}catch(e){}v.setHfov(hm,false);}
+window.addEventListener('resize',ajuster);
+v.on('load',function(){ajuster();envoyer({t:'chargee'});});
 v.on('error',function(e){envoyer({t:'erreur',message:String(e||'')});});
 }catch(e){envoyer({t:'erreur',message:String(e&&e.message||e)});}
 window.nkala360={
   gyro:function(on){if(!v)return;try{if(on){v.startOrientation();}else{v.stopOrientation();}}catch(e){}},
   vue:function(yaw){if(v)v.setYaw(yaw);},
-  zoom:function(d){if(v)v.setHfov(Math.max(35,Math.min(120,v.getHfov()+d)),false);},
+  zoom:function(d){if(!v)return;var b=v.getHfovBounds?v.getHfovBounds():[35,120];v.setHfov(Math.max(b[0],Math.min(b[1],v.getHfov()+d)),false);},
   etat:function(){return v?{hfov:v.getHfov(),yaw:v.getYaw(),pitch:v.getPitch()}:null;}
 };
 window.addEventListener('message',function(ev){try{var m=typeof ev.data==='string'?JSON.parse(ev.data):ev.data;if(!m||m.source!=='nkala-app')return;if(m.t==='gyro')window.nkala360.gyro(!!m.on);if(m.t==='zoom')window.nkala360.zoom(m.d);}catch(e){}});

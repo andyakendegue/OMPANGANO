@@ -48,3 +48,8 @@ Ce sont des modules natifs : il faut **un nouveau build** (`npx expo run:android
 - Après une fusion de comptes, les médias restent dans le dossier de l'ancien identifiant : modifier la fiche avec ces médias serait refusé (rare : un compte téléphone fusionné avec un compte Google).
 - Sur téléphone, rien n'est encore vérifié : appareil photo, envoi après une coupure de réseau, visionneuse dans la WebView, gyroscope, géorepérage. Voir `03_PLAN_DE_TEST.md` §3.
 - La modification d'une annonce publiée depuis l'app n'a pas encore d'écran (la route et `modifierLogement` existent).
+
+## Mise à jour du 15/11/2026 : prise de vue et capture 360° guidée
+- L'étape Médias propose des boutons directs (Prendre / Filmer / Capturer + Galerie). L'ancienne feuille empêchait l'ouverture de l'appareil photo sur iPhone.
+- Capture 360° guidée : `Capture360.tsx` (boussole, 8 à 10 photos), `assemblage360.ts` (reprojection et fondu), `Assembleur.tsx` / `Assembleur.web.tsx` (exécution dans une WebView ou une iframe). Le résultat est un panorama partiel : `pano: { haov: 360, vaov }` dans `MediaAnnonce`, validé par le noyau, et la visionneuse ajuste l'angle de vue à l'écran.
+- Aucun nouveau module natif : `eas update` suffit pour la version 0.2.0.
