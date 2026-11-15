@@ -1,7 +1,7 @@
 // Sons et tons de l'ôrungu (noyau/phonetique.ts) et formats immersifs des leçons (15 nov. 2026).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CONSONNES, PAIRES_TONALES, TONS, VOYELLES, melodie, phonemeDe, exemplesSon } from '../../../packages/noyau/src/phonetique.ts';
+import { CONSONNES, PAIRES_TONALES, TONS, VOYELLES, melodie, phonemeDe, exemplesSon, graphieDondo, exempleComplet } from '../../../packages/noyau/src/phonetique.ts';
 import { exerciceNote, etapeDe, jugerReponse, zonesDe, type Exercice } from '../../../packages/noyau/src/lecons.ts';
 import { validerLignes } from '../../../packages/noyau/src/contenu/valider.ts';
 import { SCHEMAS } from '../../../packages/noyau/src/contenu/schemas.ts';
@@ -13,6 +13,19 @@ test('sept voyelles orales par aperture et série ; ɛ, ɔ, u jamais à l\'initi
   const tout = JSON.stringify([...VOYELLES, ...CONSONNES, ...TONS]);
   assert.doesNotMatch(tout, /comme en français|comme dans « [a-zé]+ »/i, 'les sons se décrivent dans leur propre système');
   for (const p of [...VOYELLES, ...CONSONNES]) { assert.ok(p.articulation.length > 5, p.api); assert.ok(p.exemples.length >= 1 && p.exemples.every(e => e.source), p.api); }
+});
+
+test('inventaire complet des consonnes d\'Ambouroue (p. 12) : chaque son a sa carte, son articulation et un exemple sourcé', () => {
+  const ambouroue = ['m', 'n', 'ɲ', 'ŋ', 'ᵐp', 'ᵐb', 'ⁿt', 'ⁿd', 'ᵑk', 'ᵑg', 'ᵐf', 'ⁿc', 'ⁿɟ', 'p', 'pʰ', 'ɓ', 't', 'tʰ', 'ɗ', 'f', 'v', 'β', 's', 'z', 'c', 'l', 'ɾ', 'k', 'ɣ', 'y', 'ɥ', 'w'];
+  for (const api of ambouroue) {
+    const p = CONSONNES.find(x => x.api === api);
+    assert.ok(p, `consonne manquante : ${api}`);
+    assert.ok(p!.articulation.length > 5 && p!.exemples.every(e => e.source && (e.mot || e.phonetique)), api);
+  }
+  const SEEDS_EX = SEEDS.exercices as Record<string, any>[];
+  const cartes = new Set(SEEDS_EX.filter(e => e.type === 'son' && String(e.lecon_id).startsWith('ntina-')).map(e => e.graphie));
+  for (const api of ambouroue) assert.ok(cartes.has(api), `pas de carte de son dans Ntina pour ${api}`);
+  for (const e of SEEDS_EX.filter(e => e.type === 'son')) assert.ok(phonemeDe(e.graphie), `carte sans son connu : ${e.id}`);
 });
 
 test('consonnes propres : implosives, aspirées, labio-palatale ; recherche par API ou graphie', () => {
@@ -55,4 +68,27 @@ test('le contenu d\'exemple des sons et des tons passe le schéma et cite ses so
   const neufs = lignes.filter(l => ['son', 'quel_son', 'ton', 'tracer', 'scene'].includes(l.type));
   assert.ok(neufs.length >= 40);
   assert.ok(neufs.every(l => typeof l.source === 'string' && l.source.length > 5), 'chaque exercice cite sa source');
+});
+
+test('graphie DONDO tirée de la transcription : mêmes graphies que les leçons, sans tons', () => {
+  const attendu: [string, string][] = [['[àkɔ̀ndɔ̀]', 'akôndô'], ['[ìβàβá]', 'iṽaṽa'], ['[àwáná]', 'awana'], ['[èɾéɾé]', 'éréré'], ['[m̀bɛ́ɾɛ́]', 'mbèrè'],
+    ['[èpóko̍lò]', 'épokolo'], ['[èɓándá]', 'ébanda'], ['[ɗènà]', 'déna'], ['[nyàmà]', 'nyama'], ['[ìncózó]', 'intchozo'], ['[ìnjìnà]', 'indjina'],
+    ['[ŋòmbá]', 'ñomba'], ['[ìŋkàmbí]', 'inkambi'], ['[òŋwántò]', 'onwanto'], ['[àwánà wínya̍̀]', 'awana winya']];
+  for (const [t, g] of attendu) assert.equal(graphieDondo(t), g, t);
+  assert.deepEqual(exempleComplet({ phonetique: '[òɣá]', sens: 'un roi' }), { mot: 'oga', phonetique: '[òɣá]', sens: 'un roi', ecritureDeduite: true });
+  assert.equal(exempleComplet({ mot: 'kisini', sens: 'la cuisine' }).ecritureDeduite, false);
+});
+
+test('chaque mot appris porte son écriture, sa transcription et son sens ; plus de deux exemples par son quand le corpus les donne', () => {
+  const lignes = SEEDS.exercices as Record<string, any>[];
+  for (const e of lignes.filter(e => e.phonetique)) {
+    assert.ok(e.mot_myene, `écriture manquante : ${e.id}`);
+    assert.ok(e.mot_francais, `sens manquant : ${e.id}`);
+  }
+  for (const p of [...VOYELLES, ...CONSONNES]) for (const e of p.exemples) assert.ok(exempleComplet(e).mot, `${p.api} : exemple sans écriture`);
+  const avecTrois = [...VOYELLES, ...CONSONNES].filter(p => p.exemples.filter(e => e.phonetique).length >= 3).length;
+  assert.ok(avecTrois >= 35, `seulement ${avecTrois} sons avec trois exemples transcrits`);
+  const repeter = lignes.filter(e => String(e.lecon_id).match(/^ntina-l(9|1[0-4])$/));
+  assert.ok(repeter.length >= 250, 'unité « Dire juste » : beaucoup de mots à répéter');
+  for (const e of repeter.filter(e => e.type === 'choix')) assert.ok(e.options.includes(e.reponse), e.id);
 });

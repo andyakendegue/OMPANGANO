@@ -45,22 +45,32 @@ export function T({ v = 'corps', couleur, fort, children, style, ...rest }: Text
 }
 
 // ------------------------------------------------------------------ écran
+/**
+ * Blocage du défilement de l'écran pendant un geste (écriture au doigt) : sans lui, la page défile sous le doigt
+ * au lieu de laisser tracer. `bloquer(true)` au début du geste, `bloquer(false)` à la fin.
+ */
+const DefilementCtx = createContext<{ bloquer: (b: boolean) => void }>({ bloquer() {} });
+export const useBloquerDefilement = () => useContext(DefilementCtx).bloquer;
+
 export function Ecran({ children, defile = true, bas = 0, halo = true, style, contenu, onRafraichir, rafraichit }: {
   children: React.ReactNode; defile?: boolean; bas?: number; halo?: boolean; style?: StyleProp<ViewStyle>; contenu?: StyleProp<ViewStyle>; onRafraichir?: () => void; rafraichit?: boolean;
 }) {
   const { c, clair } = useTheme();
   const ins = useSafeAreaInsets();
+  const [bloque, setBloque] = useState(false);
+  const defilement = useMemo(() => ({ bloquer: setBloque }), []);
   const motif = Platform.OS === 'web' && !clair ? ({ backgroundImage: 'radial-gradient(#c85a32 0.6px, transparent 0.6px)', backgroundSize: '30px 30px' } as unknown as ViewStyle) : null;
   const corps = defile
-    ? <ScrollView style={{ flex: 1 }} contentContainerStyle={[{ paddingTop: ins.top + 12, paddingHorizontal: 20, paddingBottom: bas + 24, gap: 18, width: '100%', maxWidth: 640, alignSelf: 'center' }, contenu]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{children}</ScrollView>
+    ? <ScrollView scrollEnabled={!bloque} style={{ flex: 1 }} contentContainerStyle={[{ paddingTop: ins.top + 12, paddingHorizontal: 20, paddingBottom: bas + 24, gap: 18, width: '100%', maxWidth: 640, alignSelf: 'center' }, contenu]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{children}</ScrollView>
     : <View style={[{ flex: 1, paddingTop: ins.top + 12, paddingHorizontal: 20, width: '100%', maxWidth: 640, alignSelf: 'center' }, contenu]}>{children}</View>;
   return (
     <View style={[{ flex: 1, backgroundColor: c.fond }, motif, style]}>
-      {halo && <>
-        <View pointerEvents="none" style={{ position: 'absolute', top: -90, left: -70, width: 260, height: 260, borderRadius: 130, backgroundColor: c.halo1 }} />
-        <View pointerEvents="none" style={{ position: 'absolute', top: 160, right: -110, width: 240, height: 240, borderRadius: 120, backgroundColor: c.halo2 }} />
-      </>}
-      {corps}
+      {/* Halos dans un calque qui coupe ce qui dépasse : sinon ils élargissent la page et l'écran peut glisser de côté. */}
+      {halo && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+        <View style={{ position: 'absolute', top: -90, left: -70, width: 260, height: 260, borderRadius: 130, backgroundColor: c.halo1 }} />
+        <View style={{ position: 'absolute', top: 160, right: -110, width: 240, height: 240, borderRadius: 120, backgroundColor: c.halo2 }} />
+      </View>}
+      <DefilementCtx.Provider value={defilement}>{corps}</DefilementCtx.Provider>
     </View>
   );
 }

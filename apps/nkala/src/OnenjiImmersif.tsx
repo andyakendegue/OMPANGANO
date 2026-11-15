@@ -4,10 +4,10 @@
  * le myènè a une phonétique plus riche (implosives, aspirées, labio-palatale, tons…) — consigne de Capp. Données : noyau/phonetique.ts.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, PanResponder, Pressable, View, type LayoutChangeEvent } from 'react-native';
+import { Animated, Easing, PanResponder, Platform, Pressable, View, type GestureResponderEvent, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Polyline, Rect, Stop, Text as SvgText } from 'react-native-svg';
-import { exemplesSon, melodie, phonemeDe, zonesDe, type Exercice, type Hauteur, type Phoneme, type ZoneScene } from '@nkala/noyau';
-import { Bouton, Carte, Ic, T, Visuel } from './kit';
+import { exempleComplet, exemplesSon, graphieDondo, melodie, phonemeDe, zonesDe, type Exercice, type Hauteur, type Phoneme, type ZoneScene } from '@nkala/noyau';
+import { Bouton, Carte, Ic, T, Visuel, useBloquerDefilement } from './kit';
 import { useMedia } from './OnenjiHorsLigne';
 import { usePrefs, useTheme } from './Prefs';
 
@@ -136,8 +136,9 @@ export function CarteSon({ ex, enfant, onSuite, Son }: { ex: Exercice; enfant: b
   const p = phonemeDe(ex.graphie);
   const exemples = exemplesSon(ex.options);
   // Exemples du contenu d'abord, puis ceux de la table des sons (Ambouroue, avec les tons) qui ne font pas doublon.
-  const duContenu = exemples.map(e => ({ mot: e.mot, sens: e.sens, phonetique: e.phonetique, illustration: e.illustration, source: null as string | null }));
-  const deLaTable = (p?.exemples ?? []).map(e => ({ mot: e.mot ?? '', sens: e.sens, phonetique: e.phonetique ?? null, illustration: null as string | null, source: e.source as string | null }));
+  const duContenu = exemples.map(e => ({ ...exempleComplet(e), illustration: e.illustration, source: null as string | null }));
+  // Chaque mot avec son écriture, sa transcription (tons) et son sens : l'écriture vient de la transcription si le corpus ne la donne pas.
+  const deLaTable = (p?.exemples ?? []).map(e => ({ ...exempleComplet(e), illustration: null as string | null, source: e.source as string | null }));
   const cle = (e: { mot: string; sens: string }) => `${e.mot.toLowerCase()}|${e.sens.toLowerCase()}`;
   const liste = [...duContenu, ...deLaTable.filter(e => !duContenu.some(d => cle(d) === cle(e) || (!!e.mot && d.mot.toLowerCase() === e.mot.toLowerCase())))];
   return (
@@ -178,13 +179,13 @@ export function CarteTon({ ex, onSuite }: { ex: Exercice; onSuite: () => void })
   const paires = exemplesSon(ex.options);
   return (
     <View style={{ gap: 14 }} onLayout={(e: LayoutChangeEvent) => setW(Math.min(420, e.nativeEvent.layout.width))}>
-      {!!ex.mot_myene && <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>}
+      {!!(ex.mot_myene || ex.phonetique) && <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene || graphieDondo(ex.phonetique)}</T>}
       {!!ex.phonetique && <><T v="sousTitre" style={{ textAlign: 'center' }} couleur={c.accent}>{ex.phonetique}</T><View style={{ alignItems: 'center' }}><MelodieTonale transcription={ex.phonetique} largeur={w} /></View></>}
       {!!ex.mot_francais && <T v="corps" style={{ textAlign: 'center' }}>« {ex.mot_francais} »</T>}
       {!!ex.texte && <Carte plat><View style={{ padding: 12 }}><T v="corps">{ex.texte}</T></View></Carte>}
       {paires.map((p, i) => (
         <Carte key={i} plat><View style={{ padding: 12, gap: 4 }}>
-          <T v="carte" couleur={c.accent}>{p.phonetique ?? p.mot}</T><T v="petit">« {p.sens} »</T>
+          <T v="carte" style={{ fontStyle: 'italic' }}>{p.mot || graphieDondo(p.phonetique)}</T>{!!p.phonetique && <T v="corps" couleur={c.accent}>{p.phonetique}</T>}<T v="petit">« {p.sens} »</T>
           {!!p.phonetique && <MelodieTonale transcription={p.phonetique} largeur={Math.min(w - 24, 280)} />}
         </View></Carte>
       ))}
@@ -202,19 +203,35 @@ export function Tracer({ ex, onSuite }: { ex: Exercice; onSuite: () => void }) {
   const courant = useRef<{ x: number; y: number }[]>([]);
   const [, maj] = useState(0);
   const lettre = (ex.graphie ?? ex.mot_myene ?? '').trim();
+  // Le geste appartient à la zone d'écriture : capture, refus de le céder, défilement de l'écran bloqué pendant le tracé
+  // (sinon la page défile sous le doigt). Coordonnées relatives à la zone (pageX/Y moins sa position) : locationX/Y
+  // change de référence quand le doigt passe sur le tracé SVG.
+  const bloquer = useBloquerDefilement();
+  const zone = useRef<View>(null);
+  const origine = useRef({ x: 0, y: 0 });
+  const point = (e: GestureResponderEvent) => ({ x: Math.max(0, Math.min(T_, e.nativeEvent.pageX - origine.current.x)), y: Math.max(0, Math.min(T_, e.nativeEvent.pageY - origine.current.y)) });
+  const finir = () => { bloquer(false); const t = courant.current; courant.current = []; if (t.length > 2) setTraits(a => [...a, t]); else maj(n => n + 1); };
   const pan = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true, onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: e => { courant.current = [{ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }]; maj(n => n + 1); },
-    onPanResponderMove: e => { courant.current.push({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }); maj(n => n + 1); },
-    onPanResponderRelease: () => { const t = courant.current; courant.current = []; if (t.length > 2) setTraits(a => [...a, t]); },
-  }), []);
+    onStartShouldSetPanResponderCapture: () => true, onMoveShouldSetPanResponderCapture: () => true,
+    onPanResponderTerminationRequest: () => false, onShouldBlockNativeResponder: () => true,
+    onPanResponderGrant: e => {
+      bloquer(true);
+      const { pageX, pageY, locationX, locationY } = e.nativeEvent;
+      origine.current = { x: pageX - locationX, y: pageY - locationY };
+      courant.current = [point(e)]; maj(n => n + 1);
+    },
+    onPanResponderMove: e => { courant.current.push(point(e)); maj(n => n + 1); },
+    onPanResponderRelease: finir, onPanResponderTerminate: finir,
+  }), [bloquer]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => bloquer(false), [bloquer]);
   const tous = [...traits, courant.current];
   const longueur = tous.reduce((s, tr) => s + tr.slice(1).reduce((m, p, i) => m + Math.hypot(p.x - tr[i].x, p.y - tr[i].y), 0), 0);
   const assez = longueur > T_ * 1.4;
   return (
     <View style={{ gap: 12, alignItems: 'center' }}>
       <T v="petit">Écris « {lettre} » avec le doigt, en suivant le modèle.</T>
-      <View {...pan.panHandlers} style={{ width: T_, height: T_, borderRadius: 24, backgroundColor: c.carte, borderWidth: 2, borderColor: assez ? c.succes : c.bord, overflow: 'hidden' }}>
+      <View ref={zone} {...pan.panHandlers} style={[{ width: T_, height: T_, borderRadius: 24, backgroundColor: c.carte, borderWidth: 2, borderColor: assez ? c.succes : c.bord, overflow: 'hidden' }, Platform.OS === 'web' ? ({ touchAction: 'none', userSelect: 'none', cursor: 'crosshair' } as object) : null]}>
         <Svg width={T_} height={T_} pointerEvents="none">
           <SvgText x={T_ / 2} y={T_ * 0.74} fontSize={T_ * 0.62} textAnchor="middle" fill="none" stroke={c.discret} strokeWidth={2} strokeDasharray="6 6">{lettre}</SvgText>
           {tous.map((tr, i) => tr.length > 1 && <Polyline key={i} points={tr.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke={c.accent} strokeWidth={12} strokeLinecap="round" strokeLinejoin="round" />)}
@@ -318,7 +335,7 @@ export function QuelSon({ ex, onRepondre, Son, opts }: { ex: Exercice; onRepondr
   return (
     <View style={{ gap: 14, alignItems: 'center' }}>
       <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={130} />
-      {!!ex.mot_myene && <T v="titre" style={{ fontStyle: 'italic', textAlign: 'center' }}>{ex.mot_myene}</T>}
+      {!!(ex.mot_myene || ex.phonetique) && <T v="titre" style={{ fontStyle: 'italic', textAlign: 'center' }}>{ex.mot_myene || graphieDondo(ex.phonetique)}</T>}
       {!!ex.phonetique && <T v="sousTitre" couleur={c.accent}>{ex.phonetique}</T>}
       {!!ex.mot_francais && <T v="petit">« {ex.mot_francais} »</T>}
       {!!ex.audio && <Son audio={ex.audio} auto lent />}

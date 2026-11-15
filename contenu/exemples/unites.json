@@ -31,5 +31,14 @@
   "description": "Les consonnes propres à l'ôrungu (implosives, aspirées, β, ɣ, ɾ, ŋ, ɲ, ɥ, mi-nasales) et les tons.",
   "ordre": 1,
   "publie": true
+ },
+ {
+  "id": "ntina-u4",
+  "parcours_id": "ntina",
+  "titre": "Dire juste",
+  "titre_myene": "",
+  "description": "Répéter beaucoup de mots pour bien prononcer : les voyelles, les consonnes, les tons qui changent le sens et le phrasé.",
+  "ordre": 4,
+  "publie": true
  }
 ]

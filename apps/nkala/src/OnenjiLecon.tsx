@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import { avancerLecon, composerTestNiveau, etapeDe, etapeParAge, ETAPES_UNITE, exerciceNote, jugerReponse, justesse, melanger, nouvelleLecon, optionsDe, placementTest, repliques, SEUIL_UNITE, testTermine, TYPES_NOTES, type EtatLecon, type Exercice, type Lecon, type Parcours, type Unite } from '@nkala/noyau';
 import { useMedia } from './OnenjiHorsLigne';
-import { CarteSon, CarteTon, EntreeAnimee, Illustration, QuelSon, SceneImmersive, Tracer } from './OnenjiImmersif';
+import { CarteSon, CarteTon, EntreeAnimee, Illustration, MelodieTonale, QuelSon, SceneImmersive, Tracer } from './OnenjiImmersif';
 import { consignes, KakIgonjoFeuille, useIaCours } from './KakIgonjoCours';
 import { noterReponse } from './OnenjiEtat';
 import { Confettis } from './Confettis';
@@ -129,10 +129,12 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
 
   if (ex.type === 'ecouter') return (
     <View style={{ alignItems: 'center', gap: 18 }}>
-      {ex.image || ex.illustration ? <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={enfant ? 220 : 180} /> : <Image2 src={ex.image} taille={enfant ? 220 : 180} rayon={28} />}
+      {/* Sans image : la mélodie des tons du mot plutôt qu'une case vide. */}
+      {ex.image || ex.illustration ? <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={enfant ? 220 : 180} /> : ex.phonetique ? <MelodieTonale transcription={ex.phonetique} largeur={280} /> : <Image2 src={ex.image} taille={enfant ? 220 : 180} rayon={28} />}
       <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>
       {!!ex.phonetique && <T v="sousTitre" couleur={c.accent}>{ex.phonetique}</T>}
-      {!enfant && <T v="corps">{ex.mot_francais}</T>}
+      {/* Écriture, transcription et sens toujours ensemble : c'est ainsi qu'on mémorise le mot (demande de Capp, 15 nov. 2026). */}
+      {!!ex.mot_francais && <T v="corps">« {ex.mot_francais} »</T>}
       <Son audio={ex.audio} auto grand lent={!enfant} />
       <Bouton label={enfant ? 'Suivant' : 'J\'ai répété'} onPress={() => onRepondre(true)} />
     </View>

@@ -598,7 +598,8 @@
   "reponse": "pʰ",
   "indice": "Devant /u/, p est aspiré.",
   "source": "Ambouroue 2007, p. 13",
-  "ordre": 15
+  "ordre": 15,
+  "mot_myene": "pupu"
  },
  {
   "id": "qs-c-3",
@@ -633,7 +634,8 @@
   "reponse": "ɣ",
   "indice": "[g] seulement après une nasale ; [ɣ] partout ailleurs.",
   "source": "Ambouroue 2007, p. 14 et 18",
-  "ordre": 17
+  "ordre": 17,
+  "mot_myene": "ogéwé"
  },
  {
   "id": "tr-c-1",
@@ -662,7 +664,8 @@
   "mot_francais": "une racine",
   "texte": "Trois tons ponctuels : haut (accent aigu), bas (accent grave), haut-abaissé (trait vertical). La graphie DONDO ne les écrit pas : on les apprend par l'oreille et la transcription.",
   "source": "Ambouroue 2007, p. 53",
-  "ordre": 1
+  "ordre": 1,
+  "mot_myene": "orambaka"
  },
  {
   "id": "ton-b",
@@ -672,7 +675,8 @@
   "phonetique": "[òmàmbà]",
   "mot_francais": "un serpent",
   "source": "Ambouroue 2007, p. 53",
-  "ordre": 2
+  "ordre": 2,
+  "mot_myene": "omamba"
  },
  {
   "id": "ton-a",
@@ -683,7 +687,8 @@
   "mot_francais": "l'orange",
   "texte": "Un niveau entre le haut et le bas.",
   "source": "Ambouroue 2007, p. 53",
-  "ordre": 3
+  "ordre": 3,
+  "mot_myene": "ilasa"
  },
  {
   "id": "ton-hb",
@@ -694,7 +699,8 @@
   "mot_francais": "manger",
   "texte": "Il commence haut et finit bas sur la même syllabe. Le ton montant, lui, n'existe pas en ôrungu.",
   "source": "Ambouroue 2007, p. 53-54",
-  "ordre": 4
+  "ordre": 4,
+  "mot_myene": "nya"
  },
  {
   "id": "ton-paires",
@@ -726,7 +732,8 @@
   "reponse": "bas",
   "indice": "[ézò] : haut puis bas. « Un mortier » se dit [èzó] : bas puis haut.",
   "source": "Ambouroue 2007, p. 56",
-  "ordre": 6
+  "ordre": 6,
+  "mot_myene": "ézo"
  },
  {
   "id": "qs-t-2",
@@ -742,7 +749,8 @@
   ],
   "reponse": "haut-abaissé",
   "source": "Ambouroue 2007, p. 53",
-  "ordre": 7
+  "ordre": 7,
+  "mot_myene": "ilasa"
  },
  {
   "id": "qs-t-3",
@@ -759,6 +767,3864 @@
   "reponse": "descendant",
   "indice": "Le ton montant n'est jamais réalisé en ôrungu.",
   "source": "Ambouroue 2007, p. 54 et 56",
+  "ordre": 8,
+  "mot_myene": "pa"
+ },
+ {
+  "id": "nl6-cours-00",
+  "lecon_id": "ntina-l6",
+  "type": "cours",
+  "consigne": "Les consonnes des lèvres",
+  "texte": "L'ôrungu a plusieurs consonnes faites avec les lèvres. Le b est implosif : l'air entre dans la bouche au lieu d'en sortir. Le p devient aspiré devant u. Le ṽ se fait avec les deux lèvres, le v et le f avec la lèvre du bas contre les dents du haut.",
+  "conseil": "Regarde la coupe de la bouche sur chaque carte : le point qui pulse montre où se fait le son.",
+  "source": "Ambouroue 2007, p. 12-17 ; RÈGLES DONDO § 2.2",
+  "ordre": 0
+ },
+ {
+  "id": "nl6-son-01",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "p",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 1
+ },
+ {
+  "id": "nl6-son-02",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "pʰ",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 2
+ },
+ {
+  "id": "nl6-son-03",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ɓ",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 3
+ },
+ {
+  "id": "nl6-son-04",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "m",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 4
+ },
+ {
+  "id": "nl6-son-05",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ᵐp",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 5
+ },
+ {
+  "id": "nl6-son-06",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ᵐb",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 6
+ },
+ {
+  "id": "nl6-son-07",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "β",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 7
+ },
+ {
+  "id": "nl6-son-08",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "f",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
   "ordre": 8
+ },
+ {
+  "id": "nl6-son-09",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "v",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 9
+ },
+ {
+  "id": "nl6-son-10",
+  "lecon_id": "ntina-l6",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ᵐf",
+  "source": "Ambouroue 2007, p. 12-17 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 10
+ },
+ {
+  "id": "nl6-qs-11",
+  "lecon_id": "ntina-l6",
+  "type": "quel_son",
+  "consigne": "Comment se réalise le b de ce mot ?",
+  "options": [
+   "ɓ",
+   "b",
+   "β"
+  ],
+  "reponse": "ɓ",
+  "indice": "Hors d'une nasale, l'occlusive sonore est implosive.",
+  "source": "Ambouroue 2007, p. 13 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 11,
+  "mot_myene": "ébanda",
+  "phonetique": "[èɓándá]",
+  "mot_francais": "une peau"
+ },
+ {
+  "id": "nl6-qs-12",
+  "lecon_id": "ntina-l6",
+  "type": "quel_son",
+  "consigne": "Comment se réalise le b après m ?",
+  "options": [
+   "ᵐb",
+   "ɓ",
+   "β"
+  ],
+  "reponse": "ᵐb",
+  "indice": "Après une nasale, l'occlusive sonore est explosive.",
+  "source": "Ambouroue 2007, p. 13 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 12,
+  "mot_myene": "mbina",
+  "mot_francais": "le pou"
+ },
+ {
+  "id": "nl6-qs-13",
+  "lecon_id": "ntina-l6",
+  "type": "quel_son",
+  "consigne": "Quel son entends-tu au début et au milieu de ce mot ?",
+  "options": [
+   "p",
+   "pʰ",
+   "ɓ"
+  ],
+  "reponse": "pʰ",
+  "indice": "Devant u, l'occlusive sourde est aspirée.",
+  "source": "Ambouroue 2007, p. 13",
+  "ordre": 13,
+  "phonetique": "[pʰúpʰú]",
+  "mot_francais": "blanc",
+  "mot_myene": "pupu"
+ },
+ {
+  "id": "nl6-qs-14",
+  "lecon_id": "ntina-l6",
+  "type": "quel_son",
+  "consigne": "Quelle consonne entends-tu dans « une aile » ?",
+  "options": [
+   "v",
+   "β",
+   "w"
+  ],
+  "reponse": "β",
+  "indice": "Les deux lèvres se rapprochent sans se toucher.",
+  "source": "Ambouroue 2007, p. 13 et 15 ; RÈGLES DONDO § 2.2",
+  "ordre": 14,
+  "mot_myene": "iṽaṽa",
+  "phonetique": "[ìβàβá]",
+  "mot_francais": "une aile"
+ },
+ {
+  "id": "nl6-qs-15",
+  "lecon_id": "ntina-l6",
+  "type": "quel_son",
+  "consigne": "« Laisse ! » commence par quelle consonne ?",
+  "options": [
+   "v",
+   "w",
+   "β"
+  ],
+  "reponse": "v",
+  "indice": "Impératif d'un verbe en f (fala, laisser) : v, et non w.",
+  "source": "Ambouroue 2007, p. 16-17",
+  "ordre": 15,
+  "phonetique": "[vàlá]",
+  "mot_francais": "laisse",
+  "mot_myene": "vala"
+ },
+ {
+  "id": "nl6-tr-16",
+  "lecon_id": "ntina-l6",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "ṽ",
+  "source": "RÈGLES DONDO § 2.2",
+  "ordre": 16
+ },
+ {
+  "id": "nl7-cours-00",
+  "lecon_id": "ntina-l7",
+  "type": "cours",
+  "consigne": "La pointe de la langue",
+  "texte": "Avec la pointe de la langue contre les alvéoles, l'ôrungu fait t, d, n, s, z, l et r. Le d est implosif, sauf après n. Le t devient aspiré devant u. Le r est battu : la langue frappe une seule fois. Le s reste sourd, même entre deux voyelles.",
+  "conseil": "Après n, d et t forment une seule consonne avec la nasale : nd, nt.",
+  "source": "Ambouroue 2007, p. 12-14 ; RÈGLES DONDO § 2.2",
+  "ordre": 0
+ },
+ {
+  "id": "nl7-son-01",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "t",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 1
+ },
+ {
+  "id": "nl7-son-02",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "tʰ",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 2
+ },
+ {
+  "id": "nl7-son-03",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ɗ",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 3
+ },
+ {
+  "id": "nl7-son-04",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "n",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 4
+ },
+ {
+  "id": "nl7-son-05",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ⁿt",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 5
+ },
+ {
+  "id": "nl7-son-06",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ⁿd",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 6
+ },
+ {
+  "id": "nl7-son-07",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "s",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 7
+ },
+ {
+  "id": "nl7-son-08",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "z",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 8
+ },
+ {
+  "id": "nl7-son-09",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "l",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 9
+ },
+ {
+  "id": "nl7-son-10",
+  "lecon_id": "ntina-l7",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ɾ",
+  "source": "Ambouroue 2007, p. 12-14 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 10
+ },
+ {
+  "id": "nl7-qs-11",
+  "lecon_id": "ntina-l7",
+  "type": "quel_son",
+  "consigne": "Quel son entends-tu dans « du vin de palme » ?",
+  "options": [
+   "t",
+   "tʰ",
+   "ɗ"
+  ],
+  "reponse": "tʰ",
+  "indice": "Devant u, l'occlusive sourde est aspirée.",
+  "source": "Ambouroue 2007, p. 13-14",
+  "ordre": 11,
+  "phonetique": "[ìtʰútʰú]",
+  "mot_francais": "du vin de palme",
+  "mot_myene": "itutu"
+ },
+ {
+  "id": "nl7-qs-12",
+  "lecon_id": "ntina-l7",
+  "type": "quel_son",
+  "consigne": "Comment se réalise le d de « pleurer » ?",
+  "options": [
+   "ɗ",
+   "ⁿd",
+   "ɾ"
+  ],
+  "reponse": "ɗ",
+  "indice": "Hors d'une nasale, d est implosif.",
+  "source": "Ambouroue 2007, p. 13-14",
+  "ordre": 12,
+  "phonetique": "[ɗènà]",
+  "mot_francais": "pleurer",
+  "mot_myene": "déna"
+ },
+ {
+  "id": "nl7-qs-13",
+  "lecon_id": "ntina-l7",
+  "type": "quel_son",
+  "consigne": "Et dans « des libellules » ?",
+  "options": [
+   "ⁿd",
+   "ɗ",
+   "l"
+  ],
+  "reponse": "ⁿd",
+  "indice": "Après n, le d est explosif et forme une mi-nasale.",
+  "source": "Ambouroue 2007, p. 13-14",
+  "ordre": 13,
+  "phonetique": "[ìndèndéndè]",
+  "mot_francais": "des libellules",
+  "mot_myene": "indéndéndé"
+ },
+ {
+  "id": "nl7-qs-14",
+  "lecon_id": "ntina-l7",
+  "type": "quel_son",
+  "consigne": "Quelle consonne commence « des arbres » ?",
+  "options": [
+   "ɾ",
+   "l",
+   "ɗ"
+  ],
+  "reponse": "ɾ",
+  "indice": "La langue frappe une seule fois les alvéoles.",
+  "source": "Ambouroue 2007, p. 14 ; RÈGLES DONDO § 4.1",
+  "ordre": 14,
+  "mot_myene": "réré",
+  "phonetique": "[ɾéré]",
+  "mot_francais": "des arbres"
+ },
+ {
+  "id": "nl7-qs-15",
+  "lecon_id": "ntina-l7",
+  "type": "quel_son",
+  "consigne": "Le s de « la semaine » est-il sourd ou sonore ?",
+  "options": [
+   "s",
+   "z"
+  ],
+  "reponse": "s",
+  "indice": "Le s reste sourd, même entre deux voyelles.",
+  "source": "[LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 15,
+  "mot_myene": "sônô",
+  "mot_francais": "la semaine"
+ },
+ {
+  "id": "nl7-tr-16",
+  "lecon_id": "ntina-l7",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "nd",
+  "source": "RÈGLES DONDO § 2.2",
+  "ordre": 16
+ },
+ {
+  "id": "nl8-cours-00",
+  "lecon_id": "ntina-l8",
+  "type": "cours",
+  "consigne": "Le palais et le fond de la bouche",
+  "texte": "Contre le palais se font tch, ntch, ndj, ny et y ; au fond de la bouche, k, g, ñ, nk et ng. Le g se prononce en frottant (ɣ) partout, sauf après une nasale où il est occlusif (ng). Devant i, e, è ou y, le w devient labio-palatal (ɥ).",
+  "conseil": "Consonne forte et consonne faible : au début d'un verbe, k devient g, t devient r, d devient l, s devient z, p devient v, b et f deviennent w ou ṽ (kènda → gènda !, ogèndo).",
+  "source": "Ambouroue 2007, p. 12-18 et 177-179 ; RÈGLES DONDO § 2.2 et § 6.3",
+  "ordre": 0
+ },
+ {
+  "id": "nl8-son-01",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "c",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 1
+ },
+ {
+  "id": "nl8-son-02",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ⁿc",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 2
+ },
+ {
+  "id": "nl8-son-03",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ⁿɟ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 3
+ },
+ {
+  "id": "nl8-son-04",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "dʒ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 4
+ },
+ {
+  "id": "nl8-son-05",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "dʲ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 5
+ },
+ {
+  "id": "nl8-son-06",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ɲ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 6
+ },
+ {
+  "id": "nl8-son-07",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "y",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 7
+ },
+ {
+  "id": "nl8-son-08",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "k",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 8
+ },
+ {
+  "id": "nl8-son-09",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ɣ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 9
+ },
+ {
+  "id": "nl8-son-10",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ŋ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 10
+ },
+ {
+  "id": "nl8-son-11",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ᵑk",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 11
+ },
+ {
+  "id": "nl8-son-12",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ᵑg",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 12
+ },
+ {
+  "id": "nl8-son-13",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "w",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 13
+ },
+ {
+  "id": "nl8-son-14",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "ɥ",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 14
+ },
+ {
+  "id": "nl8-son-15",
+  "lecon_id": "ntina-l8",
+  "type": "son",
+  "consigne": "Observe le lieu d'articulation et le flux d'air, écoute, répète.",
+  "graphie": "h",
+  "source": "Ambouroue 2007, p. 12-18 ; [LEC] Comment écrire l'Omyènè ; RÈGLES DONDO § 2.2",
+  "ordre": 15
+ },
+ {
+  "id": "nl8-qs-16",
+  "lecon_id": "ntina-l8",
+  "type": "quel_son",
+  "consigne": "Comment se réalise le g de « un banquet » ?",
+  "options": [
+   "ɣ",
+   "ᵑg",
+   "k"
+  ],
+  "reponse": "ɣ",
+  "indice": "Hors d'une nasale, /g/ se réalise en frottant.",
+  "source": "Ambouroue 2007, p. 14 et 18",
+  "ordre": 16,
+  "phonetique": "[òɣèɥé]",
+  "mot_francais": "un banquet",
+  "mot_myene": "ogéwé"
+ },
+ {
+  "id": "nl8-qs-17",
+  "lecon_id": "ntina-l8",
+  "type": "quel_son",
+  "consigne": "Et dans « une boîte » ?",
+  "options": [
+   "ᵑg",
+   "ɣ",
+   "ŋ"
+  ],
+  "reponse": "ᵑg",
+  "indice": "Après une nasale, g est occlusif.",
+  "source": "Ambouroue 2007, p. 14 et 18",
+  "ordre": 17,
+  "phonetique": "[ìŋgóŋgó]",
+  "mot_francais": "une boîte",
+  "mot_myene": "ingongo"
+ },
+ {
+  "id": "nl8-qs-18",
+  "lecon_id": "ntina-l8",
+  "type": "quel_son",
+  "consigne": "Quelle nasale commence « un animal » ?",
+  "options": [
+   "ɲ",
+   "n",
+   "ŋ"
+  ],
+  "reponse": "ɲ",
+  "indice": "n + y se réalise en une seule nasale, contre le palais.",
+  "source": "Ambouroue 2007, p. 17",
+  "ordre": 18,
+  "mot_myene": "nyama",
+  "phonetique": "[nyàmà]",
+  "mot_francais": "un animal"
+ },
+ {
+  "id": "nl8-qs-19",
+  "lecon_id": "ntina-l8",
+  "type": "quel_son",
+  "consigne": "Quelle nasale commence « un porc-épic » ?",
+  "options": [
+   "ŋ",
+   "n",
+   "ɲ"
+  ],
+  "reponse": "ŋ",
+  "indice": "Nasale du fond de la bouche (voile).",
+  "source": "Ambouroue 2007, p. 14 et 17",
+  "ordre": 19,
+  "phonetique": "[ŋòmbá]",
+  "mot_francais": "un porc-épic",
+  "mot_myene": "ñomba"
+ },
+ {
+  "id": "nl8-qs-20",
+  "lecon_id": "ntina-l8",
+  "type": "quel_son",
+  "consigne": "Le w de « un cheveu blanc » se réalise comment ?",
+  "options": [
+   "ɥ",
+   "w",
+   "y"
+  ],
+  "reponse": "ɥ",
+  "indice": "Devant une voyelle antérieure ou y, /w/ devient labio-palatal.",
+  "source": "Ambouroue 2007, p. 14 et 18",
+  "ordre": 20,
+  "phonetique": "[òyɥé]",
+  "mot_francais": "un cheveu blanc",
+  "mot_myene": "oywé"
+ },
+ {
+  "id": "nl8-tr-21",
+  "lecon_id": "ntina-l8",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "ñ",
+  "source": "RÈGLES DONDO § 2.2",
+  "ordre": 21
+ },
+ {
+  "id": "nl8-tr-22",
+  "lecon_id": "ntina-l8",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "ny",
+  "source": "RÈGLES DONDO § 2.2",
+  "ordre": 22
+ },
+ {
+  "id": "nl9-cours",
+  "lecon_id": "ntina-l9",
+  "type": "cours",
+  "consigne": "Une voyelle change le mot",
+  "texte": "Dans chaque paire, une seule voyelle change, et le mot change de sens. Lis l'écriture, regarde la transcription avec ses tons, et répète lentement.",
+  "conseil": "ɛ, ɔ et u ne commencent jamais un mot.",
+  "source": "Ambouroue 2007, p. 11-12 et annexe 1, p. 361-363",
+  "ordre": 0
+ },
+ {
+  "id": "nl9-mot-01",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "intchini",
+  "phonetique": "[ìncìnì]",
+  "mot_francais": "des mouches",
+  "source": "Ambouroue 2007, p. 12",
+  "ordre": 1
+ },
+ {
+  "id": "nl9-mot-02",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "awana",
+  "phonetique": "[àwáná]",
+  "mot_francais": "des enfants",
+  "source": "Ambouroue 2007, p. 12",
+  "ordre": 2
+ },
+ {
+  "id": "nl9-mot-03",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "akôndô",
+  "phonetique": "[àkɔ̀ndɔ̀]",
+  "mot_francais": "des bananes plantains",
+  "source": "Ambouroue 2007, p. 12",
+  "ordre": 3
+ },
+ {
+  "id": "nl9-paire-01",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « malaxe ! » ?",
+  "options": [
+   "winda · [ɥìndá]",
+   "wénda · [ɥèndá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "winda · [ɥìndá]",
+  "indice": "winda · [ɥìndá] « malaxe ! » / wénda · [ɥèndá] « fâche-toi ! »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 4
+ },
+ {
+  "id": "nl9-mot-04",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogolo",
+  "phonetique": "[òɣòló]",
+  "mot_francais": "un pied",
+  "source": "Ambouroue 2007, p. 12",
+  "ordre": 5
+ },
+ {
+  "id": "nl9-mot-05",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "intchunu",
+  "phonetique": "[ìncúnú]",
+  "mot_francais": "des fourmis",
+  "source": "Ambouroue 2007, p. 12",
+  "ordre": 6
+ },
+ {
+  "id": "nl9-mot-06",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "winda",
+  "phonetique": "[ɥìndá]",
+  "mot_francais": "malaxe !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 7
+ },
+ {
+  "id": "nl9-paire-02",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « puise (de l'eau) ! » ?",
+  "options": [
+   "gila · [ɣìlá]",
+   "gula · [ɣùlá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "gula · [ɣùlá]",
+  "indice": "gila · [ɣìlá] « râpe ! » / gula · [ɣùlá] « puise (de l'eau) ! »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 8
+ },
+ {
+  "id": "nl9-mot-07",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "wénda",
+  "phonetique": "[ɥèndá]",
+  "mot_francais": "fâche-toi !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 9
+ },
+ {
+  "id": "nl9-mot-08",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gila",
+  "phonetique": "[ɣìlá]",
+  "mot_francais": "râpe !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 10
+ },
+ {
+  "id": "nl9-mot-09",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gula",
+  "phonetique": "[ɣùlá]",
+  "mot_francais": "puise (de l'eau) !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 11
+ },
+ {
+  "id": "nl9-paire-03",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « une pierre » ?",
+  "options": [
+   "ido · [ìɗó]",
+   "odo · [òɗó]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "ido · [ìɗó]",
+  "indice": "ido · [ìɗó] « une pierre » / odo · [òɗó] « un lit »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 12
+ },
+ {
+  "id": "nl9-mot-10",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ido",
+  "phonetique": "[ìɗó]",
+  "mot_francais": "une pierre",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 13
+ },
+ {
+  "id": "nl9-mot-11",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "odo",
+  "phonetique": "[òɗó]",
+  "mot_francais": "un lit",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 14
+ },
+ {
+  "id": "nl9-mot-12",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ziza",
+  "phonetique": "[zìzá]",
+  "mot_francais": "essuie !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 15
+ },
+ {
+  "id": "nl9-paire-04",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « plaide ! » ?",
+  "options": [
+   "ziza · [zìzá]",
+   "zôza · [zɔ̀zá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "zôza · [zɔ̀zá]",
+  "indice": "ziza · [zìzá] « essuie ! » / zôza · [zɔ̀zá] « plaide ! »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 16
+ },
+ {
+  "id": "nl9-mot-13",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "zôza",
+  "phonetique": "[zɔ̀zá]",
+  "mot_francais": "plaide !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 17
+ },
+ {
+  "id": "nl9-mot-14",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ipi",
+  "phonetique": "[ípì]",
+  "mot_francais": "le pangolin",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 18
+ },
+ {
+  "id": "nl9-mot-15",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ipa",
+  "phonetique": "[ípà]",
+  "mot_francais": "la récompense",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 19
+ },
+ {
+  "id": "nl9-paire-05",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le pangolin » ?",
+  "options": [
+   "ipi · [ípì]",
+   "ipa · [ípà]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "ipi · [ípì]",
+  "indice": "ipi · [ípì] « le pangolin » / ipa · [ípà] « la récompense »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 20
+ },
+ {
+  "id": "nl9-mot-16",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ṽéra",
+  "phonetique": "[βèɾá]",
+  "mot_francais": "fuis !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 21
+ },
+ {
+  "id": "nl9-mot-17",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ṽura",
+  "phonetique": "[βùɾá]",
+  "mot_francais": "plie !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 22
+ },
+ {
+  "id": "nl9-mot-18",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "géra",
+  "phonetique": "[ɣèɾá]",
+  "mot_francais": "partage !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 23
+ },
+ {
+  "id": "nl9-paire-06",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « plie ! » ?",
+  "options": [
+   "ṽéra · [βèɾá]",
+   "ṽura · [βùɾá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "ṽura · [βùɾá]",
+  "indice": "ṽéra · [βèɾá] « fuis ! » / ṽura · [βùɾá] « plie ! »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 24
+ },
+ {
+  "id": "nl9-mot-19",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gora",
+  "phonetique": "[ɣòɾá]",
+  "mot_francais": "attache !",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 25
+ },
+ {
+  "id": "nl9-mot-20",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "owéndja",
+  "phonetique": "[òɥénjà]",
+  "mot_francais": "la journée",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 26
+ },
+ {
+  "id": "nl9-mot-21",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "owandja",
+  "phonetique": "[òwánjà]",
+  "mot_francais": "le flanc",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 27
+ },
+ {
+  "id": "nl9-paire-07",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « partage ! » ?",
+  "options": [
+   "géra · [ɣèɾá]",
+   "gora · [ɣòɾá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "géra · [ɣèɾá]",
+  "indice": "géra · [ɣèɾá] « partage ! » / gora · [ɣòɾá] « attache ! »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 28
+ },
+ {
+  "id": "nl9-mot-22",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "érèmi",
+  "phonetique": "[èɾɛ́mí]",
+  "mot_francais": "une hache",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 29
+ },
+ {
+  "id": "nl9-mot-23",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "éromi",
+  "phonetique": "[èɾómí]",
+  "mot_francais": "un apôtre",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 30
+ },
+ {
+  "id": "nl9-mot-24",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mèna",
+  "phonetique": "[mɛ̀ná]",
+  "mot_francais": "avale !",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 31
+ },
+ {
+  "id": "nl9-paire-08",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le flanc » ?",
+  "options": [
+   "owéndja · [òɥénjà]",
+   "owandja · [òwánjà]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "owandja · [òwánjà]",
+  "indice": "owéndja · [òɥénjà] « la journée » / owandja · [òwánjà] « le flanc »",
+  "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
+  "ordre": 32
+ },
+ {
+  "id": "nl9-mot-25",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "môna",
+  "phonetique": "[mɔ̀ná]",
+  "mot_francais": "observe !",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 33
+ },
+ {
+  "id": "nl9-mot-26",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "énèma",
+  "phonetique": "[ènɛ́mà]",
+  "mot_francais": "l'infirmité",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 34
+ },
+ {
+  "id": "nl9-mot-27",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "énama",
+  "phonetique": "[ènámà]",
+  "mot_francais": "le membre",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 35
+ },
+ {
+  "id": "nl9-paire-09",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « une hache » ?",
+  "options": [
+   "érèmi · [èɾɛ́mí]",
+   "éromi · [èɾómí]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "érèmi · [èɾɛ́mí]",
+  "indice": "érèmi · [èɾɛ́mí] « une hache » / éromi · [èɾómí] « un apôtre »",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 36
+ },
+ {
+  "id": "nl9-mot-28",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nuga",
+  "phonetique": "[nùɣá]",
+  "mot_francais": "pagaie !",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 37
+ },
+ {
+  "id": "nl9-mot-29",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "noga",
+  "phonetique": "[nòɣá]",
+  "mot_francais": "construis !",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 38
+ },
+ {
+  "id": "nl9-mot-30",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogu",
+  "phonetique": "[òɣú]",
+  "mot_francais": "une chenille",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 39
+ },
+ {
+  "id": "nl9-paire-10",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « observe ! » ?",
+  "options": [
+   "mèna · [mɛ̀ná]",
+   "môna · [mɔ̀ná]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "môna · [mɔ̀ná]",
+  "indice": "mèna · [mɛ̀ná] « avale ! » / môna · [mɔ̀ná] « observe ! »",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 40
+ },
+ {
+  "id": "nl9-mot-31",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogô",
+  "phonetique": "[òɣɔ́]",
+  "mot_francais": "un bras",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 41
+ },
+ {
+  "id": "nl9-mot-32",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oda",
+  "phonetique": "[òɗá]",
+  "mot_francais": "une jachère",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 42
+ },
+ {
+  "id": "nl9-mot-33",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ṽôna",
+  "phonetique": "[βɔ̀ná]",
+  "mot_francais": "regarde !",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 43
+ },
+ {
+  "id": "nl9-paire-11",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'infirmité » ?",
+  "options": [
+   "énèma · [ènɛ́mà]",
+   "énama · [ènámà]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "énèma · [ènɛ́mà]",
+  "indice": "énèma · [ènɛ́mà] « l'infirmité » / énama · [ènámà] « le membre »",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 44
+ },
+ {
+  "id": "nl9-mot-34",
+  "lecon_id": "ntina-l9",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ṽana",
+  "phonetique": "[βàná]",
+  "mot_francais": "sculpte !",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 45
+ },
+ {
+  "id": "nl9-paire-12",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « construis ! » ?",
+  "options": [
+   "nuga · [nùɣá]",
+   "noga · [nòɣá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "noga · [nòɣá]",
+  "indice": "nuga · [nùɣá] « pagaie ! » / noga · [nòɣá] « construis ! »",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 46
+ },
+ {
+  "id": "nl9-paire-13",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « une chenille » ?",
+  "options": [
+   "ogu · [òɣú]",
+   "ogô · [òɣɔ́]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "ogu · [òɣú]",
+  "indice": "ogu · [òɣú] « une chenille » / ogô · [òɣɔ́] « un bras »",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 47
+ },
+ {
+  "id": "nl9-paire-14",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « une jachère » ?",
+  "options": [
+   "odo · [òɗó]",
+   "oda · [òɗá]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "oda · [òɗá]",
+  "indice": "odo · [òɗó] « un lit » / oda · [òɗá] « une jachère »",
+  "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
+  "ordre": 48
+ },
+ {
+  "id": "nl9-paire-15",
+  "lecon_id": "ntina-l9",
+  "type": "choix",
+  "consigne": "Lequel veut dire « regarde ! » ?",
+  "options": [
+   "ṽôna · [βɔ̀ná]",
+   "ṽana · [βàná]",
+   "intchini · [ìncìnì]"
+  ],
+  "reponse": "ṽôna · [βɔ̀ná]",
+  "indice": "ṽôna · [βɔ̀ná] « regarde ! » / ṽana · [βàná] « sculpte ! »",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 49
+ },
+ {
+  "id": "nl10-cours",
+  "lecon_id": "ntina-l10",
+  "type": "cours",
+  "consigne": "p, ɓ, m, ṽ, f, v, w",
+  "texte": "Ici, c'est la consonne qui change le mot. Le b est implosif (l'air entre), le p devient aspiré devant u, le ṽ se fait avec les deux lèvres, le f et le v avec la lèvre du bas contre les dents.",
+  "conseil": "Répète chaque paire plusieurs fois, en gardant le même ton.",
+  "source": "Ambouroue 2007, p. 13-17 et annexe 1, p. 363-366",
+  "ordre": 0
+ },
+ {
+  "id": "nl10-mot-01",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "pupu",
+  "phonetique": "[pʰúpʰú]",
+  "mot_francais": "blanc",
+  "source": "Ambouroue 2007, p. 13",
+  "ordre": 1
+ },
+ {
+  "id": "nl10-mot-02",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "pusi",
+  "phonetique": "[pʰúsì]",
+  "mot_francais": "un chat",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 2
+ },
+ {
+  "id": "nl10-mot-03",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ampuni",
+  "phonetique": "[àmpʰúnì]",
+  "mot_francais": "l'écume",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 3
+ },
+ {
+  "id": "nl10-paire-01",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la gorge » ?",
+  "options": [
+   "épongo · [èpóŋgò]",
+   "ébongo · [èɓóŋgò]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "épongo · [èpóŋgò]",
+  "indice": "épongo · [èpóŋgò] « la gorge » / ébongo · [èɓóŋgò] « le tabouret »",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 4
+ },
+ {
+  "id": "nl10-mot-04",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "imbomi",
+  "phonetique": "[ìmbòmí]",
+  "mot_francais": "des calebasses",
+  "source": "Ambouroue 2007, p. 13",
+  "ordre": 5
+ },
+ {
+  "id": "nl10-mot-05",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ampaza",
+  "phonetique": "[àmpázá]",
+  "mot_francais": "des jumeaux",
+  "source": "Ambouroue 2007, p. 13",
+  "ordre": 6
+ },
+ {
+  "id": "nl10-mot-06",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "imfélini",
+  "phonetique": "[ìmfèlíní]",
+  "mot_francais": "des manières de mettre",
+  "source": "Ambouroue 2007, p. 13",
+  "ordre": 7
+ },
+ {
+  "id": "nl10-paire-02",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un bocal » ?",
+  "options": [
+   "épa · [èpá]",
+   "éṽa · [èβá]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "éṽa · [èβá]",
+  "indice": "épa · [èpá] « un os » / éṽa · [èβá] « un bocal »",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 8
+ },
+ {
+  "id": "nl10-mot-07",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "épongo",
+  "phonetique": "[èpóŋgò]",
+  "mot_francais": "la gorge",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 9
+ },
+ {
+  "id": "nl10-mot-08",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ébongo",
+  "phonetique": "[èɓóŋgò]",
+  "mot_francais": "le tabouret",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 10
+ },
+ {
+  "id": "nl10-mot-09",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "épa",
+  "phonetique": "[èpá]",
+  "mot_francais": "un os",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 11
+ },
+ {
+  "id": "nl10-paire-03",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les gorges » ?",
+  "options": [
+   "pongo · [póŋgò]",
+   "mongo · [móŋgò]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "pongo · [póŋgò]",
+  "indice": "pongo · [póŋgò] « les gorges » / mongo · [móŋgò] « le flotteur »",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 12
+ },
+ {
+  "id": "nl10-mot-10",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "éṽa",
+  "phonetique": "[èβá]",
+  "mot_francais": "un bocal",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 13
+ },
+ {
+  "id": "nl10-mot-11",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "pongo",
+  "phonetique": "[póŋgò]",
+  "mot_francais": "les gorges",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 14
+ },
+ {
+  "id": "nl10-mot-12",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mongo",
+  "phonetique": "[móŋgò]",
+  "mot_francais": "le flotteur",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 15
+ },
+ {
+  "id": "nl10-paire-04",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « une arête » ?",
+  "options": [
+   "opa · [òpá]",
+   "ofa · [òfá]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "ofa · [òfá]",
+  "indice": "opa · [òpá] « une lutte » / ofa · [òfá] « une arête »",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 16
+ },
+ {
+  "id": "nl10-mot-13",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "opa",
+  "phonetique": "[òpá]",
+  "mot_francais": "une lutte",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 17
+ },
+ {
+  "id": "nl10-mot-14",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ofa",
+  "phonetique": "[òfá]",
+  "mot_francais": "une arête",
+  "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
+  "ordre": 18
+ },
+ {
+  "id": "nl10-mot-15",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oba",
+  "phonetique": "[òɓá]",
+  "mot_francais": "un manguier",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 19
+ },
+ {
+  "id": "nl10-paire-05",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un manguier » ?",
+  "options": [
+   "oba · [òɓá]",
+   "oma · [òmá]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "oba · [òɓá]",
+  "indice": "oba · [òɓá] « un manguier » / oma · [òmá] « une personne »",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 20
+ },
+ {
+  "id": "nl10-mot-16",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oma",
+  "phonetique": "[òmá]",
+  "mot_francais": "une personne",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 21
+ },
+ {
+  "id": "nl10-mot-17",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ébanda",
+  "phonetique": "[èɓándà]",
+  "mot_francais": "la peau",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 22
+ },
+ {
+  "id": "nl10-mot-18",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "éṽanda",
+  "phonetique": "[èβándà]",
+  "mot_francais": "le psaume",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 23
+ },
+ {
+  "id": "nl10-paire-06",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le psaume » ?",
+  "options": [
+   "ébanda · [èɓándà]",
+   "éṽanda · [èβándà]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "éṽanda · [èβándà]",
+  "indice": "ébanda · [èɓándà] « la peau » / éṽanda · [èβándà] « le psaume »",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 24
+ },
+ {
+  "id": "nl10-mot-19",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ibémbé",
+  "phonetique": "[ìɓémbè]",
+  "mot_francais": "la colombe",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 25
+ },
+ {
+  "id": "nl10-mot-20",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ikémbé",
+  "phonetique": "[ìkémbè]",
+  "mot_francais": "les tortues de mer",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 26
+ },
+ {
+  "id": "nl10-mot-21",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iṽongo",
+  "phonetique": "[ìβóŋgò]",
+  "mot_francais": "le large",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 27
+ },
+ {
+  "id": "nl10-paire-07",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la colombe » ?",
+  "options": [
+   "ibémbé · [ìɓémbè]",
+   "ikémbé · [ìkémbè]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "ibémbé · [ìɓémbè]",
+  "indice": "ibémbé · [ìɓémbè] « la colombe » / ikémbé · [ìkémbè] « les tortues de mer »",
+  "source": "Ambouroue 2007, p. 364 (annexe 1, paires minimales)",
+  "ordre": 28
+ },
+ {
+  "id": "nl10-mot-22",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iwongo",
+  "phonetique": "[ìwóŋgò]",
+  "mot_francais": "le fond, la base",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 29
+ },
+ {
+  "id": "nl10-mot-23",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ṽa",
+  "phonetique": "[βá]",
+  "mot_francais": "des bocaux",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 30
+ },
+ {
+  "id": "nl10-mot-24",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "fa",
+  "phonetique": "[fá]",
+  "mot_francais": "à l'abandon",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 31
+ },
+ {
+  "id": "nl10-paire-08",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le fond, la base » ?",
+  "options": [
+   "iṽongo · [ìβóŋgò]",
+   "iwongo · [ìwóŋgò]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "iwongo · [ìwóŋgò]",
+  "indice": "iṽongo · [ìβóŋgò] « le large » / iwongo · [ìwóŋgò] « le fond, la base »",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 32
+ },
+ {
+  "id": "nl10-mot-25",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "éṽora",
+  "phonetique": "[èβóɾà]",
+  "mot_francais": "la blessure",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 33
+ },
+ {
+  "id": "nl10-mot-26",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "érora",
+  "phonetique": "[èɾóɾà]",
+  "mot_francais": "l'épouse",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 34
+ },
+ {
+  "id": "nl10-mot-27",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "vala",
+  "phonetique": "[vàlá]",
+  "mot_francais": "abandonne !",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 35
+ },
+ {
+  "id": "nl10-paire-09",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « des bocaux » ?",
+  "options": [
+   "ṽa · [βá]",
+   "fa · [fá]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "ṽa · [βá]",
+  "indice": "ṽa · [βá] « des bocaux » / fa · [fá] « à l'abandon »",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 36
+ },
+ {
+  "id": "nl10-mot-28",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "wala",
+  "phonetique": "[wàlá]",
+  "mot_francais": "rends visite !",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 37
+ },
+ {
+  "id": "nl10-mot-29",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ṽala",
+  "phonetique": "[βàlá]",
+  "mot_francais": "dépoussière !",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 38
+ },
+ {
+  "id": "nl10-mot-30",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iféva",
+  "phonetique": "[ìfévà]",
+  "mot_francais": "la laideur",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 39
+ },
+ {
+  "id": "nl10-paire-10",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'épouse » ?",
+  "options": [
+   "éṽora · [èβóɾà]",
+   "érora · [èɾóɾà]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "érora · [èɾóɾà]",
+  "indice": "éṽora · [èβóɾà] « la blessure » / érora · [èɾóɾà] « l'épouse »",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 40
+ },
+ {
+  "id": "nl10-mot-31",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iféma",
+  "phonetique": "[ìfémà]",
+  "mot_francais": "la faute",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 41
+ },
+ {
+  "id": "nl10-mot-32",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "wafali",
+  "phonetique": "[wáfálì]",
+  "mot_francais": "ils ont abandonné (récemment)",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 42
+ },
+ {
+  "id": "nl10-mot-33",
+  "lecon_id": "ntina-l10",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "wavali",
+  "phonetique": "[wávàlì]",
+  "mot_francais": "ils ont abandonné (il y a longtemps)",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 43
+ },
+ {
+  "id": "nl10-paire-11",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « abandonne ! » ?",
+  "options": [
+   "vala · [vàlá]",
+   "wala · [wàlá]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "vala · [vàlá]",
+  "indice": "vala · [vàlá] « abandonne ! » / wala · [wàlá] « rends visite ! »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 44
+ },
+ {
+  "id": "nl10-paire-12",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « dépoussière ! » ?",
+  "options": [
+   "vala · [vàlá]",
+   "ṽala · [βàlá]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "ṽala · [βàlá]",
+  "indice": "vala · [vàlá] « abandonne ! » / ṽala · [βàlá] « dépoussière ! »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 45
+ },
+ {
+  "id": "nl10-paire-13",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la laideur » ?",
+  "options": [
+   "iféva · [ìfévà]",
+   "iféma · [ìfémà]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "iféva · [ìfévà]",
+  "indice": "iféva · [ìfévà] « la laideur » / iféma · [ìfémà] « la faute »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 46
+ },
+ {
+  "id": "nl10-paire-14",
+  "lecon_id": "ntina-l10",
+  "type": "choix",
+  "consigne": "Lequel veut dire « ils ont abandonné (il y a longtemps) » ?",
+  "options": [
+   "wafali · [wáfálì]",
+   "wavali · [wávàlì]",
+   "pupu · [pʰúpʰú]"
+  ],
+  "reponse": "wavali · [wávàlì]",
+  "indice": "wafali · [wáfálì] « ils ont abandonné (récemment) » / wavali · [wávàlì] « ils ont abandonné (il y a longtemps) »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 47
+ },
+ {
+  "id": "nl11-cours",
+  "lecon_id": "ntina-l11",
+  "type": "cours",
+  "consigne": "t, ɗ, n, s, z, l, r",
+  "texte": "La pointe de la langue fait toutes ces consonnes. Le d est implosif, sauf après n ; le t devient aspiré devant u ; le r est battu (un seul coup) ; le s reste sourd, même entre deux voyelles.",
+  "conseil": "Écoute la différence entre l (la langue laisse passer l'air sur les côtés) et r (un seul coup de langue).",
+  "source": "Ambouroue 2007, p. 13-14 et annexe 1, p. 366-370",
+  "ordre": 0
+ },
+ {
+  "id": "nl11-mot-01",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "itutu",
+  "phonetique": "[ìtʰútʰú]",
+  "mot_francais": "du vin de palme",
+  "source": "Ambouroue 2007, p. 14",
+  "ordre": 1
+ },
+ {
+  "id": "nl11-mot-02",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "otutu",
+  "phonetique": "[òtʰútʰù]",
+  "mot_francais": "la fumée",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 2
+ },
+ {
+  "id": "nl11-mot-03",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "otumba",
+  "phonetique": "[òtʰúmbà]",
+  "mot_francais": "la ceinture",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 3
+ },
+ {
+  "id": "nl11-paire-01",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'unité » ?",
+  "options": [
+   "ota · [ótà]",
+   "oda · [óɗà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "ota · [ótà]",
+  "indice": "ota · [ótà] « l'unité » / oda · [óɗà] « la jachère »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 4
+ },
+ {
+  "id": "nl11-mot-04",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "intimbé",
+  "phonetique": "[ìntímbé]",
+  "mot_francais": "des planches",
+  "source": "Ambouroue 2007, p. 14",
+  "ordre": 5
+ },
+ {
+  "id": "nl11-mot-05",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "indéndéndé",
+  "phonetique": "[ìndèndéndè]",
+  "mot_francais": "des libellules",
+  "source": "Ambouroue 2007, p. 14",
+  "ordre": 6
+ },
+ {
+  "id": "nl11-mot-06",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ololo",
+  "phonetique": "[òlóló]",
+  "mot_francais": "une papaye",
+  "source": "Ambouroue 2007, p. 14",
+  "ordre": 7
+ },
+ {
+  "id": "nl11-paire-02",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le maïs » ?",
+  "options": [
+   "ita · [ítà]",
+   "isa · [ísà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "isa · [ísà]",
+  "indice": "ita · [ítà] « la chasse » / isa · [ísà] « le maïs »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 8
+ },
+ {
+  "id": "nl11-mot-07",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ota",
+  "phonetique": "[ótà]",
+  "mot_francais": "l'unité",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 9
+ },
+ {
+  "id": "nl11-mot-08",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oda",
+  "phonetique": "[óɗà]",
+  "mot_francais": "la jachère",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 10
+ },
+ {
+  "id": "nl11-mot-09",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ita",
+  "phonetique": "[ítà]",
+  "mot_francais": "la chasse",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 11
+ },
+ {
+  "id": "nl11-paire-03",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le brancard » ?",
+  "options": [
+   "otando · [òtándò]",
+   "olando · [òlándò]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "otando · [òtándò]",
+  "indice": "otando · [òtándò] « le brancard » / olando · [òlándò] « la rive »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 12
+ },
+ {
+  "id": "nl11-mot-10",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "isa",
+  "phonetique": "[ísà]",
+  "mot_francais": "le maïs",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 13
+ },
+ {
+  "id": "nl11-mot-11",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "otando",
+  "phonetique": "[òtándò]",
+  "mot_francais": "le brancard",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 14
+ },
+ {
+  "id": "nl11-mot-12",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "olando",
+  "phonetique": "[òlándò]",
+  "mot_francais": "la rive",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 15
+ },
+ {
+  "id": "nl11-paire-04",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un œuf » ?",
+  "options": [
+   "ité · [ìté]",
+   "iké · [ìké]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "iké · [ìké]",
+  "indice": "ité · [ìté] « des tiges de raphia » / iké · [ìké] « un œuf »",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 16
+ },
+ {
+  "id": "nl11-mot-13",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ité",
+  "phonetique": "[ìté]",
+  "mot_francais": "des tiges de raphia",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 17
+ },
+ {
+  "id": "nl11-mot-14",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iké",
+  "phonetique": "[ìké]",
+  "mot_francais": "un œuf",
+  "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
+  "ordre": 18
+ },
+ {
+  "id": "nl11-mot-15",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "odando",
+  "phonetique": "[òɗándò]",
+  "mot_francais": "l'ambiance",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 19
+ },
+ {
+  "id": "nl11-paire-05",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'ambiance » ?",
+  "options": [
+   "odando · [òɗándò]",
+   "otando · [òtándò]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "odando · [òɗándò]",
+  "indice": "odando · [òɗándò] « l'ambiance » / otando · [òtándò] « le brancard »",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 20
+ },
+ {
+  "id": "nl11-mot-16",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "édinga",
+  "phonetique": "[èɗíŋgà]",
+  "mot_francais": "la petite plantation",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 21
+ },
+ {
+  "id": "nl11-mot-17",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ésinga",
+  "phonetique": "[èsíŋgà]",
+  "mot_francais": "le gazon",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 22
+ },
+ {
+  "id": "nl11-mot-18",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "élinga",
+  "phonetique": "[èlíŋgà]",
+  "mot_francais": "la robe",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 23
+ },
+ {
+  "id": "nl11-paire-06",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le gazon » ?",
+  "options": [
+   "édinga · [èɗíŋgà]",
+   "ésinga · [èsíŋgà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "ésinga · [èsíŋgà]",
+  "indice": "édinga · [èɗíŋgà] « la petite plantation » / ésinga · [èsíŋgà] « le gazon »",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 24
+ },
+ {
+  "id": "nl11-mot-19",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igona",
+  "phonetique": "[ìɣónà]",
+  "mot_francais": "la taille",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 25
+ },
+ {
+  "id": "nl11-mot-20",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igola",
+  "phonetique": "[ìɣólà]",
+  "mot_francais": "les vers intestinaux",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 26
+ },
+ {
+  "id": "nl11-mot-21",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "osègè",
+  "phonetique": "[òsɛ́ɣɛ̀]",
+  "mot_francais": "l'intestin",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 27
+ },
+ {
+  "id": "nl11-paire-07",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la petite plantation » ?",
+  "options": [
+   "édinga · [èɗíŋgà]",
+   "élinga · [èlíŋgà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "édinga · [èɗíŋgà]",
+  "indice": "édinga · [èɗíŋgà] « la petite plantation » / élinga · [èlíŋgà] « la robe »",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 28
+ },
+ {
+  "id": "nl11-mot-22",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ozègè",
+  "phonetique": "[òzɛ́ɣɛ̀]",
+  "mot_francais": "le sable blanc",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 29
+ },
+ {
+  "id": "nl11-mot-23",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "asa",
+  "phonetique": "[ásà]",
+  "mot_francais": "les épis de maïs",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 30
+ },
+ {
+  "id": "nl11-mot-24",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ata",
+  "phonetique": "[átà]",
+  "mot_francais": "les fagots",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 31
+ },
+ {
+  "id": "nl11-paire-08",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les vers intestinaux » ?",
+  "options": [
+   "igona · [ìɣónà]",
+   "igola · [ìɣólà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "igola · [ìɣólà]",
+  "indice": "igona · [ìɣónà] « la taille » / igola · [ìɣólà] « les vers intestinaux »",
+  "source": "Ambouroue 2007, p. 367 (annexe 1, paires minimales)",
+  "ordre": 32
+ },
+ {
+  "id": "nl11-mot-25",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "aka",
+  "phonetique": "[ákà]",
+  "mot_francais": "la sève",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 33
+ },
+ {
+  "id": "nl11-mot-26",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "izanga",
+  "phonetique": "[ìzáŋgà]",
+  "mot_francais": "le terrain",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 34
+ },
+ {
+  "id": "nl11-mot-27",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "inanga",
+  "phonetique": "[ìnáŋgà]",
+  "mot_francais": "le clair de lune",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 35
+ },
+ {
+  "id": "nl11-paire-09",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'intestin » ?",
+  "options": [
+   "osègè · [òsɛ́ɣɛ̀]",
+   "ozègè · [òzɛ́ɣɛ̀]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "osègè · [òsɛ́ɣɛ̀]",
+  "indice": "osègè · [òsɛ́ɣɛ̀] « l'intestin » / ozègè · [òzɛ́ɣɛ̀] « le sable blanc »",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 36
+ },
+ {
+  "id": "nl11-mot-28",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ozo",
+  "phonetique": "[ózò]",
+  "mot_francais": "le visage",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 37
+ },
+ {
+  "id": "nl11-mot-29",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "odo",
+  "phonetique": "[óɗò]",
+  "mot_francais": "le lit",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 38
+ },
+ {
+  "id": "nl11-mot-30",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "olala",
+  "phonetique": "[òlálà]",
+  "mot_francais": "la palme",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 39
+ },
+ {
+  "id": "nl11-paire-10",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les fagots » ?",
+  "options": [
+   "asa · [ásà]",
+   "ata · [átà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "ata · [átà]",
+  "indice": "asa · [ásà] « les épis de maïs » / ata · [átà] « les fagots »",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 40
+ },
+ {
+  "id": "nl11-mot-31",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "orala",
+  "phonetique": "[òɾálà]",
+  "mot_francais": "la claie",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 41
+ },
+ {
+  "id": "nl11-mot-32",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "irina",
+  "phonetique": "[ìɾínà]",
+  "mot_francais": "le plant",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 42
+ },
+ {
+  "id": "nl11-mot-33",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "inina",
+  "phonetique": "[ìnínà]",
+  "mot_francais": "l'ombre",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 43
+ },
+ {
+  "id": "nl11-paire-11",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les épis de maïs » ?",
+  "options": [
+   "asa · [ásà]",
+   "aka · [ákà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "asa · [ásà]",
+  "indice": "asa · [ásà] « les épis de maïs » / aka · [ákà] « la sève »",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 44
+ },
+ {
+  "id": "nl11-mot-34",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gola",
+  "phonetique": "[ɣòlá]",
+  "mot_francais": "achète !",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 45
+ },
+ {
+  "id": "nl11-mot-35",
+  "lecon_id": "ntina-l11",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "goka",
+  "phonetique": "[ɣòká]",
+  "mot_francais": "appelle !",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 46
+ },
+ {
+  "id": "nl11-paire-12",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le clair de lune » ?",
+  "options": [
+   "izanga · [ìzáŋgà]",
+   "inanga · [ìnáŋgà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "inanga · [ìnáŋgà]",
+  "indice": "izanga · [ìzáŋgà] « le terrain » / inanga · [ìnáŋgà] « le clair de lune »",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 47
+ },
+ {
+  "id": "nl11-paire-13",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le visage » ?",
+  "options": [
+   "ozo · [ózò]",
+   "odo · [óɗò]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "ozo · [ózò]",
+  "indice": "ozo · [ózò] « le visage » / odo · [óɗò] « le lit »",
+  "source": "Ambouroue 2007, p. 368 (annexe 1, paires minimales)",
+  "ordre": 48
+ },
+ {
+  "id": "nl11-paire-14",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la claie » ?",
+  "options": [
+   "olala · [òlálà]",
+   "orala · [òɾálà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "orala · [òɾálà]",
+  "indice": "olala · [òlálà] « la palme » / orala · [òɾálà] « la claie »",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 49
+ },
+ {
+  "id": "nl11-paire-15",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le plant » ?",
+  "options": [
+   "irina · [ìɾínà]",
+   "inina · [ìnínà]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "irina · [ìɾínà]",
+  "indice": "irina · [ìɾínà] « le plant » / inina · [ìnínà] « l'ombre »",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 50
+ },
+ {
+  "id": "nl11-paire-16",
+  "lecon_id": "ntina-l11",
+  "type": "choix",
+  "consigne": "Lequel veut dire « appelle ! » ?",
+  "options": [
+   "gola · [ɣòlá]",
+   "goka · [ɣòká]",
+   "itutu · [ìtʰútʰú]"
+  ],
+  "reponse": "goka · [ɣòká]",
+  "indice": "gola · [ɣòlá] « achète ! » / goka · [ɣòká] « appelle ! »",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 51
+ },
+ {
+  "id": "nl12-cours",
+  "lecon_id": "ntina-l12",
+  "type": "cours",
+  "consigne": "k, g, ñ, ny, y, w",
+  "texte": "Le g se dit en frottant (ɣ) entre deux voyelles et occlusif après une nasale (ng). Le ñ se fait au fond de la bouche, le ny contre le palais. Devant i, e, è ou y, le w devient labio-palatal.",
+  "conseil": "Compare ñomba et nomba : seule la nasale change.",
+  "source": "Ambouroue 2007, p. 14-18 et annexe 1, p. 365-371",
+  "ordre": 0
+ },
+ {
+  "id": "nl12-mot-01",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nyama",
+  "phonetique": "[nyàmà]",
+  "mot_francais": "un animal",
+  "source": "Ambouroue 2007, p. 17",
+  "ordre": 1
+ },
+ {
+  "id": "nl12-mot-02",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nyémbi",
+  "phonetique": "[nyémbí]",
+  "mot_francais": "un chanteur",
+  "source": "Ambouroue 2007, p. 17",
+  "ordre": 2
+ },
+ {
+  "id": "nl12-mot-03",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nyôni",
+  "phonetique": "[nyɔ̀nì]",
+  "mot_francais": "un oiseau",
+  "source": "Ambouroue 2007, p. 17",
+  "ordre": 3
+ },
+ {
+  "id": "nl12-paire-01",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les résidus » ?",
+  "options": [
+   "iku · [íkù]",
+   "igu · [íɣù]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "iku · [íkù]",
+  "indice": "iku · [íkù] « les résidus » / igu · [íɣù] « les asticots »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 4
+ },
+ {
+  "id": "nl12-mot-04",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ingongo",
+  "phonetique": "[ìŋgóŋgó]",
+  "mot_francais": "une boîte",
+  "source": "Ambouroue 2007, p. 14",
+  "ordre": 5
+ },
+ {
+  "id": "nl12-mot-05",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "éwiri",
+  "phonetique": "[èɥíɾì]",
+  "mot_francais": "le ventre",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 6
+ },
+ {
+  "id": "nl12-mot-06",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "éwèrè",
+  "phonetique": "[èɥɛ́ɾɛ̀]",
+  "mot_francais": "le poisson",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 7
+ },
+ {
+  "id": "nl12-paire-02",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le foyer » ?",
+  "options": [
+   "iku · [íkù]",
+   "inu · [ínù]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "inu · [ínù]",
+  "indice": "iku · [íkù] « les résidus » / inu · [ínù] « le foyer »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 8
+ },
+ {
+  "id": "nl12-mot-07",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "iku",
+  "phonetique": "[íkù]",
+  "mot_francais": "les résidus",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 9
+ },
+ {
+  "id": "nl12-mot-08",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igu",
+  "phonetique": "[íɣù]",
+  "mot_francais": "les asticots",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 10
+ },
+ {
+  "id": "nl12-mot-09",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "inu",
+  "phonetique": "[ínù]",
+  "mot_francais": "le foyer",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 11
+ },
+ {
+  "id": "nl12-paire-03",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « genre d'herbe » ?",
+  "options": [
+   "okèmô · [òkɛ́mɔ̀]",
+   "osèmô · [òsɛ́mɔ̀]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "okèmô · [òkɛ́mɔ̀]",
+  "indice": "okèmô · [òkɛ́mɔ̀] « genre d'herbe » / osèmô · [òsɛ́mɔ̀] « l'antidote »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 12
+ },
+ {
+  "id": "nl12-mot-10",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "okèmô",
+  "phonetique": "[òkɛ́mɔ̀]",
+  "mot_francais": "genre d'herbe",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 13
+ },
+ {
+  "id": "nl12-mot-11",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "osèmô",
+  "phonetique": "[òsɛ́mɔ̀]",
+  "mot_francais": "l'antidote",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 14
+ },
+ {
+  "id": "nl12-mot-12",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "goka",
+  "phonetique": "[ɣòká]",
+  "mot_francais": "appelle !",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 15
+ },
+ {
+  "id": "nl12-paire-04",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « attache ! » ?",
+  "options": [
+   "goka · [ɣòká]",
+   "gora · [ɣòɾá]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "gora · [ɣòɾá]",
+  "indice": "goka · [ɣòká] « appelle ! » / gora · [ɣòɾá] « attache ! »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 16
+ },
+ {
+  "id": "nl12-mot-13",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "gora",
+  "phonetique": "[ɣòɾá]",
+  "mot_francais": "attache !",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 17
+ },
+ {
+  "id": "nl12-mot-14",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "roka",
+  "phonetique": "[ɾòká]",
+  "mot_francais": "creuse !",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 18
+ },
+ {
+  "id": "nl12-mot-15",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "rola",
+  "phonetique": "[ɾòlá]",
+  "mot_francais": "perce !",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 19
+ },
+ {
+  "id": "nl12-paire-05",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « creuse ! » ?",
+  "options": [
+   "roka · [ɾòká]",
+   "rola · [ɾòlá]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "roka · [ɾòká]",
+  "indice": "roka · [ɾòká] « creuse ! » / rola · [ɾòlá] « perce ! »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 20
+ },
+ {
+  "id": "nl12-mot-16",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oganga",
+  "phonetique": "[òɣáŋgà]",
+  "mot_francais": "le médecin",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 21
+ },
+ {
+  "id": "nl12-mot-17",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "olanga",
+  "phonetique": "[òláŋgà]",
+  "mot_francais": "le cri",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 22
+ },
+ {
+  "id": "nl12-mot-18",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ñomba",
+  "phonetique": "[ŋómbà]",
+  "mot_francais": "le porc-épic",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 23
+ },
+ {
+  "id": "nl12-paire-06",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le cri » ?",
+  "options": [
+   "oganga · [òɣáŋgà]",
+   "olanga · [òláŋgà]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "olanga · [òláŋgà]",
+  "indice": "oganga · [òɣáŋgà] « le médecin » / olanga · [òláŋgà] « le cri »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 24
+ },
+ {
+  "id": "nl12-mot-19",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nomba",
+  "phonetique": "[nómbà]",
+  "mot_francais": "la montagne",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 25
+ },
+ {
+  "id": "nl12-mot-20",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "añandi",
+  "phonetique": "[àŋándì]",
+  "mot_francais": "l'anxiété",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 26
+ },
+ {
+  "id": "nl12-mot-21",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "arandi",
+  "phonetique": "[àɾándì]",
+  "mot_francais": "les huîtres",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 27
+ },
+ {
+  "id": "nl12-paire-07",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le porc-épic » ?",
+  "options": [
+   "ñomba · [ŋómbà]",
+   "nomba · [nómbà]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "ñomba · [ŋómbà]",
+  "indice": "ñomba · [ŋómbà] « le porc-épic » / nomba · [nómbà] « la montagne »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 28
+ },
+ {
+  "id": "nl12-mot-22",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ñango",
+  "phonetique": "[ŋáŋgò]",
+  "mot_francais": "le médicament",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 29
+ },
+ {
+  "id": "nl12-mot-23",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "kango",
+  "phonetique": "[káŋgò]",
+  "mot_francais": "l'arôme",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 30
+ },
+ {
+  "id": "nl12-mot-24",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "yango",
+  "phonetique": "[yáŋgò]",
+  "mot_francais": "les livres",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 31
+ },
+ {
+  "id": "nl12-paire-08",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les huîtres » ?",
+  "options": [
+   "añandi · [àŋándì]",
+   "arandi · [àɾándì]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "arandi · [àɾándì]",
+  "indice": "añandi · [àŋándì] « l'anxiété » / arandi · [àɾándì] « les huîtres »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 32
+ },
+ {
+  "id": "nl12-mot-25",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mondja",
+  "phonetique": "[mónjà]",
+  "mot_francais": "la feuille de raphia",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 33
+ },
+ {
+  "id": "nl12-mot-26",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ñondja",
+  "phonetique": "[ŋónjà]",
+  "mot_francais": "un arbre (espèce)",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 34
+ },
+ {
+  "id": "nl12-mot-27",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oyombo",
+  "phonetique": "[òyómbò]",
+  "mot_francais": "le parfum",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 35
+ },
+ {
+  "id": "nl12-paire-09",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le médicament » ?",
+  "options": [
+   "ñango · [ŋáŋgò]",
+   "kango · [káŋgò]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "ñango · [ŋáŋgò]",
+  "indice": "ñango · [ŋáŋgò] « le médicament » / kango · [káŋgò] « l'arôme »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 36
+ },
+ {
+  "id": "nl12-mot-28",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "orombo",
+  "phonetique": "[òɾómbò]",
+  "mot_francais": "la trompette",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 37
+ },
+ {
+  "id": "nl12-mot-29",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oyèngè",
+  "phonetique": "[òyɛ́ŋgɛ̀]",
+  "mot_francais": "l'herbe coupante",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 38
+ },
+ {
+  "id": "nl12-mot-30",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "osèngè",
+  "phonetique": "[òsɛ́ŋgɛ̀]",
+  "mot_francais": "la contrée",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 39
+ },
+ {
+  "id": "nl12-paire-10",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les livres » ?",
+  "options": [
+   "ñango · [ŋáŋgò]",
+   "yango · [yáŋgò]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "yango · [yáŋgò]",
+  "indice": "ñango · [ŋáŋgò] « le médicament » / yango · [yáŋgò] « les livres »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 40
+ },
+ {
+  "id": "nl12-mot-31",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "onèngè",
+  "phonetique": "[ònɛ́ŋgɛ̀]",
+  "mot_francais": "l'adresse",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 41
+ },
+ {
+  "id": "nl12-mot-32",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "owéga",
+  "phonetique": "[òɥéɣà]",
+  "mot_francais": "l'épaule",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 42
+ },
+ {
+  "id": "nl12-mot-33",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "oléga",
+  "phonetique": "[òléɣà]",
+  "mot_francais": "le biscuit",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 43
+ },
+ {
+  "id": "nl12-paire-11",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la feuille de raphia » ?",
+  "options": [
+   "mondja · [mónjà]",
+   "ñondja · [ŋónjà]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "mondja · [mónjà]",
+  "indice": "mondja · [mónjà] « la feuille de raphia » / ñondja · [ŋónjà] « un arbre (espèce) »",
+  "source": "Ambouroue 2007, p. 365 (annexe 1, paires minimales)",
+  "ordre": 44
+ },
+ {
+  "id": "nl12-mot-34",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "owanga",
+  "phonetique": "[òwáŋgà]",
+  "mot_francais": "l'aurore",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 45
+ },
+ {
+  "id": "nl12-mot-35",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "omanga",
+  "phonetique": "[òmáŋgà]",
+  "mot_francais": "la noix",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 46
+ },
+ {
+  "id": "nl12-mot-36",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "osawa",
+  "phonetique": "[òsáwà]",
+  "mot_francais": "le fumier",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 47
+ },
+ {
+  "id": "nl12-paire-12",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la trompette » ?",
+  "options": [
+   "oyombo · [òyómbò]",
+   "orombo · [òɾómbò]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "orombo · [òɾómbò]",
+  "indice": "oyombo · [òyómbò] « le parfum » / orombo · [òɾómbò] « la trompette »",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 48
+ },
+ {
+  "id": "nl12-mot-37",
+  "lecon_id": "ntina-l12",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "osaga",
+  "phonetique": "[òsáɣà]",
+  "mot_francais": "la sauce",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 49
+ },
+ {
+  "id": "nl12-paire-13",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'herbe coupante » ?",
+  "options": [
+   "oyèngè · [òyɛ́ŋgɛ̀]",
+   "osèngè · [òsɛ́ŋgɛ̀]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "oyèngè · [òyɛ́ŋgɛ̀]",
+  "indice": "oyèngè · [òyɛ́ŋgɛ̀] « l'herbe coupante » / osèngè · [òsɛ́ŋgɛ̀] « la contrée »",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 50
+ },
+ {
+  "id": "nl12-paire-14",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'adresse » ?",
+  "options": [
+   "oyèngè · [òyɛ́ŋgɛ̀]",
+   "onèngè · [ònɛ́ŋgɛ̀]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "onèngè · [ònɛ́ŋgɛ̀]",
+  "indice": "oyèngè · [òyɛ́ŋgɛ̀] « l'herbe coupante » / onèngè · [ònɛ́ŋgɛ̀] « l'adresse »",
+  "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
+  "ordre": 51
+ },
+ {
+  "id": "nl12-paire-15",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « l'épaule » ?",
+  "options": [
+   "owéga · [òɥéɣà]",
+   "oléga · [òléɣà]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "owéga · [òɥéɣà]",
+  "indice": "owéga · [òɥéɣà] « l'épaule » / oléga · [òléɣà] « le biscuit »",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 52
+ },
+ {
+  "id": "nl12-paire-16",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la noix » ?",
+  "options": [
+   "owanga · [òwáŋgà]",
+   "omanga · [òmáŋgà]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "omanga · [òmáŋgà]",
+  "indice": "owanga · [òwáŋgà] « l'aurore » / omanga · [òmáŋgà] « la noix »",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 53
+ },
+ {
+  "id": "nl12-paire-17",
+  "lecon_id": "ntina-l12",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le fumier » ?",
+  "options": [
+   "osawa · [òsáwà]",
+   "osaga · [òsáɣà]",
+   "nyama · [nyàmà]"
+  ],
+  "reponse": "osawa · [òsáwà]",
+  "indice": "osawa · [òsáwà] « le fumier » / osaga · [òsáɣà] « la sauce »",
+  "source": "Ambouroue 2007, p. 371 (annexe 1, paires minimales)",
+  "ordre": 54
+ },
+ {
+  "id": "nl13-cours",
+  "lecon_id": "ntina-l13",
+  "type": "cours",
+  "consigne": "Même écriture, autre ton, autre sens",
+  "texte": "L'écriture de tous les jours ne note pas les tons : oga peut vouloir dire « un roi » ou « le roi ». Seule la mélodie les distingue. Suis la ligne de la mélodie : en haut le ton haut, en bas le ton bas, au milieu le ton haut-abaissé.",
+  "conseil": "Le ton montant n'existe pas en ôrungu.",
+  "source": "Ambouroue 2007, p. 52-56",
+  "ordre": 0
+ },
+ {
+  "id": "nl13-mot-01",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "mènè",
+  "phonetique": "[mɛ́nɛ́]",
+  "mot_francais": "demain",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 1
+ },
+ {
+  "id": "nl13-mot-02",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "wino",
+  "phonetique": "[ɥínó]",
+  "mot_francais": "celui-ci",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 2
+ },
+ {
+  "id": "nl13-mot-03",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "orambaka",
+  "phonetique": "[òɾámbáká]",
+  "mot_francais": "une racine",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 3
+ },
+ {
+  "id": "nl13-paire-01",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un roi » ?",
+  "options": [
+   "oga · [òɣá]",
+   "oga · [óɣà]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "oga · [òɣá]",
+  "indice": "oga · [òɣá] « un roi » / oga · [óɣà] « le roi »",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 4
+ },
+ {
+  "id": "nl13-mot-04",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "omamba",
+  "phonetique": "[òmàmbà]",
+  "mot_francais": "un serpent",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 5
+ },
+ {
+  "id": "nl13-mot-05",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "swaka",
+  "phonetique": "[swàkà]",
+  "mot_francais": "un couteau",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 6
+ },
+ {
+  "id": "nl13-mot-06",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ilasa",
+  "phonetique": "[íla̍sà]",
+  "mot_francais": "l'orange",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 7
+ },
+ {
+  "id": "nl13-paire-02",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le mortier » ?",
+  "options": [
+   "ézo · [èzó]",
+   "ézo · [ézò]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "ézo · [ézò]",
+  "indice": "ézo · [èzó] « un mortier » / ézo · [ézò] « le mortier »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 8
+ },
+ {
+  "id": "nl13-mot-07",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ézéni",
+  "phonetique": "[éze̍nì]",
+  "mot_francais": "le débarcadère",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 9
+ },
+ {
+  "id": "nl13-mot-08",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "nya",
+  "phonetique": "[nyâ]",
+  "mot_francais": "manger",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 10
+ },
+ {
+  "id": "nl13-mot-09",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "pa",
+  "phonetique": "[pâ]",
+  "mot_francais": "donner",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 11
+ },
+ {
+  "id": "nl13-paire-03",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un peigne » ?",
+  "options": [
+   "ézalina · [èzàlìnà]",
+   "ézalina · [èzálìnà]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "ézalina · [èzàlìnà]",
+  "indice": "ézalina · [èzàlìnà] « un peigne » / ézalina · [èzálìnà] « le peigne »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 12
+ },
+ {
+  "id": "nl13-mot-10",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "nwa",
+  "phonetique": "[nwâ]",
+  "mot_francais": "se battre",
+  "source": "Ambouroue 2007, p. 53",
+  "ordre": 13
+ },
+ {
+  "id": "nl13-mot-11",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "oga",
+  "phonetique": "[òɣá]",
+  "mot_francais": "un roi",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 14
+ },
+ {
+  "id": "nl13-mot-12",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "oga",
+  "phonetique": "[óɣà]",
+  "mot_francais": "le roi",
+  "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
+  "ordre": 15
+ },
+ {
+  "id": "nl13-paire-04",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « déménage ! » ?",
+  "options": [
+   "rora · [ɾóɾá]",
+   "rora · [ɾòɾá]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "rora · [ɾòɾá]",
+  "indice": "rora · [ɾóɾá] « des épouses » / rora · [ɾòɾá] « déménage ! »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 16
+ },
+ {
+  "id": "nl13-mot-13",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ézo",
+  "phonetique": "[èzó]",
+  "mot_francais": "un mortier",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 17
+ },
+ {
+  "id": "nl13-mot-14",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ézo",
+  "phonetique": "[ézò]",
+  "mot_francais": "le mortier",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 18
+ },
+ {
+  "id": "nl13-mot-15",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ézalina",
+  "phonetique": "[èzàlìnà]",
+  "mot_francais": "un peigne",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 19
+ },
+ {
+  "id": "nl13-paire-05",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « des os » ?",
+  "options": [
+   "pa · [pá]",
+   "pa · [pà]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "pa · [pá]",
+  "indice": "pa · [pá] « des os » / pa · [pà] « donner (verbe de type B) »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 20
+ },
+ {
+  "id": "nl13-mot-16",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ézalina",
+  "phonetique": "[èzálìnà]",
+  "mot_francais": "le peigne",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 21
+ },
+ {
+  "id": "nl13-mot-17",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "rora",
+  "phonetique": "[ɾóɾá]",
+  "mot_francais": "des épouses",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 22
+ },
+ {
+  "id": "nl13-mot-18",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "rora",
+  "phonetique": "[ɾòɾá]",
+  "mot_francais": "déménage !",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 23
+ },
+ {
+  "id": "nl13-paire-06",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « se battre (verbe de type B) » ?",
+  "options": [
+   "nwa · [nwá]",
+   "nwa · [nwà]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "nwa · [nwà]",
+  "indice": "nwa · [nwá] « bats-toi ! » / nwa · [nwà] « se battre (verbe de type B) »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 24
+ },
+ {
+  "id": "nl13-mot-19",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "pa",
+  "phonetique": "[pá]",
+  "mot_francais": "des os",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 25
+ },
+ {
+  "id": "nl13-mot-20",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "pa",
+  "phonetique": "[pà]",
+  "mot_francais": "donner (verbe de type B)",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 26
+ },
+ {
+  "id": "nl13-mot-21",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "nwa",
+  "phonetique": "[nwá]",
+  "mot_francais": "bats-toi !",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 27
+ },
+ {
+  "id": "nl13-paire-07",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « des gouvernails » ?",
+  "options": [
+   "ṽèpa · [βɛ̀pà]",
+   "ṽèpa · [βɛ̀pá]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "ṽèpa · [βɛ̀pà]",
+  "indice": "ṽèpa · [βɛ̀pà] « des gouvernails » / ṽèpa · [βɛ̀pá] « fais signe de la main ! »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 28
+ },
+ {
+  "id": "nl13-mot-22",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "nwa",
+  "phonetique": "[nwà]",
+  "mot_francais": "se battre (verbe de type B)",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 29
+ },
+ {
+  "id": "nl13-mot-23",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ṽèpa",
+  "phonetique": "[βɛ̀pà]",
+  "mot_francais": "des gouvernails",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 30
+ },
+ {
+  "id": "nl13-mot-24",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ṽèpa",
+  "phonetique": "[βɛ̀pá]",
+  "mot_francais": "fais signe de la main !",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 31
+ },
+ {
+  "id": "nl13-paire-08",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la longue robe » ?",
+  "options": [
+   "éliñ éla · [èlíŋ élà]",
+   "éliñ éla · [èlíŋ e̍là]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "éliñ éla · [èlíŋ e̍là]",
+  "indice": "éliñ éla · [èlíŋ élà] « une robe longue » / éliñ éla · [èlíŋ e̍là] « la longue robe »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 32
+ },
+ {
+  "id": "nl13-mot-25",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "éliñ éla",
+  "phonetique": "[èlíŋ élà]",
+  "mot_francais": "une robe longue",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 33
+ },
+ {
+  "id": "nl13-mot-26",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "éliñ éla",
+  "phonetique": "[èlíŋ e̍là]",
+  "mot_francais": "la longue robe",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 34
+ },
+ {
+  "id": "nl13-mot-27",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "onom opé",
+  "phonetique": "[ònóm ópè]",
+  "mot_francais": "un petit homme",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 35
+ },
+ {
+  "id": "nl13-paire-09",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un petit homme » ?",
+  "options": [
+   "onom opé · [ònóm ópè]",
+   "onom opé · [ònóm o̍pè]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "onom opé · [ònóm ópè]",
+  "indice": "onom opé · [ònóm ópè] « un petit homme » / onom opé · [ònóm o̍pè] « le petit homme »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 36
+ },
+ {
+  "id": "nl13-mot-28",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "onom opé",
+  "phonetique": "[ònóm o̍pè]",
+  "mot_francais": "le petit homme",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 37
+ },
+ {
+  "id": "nl13-mot-29",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "win oga",
+  "phonetique": "[ɥín óɣa̍]",
+  "mot_francais": "c'est un roi",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 38
+ },
+ {
+  "id": "nl13-mot-30",
+  "lecon_id": "ntina-l13",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "win oga",
+  "phonetique": "[ɥín óɣà]",
+  "mot_francais": "c'est le roi",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 39
+ },
+ {
+  "id": "nl13-paire-10",
+  "lecon_id": "ntina-l13",
+  "type": "choix",
+  "consigne": "Lequel veut dire « c'est le roi » ?",
+  "options": [
+   "win oga · [ɥín óɣa̍]",
+   "win oga · [ɥín óɣà]",
+   "mènè · [mɛ́nɛ́]"
+  ],
+  "reponse": "win oga · [ɥín óɣà]",
+  "indice": "win oga · [ɥín óɣa̍] « c'est un roi » / win oga · [ɥín óɣà] « c'est le roi »",
+  "source": "Ambouroue 2007, p. 56",
+  "ordre": 40
+ },
+ {
+  "id": "nl14-cours",
+  "lecon_id": "ntina-l14",
+  "type": "cours",
+  "consigne": "Dire une phrase entière",
+  "texte": "Dans une phrase, la voix descend peu à peu : un ton haut placé après un ton bas est dit un peu plus bas que le ton haut d'avant (downdrift). Une suite de tons hauts peut aussi se dire en terrasse, chacun au niveau du précédent (downstep). Suis la mélodie de chaque phrase, puis répète-la d'un seul souffle.",
+  "conseil": "Un mot finit souvent par perdre sa voyelle devant le mot suivant : àwáná devient àwán dans « combien d'enfants ? ».",
+  "source": "Ambouroue 2007, p. 54-57",
+  "ordre": 0
+ },
+ {
+  "id": "nl14-mot-01",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "owonyawonya",
+  "phonetique": "[òwónyàwónyà]",
+  "mot_francais": "le papillon",
+  "source": "Ambouroue 2007, p. 57",
+  "ordre": 1
+ },
+ {
+  "id": "nl14-mot-02",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "awéré goyô sé",
+  "phonetique": "[àɥéɾé ɣo̍yɔ̀ sê]",
+  "mot_francais": "comment allez-vous ?",
+  "source": "Ambouroue 2007, p. 54",
+  "ordre": 2
+ },
+ {
+  "id": "nl14-mot-03",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "awéré goyô sèni",
+  "phonetique": "[àɥéɾé ɣo̍yɔ̀ sɛ́nì]",
+  "mot_francais": "comment allez-vous ?",
+  "source": "Ambouroue 2007, p. 54",
+  "ordre": 3
+ },
+ {
+  "id": "nl14-paire-01",
+  "lecon_id": "ntina-l14",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les enfants mangent » ?",
+  "options": [
+   "awana winya · [àwánà wínya̍̀]",
+   "anomé wita · [ànómè wíta̍̀]",
+   "owonyawonya · [òwónyàwónyà]"
+  ],
+  "reponse": "awana winya · [àwánà wínya̍̀]",
+  "indice": "awana winya · [àwánà wínya̍̀] « les enfants mangent » / anomé wita · [ànómè wíta̍̀] « les hommes chassent »",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 4
+ },
+ {
+  "id": "nl14-mot-04",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "awan amya",
+  "phonetique": "[àwán ámya̍̀]",
+  "mot_francais": "combien d'enfants ?",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 5
+ },
+ {
+  "id": "nl14-mot-05",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "anom amya",
+  "phonetique": "[ànóm ámya̍̀]",
+  "mot_francais": "combien d'hommes ?",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 6
+ },
+ {
+  "id": "nl14-mot-06",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "nago mya",
+  "phonetique": "[náɣó mya̍̀]",
+  "mot_francais": "combien de maisons ?",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 7
+ },
+ {
+  "id": "nl14-paire-02",
+  "lecon_id": "ntina-l14",
+  "type": "choix",
+  "consigne": "Lequel veut dire « combien de maisons ? » ?",
+  "options": [
+   "awan amya · [àwán ámya̍̀]",
+   "nago mya · [náɣó mya̍̀]",
+   "owonyawonya · [òwónyàwónyà]"
+  ],
+  "reponse": "nago mya · [náɣó mya̍̀]",
+  "indice": "awan amya · [àwán ámya̍̀] « combien d'enfants ? » / nago mya · [náɣó mya̍̀] « combien de maisons ? »",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 8
+ },
+ {
+  "id": "nl14-mot-07",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "awana winya",
+  "phonetique": "[àwánà wínya̍̀]",
+  "mot_francais": "les enfants mangent",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 9
+ },
+ {
+  "id": "nl14-mot-08",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "anomé wita",
+  "phonetique": "[ànómè wíta̍̀]",
+  "mot_francais": "les hommes chassent",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 10
+ },
+ {
+  "id": "nl14-mot-09",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "tchwana yipya",
+  "phonetique": "[cwánà yípya̍̀]",
+  "mot_francais": "la marmite brûle",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 11
+ },
+ {
+  "id": "nl14-paire-03",
+  "lecon_id": "ntina-l14",
+  "type": "choix",
+  "consigne": "Lequel veut dire « tous les enfants » ?",
+  "options": [
+   "awana wodu · [àwánà wóɗû]",
+   "ampanga modu · [àmpáŋgà móɗû]",
+   "owonyawonya · [òwónyàwónyà]"
+  ],
+  "reponse": "awana wodu · [àwánà wóɗû]",
+  "indice": "awana wodu · [àwánà wóɗû] « tous les enfants » / ampanga modu · [àmpáŋgà móɗû] « toutes les lois »",
+  "source": "Ambouroue 2007, p. 54",
+  "ordre": 12
+ },
+ {
+  "id": "nl14-mot-10",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "wanwa",
+  "phonetique": "[wánwa̍̀]",
+  "mot_francais": "ils se sont battus",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 13
+ },
+ {
+  "id": "nl14-mot-11",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "azwata sinkambi",
+  "phonetique": "[àzwáta̍̀ sìŋkàmbí]",
+  "mot_francais": "nous avons chassé des antilopes",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 14
+ },
+ {
+  "id": "nl14-mot-12",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "azwénya",
+  "phonetique": "[àzɥénya̍̀]",
+  "mot_francais": "nous mangeons",
+  "source": "Ambouroue 2007, p. 57",
+  "ordre": 15
+ },
+ {
+  "id": "nl14-mot-13",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "awana wodu",
+  "phonetique": "[àwánà wóɗû]",
+  "mot_francais": "tous les enfants",
+  "source": "Ambouroue 2007, p. 54",
+  "ordre": 16
+ },
+ {
+  "id": "nl14-mot-14",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "ampanga modu",
+  "phonetique": "[àmpáŋgà móɗû]",
+  "mot_francais": "toutes les lois",
+  "source": "Ambouroue 2007, p. 54",
+  "ordre": 17
+ },
+ {
+  "id": "nl14-mot-15",
+  "lecon_id": "ntina-l14",
+  "type": "ton",
+  "consigne": "Suis la mélodie, puis répète.",
+  "mot_myene": "anto wérétyé",
+  "phonetique": "[ántò wéɾétye̍̀]",
+  "mot_francais": "les femmes n'ont pas eu peur",
+  "source": "Ambouroue 2007, p. 55",
+  "ordre": 18
  }
 ]
