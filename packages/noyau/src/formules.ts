@@ -2,11 +2,15 @@
  * Ce qui est gratuit et ce qui demande un forfait (décision de Capp, 15 nov. 2026) :
  * - les cours d'Onenji (Inenga : leçons, contrôles, test de niveau) sont gratuits ;
  * - la bibliothèque est gratuite ;
- * - Igolani (la vidéothèque) garde son réglage vidéo par vidéo (`accesChapitreVideo`) ;
+ * - Igolani (la vidéothèque) et les cours d'artisans : en streaming seulement (15 nov. 2026), jamais à l'unité ; le premier
+ *   chapitre est gratuit avec publicité, la suite s'ouvre avec une formule qui inclut Igolani (Premium les inclut tous) ;
+ * - seuls les cours avec un professeur (masterclass) se paient à la séance ;
  * - l'IA (Kak'Igonjo et tout ce qui appelle le modèle) demande un forfait ; sans forfait, quelques questions gratuites
  *   chaque semaine pour la découvrir.
  * Le serveur reste seul juge ; l'application s'en sert pour l'affichage.
  */
+
+import type { Decision } from './acces';
 
 /** Questions gratuites à l'IA par semaine sans forfait (réglable par les administrateurs : `ia_quotas.questionsGratuitesSemaine`). */
 export const QUESTIONS_IA_GRATUITES_SEMAINE = 5;
@@ -48,3 +52,15 @@ export function droitIa(e: EtatIa): DroitIa {
 /** Message affiché quand les questions gratuites de la semaine sont épuisées. */
 export const messageForfaitIa = (gratuites: number) =>
   `Tu as posé tes ${gratuites} question${gratuites > 1 ? 's' : ''} gratuite${gratuites > 1 ? 's' : ''} de la semaine. Kak'Igonjo est inclus dans le forfait ; tes questions gratuites reviennent lundi.`;
+
+/**
+ * Peut-on regarder une partie de vidéo d'Igolani ? Streaming seulement : « libre » et « gratuit_avec_pub » pour tous ;
+ * « abonnement » avec une formule qui ouvre Igolani (`droits.igolani`) ; « reserve » pour le personnel. Aucun achat à l'unité.
+ */
+export function peutRegarderVideo(niveau: string, droits: { igolani?: boolean; role?: string } | null | undefined, personnel = false): Decision {
+  if (personnel) return { ok: true, avecPub: false };
+  if (niveau === 'libre') return { ok: true, avecPub: false };
+  if (niveau === 'gratuit_avec_pub') return { ok: true, avecPub: !droits?.igolani };
+  if (niveau === 'reserve') return ['admin', 'validator'].includes(droits?.role ?? '') ? { ok: true, avecPub: false } : { ok: false, motif: 'role_requis' };
+  return droits?.igolani ? { ok: true, avecPub: false } : { ok: false, motif: 'abonnement_requis' };
+}

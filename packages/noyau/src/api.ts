@@ -74,3 +74,12 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
   if (!res.ok) throw new ApiError(res.status, json?.error || `Erreur ${res.status}`, json);
   return json as T;
 }
+
+/** Texte brut d'une route authentifiée (export CSV de la console). */
+export async function apiTexte(path: string): Promise<string> {
+  let token = await tokenProvider(false);
+  let res = await rawFetch('GET', path, undefined, token);
+  if (res.status === 401 && token) { token = await tokenProvider(true); res = await rawFetch('GET', path, undefined, token); }
+  if (!res.ok) throw new ApiError(res.status, `Erreur ${res.status}`);
+  return res.text();
+}

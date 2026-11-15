@@ -17,6 +17,7 @@ import { Verrou } from './Verrou';
 import { ListeLogements } from './logement/ListeLogements';
 import { ActionsLogement, MesAlertes, VueLogement, type AnnonceVue } from './logement/DetailLogement';
 import { PublierLogement } from './logement/PublierLogement';
+import { useTempsOnglet } from './Mesure';
 import { ecouterOuvertureAnnonce, prendreAnnonceEnAttente } from './logement/alertesProximite';
 
 type Section = 'chercher' | 'annonces' | 'actus' | 'commune' | 'magazine' | 'services';
@@ -43,6 +44,7 @@ function usePosition() {
 
 export function Village() {
   const pile = usePile<E>({ t: 'racine' });
+  useTempsOnglet('nkala');
   const [section, setSection] = useState<Section>('chercher');
   const { res, chargement } = useContenus(['categories_lieux', 'lieux', 'gardes', 'actualites', 'magazine', 'services', 'categories_annonces', 'sondages']);
   const P = usePosition();

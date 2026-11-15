@@ -43,7 +43,6 @@ for (const [i, zone] of ['bandeau_accueil', 'annonce_dans_liste', 'annonce_en_te
   await sem('pub_creations', `demo-pub-${i}`, { zone, campagne_id: 'demo-ca', annonceur: 'Commerce exemple', titre: 'Votre commerce ici : parlez-en à la régie Nkala', texte_alt: 'Publicité d\'exemple', format: zone === 'annonce_dans_liste' ? 'natif' : 'bandeau', cta: 'Découvrir' });
 await sem('produits', 'abo-mensuel', { titre: 'Nkala Plus (mois)', type: 'abonnement', prix_fcfa: 1500, periode: 'mois', donne_acces: ['tout'] });
 await sem('produits', 'abo-annuel', { titre: 'Nkala Plus (an)', type: 'abonnement', prix_fcfa: 15000, periode: 'an', donne_acces: ['tout'] });
-await sem('produits', 'cours-hors-bord', { titre: 'Cours : entretien d\'un hors-bord', type: 'achat', prix_fcfa: 3000, prix_nkr: 1400, periode: 'unique', donne_acces: ['demo-hors-bord'] });
 await sem('produits', 'pack-nkr-500', { titre: '500 Nkorouna', type: 'nkorouna', prix_fcfa: 1000, nkorouna: 500 });
 await sem('produits', 'pack-nkr-1500', { titre: '1 500 Nkorouna', type: 'nkorouna', prix_fcfa: 2500, nkorouna: 1500 });
 await db.query(`INSERT INTO ia_documents (id, titre, source, texte) VALUES ('demo-doc','Salutations','[LEC] Bonjour','Mbolo se dit à une personne pour dire bonjour. Mbôluani se dit à plusies personnes. Akéwa signifie merci. Kôkôlô signifie s''il te plaît.') ON CONFLICT DO NOTHING`);

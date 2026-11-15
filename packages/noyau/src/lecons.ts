@@ -313,24 +313,22 @@ export const parcoursTermine = (parcoursId: string, unites: Pick<Unite, 'id' | '
   return u.length > 0 && u.every(x => validees.includes(x.id));
 };
 
-// ------------------------------------------------------------------ Igolani : accès vidéo par vidéo (décision de Capp, 13 nov. 2026, 0 h 53)
-/** Cours d'artisans « long » : vendu à l'achat par défaut (au-delà de cette durée totale, en minutes). */
-export const DUREE_COURS_LONG_MIN = 60;
+// ------------------------------------------------------------------ Igolani : vidéos en streaming seulement (décision de Capp, 15 nov. 2026)
 export interface CoursVideo { id: string; niveau_acces?: string | null; categorie?: string | null; artisan?: string | null; duree_min?: number | string | null }
 export interface ChapitreVideo { id: string; ordre?: number | string | null; debut_s?: number | string | null; niveau_acces?: string | null }
-const estArtisan = (c: CoursVideo) => String(c.categorie || (c.artisan ? 'Artisans' : '')).toLowerCase().startsWith('artisan');
+/** Une vidéo ne se vend plus à l'unité : « achat », « location » ou « essai » saisis sur une vidéo valent « abonnement ». */
+const enStreaming = (n: string): NiveauAcces => (n === 'achat' || n === 'location' || n === 'essai' ? 'abonnement' : n) as NiveauAcces;
 /**
- * Accès d'un chapitre d'une vidéo de la vidéothèque :
- * - colonne « niveau_acces » du chapitre si remplie, sinon celle de la vidéo (réglage vidéo par vidéo) ;
- * - sinon, règle par défaut : premier chapitre gratuit avec publicité, la suite au forfait, et à l'achat pour un cours d'artisan long.
+ * Accès d'un chapitre d'une vidéo de la vidéothèque (Igolani, cours d'artisans) — vidéos en streaming seulement :
+ * - colonne « niveau_acces » du chapitre si remplie, sinon celle de la vidéo (« achat » et « location » valent « abonnement ») ;
+ * - sinon, règle par défaut : premier chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igolani.
  * Une vidéo sans chapitre se traite comme un seul chapitre (donc gratuit avec publicité par défaut).
  */
 export function accesChapitreVideo(cours: CoursVideo, chapitres: ChapitreVideo[], index: number): NiveauAcces {
   const ch = [...chapitres].sort((a, b) => (Number(a.ordre) || 0) - (Number(b.ordre) || 0))[index];
-  if (ch?.niveau_acces) return ch.niveau_acces as NiveauAcces;
-  if (cours.niveau_acces) return cours.niveau_acces as NiveauAcces;
-  if (index <= 0) return 'gratuit_avec_pub';
-  return estArtisan(cours) && (Number(cours.duree_min) || 0) >= DUREE_COURS_LONG_MIN ? 'achat' : 'abonnement';
+  if (ch?.niveau_acces) return enStreaming(ch.niveau_acces);
+  if (cours.niveau_acces) return enStreaming(cours.niveau_acces);
+  return index <= 0 ? 'gratuit_avec_pub' : 'abonnement';
 }
 /** Accès le plus exigeant de la vidéo (celui de ses chapitres après le premier) : ce qu'il faut pour tout regarder. */
 export function accesCompletVideo(cours: CoursVideo, chapitres: ChapitreVideo[]): NiveauAcces {

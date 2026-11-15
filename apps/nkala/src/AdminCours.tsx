@@ -17,9 +17,10 @@ export function CoursDistanceAdmin() {
   const [trouves, setTrouves] = useState<UserProfile[]>([]);
   const [tarif, setTarif] = useState<TarifCoursDistance>(TARIF_COURS_DEFAUT);
   const [heure, setHeure] = useState('0'), [mini, setMini] = useState('0'), [plans, setPlans] = useState('');
+  const [pmin, setPmin] = useState('0'), [pmax, setPmax] = useState('0');
   const charger = () => {
     adminProfesseurs().then(setProfs).catch(e => toast((e as Error).message, 'erreur'));
-    adminParametres().then(r => { const t = { ...TARIF_COURS_DEFAUT, ...(r.parametres.cours_distance ?? {}) }; setTarif(t); setHeure(String(t.prix_heure_fcfa)); setMini(String(t.minimum_fcfa)); setPlans(t.plans_inclus.join(', ')); }).catch(() => {});
+    adminParametres().then(r => { const t = { ...TARIF_COURS_DEFAUT, ...(r.parametres.cours_distance ?? {}) }; setTarif(t); setHeure(String(t.prix_heure_fcfa)); setMini(String(t.minimum_fcfa)); setPlans(t.plans_inclus.join(', ')); setPmin(String(t.prix_min_fcfa ?? 0)); setPmax(String(t.prix_max_fcfa ?? 0)); }).catch(() => {});
   };
   useEffect(charger, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -28,18 +29,23 @@ export function CoursDistanceAdmin() {
     return () => clearTimeout(h);
   }, [q]);
   const enregistrer = async () => {
-    const t = { prix_heure_fcfa: Number(heure) || 0, minimum_fcfa: Number(mini) || 0, plans_inclus: plans.split(/[,|\s]+/).map(x => x.trim()).filter(Boolean) };
+    const t = { prix_heure_fcfa: Number(heure) || 0, minimum_fcfa: Number(mini) || 0, plans_inclus: plans.split(/[,|\s]+/).map(x => x.trim()).filter(Boolean), prix_min_fcfa: Number(pmin) || 0, prix_max_fcfa: Number(pmax) || 0 };
     try { await adminEcrireParametre('cours_distance', t); setTarif(t); toast('Tarif enregistré. Il s\'applique aux cours créés désormais.', 'succes'); } catch (e) { toast((e as Error).message, 'erreur'); }
   };
   return (
     <View style={{ gap: 14 }}>
       <SectionTitre titre="Tarif générique" />
-      <T v="petit">Le prix d'une séance vient de ce tarif, selon sa durée (arrondi aux 50 FCFA, jamais sous le minimum). Il est fixé à la création du cours ; les professeurs ne le choisissent pas. 0 = cours gratuits.</T>
+      <T v="petit">Le prix d'une séance vient de ce tarif, selon sa durée (arrondi aux 50 FCFA, jamais sous le minimum). Il est fixé à la création du cours. Si la fourchette des masterclass est ouverte, le professeur choisit son prix dedans. 0 = cours gratuits.</T>
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <View style={{ flex: 1 }}><Champ valeur={heure} onChange={setHeure} placeholder="Prix de l'heure (FCFA)" clavier="number-pad" label="Prix de l'heure (FCFA)" /></View>
         <View style={{ flex: 1 }}><Champ valeur={mini} onChange={setMini} placeholder="Minimum (FCFA)" clavier="number-pad" label="Minimum par séance" /></View>
       </View>
       <Champ valeur={plans} onChange={setPlans} placeholder="Formules incluses (identifiants, séparés par des virgules)" label="Formules qui incluent les cours" />
+      <T v="petit">Masterclass : fourchette dans laquelle le professeur choisit le prix de sa séance. 0 et 0 = fourchette fermée (le prix vient du tarif ci-dessus).</T>
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flex: 1 }}><Champ valeur={pmin} onChange={t => setPmin(t.replace(/\D/g, ''))} clavier="number-pad" label="Prix minimal (FCFA)" placeholder="0" /></View>
+        <View style={{ flex: 1 }}><Champ valeur={pmax} onChange={t => setPmax(t.replace(/\D/g, ''))} clavier="number-pad" label="Prix maximal (FCFA)" placeholder="0" /></View>
+      </View>
       <T v="petit">Exemples : 30 min = {prixSeance({ prix_heure_fcfa: Number(heure) || 0, minimum_fcfa: Number(mini) || 0 }, 30)} FCFA · 1 h = {prixSeance({ prix_heure_fcfa: Number(heure) || 0, minimum_fcfa: Number(mini) || 0 }, 60)} FCFA · 1 h 30 = {prixSeance({ prix_heure_fcfa: Number(heure) || 0, minimum_fcfa: Number(mini) || 0 }, 90)} FCFA. Enregistré : {tarif.prix_heure_fcfa} FCFA/h.</T>
       <Bouton label="Enregistrer le tarif" variante="ambre" onPress={enregistrer} />
 

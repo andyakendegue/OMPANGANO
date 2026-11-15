@@ -6,7 +6,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, Share, View } from 'react-native';
-import { adminProfesseurs, chargerModesPaiement, creerPaiement, creerSalle, declarerPaiement, entrerCoursPrevu, envoyerSignal, inscrireCoursPrevu, lireCoursPrevu, lirePaiement, lireSalle, mesCoursPrevus, moiCoursDistance, normaliserTelephone, planifierCours, prixSeance, quitterCoursPrevu, quitterSalle, rejoindreSalle, serveursIce, simulerPaiement, type CoursPrevu, type MembreAppel, type Paiement } from '@nkala/noyau';
+import { adminProfesseurs, chargerModesPaiement, creerPaiement, creerSalle, declarerPaiement, entrerCoursPrevu, envoyerSignal, inscrireCoursPrevu, lireCoursPrevu, lirePaiement, lireSalle, mesCoursPrevus, moiCoursDistance, normaliserTelephone, fourchetteOuverte, planifierCours, prixSeance, quitterCoursPrevu, quitterSalle, rejoindreSalle, serveursIce, simulerPaiement, type CoursPrevu, type MembreAppel, type Paiement } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { Bouton, Carte, Champ, Ecran, Entete, EtatVide, Feuille, Ic, Puce, T, useToast } from './kit';
 import { useTheme } from './Prefs';
@@ -259,13 +259,15 @@ function Planning({ entrer, droits }: { entrer: (s: { id: string; titre: string 
   const [profs, setProfs] = useState<{ uid: string; nom: string }[]>([]);
   const [prof, setProf] = useState<string | null>(null);
   useEffect(() => { if (droits?.admin && form) adminProfesseurs().then(setProfs).catch(() => {}); }, [droits?.admin, form]);
-  const prix = prixSeance(droits?.tarif, duree);
+  const ouverte = fourchetteOuverte(droits?.tarif);
+  const [prixChoisi, setPrixChoisi] = useState('');
+  const prix = ouverte && prixChoisi ? Number(prixChoisi) : prixSeance(droits?.tarif, duree);
   const charger = useCallback(() => { mesCoursPrevus().then(setListe).catch(() => setListe([])); }, []);
   useEffect(() => { charger(); ecouteursPlanning.add(charger); const t = setInterval(charger, 60_000); return () => { ecouteursPlanning.delete(charger); clearInterval(t); }; }, [charger]);
   const creer = async () => {
     const debut = lireDateHeure(jour, heure);
     if (!debut) { toast('Date (JJ/MM/AAAA) ou heure (HH:MM) illisible.', 'erreur'); return; }
-    try { const p = await planifierCours(titre.trim() || 'Cours à distance', debut, duree, prof ?? undefined); setForm(false); setTitre(''); charger(); partager(p); } catch (e) { toast((e as Error).message, 'erreur'); }
+    try { const p = await planifierCours(titre.trim() || 'Cours à distance', debut, duree, prof ?? undefined, ouverte && prixChoisi ? Number(prixChoisi) : undefined); setForm(false); setTitre(''); charger(); partager(p); } catch (e) { toast((e as Error).message, 'erreur'); }
   };
   const partager = (p: CoursPrevu) => { Share.share({ message: `Cours à distance sur Nkala : « ${p.titre} », ${dateHeure(p.debut)} (${p.dureeMin} min). Code d'inscription : ${p.code} (Apprendre › Inenga › Cours à distance).` }).catch(() => {}); };
   return (
@@ -286,7 +288,8 @@ function Planning({ entrer, droits }: { entrer: (s: { id: string; titre: string 
           </View>
           {profs.length === 0 && <T v="petit">Aucun professeur nommé : Console › Cours à distance.</T>}
         </View>}
-        <T v="petit">Prix de la place : {prix ? `${prix} FCFA` : 'gratuit'} (tarif fixé par les administrateurs).</T>
+        {ouverte && <Champ valeur={prixChoisi} onChange={t => setPrixChoisi(t.replace(/\D/g, ''))} clavier="number-pad" label={`Prix de la place (entre ${droits?.tarif.prix_min_fcfa ?? 0} et ${droits?.tarif.prix_max_fcfa} FCFA)`} placeholder={`${prixSeance(droits?.tarif, duree)} (tarif conseillé)`} />}
+        <T v="petit">Prix de la place : {prix ? `${prix} FCFA` : 'gratuit'} ({ouverte ? 'dans la fourchette fixée par les administrateurs' : 'tarif fixé par les administrateurs'}).</T>
         <Bouton label="Planifier et partager le code" icone="calendrier" onPress={creer} />
       </View></Carte>}
       {liste === null ? null : liste.length === 0 ? !form && <T v="petit">{droits?.peutAnimer ? 'Aucun cours prévu. Planifie-en un et partage son code.' : 'Aucun cours prévu. Entre ci-dessous le code reçu de ton professeur.'}</T> :

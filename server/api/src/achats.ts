@@ -10,6 +10,18 @@ import { crediterAchat } from './nkorounaRegistre.ts';
 
 export interface RecuVerifie { reference: string; fin?: Date | null }
 
+/**
+ * Les vidéos (Igolani, cours d'artisans) ne se vendent plus à l'unité (décision de Capp, 15 nov. 2026) : un produit « achat »
+ * dont « donne_acces » cite une vidéo ou un chapitre n'est ni affiché, ni vendu, ni accordé.
+ */
+export async function produitVendUneVideo(q: Queryable, d: Record<string, any> | null | undefined): Promise<boolean> {
+  if (!d || d.type !== 'achat') return false;
+  const ids = (Array.isArray(d.donne_acces) ? d.donne_acces : []).filter((x: unknown): x is string => typeof x === 'string' && x !== 'tout');
+  if (!ids.length) return false;
+  return (await q.query<any>(`SELECT 1 FROM contenus WHERE collection IN ('cours_artisans', 'chapitres') AND id = ANY($1) AND deleted_at IS NULL LIMIT 1`, [ids])).length > 0;
+}
+export const MESSAGE_VIDEO_STREAMING = 'Les vidéos ne se vendent plus à l\'unité : elles se regardent avec une formule qui ouvre Igolani.';
+
 export async function verifierRecu(env: NodeJS.ProcessEnv, magasin: string, recu: string): Promise<RecuVerifie | { erreur: string; statut: number }> {
   if (magasin === 'simulation') {
     if (env.ACHATS_FOURNISSEUR !== 'simulation' || env.NODE_ENV === 'production') return { erreur: 'Reçus simulés refusés (ACHATS_FOURNISSEUR=simulation requis, hors production).', statut: 403 };
@@ -25,6 +37,7 @@ export async function accorderProduit(q: Queryable, uid: string, produitId: stri
   const p = (await q.query<any>(`SELECT data FROM contenus WHERE collection = 'produits' AND id = $1 AND deleted_at IS NULL`, [produitId]))[0];
   if (!p) throw new Error('Produit introuvable.');
   const d = p.data, jours = d.periode === 'an' ? 366 : d.periode === 'mois' ? 31 : 0;
+  if (await produitVendUneVideo(q, d)) throw new Error(MESSAGE_VIDEO_STREAMING);
   if (d.type === 'nkorouna') {
     // Pack de Nkorouna payé en FCFA : jetons crédités une seule fois par paiement ou reçu (référence unique).
     const n = Number(d.nkorouna);
@@ -39,8 +52,10 @@ export function registerAchats({ app, db, fail, acteur, env }: Ctx) {
   /** Offres visibles sans compte. */
   app.get('/pub/produits', async (_req, reply) => {
     const r = await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'produits' AND publie AND deleted_at IS NULL ORDER BY id`);
+    const visibles: any[] = [];
+    for (const x of r) if (!(await produitVendUneVideo(db, x.data))) visibles.push({ ...x.data, id: x.id });
     reply.header('Cache-Control', 'public, max-age=60');
-    return { mode: env.ACHATS_FOURNISSEUR === 'simulation' ? 'simulation' : 'magasins', produits: r.map(x => ({ ...x.data, id: x.id })) };
+    return { mode: env.ACHATS_FOURNISSEUR === 'simulation' ? 'simulation' : 'magasins', produits: visibles };
   });
 
   app.post('/v1/achats/recu', async (req) => {
@@ -49,6 +64,7 @@ export function registerAchats({ app, db, fail, acteur, env }: Ctx) {
     if (!str(magasin) || !str(produitId) || !str(recu)) return fail(400, 'Magasin, produit et reçu attendus.');
     const p = (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'produits' AND id = $1 AND publie AND deleted_at IS NULL`, [produitId]))[0];
     if (!p) return fail(404, 'Produit introuvable.');
+    if (await produitVendUneVideo(db, p.data)) return fail(410, MESSAGE_VIDEO_STREAMING);
     const v = await verifierRecu(env, magasin, recu);
     if ('erreur' in v) return fail(v.statut, v.erreur);
     return db.tx(async q => {

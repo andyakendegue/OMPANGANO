@@ -33,6 +33,8 @@ const id: Champ = { nom: 'id', type: 'texte', requis: true, aide: 'Identifiant u
 const publie: Champ = { nom: 'publie', type: 'booleen', aide: 'oui/non : visible dans l\'application (non par défaut = brouillon).', exemple: 'oui' };
 const ordre: Champ = { nom: 'ordre', type: 'entier', aide: 'Position dans la liste (1, 2, 3…).', exemple: '1' };
 const acces: Champ = { nom: 'niveau_acces', type: 'choix', choix: ['libre', 'gratuit_avec_pub', 'abonnement', 'achat', 'essai', 'location', 'reserve'], aide: 'Qui peut ouvrir ce contenu (libre par défaut).', exemple: 'libre' };
+/** Vidéos (Igolani, cours d'artisans) : streaming seulement, plus d'achat, d'essai ni de location (décision de Capp, 15 nov. 2026). */
+const accesVideo: Champ = { ...acces, choix: ['libre', 'gratuit_avec_pub', 'abonnement', 'reserve'] };
 const rangMin: Champ = { nom: 'rang_min', type: 'entier', aide: 'Rang minimal pour y accéder (1 = tous, jusqu\'à 8 : voir la collection « rangs »).', exemple: '1' };
 const plans: Champ = { nom: 'plans', type: 'liste', ref: 'plans', aide: 'Formules d\'abonnement qui y donnent accès, séparées par | (vide = aucune contrainte de formule).' };
 const image: Champ = { nom: 'image', type: 'url', aide: 'Image (adresse https ou chemin du stockage).' };
@@ -89,13 +91,14 @@ export const SCHEMAS: SchemaContenu[] = [
 { nom: 'protege', type: 'booleen', aide: 'oui/non : médias chiffrés (HLS AES-128) sous media/<collection>/<id>/ ; la lecture exige une licence.' },
      { nom: 'sous_titres_url', type: 'url', aide: 'Fichier de sous-titres (.vtt).' },
     { nom: 'duree_min', type: 'entier', aide: 'Durée totale en minutes.' }, { nom: 'niveau', type: 'choix', choix: ['debutant', 'intermediaire', 'avance'], aide: 'Niveau.' },
-    { ...acces, aide: 'Accès de toute la vidéo (vide = règle par défaut : 1er chapitre gratuit avec publicité, la suite au forfait, à l\'achat pour un cours d\'artisan de plus de 60 min).', exemple: '' },
+    { ...accesVideo, aide: 'Accès de toute la vidéo, en streaming seulement (vide = 1er chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igolani). Aucune vente à l\'unité.', exemple: '' },
+    { nom: 'createur_id', type: 'texte', aide: 'Bénéficiaire créateur de la vidéo (console > Reversements) : sa part du fonds des créateurs suit les minutes regardées.' },
     { nom: 'parcours_id', type: 'texte', ref: 'parcours', aide: 'Étape d\'Inenga à laquelle la vidéo se rattache (facultatif).' }, rangMin, plans, image, ordre, publie] },
   { id: 'chapitres', module: 'onenji', titre: 'Chapitres de cours', description: 'Chapitres d\'un cours d\'artisan.', champs: [
     id, { nom: 'cours_id', type: 'texte', requis: true, ref: 'cours_artisans', aide: 'Cours parent.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du chapitre.' }, { nom: 'debut_s', type: 'entier', aide: 'Début dans la vidéo (secondes).' },
     { nom: 'duree_s', type: 'entier', aide: 'Durée en secondes.' },
-    { ...acces, aide: 'Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n\'en a pas : 1er chapitre gratuit avec publicité, la suite au forfait, à l\'achat pour un cours d\'artisan de plus de 60 min).', exemple: '' }, ordre] },
+    { ...accesVideo, aide: 'Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n\'en a pas : 1er chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igolani).', exemple: '' }, ordre] },
   { id: 'bibliotheque', module: 'onenji', titre: 'Bibliothèque', description: 'Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l\'application. La bibliothèque est gratuite (15 nov. 2026) : seuls « reserve » (personnel) et « rang_min » retiennent un livre.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'auteur', type: 'texte', aide: 'Auteur.' },
     { nom: 'type', type: 'choix', choix: ['livre', 'annale', 'fiche', 'audio', 'autre'], aide: 'Type.' },
@@ -235,7 +238,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'texte', type: 'texte', requis: true, aide: 'Texte (tutoiement sauf services citoyens). Type « kakigonjo » : message d\'accueil du chat de Kak\'Igonjo ; {prénom} est remplacé par le prénom de l\'utilisateur.', exemple: "Mbolo {prénom} ! Myè no Kak'Igonjo. Wulinya myè, de quoi as-tu besoin ?" }, { nom: 'ton', type: 'choix', choix: ['tu', 'vous'], aide: 'Tutoiement ou vouvoiement.' }, publie] },
   { id: 'plans', module: 'commun', titre: 'Formules d\'abonnement', description: 'Ce que chaque formule débloque : toute l\'application, ou seulement les contenus qui la citent (colonne « plans »).', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Nom de la formule.' }, { nom: 'description', type: 'long', aide: 'Ce qu\'elle apporte.' },
-    { nom: 'tout', type: 'booleen', aide: 'oui = donne accès à tout (contenus soumis à une formule compris).' }, { nom: 'rang_min', type: 'entier', aide: 'Rang minimal conseillé (information).' },
+    { nom: 'tout', type: 'booleen', aide: 'oui = donne accès à tout (contenus soumis à une formule compris) : formule Premium, qui ouvre aussi Igolani.' }, { nom: 'igolani', type: 'booleen', aide: 'oui = ouvre les vidéos d\'Igolani et les cours d\'artisans, en streaming (15 nov. 2026).' }, { nom: 'rang_min', type: 'entier', aide: 'Rang minimal conseillé (information).' },
     { nom: 'sans_pub', type: 'liste', aide: 'Parties sans publicité : « tout », ou des modules séparés par | (commun, onenji, azeva, ontci, nkala). Vide = publicité maintenue. « oui » vaut « tout ».', exemple: 'tout' }, ordre, publie] },
   { id: 'produits', module: 'commun', titre: 'Produits payants', description: 'Abonnements, achats intégrés et packs de Nkorouna (aucun prix n\'est fixé dans le code). Un produit peut se payer en FCFA (prix_fcfa), en Nkorouna (prix_nkr) ou les deux.', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'type', type: 'choix', requis: true, choix: ['abonnement', 'achat', 'consommable', 'nkorouna'], aide: 'Type ; « nkorouna » = pack de jetons payé en FCFA.' },

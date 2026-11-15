@@ -6,10 +6,11 @@ import { createHmac, randomBytes } from 'node:crypto';
 import { SignJWT } from 'jose';
 import { verifierQuota, estimerJetons, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
 import { abonne, peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
-import { droitIa, messageForfaitIa, type DroitIa } from '../../../packages/noyau/src/formules.ts';
-import { accesCompletVideo, finPartieGratuite } from '../../../packages/noyau/src/lecons.ts';
+import { droitIa, messageForfaitIa, peutRegarderVideo, type DroitIa } from '../../../packages/noyau/src/formules.ts';
+import { accesChapitreVideo, accesCompletVideo, finPartieGratuite } from '../../../packages/noyau/src/lecons.ts';
 import { differable } from './travauxIa.ts';
-import { prixSeance, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
+import { ouvrirPassage } from './reversements.ts';
+import { prixMasterclass, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
 import { zoneAffichable, profilAgeDepuis, modulesSansPub, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
 import { construireSysteme } from './ia.ts';
 import type { Queryable } from './db.ts';
@@ -131,7 +132,7 @@ export function registerServices(ctx: Ctx) {
     const a = await acteur(req);
     const d = await droitsDe(db, a.auth.uid, a.role);
     const liste = await db.query<any>(`SELECT id, produit_id, type, contenu_id, debut, fin, source, statut FROM droits WHERE user_id = $1 ORDER BY debut DESC LIMIT 100`, [a.auth.uid]);
-    return { ...d, abonne: !!d.abonneJusque && d.abonneJusque > Date.now(), historique: liste };
+    return { ...d, abonne: !!d.abonneJusque && d.abonneJusque > Date.now(), igolani: (await profilAcces(db, a.auth.uid)).igolani, historique: liste };
   });
 
   app.get('/v1/droits/acces', async (req) => { const a = await acteur(req); await ensureUser(db, a.auth); return profilAcces(db, a.auth.uid); });
@@ -157,17 +158,24 @@ export function registerServices(ctx: Ctx) {
     const c = await db.query<any>(`SELECT data FROM contenus WHERE collection = $1 AND id = $2 AND publie AND deleted_at IS NULL`, [collection, id]);
     if (!c.length) return fail(404, 'Contenu introuvable.');
     const droits = await droitsDe(db, a.auth.uid, a.role);
-    // Vidéothèque (décision du 13 nov. 2026) : réglage vidéo par vidéo, sinon 1er chapitre gratuit avec publicité, la suite au forfait
-    // (à l'achat pour un cours d'artisan long). Sans le droit complet, la licence ne couvre que la partie gratuite (« limiteS »).
+    // Vidéos (Igolani, cours d'artisans) en streaming seulement (décision du 15 nov. 2026) : aucun achat ni location ; 1er chapitre
+    // gratuit avec publicité, la suite avec une formule qui ouvre Igolani. Sans elle, la licence ne couvre que la partie gratuite (« limiteS »).
     let limiteS: number | null = null;
+    let passageVideo: { coursId: string; igolani: boolean; plans: string[] } | null = null;
     let d = peutAcceder({ id, acces: (c[0].data.niveau_acces || 'libre') as NiveauAcces, roles: ['admin', 'validator'] }, droits);
-    if (collection === 'cours_artisans') {
-      const chap = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'chapitres' AND deleted_at IS NULL AND data->>'cours_id' = $1`, [id])).map(x => ({ ...x.data, id: x.id }));
-      const cours = { ...c[0].data, id };
-      d = peutAcceder({ id, acces: accesCompletVideo(cours, chap), roles: ['admin', 'validator'] }, droits);
-      if (!d.ok && !a.isStaff) {
+    if (collection === 'cours_artisans' || collection === 'chapitres') {
+      const coursId = collection === 'chapitres' ? String(c[0].data.cours_id ?? '') : id;
+      const coursData = collection === 'chapitres' ? (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'cours_artisans' AND id = $1 AND deleted_at IS NULL`, [coursId]))[0]?.data ?? {} : c[0].data;
+      const chap = (await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'chapitres' AND deleted_at IS NULL AND data->>'cours_id' = $1`, [coursId])).map(x => ({ ...x.data, id: x.id }));
+      const cours = { ...coursData, id: coursId };
+      const profil = await profilAcces(db, a.auth.uid);
+      const vus = { ...droits, igolani: profil.igolani };
+      passageVideo = { coursId, igolani: profil.igolani, plans: [...profil.plans] };
+      const niveau = collection === 'chapitres' ? accesChapitreVideo(cours, chap, Math.max(0, chap.sort((x: any, y: any) => (Number(x.ordre) || 0) - (Number(y.ordre) || 0)).findIndex((x: any) => x.id === id))) : accesCompletVideo(cours, chap);
+      d = peutRegarderVideo(niveau, vus, a.isStaff);
+      if (!d.ok && collection === 'cours_artisans') {
         const fin = finPartieGratuite(cours, chap);
-        if (fin === null || fin > 0) { limiteS = fin; d = peutAcceder({ id, acces: 'gratuit_avec_pub' }, droits); }
+        if (fin === null || fin > 0) { limiteS = fin; d = peutRegarderVideo('gratuit_avec_pub', vus); }
       }
     }
     if (!d.ok && a.isStaff) d = { ok: true, avecPub: false };
@@ -177,7 +185,9 @@ export function registerServices(ctx: Ctx) {
     const filigrane = createHmac('sha256', cles.filigrane).update(a.auth.uid).digest('hex').slice(0, 10);
     const jeton = await new SignJWT({ c: `${collection}/${id}`, fil: filigrane }).setProtectedHeader({ alg: 'HS256' }).setSubject(a.auth.uid).setIssuer('nkala-licence').setExpirationTime('10m').sign(new TextEncoder().encode(cles.licences));
     const protege = c[0].data.protege === true;
-    return { jeton, filigrane, expireDans: 600, avecPub: d.avecPub, limiteS, videoUrl: protege ? null : (c[0].data.video_url ?? null), protection: { niveau: 1, enregistrementEcranInterdit: true, segmentsChiffres: protege }, urlHls: protege ? `${baseApi(req, env)}/media/hls/${collection}/${id}.m3u8?t=${encodeURIComponent(jeton)}` : null };
+    // Minutes regardées (fonds des créateurs) : un passage par licence vidéo, compté par les battements du lecteur.
+    const passage = passageVideo ? await ouvrirPassage(db, a.auth.uid, collection, id, passageVideo.coursId, passageVideo.igolani, passageVideo.plans) : null;
+    return { jeton, filigrane, expireDans: 600, avecPub: d.avecPub, limiteS, passage, videoUrl: protege ? null : (c[0].data.video_url ?? null), protection: { niveau: 1, enregistrementEcranInterdit: true, segmentsChiffres: protege }, urlHls: protege ? `${baseApi(req, env)}/media/hls/${collection}/${id}.m3u8?t=${encodeURIComponent(jeton)}` : null };
   });
 
   app.get('/v1/admin/droits', async (req) => {
@@ -372,11 +382,11 @@ export function registerServices(ctx: Ctx) {
     inscrits: (r.inscrits as string[]).length, inscrit: (r.inscrits as string[]).includes(uid), places: MAX_GROUPE,
     ouvert: Date.now() >= new Date(r.debut).getTime() - AVANCE_ENTREE_MS && Date.now() <= new Date(r.debut).getTime() + r.duree_min * 60_000,
   });
-  const lirePlanning = async (code: string) => (await db.query<any>(`SELECT * FROM cours_planifies WHERE code = $1`, [String(code || '').toLowerCase()]))[0] ?? fail(404, 'Aucun cours prévu avec ce code.');
+  const lirePlanning = async (code: string) => (await db.query<any>(`SELECT * FROM cours_planifies WHERE code = $1 AND statut = 'prevu'`, [String(code || '').toLowerCase()]))[0] ?? fail(404, 'Aucun cours prévu avec ce code.');
   app.post('/v1/appels/planning', async (req, reply) => {
     const a = await acteur(req);
     if (!(await peutAnimer(a))) return fail(403, 'Seuls les professeurs et les administrateurs créent des cours à distance.');
-    const { titre, debut, dureeMin, professeurId } = (req.body || {}) as { titre?: string; debut?: string; dureeMin?: number; professeurId?: string };
+    const { titre, debut, dureeMin, professeurId, prixFcfa } = (req.body || {}) as { titre?: string; debut?: string; dureeMin?: number; professeurId?: string; prixFcfa?: number };
     // Un administrateur peut désigner le professeur du cours ; un professeur anime toujours lui-même.
     let hote = a.auth.uid;
     if (str(professeurId) && professeurId !== a.auth.uid) {
@@ -388,17 +398,20 @@ export function registerServices(ctx: Ctx) {
     if (!Number.isFinite(t) || t < Date.now() - 5 * 60_000 || t > Date.now() + 60 * 86_400_000) return fail(400, 'Choisis une date dans les 60 prochains jours.');
     const duree = Number(dureeMin ?? 60);
     if (!Number.isInteger(duree) || duree < 15 || duree > 180) return fail(400, 'Durée : entre 15 et 180 minutes.');
-    const n = (await db.query<any>(`SELECT count(*)::int AS n FROM cours_planifies WHERE hote_id = $1 AND debut + make_interval(mins => duree_min) > clock_timestamp()`, [hote]))[0].n;
+    const n = (await db.query<any>(`SELECT count(*)::int AS n FROM cours_planifies WHERE hote_id = $1 AND statut = 'prevu' AND debut + make_interval(mins => duree_min) > clock_timestamp()`, [hote]))[0].n;
     if (n >= 20) return fail(429, 'Ce professeur a déjà 20 cours prévus.');
     const code = randomBytes(4).toString('hex');
-    // Prix fixé maintenant d'après le tarif générique (un changement de tarif ne touche pas les cours déjà prévus).
-    const prix = prixSeance(await tarifCours(), duree);
-    await db.query(`INSERT INTO cours_planifies (code, hote_id, titre, debut, duree_min, inscrits, prix_fcfa, cree_par) VALUES ($1,$2,$3,$4,$5,ARRAY[$2],$6,$7)`, [code, hote, String(titre || 'Cours à distance').slice(0, 80), new Date(t).toISOString(), duree, prix, a.auth.uid]);
+    // Masterclass : prix choisi par le professeur dans la fourchette des administrateurs, sinon tarif générique ; fixé maintenant
+    // (un changement de tarif ne touche pas les cours déjà prévus).
+    const tarif = await tarifCours();
+    if (prixFcfa !== undefined && prixFcfa !== null && !prixMasterclass(tarif, duree, prixFcfa).choisi && (tarif.prix_max_fcfa ?? 0) > 0) return fail(400, `Prix hors de la fourchette : entre ${tarif.prix_min_fcfa ?? 0} et ${tarif.prix_max_fcfa} FCFA.`);
+    const { prix, choisi } = prixMasterclass(tarif, duree, prixFcfa);
+    await db.query(`INSERT INTO cours_planifies (code, hote_id, titre, debut, duree_min, inscrits, prix_fcfa, cree_par, prix_choisi) VALUES ($1,$2,$3,$4,$5,ARRAY[$2],$6,$7,$8)`, [code, hote, String(titre || 'Cours à distance').slice(0, 80), new Date(t).toISOString(), duree, prix, a.auth.uid, choisi]);
     return reply.status(201).send(await formePlanning(await lirePlanning(code), a.auth.uid));
   });
   app.get('/v1/appels/planning', async (req) => {
     const a = await acteur(req);
-    const r = await db.query<any>(`SELECT * FROM cours_planifies WHERE $1 = ANY(inscrits) AND debut + make_interval(mins => duree_min) > clock_timestamp() ORDER BY debut LIMIT 50`, [a.auth.uid]);
+    const r = await db.query<any>(`SELECT * FROM cours_planifies WHERE $1 = ANY(inscrits) AND statut = 'prevu' AND debut + make_interval(mins => duree_min) > clock_timestamp() ORDER BY debut LIMIT 50`, [a.auth.uid]);
     return Promise.all(r.map(x => formePlanning(x, a.auth.uid)));
   });
   app.get('/v1/appels/planning/:code', async (req) => { const a = await acteur(req); return formePlanning(await lirePlanning((req.params as any).code), a.auth.uid); });
@@ -422,8 +435,14 @@ export function registerServices(ctx: Ctx) {
     const payants = Number(p.prix_fcfa) > 0 && (p.inscrits as string[]).length > 1;
     if ((p.hote_id === a.auth.uid || a.isAdmin) && payants && !a.isAdmin) return fail(409, 'Des élèves ont payé leur place : seul un administrateur peut annuler ce cours (remboursements).');
     if (p.hote_id === a.auth.uid || (a.isAdmin && !p.inscrits.includes(a.auth.uid))) {
-      if (payants) await journaliser(db, a.auth.uid, 'cours_annule_a_rembourser', p.code, { inscrits: p.inscrits, prix: p.prix_fcfa });
-      await db.query(`DELETE FROM cours_planifies WHERE code = $1`, [p.code]);
+      // Annulation : le cours est gardé (statut « annule ») ; les places payées sont à rembourser et rien n'est reversé au professeur.
+      await db.tx(async q => {
+        await q.query(`UPDATE cours_planifies SET statut = 'annule', annule_le = clock_timestamp() WHERE code = $1`, [p.code]);
+        if (payants) {
+          await q.query(`UPDATE paiements SET rembourse_fcfa = COALESCE(encaisse_fcfa, montant_fcfa) WHERE produit_id = $1 AND statut = 'confirme'`, [`seance:${p.code}`]);
+          await journaliser(q, a.auth.uid, 'cours_annule_a_rembourser', p.code, { inscrits: p.inscrits, prix: p.prix_fcfa });
+        }
+      });
     }
     else await db.query(`UPDATE cours_planifies SET inscrits = array_remove(inscrits, $2) WHERE code = $1`, [p.code, a.auth.uid]);
     return reply.status(204).send();

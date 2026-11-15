@@ -1,5 +1,5 @@
 /** Appels de l'application à l'API Nkala : connexion par SMS, progression, parties, assistant, publicité, droits, contenus d'utilisateurs, cours à distance. */
-import { api } from './api';
+import { api, apiTexte } from './api';
 import { avecCache } from './cache';
 import type { EtatContexte, ReglesContexte, TarifIa } from './jetons';
 import type { ActionIa } from './actionsIa';
@@ -105,11 +105,11 @@ export interface CreationPub { id: string; zone: string; image: string | null; l
 export const demanderPub = (zone: string, activite = false) => api<{ pub: CreationPub | null }>('GET', `/v1/pub?zone=${zone}${activite ? '&activite=1' : ''}`);
 export const signalerPub = (type: 'affichage' | 'clic', creationId: string, zone: string) => api('POST', '/v1/pub/evenement', { type, creationId, zone });
 export const reclamerRecompensePub = (creationId: string, tempsVuMs: number) => api<{ accorde: boolean; coeurs: number; restantAujourdhui: number }>('POST', '/v1/pub/recompense', { creationId, tempsVuMs });
-export interface DroitsServeur { abonne: boolean; abonneJusque: number | null; achats: string[]; historique: { id: number; produit_id: string; type: string; fin: string | null; statut: string }[] }
+export interface DroitsServeur { abonne: boolean; abonneJusque: number | null; achats: string[]; igolani?: boolean; historique: { id: number; produit_id: string; type: string; fin: string | null; statut: string }[] }
 export const chargerDroits = () => api<DroitsServeur>('GET', '/v1/droits');
 export const verifierAcces = (collection: string, id: string) => api<{ autorise: boolean; avecPub: boolean; motif: string | null; niveau: string }>('POST', '/v1/acces/verifier', { collection, id });
 /** Licence de lecture. `limiteS` : seconde où s'arrête la partie gratuite d'une vidéo (null = toute la vidéo). */
-export const demanderLicence = (collection: string, id: string) => api<{ jeton: string; filigrane: string; expireDans: number; avecPub: boolean; limiteS?: number | null; videoUrl?: string | null; urlHls: string | null }>('POST', '/v1/lecture/licence', { collection, id });
+export const demanderLicence = (collection: string, id: string) => api<{ jeton: string; filigrane: string; expireDans: number; avecPub: boolean; limiteS?: number | null; videoUrl?: string | null; urlHls: string | null; passage?: string | null }>('POST', '/v1/lecture/licence', { collection, id });
 
 // ------------------------------------------------------------------ certificats d'Onenji (numérotés, vérifiables)
 export interface CertificatOnenji { numero: string; nom: string; titre: string; parcoursId: string; le: string }
@@ -159,7 +159,11 @@ export const quitterSalle = (id: string) => api('POST', `/v1/appels/${id}/quitte
 export const serveursIce = () => api<{ iceServers: unknown[]; maxGroupe: number }>('GET', '/v1/appels/ice');
 /** Planning des cours à distance : un cours prévu a un code, une heure, une durée et au plus 4 inscrits (hôte compris). */
 export interface CoursPrevu { prixFcfa: number; code: string; titre: string; debut: string; dureeMin: number; hote: boolean; hoteNom: string; inscrits: number; inscrit: boolean; places: number; ouvert: boolean }
-export const planifierCours = (titre: string, debut: string, dureeMin: number, professeurId?: string) => api<CoursPrevu>('POST', '/v1/appels/planning', { titre, debut, dureeMin, professeurId });
+export const planifierCours = (titre: string, debut: string, dureeMin: number, professeurId?: string, prixFcfa?: number) => api<CoursPrevu>('POST', '/v1/appels/planning', { titre, debut, dureeMin, professeurId, prixFcfa });
+/** Minutes regardées : battement du lecteur vidéo (toutes les 30 s pendant la lecture). */
+export const battementLecture = (passage: string) => api<{ secondes: number }>('POST', '/v1/lecture/battement', { passage });
+/** Temps passé par module (toutes les 60 s quand l'écran du module est ouvert). */
+export const battementModule = (module: string) => api<{ ok: boolean }>('POST', '/v1/temps', { module });
 /** Ce que le compte peut faire dans les cours à distance, et le tarif générique fixé par les administrateurs. */
 export const moiCoursDistance = () => api<{ peutAnimer: boolean; admin: boolean; professeur: boolean; tarif: import('./coursDistance').TarifCoursDistance; inclus: boolean }>('GET', '/v1/appels/moi');
 export const adminProfesseurs = () => api<{ uid: string; nom: string; email: string | null; depuis: string }[]>('GET', '/v1/admin/professeurs');
@@ -296,3 +300,27 @@ export const ficheLivre = (id: string) => avecCache(`biblio:livre:${id}`, () => 
 /** Texte d'un chapitre (copie locale : un chapitre ouvert une fois se relit hors ligne). Avec compte : route qui applique les droits. */
 export const texteChapitre = (livreId: string, chapitreId: string, connecte: boolean) =>
   avecCache(`biblio:chap:${livreId}:${chapitreId}`, () => api<{ chapitre: ChapitreTexte }>('GET', `/${connecte ? 'v1' : 'pub'}/bibliotheque/${encodeURIComponent(livreId)}/chapitres/${encodeURIComponent(chapitreId)}`));
+
+// ------------------------------------------------------------------ reversements (décision de Capp du 15 nov. 2026 ; console, administrateurs)
+export interface BeneficiaireAdmin { id: string; type: 'contributeur_special' | 'createur' | 'professeur' | 'association'; nom: string; user_id: string | null; contrat: string | null; date_signature: string | null; date_pv: string | null; coordonnees: Record<string, unknown>; seuil_fcfa: number; retenue_pct: number; options: Record<string, unknown>; actif: boolean; membres: string[] }
+export interface PartReleveApi { code: string; libelle: string; assiette: number; taux: number; montant: number; note?: string }
+export interface ReleveApi { id: string; trimestre: string; beneficiaire_id?: string; nom: string; type: string; detail: PartReleveApi[]; brut_fcfa: number; report_entrant: number; retenue_fcfa: number; a_payer_fcfa: number; report_sortant: number; statut: string; reference_versement: string | null; paye_le: string | null }
+export interface CalculReversements { id: string; trimestre: string; version_params: number; statut: 'calcule' | 'valide' | 'remplace'; rectifie: string | null; totaux: Record<string, number>; created_at: string; valide_le: string | null; hash: string | null; releves?: ReleveApi[] }
+export const adminParametresReversements = () => api<{ actifs: { version: number; valeurs: Record<string, any> } | null; vides: Record<string, any>; versions: { version: number; date_effet: string; par: string; created_at: string }[] }>('GET', '/v1/admin/reversements/parametres');
+export const adminEnregistrerParametresReversements = (valeurs: unknown, dateEffet: string) => api<{ version: number }>('POST', '/v1/admin/reversements/parametres', { valeurs, dateEffet });
+export const adminBeneficiaires = () => api<BeneficiaireAdmin[]>('GET', '/v1/admin/reversements/beneficiaires');
+export const adminEnregistrerBeneficiaire = (b: Partial<BeneficiaireAdmin>) => api<{ id: string }>('POST', '/v1/admin/reversements/beneficiaires', b);
+export const adminMembreAssociation = (associationId: string, userId: string, retirer = false) => api('POST', `/v1/admin/reversements/beneficiaires/${associationId}/membres`, { userId, retirer });
+export const adminRecettesPub = (trimestre: string) => api<{ jour: string; zone: string; montant_fcfa: number; source: string }[]>('GET', `/v1/admin/reversements/recettes-pub?trimestre=${encodeURIComponent(trimestre)}`);
+export const adminEnregistrerRecettesPub = (lignes: { jour: string; zone: string; montant_fcfa: number; source?: string }[]) => api<{ lignes: number }>('POST', '/v1/admin/reversements/recettes-pub', { lignes });
+export const adminOperationsExceptionnelles = () => api<{ id: string; jour: string; contrepartie: string; objet: string; montant_fcfa: number; couts_directs: number; part_apport: number | null }[]>('GET', '/v1/admin/reversements/operations');
+export const adminEnregistrerOperation = (o: { jour: string; contrepartie: string; objet: string; montant_fcfa: number; couts_directs?: number; part_apport?: number | null; piece?: string }) => api<{ id: string }>('POST', '/v1/admin/reversements/operations', o);
+export const adminMinutesRegardees = (trimestre: string) => api<{ cours_id: string; titre: string | null; createur_id: string | null; passages: number; abonnes: number; minutes: number }[]>('GET', `/v1/admin/reversements/minutes?trimestre=${encodeURIComponent(trimestre)}`);
+export const adminCalculerReversements = (trimestre: string, o: { fraisInfra?: number; autresTiers?: number; rectifie?: string } = {}) => api<{ id: string; totaux: Record<string, number>; releves: number }>('POST', '/v1/admin/reversements/calculs', { trimestre, ...o });
+export const adminCalculsReversements = () => api<CalculReversements[]>('GET', '/v1/admin/reversements/calculs');
+export const adminCalculReversements = (id: string) => api<CalculReversements>('GET', `/v1/admin/reversements/calculs/${id}`);
+export const adminValiderReversements = (id: string) => api<{ ok: boolean; hash: string }>('POST', `/v1/admin/reversements/calculs/${id}/valider`);
+export const adminPayerReleve = (id: string, reference: string) => api('POST', `/v1/admin/reversements/releves/${id}/payer`, { reference });
+export const adminExportReversementsCsv = (id: string) => apiTexte(`/v1/admin/reversements/calculs/${id}/export.csv`);
+export const adminFraisPaiement = (id: string, f: { encaisse_fcfa?: number; frais_fcfa?: number; commission_fcfa?: number; taxe_fcfa?: number; rembourse_fcfa?: number }) => api('PATCH', `/v1/admin/paiements/${id}/frais`, f);
+export const mesReleves = () => api<ReleveApi[]>('GET', '/v1/reversements/mes-releves');

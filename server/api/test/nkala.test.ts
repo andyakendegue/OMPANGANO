@@ -183,6 +183,10 @@ test('droits : accès payant, licence de lecture', async () => {
   assert.equal((await call('POST', '/v1/lecture/licence', u.token, { collection: 'cours_artisans', id: 'c1' })).status, 402);
   await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', jours: 30 });
   assert.equal((await call('POST', '/v1/acces/verifier', u.token, { collection: 'cours_artisans', id: 'c1' })).body.autorise, true);
+  assert.equal((await call('POST', '/v1/lecture/licence', u.token, { collection: 'cours_artisans', id: 'c1' })).status, 402, 'vidéo : il faut une formule qui ouvre Igolani');
+  await call('POST', '/v1/admin/contenus/plans/import', ADMIN, { lignes: [{ id: 'premium-test', titre: 'Premium', tout: 'oui', publie: 'oui' }], mode: 'ajouter', partiel: true });
+  await call('POST', '/v1/admin/contenus/produits/import', ADMIN, { lignes: [{ id: 'abo-premium-test', titre: 'Premium', type: 'abonnement', prix_fcfa: 3000, periode: 'mois', plan_id: 'premium-test', publie: 'oui' }], mode: 'ajouter', partiel: true });
+  await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo-premium-test', jours: 30 });
   const lic = await call('POST', '/v1/lecture/licence', u.token, { collection: 'cours_artisans', id: 'c1' });
   assert.equal(lic.status, 200); assert.equal(lic.body.filigrane.length, 10);
   assert.equal((await call('POST', '/v1/achats/recu', u.token, {})).status, 400, 'reçu vide refusé');
@@ -340,7 +344,7 @@ test('notifications poussées : jeton, envoi simulé, ciblage, historique', asyn
 test('achats : offres publiques, reçu simulé, abonnement sans publicité, reçu unique, magasins non configurés', async () => {
   await call('POST', '/v1/admin/contenus/produits/import', ADMIN, { lignes: [{ id: 'abo', titre: 'Plus', type: 'abonnement', prix_fcfa: 1500, periode: 'mois', publie: 'oui' }, { id: 'cours1', titre: 'Cours', type: 'achat', donne_acces: 'c9', publie: 'oui' }], mode: 'ajouter' });
   const offres = await call('GET', '/pub/produits');
-  assert.equal(offres.body.mode, 'simulation'); assert.equal(offres.body.produits.length, 2);
+  assert.equal(offres.body.mode, 'simulation'); assert.deepEqual(offres.body.produits.map((x: any) => x.id).filter((x: string) => ['abo', 'cours1'].includes(x)).sort(), ['abo', 'cours1']);
   const u = await user();
   await call('POST', '/v1/admin/contenus/pub_creations/import', ADMIN, { lignes: [{ id: 'pb', zone: 'bandeau_accueil', texte_alt: 'x', publie: 'oui' }], mode: 'ajouter' });
   assert.ok((await call('GET', '/v1/pub?zone=bandeau_accueil', u.token)).body.pub);

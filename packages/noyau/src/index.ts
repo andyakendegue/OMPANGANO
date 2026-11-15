@@ -38,6 +38,7 @@ export * from './difficulte';
 export * from './lecons';
 export * from './phonetique';
 export * from './formules';
+export * from './reversements';
 export * from './coursDistance';
 export * from './ressources';
 export * from './nkalaApi';

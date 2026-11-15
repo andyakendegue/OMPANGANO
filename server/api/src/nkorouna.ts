@@ -11,7 +11,7 @@
 import { createHmac } from 'node:crypto';
 import { journaliser, str, type Ctx } from './ctx.ts';
 import type { Db } from './db.ts';
-import { accorderProduit } from './achats.ts';
+import { accorderProduit, MESSAGE_VIDEO_STREAMING, produitVendUneVideo } from './achats.ts';
 import { COMPTES_SYSTEME, ErreurNkr, NKR, compteDe, ecrire, ouvrirCompte, preparerAncrage, preuveDe, solde, verifierRegistre } from './nkorounaRegistre.ts';
 
 const CLE = /^[A-Za-z0-9_-]{8,64}$/;
@@ -104,6 +104,7 @@ export function registerNkorouna({ app, db, fail, acteur, env }: Ctx) {
     const prix = Number(p?.data?.prix_nkr);
     if (!p || !(Number.isSafeInteger(prix) && prix > 0)) return fail(404, 'Produit introuvable ou sans prix en Nkorouna.');
     if (p.data.type === 'nkorouna') return fail(400, 'Les Nkorouna s\'achètent en FCFA, pas en Nkorouna.');
+    if (await produitVendUneVideo(db, p.data)) return fail(410, MESSAGE_VIDEO_STREAMING);
     return garde(() => db.tx(async q => {
       const { mouvement, deja } = await ecrire(q, { nature: 'depense', debit: await ouvrirCompte(q, a.auth.uid), credit: COMPTES_SYSTEME.recettes, montant: prix, reference: `depense:${a.auth.uid}:${cle}`, meta: { produit: produitId, titre: String(p.data.titre ?? '').slice(0, 120) }, par: a.auth.uid });
       if (!deja) await accorderProduit(q, a.auth.uid, produitId, 'nkorouna', mouvement.id);

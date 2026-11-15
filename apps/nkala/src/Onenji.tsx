@@ -8,7 +8,7 @@ import { Linking, Platform, Pressable, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ScreenCapture from 'expo-screen-capture';
 import {
-  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, etapesCouvertes, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
+  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, peutRegarderVideo, battementLecture, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, etapesCouvertes, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
   progressionUnite, resoudreMedia, uniteSuivante, VARIANTES_TRIBALES, type EtatLecon, type Exercice, type Lecon, type Ligne, type NiveauAcces, type Parcours, type Unite,
 } from '@nkala/noyau';
 import { texteAccueil, useAccueilKakIgonjo } from './Assistant';
@@ -19,6 +19,7 @@ import { AppelForfait, estRefusForfait, texteQuestionsGratuites } from './Forfai
 import { ajouterMesMots, Bibliotheque } from './Bibliotheque';
 import { CoursDistance } from './CoursDistance';
 import { useDroits } from './Droits';
+import { useGlobale } from './Globale';
 import { ControleUnite, FinLecon, LeconRunner, libelleDialecte, TestNiveau } from './OnenjiLecon';
 import { Certificat, MesCertificats } from './OnenjiCertificat';
 import { FicheGrammaire, ListeGrammaire } from './OnenjiGrammaire';
@@ -29,6 +30,7 @@ import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 import { EmplacementPub, FilAvecPubs, PubEntreEcrans, useSansPublicite } from './Pub';
 import { useContenus } from './useContenu';
+import { useSurchargeModule, useTempsOnglet } from './Mesure';
 import { Verrou } from './Verrou';
 
 type E =
@@ -43,6 +45,7 @@ const tri = <T extends Ligne>(l: T[]) => [...l].sort((a, b) => num(a.ordre) - nu
 
 export function Onenji() {
   const pile = usePile<E>({ t: 'hub' });
+  useTempsOnglet('onenji');
   const { res: base, chargement: chargeBase } = useContenus(['parcours', 'unites', 'lecons', 'cours_artisans', 'chapitres', 'opportunites', 'grammaire']);
   // Exercices : collection privée, servie selon les droits du compte (14 nov. 2026) ; rechargée quand le compte ou ses droits changent.
   const { profil } = useAuth();
@@ -402,6 +405,7 @@ function ControleFlux({ unite, exercices, pile, parcoursId }: { unite: Unite; ex
 // ------------------------------------------------------------------ Igolani : la vidéothèque (41-43)
 /** Tous les cours vidéo (collection « cours_artisans ») rangés par catégorie ; les artisans ne sont qu'une catégorie. */
 function Videotheque({ D, pile, entete }: { D: Donnees; pile: Pile; entete: React.ReactNode }) {
+  useSurchargeModule('igolani');
   const { prefs } = usePrefs();
   const [cat, setCat] = useState<string | null>(null);
   const categorieDe = (k: Ligne) => String(k.categorie || (k.artisan ? 'Artisans' : '') || 'Autres');
@@ -423,21 +427,35 @@ function Videotheque({ D, pile, entete }: { D: Donnees; pile: Pile; entete: Reac
   );
 }
 
+/** Fin de la partie gratuite d'une vidéo : la suite s'ouvre avec une formule qui inclut Igolani (aucune vente à l'unité). */
+function OffreIgolani() {
+  const { c } = useTheme();
+  const { ouvrirBoutique } = useGlobale();
+  return (
+    <Carte plat><View style={{ padding: 14, gap: 10 }}>
+      <T v="carte">La suite est dans les formules qui ouvrent Igolani</T>
+      <T v="petit" couleur={c.discret}>Les vidéos se regardent en streaming avec une formule ; la formule Premium ouvre tous les cours.</T>
+      <Bouton label="Voir les formules" icone="couronne" variante="ambre" onPress={ouvrirBoutique} />
+    </View></Carte>
+  );
+}
+
 /** Durée lisible (secondes). */
 const mmss = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 /**
- * Fiche d'une vidéo (décision du 13 nov. 2026) : réglage vidéo par vidéo (« niveau_acces » de la vidéo ou du chapitre) ;
- * sinon 1er chapitre gratuit avec publicité, la suite au forfait, à l'achat pour un cours d'artisan long.
+ * Fiche d'une vidéo — streaming seulement (décision du 15 nov. 2026) : 1er chapitre gratuit avec publicité, la suite avec une formule
+ * qui ouvre Igolani (Premium les ouvre toutes). Aucune vidéo ne se vend à l'unité.
  */
 function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
+  useSurchargeModule('igolani');
   const { c } = useTheme();
   const droits = useDroits();
   const k = D.cours.find(x => x.id === id);
   if (!k) return <Ecran><Entete titre="Cours introuvable" retour={pile.retour} /></Ecran>;
   const chapitres = D.chapitres.filter(x => x.cours_id === id);
   const complet = accesCompletVideo(k as any, chapitres as any);
-  const toutOuvert = peutAcceder({ id, acces: complet, roles: ['admin', 'validator'] }, droits).ok;
+  const toutOuvert = peutRegarderVideo(complet, droits).ok;
   const dispo = !!(k.video || k.video_url || k.protege);
   const { profil } = useAuth();
   const gratuitJusque = finPartieGratuite(k as any, chapitres as any);
@@ -446,12 +464,12 @@ function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
       <Entete titre={k.titre} sous={k.artisan} retour={pile.retour} />
       <Visuel uri={k.image} hauteur={180} largeur="100%" icone="video" />
       <T v="corps">{k.description}</T>
-      {!toutOuvert && gratuitJusque !== 0 && <T v="petit" couleur={c.accent}>{gratuitJusque === null ? 'Gratuit, avec publicité.' : `Le début est gratuit (avec publicité) ; la suite ${complet === 'achat' ? 's\'achète' : 'est au forfait'}.`}</T>}
+      {!toutOuvert && gratuitJusque !== 0 && <T v="petit" couleur={c.accent}>{gratuitJusque === null ? 'Gratuit, avec publicité.' : 'Le début est gratuit (avec publicité) ; la suite s\'ouvre avec une formule qui inclut Igolani.'}</T>}
       {!profil && dispo && <EtatVide icone="verrou" titre="Un compte est nécessaire" texte="Connecte-toi pour regarder les vidéos d'Igolani (le début reste gratuit)." />}
       {!!profil && (toutOuvert || gratuitJusque !== 0) && <Bouton label={dispo ? (toutOuvert ? 'Regarder le cours' : 'Regarder le début gratuit') : 'Vidéo bientôt disponible'} icone="lecture" desactive={!dispo} onPress={() => pile.pousser({ t: 'video', id })} />}
       {chapitres.length > 0 && <><SectionTitre titre="Chapitres" />{chapitres.map((ch, i) => {
         const a = accesChapitreVideo(k as any, chapitres as any, i);
-        const ouvert = toutOuvert || peutAcceder({ id: ch.id, acces: a, roles: ['admin', 'validator'] }, droits).ok;
+        const ouvert = toutOuvert || peutRegarderVideo(a, droits).ok;
         return (
           <Carte key={ch.id} plat onPress={() => (dispo && ouvert && profil ? pile.pousser({ t: 'video', id, debut: num(ch.debut_s) }) : undefined)} label={`${ch.titre}${ouvert ? '' : ', réservé'}`}>
             <View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
@@ -463,7 +481,7 @@ function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
           </Carte>
         );
       })}</>}
-      {!toutOuvert && <Verrou contenu={{ id, acces: complet, roles: ['admin', 'validator'] }} regle={k}><View /></Verrou>}
+      {!toutOuvert && <OffreIgolani />}
     </Ecran>
   );
 }
@@ -473,13 +491,16 @@ function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
  * Partie gratuite : publicité avant la lecture, puis arrêt au début du premier chapitre réservé (limite donnée par la licence du serveur).
  */
 function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: Donnees; pile: Pile }) {
+  useSurchargeModule('igolani');
+  // Minutes regardées (fonds des créateurs) : un battement toutes les 30 s pendant la lecture, pour le passage ouvert par la licence.
+  const [passage, setPassage] = useState<string | null>(null);
   const k = D.cours.find(x => x.id === id)!;
   const { c } = useTheme();
   const { profil } = useAuth();
   const droits = useDroits();
   const chapitres = D.chapitres.filter(x => x.cours_id === id);
   const complet = accesCompletVideo(k as any, chapitres as any);
-  const toutOuvert = peutAcceder({ id, acces: complet, roles: ['admin', 'validator'] }, droits).ok;
+  const toutOuvert = peutRegarderVideo(complet, droits).ok;
   const [source, setSource] = useState<string | null>(null);
   const [filigrane, setFiligrane] = useState((profil?.id ?? 'invité').slice(-8));
   const [refus, setRefus] = useState<string | null>(null);
@@ -495,7 +516,7 @@ function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: D
         // Compte obligatoire (décision de Capp, 14 nov. 2026) : l'adresse de la vidéo n'arrive qu'avec la licence du serveur.
         if (!profil) { setRefus('compte'); return; }
         const l = await demanderLicence('cours_artisans', id);
-        setFiligrane(l.filigrane); setAvecPub(l.avecPub); setLimite(l.limiteS ?? null);
+        setFiligrane(l.filigrane); setAvecPub(l.avecPub); setLimite(l.limiteS ?? null); setPassage(l.passage ?? null);
         if (l.urlHls) { setSource(l.urlHls); return; }
         const adresse = l.videoUrl || k.video_url;
         if (!adresse) { setRefus('indisponible'); return; }
@@ -507,13 +528,18 @@ function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: D
   useEffect(() => { if (Platform.OS === 'web' || !protege) return; ScreenCapture.preventScreenCaptureAsync('video').catch(() => {}); return () => { ScreenCapture.allowScreenCaptureAsync('video').catch(() => {}); }; }, [protege]);
   const debutSur = limite !== null && debut ? Math.min(debut, Math.max(0, limite - 1)) : debut;
   const player = useVideoPlayer(source ? { uri: source } : null, p => { p.timeUpdateEventInterval = 1; if (debutSur) p.currentTime = debutSur; p.play(); });
+  useEffect(() => {
+    if (!passage) return undefined;
+    const t = setInterval(() => { try { if (player.playing) battementLecture(passage).catch(() => {}); } catch { /* lecteur fermé */ } }, 30_000);
+    return () => clearInterval(t);
+  }, [passage, player]); // eslint-disable-line react-hooks/exhaustive-deps
   // Arrêt à la fin de la partie gratuite.
   useEffect(() => {
     if (limite === null || !source) return;
     const sub = player.addListener('timeUpdate', ({ currentTime }: { currentTime: number }) => { if (currentTime >= limite) { try { player.pause(); player.currentTime = Math.max(0, limite - 0.5); } catch { /* */ } setFinGratuite(true); } });
     return () => sub.remove();
   }, [player, limite, source]);
-  const motifs: Record<string, string> = { reserve: 'Ce cours est réservé : passe à un forfait ou achète-le.', compte: 'Connecte-toi pour regarder ce cours.', indisponible: 'La vidéo est indisponible pour le moment.' };
+  const motifs: Record<string, string> = { reserve: 'Ce cours s\'ouvre avec une formule qui inclut Igolani.', compte: 'Connecte-toi pour regarder ce cours.', indisponible: 'La vidéo est indisponible pour le moment.' };
   return (
     <Ecran bas={30}>
       <Entete titre={k.titre} sous={k.artisan} retour={pile.retour} />
@@ -525,7 +551,7 @@ function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: D
         </View>
       )}
       {limite !== null && limite > 0 && !refus && <T v="petit" couleur={c.accent}>Partie gratuite jusqu'à {mmss(limite)}.</T>}
-      {finGratuite && <Verrou contenu={{ id, acces: complet, roles: ['admin', 'validator'] }} regle={k}><View /></Verrou>}
+      {finGratuite && <OffreIgolani />}
       {chapitres.map((ch, i) => {
         const bloque = limite !== null && num(ch.debut_s) >= limite;
         return (

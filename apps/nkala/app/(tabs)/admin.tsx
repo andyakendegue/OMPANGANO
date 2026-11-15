@@ -8,6 +8,7 @@ import { GroupeModeration } from '../../src/AdminFraude';
 import { Communaute } from '../../src/AdminCommunaute';
 import { IaAdmin, PushAdmin, RegieAdmin } from '../../src/AdminIaRegie';
 import { CoursDistanceAdmin } from '../../src/AdminCours';
+import { ReversementsAdmin } from '../../src/AdminReversements';
 import { NkorounaAdmin, PaiementsAdmin, ContenusAdmin, DroitsAdmin, InterrupteursAdmin, JournalAdmin, ModerationHabitants, SupervisionAdmin } from '../../src/AdminNkala';
 
 // Quatre groupes comme AdminDashboard.tsx. Les droits sont vérifiés par le serveur ; l'onglet n'est visible que des administrateurs.
@@ -27,6 +28,7 @@ export default function Administration() {
       { id: 'habitants', label: 'Annonces et signalements', contenu: <ModerationHabitants /> },
       { id: 'paiements', label: 'Paiements', contenu: <PaiementsAdmin /> },
       { id: 'cours', label: 'Cours à distance', contenu: <CoursDistanceAdmin /> },
+      { id: 'reversements', label: 'Reversements', contenu: <ReversementsAdmin /> },
       { id: 'nkorouna', label: 'Nkorouna', contenu: <NkorounaAdmin /> },
       { id: 'droits', label: 'Abonnements', contenu: <DroitsAdmin /> },
       { id: 'pilotage', label: 'Pilotage', contenu: <GroupePilotage /> },

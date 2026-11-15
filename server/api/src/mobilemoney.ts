@@ -9,7 +9,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { normaliserTelephone } from '../../../packages/noyau/src/telephone.ts';
 import { codeDeSeance } from '../../../packages/noyau/src/coursDistance.ts';
-import { accorderProduit } from './achats.ts';
+import { accorderProduit, MESSAGE_VIDEO_STREAMING, produitVendUneVideo } from './achats.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, str, type Ctx } from './ctx.ts';
 
@@ -58,7 +58,7 @@ export function registerMobileMoney({ app, db, fail, acteur, env, notify }: Ctx)
     const seance = codeDeSeance(produitId!);
     let p: any;
     if (seance) {
-      const c = (await db.query<any>(`SELECT * FROM cours_planifies WHERE code = $1`, [seance]))[0];
+      const c = (await db.query<any>(`SELECT * FROM cours_planifies WHERE code = $1 AND statut = 'prevu'`, [seance]))[0];
       if (!c || new Date(c.debut).getTime() + c.duree_min * 60_000 < Date.now()) return fail(404, 'Cours introuvable ou terminé.');
       if ((c.inscrits as string[]).includes(a.auth.uid)) return fail(409, 'Tu es déjà inscrit à ce cours.');
       if ((c.inscrits as string[]).length >= 4) return fail(409, 'Ce cours est complet.');
@@ -66,6 +66,7 @@ export function registerMobileMoney({ app, db, fail, acteur, env, notify }: Ctx)
       p = { data: { prix_fcfa: Number(c.prix_fcfa), titre: c.titre } };
     } else p = (await db.query<any>(`SELECT data FROM contenus WHERE collection = 'produits' AND id = $1 AND publie AND deleted_at IS NULL`, [produitId]))[0];
     if (!p || !(Number(p.data.prix_fcfa) > 0)) return fail(404, 'Produit introuvable ou sans prix.');
+    if (!seance && await produitVendUneVideo(db, p.data)) return fail(410, MESSAGE_VIDEO_STREAMING);
     if (mode === 'manuel' && !numeroMarchand(operateur!)) return fail(503, 'Ce moyen de paiement n\'est pas encore ouvert.');
     const enCours = (await db.query<any>(`SELECT count(*)::int AS n FROM paiements WHERE user_id = $1 AND statut IN ('en_attente','declare') AND expire_at > clock_timestamp()`, [a.auth.uid]))[0].n;
     if (enCours >= 3) return fail(429, 'Tu as déjà trois paiements en attente. Termine-les ou attends leur expiration.');

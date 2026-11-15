@@ -22,6 +22,8 @@ export interface DroitsUtilisateur {
   essais?: Record<string, number>;
   /** Locations en cours : contenu → date de fin (ms). */
   locations?: Record<string, number>;
+  /** Une formule active ouvre les vidéos d'Igolani (formule « igolani » ou Premium « tout ») : streaming seulement. */
+  igolani?: boolean;
 }
 
 export type MotifRefus = 'abonnement_requis' | 'achat_requis' | 'role_requis' | 'expire';

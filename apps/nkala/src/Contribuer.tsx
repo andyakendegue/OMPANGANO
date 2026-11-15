@@ -12,6 +12,7 @@ import { usePile } from './Pile';
 import { ProfilContributeur } from './Profil';
 import { ThemeKey, ThemeSombre, useTheme } from './Prefs';
 import { useProgres } from './Progres';
+import { useSurchargeModule } from './Mesure';
 
 type E = { t: 'accueil' } | { t: 'collecte' } | { t: 'valider' } | { t: 'classement' } | { t: 'rangs' } | { t: 'defis' } | { t: 'ezango' } | { t: 'mes' };
 type Pile = ReturnType<typeof usePile<E>>;
@@ -26,6 +27,7 @@ const Historique = ({ titre, pile, children, sombre }: { titre: string; pile: Pi
 
 export function Contribuer({ retour }: { retour: () => void }) {
   const pile = usePile<E>({ t: 'accueil' });
+  useSurchargeModule('ompangano');
   const { profil } = useAuth();
   if (!profil) return <Ecran><Entete titre="Contribuer" retour={retour} /><EtatVide mascotte titre="Un compte est nécessaire" texte="Crée un compte pour enregistrer ta voix et valider des phrases." /></Ecran>;
   const e = pile.ecran;

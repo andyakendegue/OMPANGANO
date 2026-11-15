@@ -10,6 +10,7 @@ import { auth } from './firebase';
 import { useAuth } from './AuthProvider';
 import { partagerFichier } from './partage';
 import { Bouton } from './kit';
+import { MesReleves } from './MesReleves';
 import { couleurs } from './theme';
 
 const message = (m: string) => (Platform.OS === 'web' ? (globalThis as any).alert?.(m) : Alert.alert('Nkala', m));
@@ -53,6 +54,8 @@ export function MonCompte() {
   };
 
   return (
+    <>
+    <MesReleves />
     <View style={s.carte}>
       <Text style={s.titre}>Mes données et mon compte</Text>
       <Text style={s.discret}>Vous pouvez à tout moment récupérer une copie de vos données ou supprimer votre compte.</Text>
@@ -81,6 +84,7 @@ export function MonCompte() {
         </View>
       </Modal>
     </View>
+    </>
   );
 }
 

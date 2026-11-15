@@ -36,6 +36,7 @@ import { registerLivres } from './livres.ts';
 import { registerPush } from './push.ts';
 import { registerAchats } from './achats.ts';
 import { registerMobileMoney } from './mobilemoney.ts';
+import { registerReversements } from './reversements.ts';
 import { registerNkorouna } from './nkorouna.ts';
 import { registerExemples } from './exemples.ts';
 import { registerComptes } from './comptes.ts';
@@ -1213,6 +1214,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   registerPush(nk);
   registerAchats(nk);
   registerMobileMoney(nk);
+  registerReversements(nk);
   registerNkorouna(nk);
   registerExemples(nk);
   registerComptes(nk);

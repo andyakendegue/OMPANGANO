@@ -14,6 +14,7 @@ import { usePile } from './Pile';
 import { useTheme } from './Prefs';
 import { EmplacementPub } from './Pub';
 import { useContenus } from './useContenu';
+import { useTempsOnglet } from './Mesure';
 import { Verrou } from './Verrou';
 
 type E = { t: 'accueil' } | { t: 'album'; id: string } | { t: 'chercher' } | { t: 'ma' } | { t: 'radio' } | { t: 'tv' } | { t: 'chaine'; id: string } | { t: 'playlist'; id: string };
@@ -23,6 +24,7 @@ const CLE_FAV = 'nkala_ontci_favoris', CLE_REC = 'nkala_ontci_recents';
 
 export function Ontci() {
   const pile = usePile<E>({ t: 'accueil' });
+  useTempsOnglet('ontci');
   const { res, chargement } = useContenus(['artistes', 'albums', 'titres', 'radios', 'chaines_tv', 'playlists', 'genres']);
   const L = useLecteur();
   const { ouvrirLecteur } = useGlobale();

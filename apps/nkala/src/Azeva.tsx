@@ -20,6 +20,7 @@ import { useContenus } from './useContenu';
 import { Confettis } from './Confettis';
 import { Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTempsOnglet } from './Mesure';
 
 type E =
   | { t: 'hall' } | { t: 'salle'; id: string } | { t: 'niveaux'; jeu: Ligne } | { t: 'jeu'; jeu: Ligne; niveau: number; defiId?: string }
@@ -45,6 +46,7 @@ function useCoeurs() {
 
 export function Azeva() {
   const pile = usePile<E>({ t: 'hall' });
+  useTempsOnglet('azeva');
   const { prefs } = usePrefs();
   const coeurs = useCoeurs();
   // Rien de tout cela n'est dans l'application : salles et jeux viennent du serveur, le contenu d'une partie arrive manche par manche.

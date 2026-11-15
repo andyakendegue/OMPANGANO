@@ -38,7 +38,7 @@ Une unité regroupe des leçons ; la fin d'unité se valide à 4 réponses juste
 | `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
 
 ### Leçons — `lecons`
-Une leçon = une suite d'exercices courts.
+Une leçon = une suite d'exercices courts. Les cours sont gratuits (15 nov. 2026) : « niveau_acces » et « plans » ne ferment plus une leçon ; seuls « reserve » (personnel) et « rang_min » la retiennent.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
@@ -62,7 +62,7 @@ Collection privée (décision de Capp, 14 nov. 2026) : l'application ne reçoit 
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `lecon_id` | texte → `lecons` | oui | Leçon parente. |
-| `type` | choix (ecouter / associer / ordre / dire / choix / trou / saisie / cours / dictee / comprendre / proverbe / culture / jouer) | oui | Type d'exercice : trou = mot à placer dans la phrase ; saisie = réponse à écrire ; cours = présentation avant les contrôles (non notée) ; dictee = écouter puis écrire ; comprendre = dialogue ou texte (colonne « texte ») puis question à choix ; proverbe et culture = cartes à lire (non notées) ; jouer = lien vers un jeu d'Azeva (colonne « jeu_id »). |
+| `type` | choix (ecouter / associer / ordre / dire / choix / trou / saisie / cours / dictee / comprendre / proverbe / culture / jouer / son / quel_son / ton / tracer / scene) | oui | Type d'exercice : son = carte d'un son (API, articulation, schéma animé de la bouche, mots d'exemple « mot = sens = [transcription] = émoji » dans options ; jamais de comparaison au français) ; ton = mélodie tonale d'un mot (colonne phonetique) ; quel_son = trouver la lettre d'un mot (options = lettres, reponse = la bonne) ; tracer = écrire la lettre au doigt (colonne graphie) ; scene = paysage animé à explorer (colonnes scene et zones) ; trou = mot à placer dans la phrase ; saisie = réponse à écrire ; cours = présentation avant les contrôles (non notée) ; dictee = écouter puis écrire ; comprendre = dialogue ou texte (colonne « texte ») puis question à choix ; proverbe et culture = cartes à lire (non notées) ; jouer = lien vers un jeu d'Azeva (colonne « jeu_id »). |
 | `consigne` | texte |  | Consigne affichée (texte ou lue). |
 | `mot_myene` | texte |  | Mot ou phrase en myènè (source obligatoire) ; pour « trou », la phrase avec ___ à la place du mot. |
 | `mot_francais` | texte |  | Traduction française. |
@@ -74,6 +74,12 @@ Collection privée (décision de Capp, 14 nov. 2026) : l'application ne reçoit 
 | `texte` | long |  | Texte long : explication (cours), dialogue une réplique par ligne « Nom : texte » (comprendre), sens et usage (proverbe), note (culture). |
 | `conseil` | texte |  | Conseil culturel montré en bulle pendant l'exercice. |
 | `jeu_id` | texte → `jeux` |  | Étape « jouer » : identifiant du jeu d'Azeva proposé (tous les jeux sont gratuits). |
+| `illustration` | texte |  | Illustration montrée avec l'exercice : un émoji (🐘) ou un dessin intégré (svg:soleil) ; l'image (colonne image) passe devant. |
+| `credit_image` | texte |  | Crédit de la photo : auteur, licence et lien (obligatoire pour une photo qui n'est pas à Essaka Engineering). |
+| `graphie` | texte |  | Types son, quel_son, tracer : le son travaillé, en API (ɓ, ɛ, β…) ou en graphie DONDO (è, ṽ, tch…). |
+| `phonetique` | texte |  | Transcription phonétique avec les tons, notation d'Ambouroue entre crochets : aigu = haut, grave = bas, trait vertical = haut-abaissé, circonflexe = descendant. |
+| `scene` | choix (lagune / village) |  | Type scene : paysage animé intégré. |
+| `zones` | json |  | Type scene : éléments à toucher, positions en % : [{"x":30,"y":60,"mot":"nguwu","sens":"hippopotame","illustration":"🦛"}]. |
 | `dialecte` | texte |  | Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes). |
 | `source` | texte |  | Source du contenu (document et page) : obligatoire pour tout mot myènè. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
@@ -94,7 +100,8 @@ Tous les cours vidéo d'Onenji, rangés par catégorie ; les cours d'artisans so
 | `sous_titres_url` | url |  | Fichier de sous-titres (.vtt). |
 | `duree_min` | entier |  | Durée totale en minutes. |
 | `niveau` | choix (debutant / intermediaire / avance) |  | Niveau. |
-| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Accès de toute la vidéo (vide = règle par défaut : 1er chapitre gratuit avec publicité, la suite au forfait, à l'achat pour un cours d'artisan de plus de 60 min). |
+| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / reserve) |  | Accès de toute la vidéo, en streaming seulement (vide = 1er chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igolani). Aucune vente à l'unité. |
+| `createur_id` | texte |  | Bénéficiaire créateur de la vidéo (console > Reversements) : sa part du fonds des créateurs suit les minutes regardées. |
 | `parcours_id` | texte → `parcours` |  | Étape d'Inenga à laquelle la vidéo se rattache (facultatif). |
 | `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
 | `plans` | liste → `plans` |  | Formules d'abonnement qui y donnent accès, séparées par \| (vide = aucune contrainte de formule). |
@@ -112,11 +119,11 @@ Chapitres d'un cours d'artisan.
 | `titre` | texte | oui | Titre du chapitre. |
 | `debut_s` | entier |  | Début dans la vidéo (secondes). |
 | `duree_s` | entier |  | Durée en secondes. |
-| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / achat / essai / location / reserve) |  | Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n'en a pas : 1er chapitre gratuit avec publicité, la suite au forfait, à l'achat pour un cours d'artisan de plus de 60 min). |
+| `niveau_acces` | choix (libre / gratuit_avec_pub / abonnement / reserve) |  | Accès de ce chapitre (vide = celui de la vidéo ; si la vidéo n'en a pas : 1er chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igolani). |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 
 ### Bibliothèque — `bibliotheque`
-Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l'application.
+Livres, annales, documents libres de droits. Un livre avec des chapitres (collection « livre_chapitres ») se lit dans l'application. La bibliothèque est gratuite (15 nov. 2026) : seuls « reserve » (personnel) et « rang_min » retiennent un livre.
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
@@ -140,7 +147,7 @@ Livres, annales, documents libres de droits. Un livre avec des chapitres (collec
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 
 ### Chapitres de livres — `livre_chapitres`
-Texte des livres de la bibliothèque, un chapitre par ligne (généré par l'import de la bibliothèque).
+Texte des livres de la bibliothèque, un chapitre par ligne (généré par l'import de la bibliothèque). Collection privée (14 nov. 2026) : trop grosse pour une lecture en bloc ; l'application lit un chapitre à la fois (/pub/bibliotheque/…).
 
 | Colonne | Type | Obligatoire | Description |
 |---|---|---|---|
@@ -608,7 +615,8 @@ Ce que chaque formule débloque : toute l'application, ou seulement les contenus
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `titre` | texte | oui | Nom de la formule. |
 | `description` | long |  | Ce qu'elle apporte. |
-| `tout` | booleen |  | oui = donne accès à tout (contenus soumis à une formule compris). |
+| `tout` | booleen |  | oui = donne accès à tout (contenus soumis à une formule compris) : formule Premium, qui ouvre aussi Igolani. |
+| `igolani` | booleen |  | oui = ouvre les vidéos d'Igolani et les cours d'artisans, en streaming (15 nov. 2026). |
 | `rang_min` | entier |  | Rang minimal conseillé (information). |
 | `sans_pub` | liste |  | Parties sans publicité : « tout », ou des modules séparés par \| (commun, onenji, azeva, ontci, nkala). Vide = publicité maintenue. « oui » vaut « tout ». |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |

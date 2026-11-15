@@ -27,6 +27,7 @@ export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 
 // Le dessin du vieux sage est dans KakIgonjo.tsx (partagé avec la mascotte du kit).
 import { VieilOrungu, texteAttenteKakIgonjo } from './KakIgonjo';
+import { useSurchargeModule } from './Mesure';
 import { AppelForfait, estRefusForfait, texteQuestionsGratuites } from './ForfaitIa';
 export { VieilOrungu };
 
@@ -134,6 +135,7 @@ export function AssistantFlottant() {
   const chemin = usePathname();
 
   const [ouvert, setOuvert] = useState(false);
+  useSurchargeModule('kakigonjo', ouvert);
   const [monte, setMonte] = useState(false);
   const [clavier, setClavier] = useState(0);
   const [vue, setVue] = useState<'chat' | 'liste'>('chat');

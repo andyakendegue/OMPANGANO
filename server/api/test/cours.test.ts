@@ -58,15 +58,17 @@ test('unité suivante et parcours terminé', () => {
   assert.equal(parcoursTermine('vide', U, []), false);
   assert.equal(numeroCertificat(42, 2026), 'NKL-2026-000042');
 });
-test('vidéothèque : 1er chapitre gratuit avec pub, suite au forfait, cours d\'artisan long à l\'achat, réglage vidéo par vidéo', () => {
+test('vidéothèque en streaming (15 nov. 2026) : 1er chapitre gratuit avec pub, suite à la formule, plus jamais d\'achat, réglage vidéo par vidéo', () => {
   const ch = [{ id: 'c1', ordre: 1, debut_s: 0 }, { id: 'c2', ordre: 2, debut_s: 120 }, { id: 'c3', ordre: 3, debut_s: 300 }];
   const court = { id: 'v', categorie: 'Langue', duree_min: 20 };
   assert.equal(accesChapitreVideo(court, ch, 0), 'gratuit_avec_pub');
   assert.equal(accesChapitreVideo(court, ch, 1), 'abonnement');
   assert.equal(finPartieGratuite(court, ch), 120);
   const long = { id: 'w', artisan: 'Pêcheur', duree_min: 90 };
-  assert.equal(accesChapitreVideo(long, ch, 2), 'achat');
-  assert.equal(accesCompletVideo(long, ch), 'achat');
+  assert.equal(accesChapitreVideo(long, ch, 2), 'abonnement', 'un cours d\'artisan long ne se vend plus');
+  assert.equal(accesCompletVideo(long, ch), 'abonnement');
+  assert.equal(accesChapitreVideo({ ...court, niveau_acces: 'achat' }, ch, 2), 'abonnement', '« achat » saisi sur une vidéo vaut « abonnement »');
+  assert.equal(accesChapitreVideo(court, [{ ...ch[0] }, { ...ch[1], niveau_acces: 'location' }], 1), 'abonnement');
   assert.equal(accesChapitreVideo({ ...court, niveau_acces: 'libre' }, ch, 2), 'libre');
   assert.equal(finPartieGratuite({ ...court, niveau_acces: 'libre' }, ch), null);
   assert.equal(finPartieGratuite({ ...court, niveau_acces: 'abonnement' }, ch), 0);
@@ -158,7 +160,7 @@ test('certificat : refusé avant la fin, numéroté une seule fois, vérifiable 
   assert.equal((await call('GET', '/pub/certificats/abc')).status, 400);
 });
 
-test('licence vidéo : partie gratuite limitée sans forfait, vidéo entière avec, réglage « libre » respecté', async () => {
+test('licence vidéo : partie gratuite sans formule Igolani, vidéo entière avec, passage de lecture compté, aucune vente de vidéo', async () => {
   await importer('cours_artisans', [{ id: 'v1', titre: 'Langue', categorie: 'Langue', duree_min: 20, publie: 'oui' }, { id: 'v2', titre: 'Libre', niveau_acces: 'libre', publie: 'oui' }, { id: 'v3', titre: 'Réservée', niveau_acces: 'abonnement', publie: 'oui' }]);
   await importer('chapitres', [{ id: 'v1-c1', cours_id: 'v1', titre: 'Début', debut_s: 0, ordre: 1 }, { id: 'v1-c2', cours_id: 'v1', titre: 'Suite', debut_s: 90, ordre: 2 }]);
   const u = await user();
@@ -167,9 +169,28 @@ test('licence vidéo : partie gratuite limitée sans forfait, vidéo entière av
   assert.equal(a.status, 200, JSON.stringify(a.body)); assert.equal(a.body.limiteS, 90); assert.equal(a.body.avecPub, true);
   assert.equal((await lic('v2')).body.limiteS, null);
   assert.equal((await lic('v3')).status, 402, 'sans partie gratuite : refus');
+  // un abonnement qui n'ouvre pas Igolani ne suffit plus (streaming : formules qui incluent Igolani, Premium compris)
   await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo', jours: 30 });
+  assert.equal((await lic('v1')).body.limiteS, 90);
+  await importer('plans', [{ id: 'videos', titre: 'Vidéos', igolani: 'oui', publie: 'oui' }]);
+  await importer('produits', [{ id: 'abo-videos', titre: 'Formule vidéos', type: 'abonnement', prix_fcfa: 1500, periode: 'mois', plan_id: 'videos', publie: 'oui' }]);
+  await call('POST', '/v1/admin/droits', ADMIN, { userId: u.uid, type: 'abonnement', produitId: 'abo-videos', jours: 30 });
   const b = await lic('v1');
   assert.equal(b.body.limiteS, null); assert.equal(b.body.avecPub, false);
+  assert.equal((await call('GET', '/v1/droits', u.token)).body.igolani, true);
+  // minutes regardées : la licence ouvre un passage ; le battement ajoute le temps écoulé (plafonné)
+  assert.match(b.body.passage, /^lp_[0-9a-f]{18}$/);
+  await db.query(`UPDATE lecture_passages SET dernier = dernier - interval '30 seconds' WHERE id = $1`, [b.body.passage]);
+  const bat = await call('POST', '/v1/lecture/battement', u.token, { passage: b.body.passage });
+  assert.equal(bat.status, 200); assert.ok(bat.body.secondes >= 29 && bat.body.secondes <= 45, String(bat.body.secondes));
+  assert.equal((await call('POST', '/v1/lecture/battement', ADMIN, { passage: b.body.passage })).status, 404, 'passage d\'un autre compte');
+  // aucune vente de vidéo à l'unité : produit masqué et refusé partout
+  await importer('produits', [{ id: 'video-unite', titre: 'Une vidéo', type: 'achat', prix_fcfa: 3000, prix_nkr: 1400, donne_acces: 'v1', publie: 'oui' }]);
+  assert.ok(!(await call('GET', '/pub/produits')).body.produits.some((p: any) => p.id === 'video-unite'));
+  assert.equal((await call('POST', '/v1/nkorouna/depenser', u.token, { produitId: 'video-unite', cle: 'cle-video-0001' })).status, 410);
+  // temps par module : premier battement du jour, puis temps écoulé plafonné
+  assert.equal((await call('POST', '/v1/temps', u.token, { module: 'igolani' })).status, 200);
+  assert.equal((await call('POST', '/v1/temps', u.token, { module: 'inconnu' })).status, 400);
 });
 
 test('planning des cours à distance : création, inscription par code (4 au plus), entrée à l\'heure', async () => {
