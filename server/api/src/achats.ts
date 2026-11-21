@@ -44,6 +44,10 @@ export async function accorderProduit(q: Queryable, uid: string, produitId: stri
     const n = Number(d.nkorouna);
     if (!Number.isSafeInteger(n) || n <= 0) throw new Error(`Produit ${produitId} : colonne « nkorouna » (nombre de jetons) manquante.`);
     await crediterAchat(q, uid, n, `achat:${source}:${reference}`, { produit: produitId, titre: String(d.titre ?? '').slice(0, 120), source, prix_fcfa: Number(d.prix_fcfa) || 0 }, source);
+  } else if (d.type === 'credit_annonce') {
+    // Annonces au-delà du quota gratuit (1 par mois par défaut) : un crédit par annonce, consommé à la publication.
+    const n = Math.max(1, Math.min(50, Math.floor(Number(d.quantite) || 1)));
+    for (let i = 0; i < n; i++) await q.query(`INSERT INTO annonces_credits (user_id, source, reference) VALUES ($1,$2,$3)`, [uid, source, `${reference}#${i}`]);
   } else if (d.type === 'abonnement') await q.query(`INSERT INTO droits (user_id, produit_id, type, fin, source, reference) VALUES ($1,$2,'abonnement', clock_timestamp() + ($3 || ' days')::interval, $4, $5)`, [uid, produitId, String(jours || 31), source, reference]);
   else for (const contenu of (Array.isArray(d.donne_acces) && d.donne_acces.length ? d.donne_acces : [produitId]) as string[]) await q.query(`INSERT INTO droits (user_id, produit_id, type, contenu_id, source, reference) VALUES ($1,$2,'achat',$3,$4,$5)`, [uid, produitId, contenu, source, reference]);
   return { type: d.type };

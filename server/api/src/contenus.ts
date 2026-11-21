@@ -11,6 +11,8 @@ import { profilAcces } from './profil_acces.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import type { MediaStorage } from './storage.ts';
 import { cheminsDe, lignePublique, marquerAEffacer, preparerAnnonceLogement, requeteAnnonces, signerLogement } from './annoncesLogement.ts';
+import { alertesConcernees, etatQuota, filtresAlerte, preparerAnnonceGenerique, reglageAnnonces, reserverPublication } from './annoncesGeneriques.ts';
+import { envoyerPush } from './push.ts';
 
 const MODULES = ['ompangano', 'onenji', 'azeva', 'ontci', 'nkala', 'traducteur'];
 const FONCTIONS = ['publicite', 'achats', 'assistantIA', 'salleParis'];
@@ -234,15 +236,14 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
       else if (Array.isArray(v)) data[k] = v.filter(str).slice(0, 10).map(x => x.slice(0, 500));
     }
     // Fiche logement structurée (objet) : traitée à part, jamais aplatie.
-    delete data.logement;
+    delete data.logement; delete data.fiche; delete data.payee_credit; delete data.remonte_le;
     const ficheLogement = collection === 'annonces' && data.categorie_id === 'logement' && corps.logement && typeof corps.logement === 'object' ? corps.logement : null;
+    // Autres catégories (auto, équipement, emploi, services…) : fiche structurée du catalogue (annonces_catalogue.json).
+    const ficheGenerique = collection === 'annonces' && data.categorie_id !== 'logement' && corps.fiche && typeof corps.fiche === 'object' ? corps.fiche as Record<string, unknown> : null;
+    if (ficheGenerique && ficheGenerique.categorie !== data.categorie_id) return fail(400, 'La fiche ne correspond pas à la catégorie.');
     if (collection !== 'taxi_demandes' && !str(data.titre) && !str(data.texte) && !str(data.description)) return fail(400, 'Un titre ou un texte est obligatoire.');
     if (collection === 'annonces') {
-      const cat = str(data.categorie_id) ? data.categorie_id : 'divers';
-      const c = await db.query<any>(`SELECT data FROM contenus WHERE collection = 'categories_annonces' AND id = $1 AND deleted_at IS NULL`, [cat]);
-      const quota = Number(c[0]?.data?.quota_gratuit ?? 3);
-      const n = await db.query<any>(`SELECT count(*)::int AS n FROM contenus WHERE collection = 'annonces' AND owner_id = $1 AND created_at > date_trunc('month', clock_timestamp()) AND deleted_at IS NULL`, [a.auth.uid]);
-      if (n[0].n >= quota) return fail(429, `Tu as atteint le quota de ${quota} annonces ce mois-ci.`);
+      // Quota (décision de Capp du 18/11/2026) : contrôlé juste avant l'enregistrement, après la validation de la fiche.
     } else {
       const n = await db.query<any>(`SELECT count(*)::int AS n FROM contenus WHERE collection = $1 AND owner_id = $2 AND created_at > clock_timestamp() - interval '1 day'`, [collection, a.auth.uid]);
       if (n[0].n >= 20) return fail(429, 'Trop d\'envois aujourd\'hui. Réessaie demain.');
@@ -255,6 +256,19 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
       const r = await preparerAnnonceLogement(storage, a.auth.uid, id, ficheLogement, data as any);
       if (!r.ok) return reply.status(400).send({ error: r.erreurs.join(' '), erreurs: r.erreurs });
       data.logement = r.logement; privee = r.privee; lat = r.lat; lng = r.lng;
+    }
+    if (ficheGenerique) {
+      if (!storage) return fail(503, 'Stockage indisponible.');
+      if (!(await photos360Permises(a, ficheGenerique))) return reply.status(402).send({ error: MESSAGE_360, code: 'formule', avantage: 'photos_360' });
+      const r = await preparerAnnonceGenerique(storage, a.auth.uid, id, ficheGenerique, data as any);
+      if (!r.ok) return reply.status(400).send({ error: r.erreurs.join(' '), erreurs: r.erreurs });
+      data.fiche = r.fiche; privee = r.privee; lat = r.lat; lng = r.lng;
+    }
+    if (collection === 'annonces') {
+      // 1 annonce gratuite par mois (réglable), puis un crédit acheté par annonce (500 FCFA par défaut).
+      const res = await reserverPublication(db, a.auth.uid, id);
+      if (!res) { const qte = await etatQuota(db, a.auth.uid); return reply.status(402).send({ error: `Votre annonce gratuite du mois est utilisée. Une annonce supplémentaire coûte ${qte.prix_fcfa ?? 500} FCFA.`, code: 'quota', quota: qte }); }
+      if (res.payee) data.payee_credit = true;
     }
     data.auteur = (await db.query<any>(`SELECT data->>'displayName' AS n FROM users WHERE id = $1`, [a.auth.uid]))[0]?.n || 'Anonyme';
     await db.query(`INSERT INTO contenus (collection, id, data, publie, statut, owner_id, data_privee, lat, lng) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
@@ -276,7 +290,16 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
     if (typeof corps.prix === 'number' && Number.isFinite(corps.prix) && corps.prix >= 0) data.prix = corps.prix;
     if (!str(data.titre) || !(data.titre as string).trim()) return fail(400, 'Un titre est obligatoire.');
     let privee: unknown = null, lat: number | null = null, lng: number | null = null;
-    if (corps.logement && typeof corps.logement === 'object') {
+    if (corps.fiche && typeof corps.fiche === 'object' && data.categorie_id !== 'logement') {
+      if (!storage) return fail(503, 'Stockage indisponible.');
+      if ((corps.fiche as any).categorie !== data.categorie_id) return fail(400, 'La fiche ne correspond pas à la catégorie.');
+      if (!(await photos360Permises(a, corps.fiche))) return reply.status(402).send({ error: MESSAGE_360, code: 'formule', avantage: 'photos_360' });
+      const r = await preparerAnnonceGenerique(storage, a.auth.uid, id, corps.fiche, data as any);
+      if (!r.ok) return reply.status(400).send({ error: r.erreurs.join(' '), erreurs: r.erreurs });
+      const anciens = new Set(cheminsDe(cur.data.fiche)), gardes = new Set(cheminsDe(r.fiche));
+      await marquerAEffacer(db, id, [...anciens].filter(c => !gardes.has(c)), 'remplace');
+      data.fiche = r.fiche; privee = r.privee; lat = r.lat; lng = r.lng;
+    } else if (corps.logement && typeof corps.logement === 'object') {
       if (data.categorie_id !== 'logement') return fail(400, 'Seules les annonces de logement ont une fiche.');
       if (!storage) return fail(503, 'Stockage indisponible.');
       if (!(await photos360Permises(a, corps.logement))) return reply.status(402).send({ error: MESSAGE_360, code: 'formule', avantage: 'photos_360' });
@@ -285,8 +308,9 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
       const anciens = new Set(cheminsDe(cur.data.logement)), gardes = new Set(cheminsDe(r.logement));
       await marquerAEffacer(db, id, [...anciens].filter(c => !gardes.has(c)), 'remplace');
       data.logement = r.logement; privee = r.privee; lat = r.lat; lng = r.lng;
-    } else if (cur.data.logement) {
-      lat = cur.data.logement.positionPublique?.lat ?? null; lng = cur.data.logement.positionPublique?.lng ?? null;
+    } else if (cur.data.logement || cur.data.fiche) {
+      const X = cur.data.logement ?? cur.data.fiche;
+      lat = X.positionPublique?.lat ?? null; lng = X.positionPublique?.lng ?? null;
       privee = (await db.query<any>(`SELECT data_privee FROM contenus WHERE collection = 'annonces' AND id = $1`, [id]))[0]?.data_privee ?? null;
     }
     delete data.motif_refus;
@@ -301,7 +325,7 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
     collectionUtilisateur(collection);
     const a = await acteur(req);
     const r = await db.query<any>(`SELECT id, data, statut, created_at FROM contenus WHERE collection = $1 AND owner_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 100`, [collection, a.auth.uid]);
-    return Promise.all(r.map(async x => ({ ...ligne(x), ...(x.data?.logement && storage ? { logement: await signerLogement(storage, x.data.logement) } : {}), statut: x.statut, cree: x.created_at })));
+    return Promise.all(r.map(async x => ({ ...ligne(x), ...(x.data?.logement && storage ? { logement: await signerLogement(storage, x.data.logement) } : {}), ...(x.data?.fiche && storage ? { fiche: await signerLogement(storage, x.data.fiche) } : {}), statut: x.statut, cree: x.created_at })));
   });
 
   app.delete('/v1/utilisateur/:collection/:id', async (req, reply) => {
@@ -345,6 +369,7 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
     return Promise.all(r.map(async x => ({
       collection: x.collection, ...ligne(x),
       ...(x.data?.logement && storage ? { logement: { ...(await signerLogement(storage, x.data.logement)), ...(x.data_privee?.position ? { positionReelle: x.data_privee.position } : {}) } } : {}),
+      ...(x.data?.fiche && storage ? { fiche: { ...(await signerLogement(storage, x.data.fiche)), ...(x.data_privee?.position ? { positionReelle: x.data_privee.position } : {}) } } : {}),
       statut: x.statut, owner: x.owner_id, cree: x.created_at,
     })));
   });
@@ -356,14 +381,77 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
     const b = (req.body || {}) as { decision?: string; motif?: string };
     if (!['publier', 'refuser'].includes(b.decision || '')) return fail(400, 'Décision attendue : publier ou refuser.');
     const publie = b.decision === 'publier';
-    await db.tx(async q => {
-      const r = await q.query<any>(`UPDATE contenus SET publie = $3, statut = $4, data = data || $5::jsonb, updated_at = clock_timestamp() WHERE collection = $1 AND id = $2 AND owner_id IS NOT NULL RETURNING data`,
+    const maj = await db.tx(async q => {
+      const r = await q.query<any>(`UPDATE contenus SET publie = $3, statut = $4, data = data || $5::jsonb, updated_at = clock_timestamp() WHERE collection = $1 AND id = $2 AND owner_id IS NOT NULL RETURNING data, owner_id, lat, lng, (SELECT count(*) FROM journal_admin WHERE action = 'moderation_publie' AND cible = $1 || '/' || $2) AS deja`,
         [collection, id, publie, publie ? 'publie' : 'refuse', JSON.stringify(b.motif ? { motif_refus: String(b.motif).slice(0, 300) } : {})]);
-      if (!publie && r[0]?.data?.logement) await marquerAEffacer(q, id, cheminsDe(r[0].data.logement), 'refuse');
+      const fiche = r[0]?.data?.logement ?? r[0]?.data?.fiche;
+      if (!publie && fiche) await marquerAEffacer(q, id, cheminsDe(fiche), 'refuse');
       await journaliser(q, a.auth.uid, publie ? 'moderation_publie' : 'moderation_refuse', `${collection}/${id}`, { motif: b.motif });
+      return r[0];
     });
     notify('contenus');
+    // Alertes de nouvelles annonces : à la première publication seulement, une notification par alerte et par heure au plus.
+    if (publie && collection === 'annonces' && maj && Number(maj.deja) === 0) {
+      try {
+        const pos = maj.lat !== null && maj.lng !== null ? { lat: Number(maj.lat), lng: Number(maj.lng) } : null;
+        const alertes = await alertesConcernees(db, maj.data, maj.owner_id, pos);
+        if (alertes.length) {
+          await db.query(`UPDATE annonces_alertes SET derniere_notif = clock_timestamp() WHERE id = ANY($1::bigint[])`, [alertes.map(x => x.id)]);
+          await envoyerPush(db, env, [...new Set(alertes.map(x => x.user_id))], 'Nouvelle annonce pour vous', String(maj.data?.titre ?? 'Annonce').slice(0, 120), { type: 'annonce', annonceId: id });
+        }
+      } catch (e) { /* une alerte ratée ne doit jamais bloquer la modération */ void e; }
+    }
     return { ok: true };
+  });
+
+  // ---------------------------------------------------------------- annonces : quota, repositionner, alertes
+  app.get('/v1/annonces/quota', async (req) => { const a = await acteur(req); return etatQuota(db, a.auth.uid); });
+
+  /** Remonter son annonce en tête de liste (une fois par période, 7 jours par défaut). */
+  app.post('/v1/utilisateur/annonces/:id/repositionner', async (req) => {
+    const { id } = req.params as { id: string };
+    const a = await acteur(req);
+    const r = await reglageAnnonces(db);
+    const cur = (await db.query<any>(`SELECT data, publie, created_at FROM contenus WHERE collection = 'annonces' AND id = $1 AND owner_id = $2 AND deleted_at IS NULL`, [id, a.auth.uid]))[0];
+    if (!cur) return fail(404, 'Annonce introuvable.');
+    if (!cur.publie) return fail(409, 'L\'annonce doit être publiée pour être repositionnée.');
+    const dernier = Date.parse(cur.data.remonte_le ?? '') || new Date(cur.created_at).getTime();
+    const attente = dernier + r.repositionner_jours * 86_400_000 - Date.now();
+    if (attente > 0) return fail(429, `Vous pourrez la repositionner dans ${Math.ceil(attente / 86_400_000)} jour(s).`);
+    const le = new Date().toISOString();
+    await db.query(`UPDATE contenus SET data = data || $3::jsonb, updated_at = clock_timestamp() WHERE collection = 'annonces' AND id = $1 AND owner_id = $2`, [id, a.auth.uid, JSON.stringify({ remonte_le: le })]);
+    notify('contenus');
+    return { ok: true, remonte_le: le, prochaine: new Date(Date.now() + r.repositionner_jours * 86_400_000).toISOString() };
+  });
+
+  app.get('/v1/annonces/alertes', async (req) => {
+    const a = await acteur(req);
+    return db.query(`SELECT id, nom, filtres, actif, derniere_notif, created_at FROM annonces_alertes WHERE user_id = $1 ORDER BY created_at DESC`, [a.auth.uid]);
+  });
+  app.post('/v1/annonces/alertes', async (req, reply) => {
+    const a = await acteur(req);
+    const b = (req.body || {}) as { nom?: string; filtres?: unknown };
+    const f = filtresAlerte(b.filtres);
+    if (!f) return fail(400, 'Filtres de l\'alerte invalides ou vides.');
+    const r = await reglageAnnonces(db);
+    const n = (await db.query<any>(`SELECT count(*)::int AS n FROM annonces_alertes WHERE user_id = $1`, [a.auth.uid]))[0].n;
+    if (n >= r.alertes_max) return fail(429, `${r.alertes_max} alertes au plus : supprimez-en une.`);
+    const nom = (str(b.nom) && b.nom.trim() ? b.nom.trim() : 'Ma recherche').slice(0, 80);
+    const x = (await db.query<any>(`INSERT INTO annonces_alertes (user_id, nom, filtres) VALUES ($1,$2,$3) RETURNING id, nom, filtres, actif, created_at`, [a.auth.uid, nom, JSON.stringify(f)]))[0];
+    return reply.status(201).send(x);
+  });
+  app.patch('/v1/annonces/alertes/:id', async (req) => {
+    const a = await acteur(req);
+    const { actif } = (req.body || {}) as { actif?: boolean };
+    if (typeof actif !== 'boolean') return fail(400, 'actif (oui/non) attendu.');
+    const r = await db.query(`UPDATE annonces_alertes SET actif = $3 WHERE id = $1 AND user_id = $2 RETURNING id`, [Number((req.params as any).id) || 0, a.auth.uid, actif]);
+    if (!r.length) return fail(404, 'Alerte introuvable.');
+    return { ok: true };
+  });
+  app.delete('/v1/annonces/alertes/:id', async (req, reply) => {
+    const a = await acteur(req);
+    await db.query(`DELETE FROM annonces_alertes WHERE id = $1 AND user_id = $2`, [Number((req.params as any).id) || 0, a.auth.uid]);
+    return reply.status(204).send();
   });
 
   // ---------------------------------------------------------------- sondages
@@ -392,7 +480,7 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
   });
 
   // ---------------------------------------------------------------- réglages et interrupteurs
-  const CLES = ['modules', 'modules_admin', 'fonctions', 'ia_quotas', 'ia_contexte', 'ia_tarifs', 'pub_plafonds', 'maintenance', 'contact', 'cours_distance'];
+  const CLES = ['annonces', 'modules', 'modules_admin', 'fonctions', 'ia_quotas', 'ia_contexte', 'ia_tarifs', 'pub_plafonds', 'maintenance', 'contact', 'cours_distance'];
   app.get('/v1/admin/parametres', async (req) => {
     await staff(req);
     const r = await db.query<any>(`SELECT cle, valeur, par, updated_at FROM parametres ORDER BY cle`);
@@ -416,6 +504,10 @@ export function registerContenus({ app, db, fail, acteur, notify, env }: Ctx, st
       // Règles de contexte (inclus, max, politique) et tarifs de l'assistant (devise, prix par million, frais d'excès)
       if (!valeur || typeof valeur !== 'object') return fail(400, 'Objet attendu.');
       valeur = Object.fromEntries(Object.entries(valeur).filter(([k, v]) => (typeof v === 'number' && v >= 0 && Number.isFinite(v)) || (k === 'devise' && typeof v === 'string' && v.length <= 8) || (k === 'politique' && ['bloquer', 'facturer', 'suivre'].includes(v as string))));
+    } else if (cle === 'annonces') {
+      // Quota et options des annonces : nombres entiers positifs et identifiant du produit des annonces payées.
+      if (!valeur || typeof valeur !== 'object') return fail(400, 'Objet attendu.');
+      valeur = Object.fromEntries(Object.entries(valeur).filter(([k, v]) => (['gratuites_mois', 'repositionner_jours', 'alertes_max'].includes(k) && typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 1000) || (k === 'produit' && typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v))));
     } else if (cle === 'ia_quotas' || cle === 'pub_plafonds') {
       if (!valeur || typeof valeur !== 'object') return fail(400, 'Objet attendu.');
       valeur = Object.fromEntries(Object.entries(valeur).filter(([, v]) => typeof v === 'number' && v >= 0 && Number.isFinite(v)));

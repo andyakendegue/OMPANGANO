@@ -6,6 +6,7 @@ import {
   preparerLogementPublic, validerFicheLogement, CATALOGUE_LOGEMENT, type FicheLogement, type LogementPrive, type LogementPublic, type MediaAnnonce,
 } from '../../../packages/noyau/src/logement.ts';
 import type { MediaStorage } from './storage.ts';
+import { categorieAnnonce } from '../../../packages/noyau/src/annonces.ts';
 import type { Queryable } from './db.ts';
 
 /** Durée de validité des URL de lecture des médias d'annonce (6 h). */
@@ -32,7 +33,7 @@ export async function preparerAnnonceLogement(storage: MediaStorage, uid: string
 }
 
 /** Ajoute les URL présignées (url, urlVignette, urlHd) à chaque média, et couvertureUrl. Ne modifie pas l'objet reçu. */
-export async function signerLogement(storage: MediaStorage, l: LogementPublic | undefined | null) {
+export async function signerLogement<T extends { medias?: MediaAnnonce[]; couverture?: string }>(storage: MediaStorage, l: T | undefined | null) {
   if (!l || !Array.isArray(l.medias)) return l;
   const s = (p?: string) => (p ? storage.presignGet(p, TTL_MEDIAS_ANNONCE_S) : Promise.resolve(undefined));
   const medias = await Promise.all(l.medias.map(async m => ({ ...m, url: await s(m.chemin), urlVignette: await s(m.cheminVignette), urlHd: await s(m.cheminHd) })));
@@ -44,6 +45,7 @@ export async function signerLogement(storage: MediaStorage, l: LogementPublic | 
 export async function lignePublique(storage: MediaStorage, r: { id: string; data: any; created_at?: unknown; distance_m?: number | null }) {
   const out: Record<string, unknown> = { ...r.data, id: r.id, cree: r.created_at };
   if (r.data?.logement) out.logement = await signerLogement(storage, r.data.logement);
+  if (r.data?.fiche) out.fiche = await signerLogement(storage, r.data.fiche);
   if (r.distance_m !== undefined && r.distance_m !== null) out.distance_m = Math.round(Number(r.distance_m));
   return out;
 }
@@ -65,13 +67,33 @@ export function requeteAnnonces(qs: Record<string, string | undefined>) {
   const p: unknown[] = [];
   const $ = (v: unknown) => { p.push(v); return `$${p.length}`; };
   const w: string[] = [`collection = 'annonces'`, 'publie', 'deleted_at IS NULL'];
-  const L = `data->'logement'`;
+  // Logement (data.logement) et autres catégories (data.fiche) partagent quartier, transaction, médias, certification, complétude.
+  const L = `COALESCE(data->'logement', data->'fiche')`;
+  const F = `data->'fiche'`;
   const num = (k: string) => { const n = Number(qs[k]); return qs[k] !== undefined && qs[k] !== '' && Number.isFinite(n) ? n : undefined; };
   if (qs.categorie) w.push(`data->>'categorie_id' = ${$(qs.categorie)}`);
   if (qs.ville) w.push(`(data->>'ville' ILIKE ${$(qs.ville)} OR ${L}->>'quartier' ILIKE ${$(qs.ville)})`);
   if (qs.quartier) w.push(`${L}->>'quartier' ILIKE ${$(`%${qs.quartier}%`)}`);
   if (qs.transaction) w.push(`${L}->>'transaction' = ${$(qs.transaction)}`);
   if (qs.type) w.push(`${L}->>'typeBien' = ${$(qs.type)}`);
+  if (qs.sc) w.push(`${F}->>'sousCategorie' = ${$(qs.sc)}`);
+  // Recherche libre dans le titre et la description
+  if (qs.q && qs.q.trim()) { const t = `%${qs.q.trim().slice(0, 80).replace(/[%_\\]/g, m => '\\' + m)}%`; w.push(`(data->>'titre' ILIKE ${$(t)} OR data->>'description' ILIKE ${$(t)})`); }
+  // Champs du catalogue de la catégorie : f_<champ>=valeur (choix, oui/non, texte), f_<champ>_min / f_<champ>_max (nombres, années)
+  const cat = qs.categorie ? categorieAnnonce(qs.categorie) : undefined;
+  if (cat) for (const c of cat.champs) {
+    const v = qs[`f_${c.id}`], col = `${F}->'champs'->'${c.id}'`;
+    if ((c.type === 'nombre' || c.type === 'annee')) {
+      const mi = num(`f_${c.id}_min`), ma = num(`f_${c.id}_max`), n = `(CASE WHEN jsonb_typeof(${col}) = 'number' THEN (${col})::text::numeric END)`;
+      if (mi !== undefined) w.push(`${n} >= ${$(mi)}`);
+      if (ma !== undefined) w.push(`${n} <= ${$(ma)}`);
+    } else if (v !== undefined && v !== '') {
+      if (c.type === 'bool') w.push(`${col} = ${v === '1' || v === 'true' ? "'true'" : "'false'"}::jsonb`);
+      else if (c.type === 'choix' && c.options?.some(o => o.id === v)) w.push(`${F}->'champs'->>'${c.id}' = ${$(v)}`);
+      else if (c.type === 'multi' && c.options?.some(o => o.id === v)) w.push(`${col} @> ${$(JSON.stringify([v]))}::jsonb`);
+      else if (c.type === 'texte') w.push(`${F}->'champs'->>'${c.id}' ILIKE ${$(`%${v.slice(0, 60)}%`)}`);
+    }
+  }
   const prix = `(CASE WHEN jsonb_typeof(data->'prix') = 'number' THEN (data->>'prix')::numeric END)`;
   const pmin = num('prix_min'), pmax = num('prix_max'), ch = num('chambres_min');
   if (pmin !== undefined) w.push(`${prix} >= ${$(pmin)}`);
@@ -104,7 +126,7 @@ export function requeteAnnonces(qs: Record<string, string | undefined>) {
     : tri === '-prix' ? `${prix} DESC NULLS LAST, created_at DESC`
     : tri === 'distance' && avecPos ? 'distance_m ASC NULLS LAST, created_at DESC'
     : tri === 'completude' ? `(CASE WHEN jsonb_typeof(${L}->'completude') = 'number' THEN (${L}->>'completude')::numeric END) DESC NULLS LAST, created_at DESC`
-    : 'created_at DESC';
+    : `COALESCE((data->>'remonte_le')::timestamptz, created_at) DESC`;
   const limite = Math.min(50, Math.max(1, num('limite') ?? 50));
   const page = Math.max(1, Math.floor(num('page') ?? 1));
   // Les anciennes routes renvoyaient jusqu'à 100 annonces sans pagination : on garde 100 quand rien n'est précisé.

@@ -10,6 +10,8 @@ import { useTheme } from '../Prefs';
 import { EmplacementPub, FilAvecPubs } from '../Pub';
 import { positionActuelle } from './medias';
 import { prixAnnonce, type AnnonceVue } from './DetailLogement';
+import { CarteOSM } from '../annonces/CarteOSM';
+import { ChoixAffichage, RAYONS_KM, useAffichage } from '../annonces/ListeAnnonces';
 
 type Annonce = AnnonceVue & { id: string; cree?: string };
 const CLE_FILTRES = 'nkala_filtres_logement';
@@ -41,24 +43,16 @@ function CarteLogement({ a, onPress }: { a: Annonce; onPress: () => void }) {
 }
 
 /** Carte schématique : les logements placés les uns par rapport aux autres (la carte routière viendra avec le module natif de cartes). */
-function CarteLogements({ liste, onOuvrir }: { liste: Annonce[]; onOuvrir: (a: Annonce) => void }) {
-  const { c } = useTheme();
-  const [sel, setSel] = useState<Annonce | null>(null);
-  const pts = liste.filter(a => a.logement.positionPublique);
-  if (!pts.length) return <EtatVide icone="carte" titre="Aucun logement à placer" />;
-  const lats = pts.map(a => a.logement.positionPublique!.lat), lngs = pts.map(a => a.logement.positionPublique!.lng);
-  const [la0, la1, lo0, lo1] = [Math.min(...lats), Math.max(...lats), Math.min(...lngs), Math.max(...lngs)];
-  const xy = (a: Annonce) => { const p = a.logement.positionPublique!; return { x: lo1 === lo0 ? 50 : 8 + ((p.lng - lo0) / (lo1 - lo0)) * 84, y: la1 === la0 ? 50 : 8 + ((la1 - p.lat) / (la1 - la0)) * 84 }; };
+/** Carte OpenStreetMap des logements, avec le cercle du rayon choisi autour de la position de la personne. */
+function CarteLogements({ liste, onOuvrir, moi, rayonKm }: { liste: Annonce[]; onOuvrir: (a: Annonce) => void; moi: { lat: number; lng: number } | null; rayonKm?: number }) {
+  const [sel, setSel] = useState<string | null>(null);
+  const pts = liste.filter(a => a.logement?.positionPublique).map(a => ({ id: a.id, lat: a.logement.positionPublique!.lat, lng: a.logement.positionPublique!.lng, titre: a.titre ?? '', prix: prixAnnonce(a), approx: !!a.logement.masquee }));
+  const choisi = liste.find(a => a.id === sel);
   return (
     <View style={{ gap: 10 }}>
-      <View style={{ height: 320, borderRadius: 24, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, overflow: 'hidden' }}>
-        {pts.map(a => { const p = xy(a); return (
-          <Pressable key={a.id} accessibilityRole="button" accessibilityLabel={a.titre} onPress={() => setSel(a)} style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%`, marginLeft: -16, marginTop: -32 }}>
-            <Ic nom={a.logement.masquee ? 'radio-button-on' : 'location'} taille={32} couleur={sel?.id === a.id ? c.fort : c.accent} />
-          </Pressable>); })}
-      </View>
-      <T v="petit">Carte schématique. Les emplacements masqués sont approximatifs.</T>
-      {sel && <CarteLogement a={sel} onPress={() => onOuvrir(sel)} />}
+      <CarteOSM points={pts} moi={moi} rayonKm={rayonKm ?? null} choisi={sel} onChoix={setSel} hauteur={420} />
+      <T v="petit">{pts.length} logement{pts.length > 1 ? 's' : ''} sur la carte. Les emplacements masqués apparaissent en zone approximative.</T>
+      {choisi && <CarteLogement a={choisi} onPress={() => onOuvrir(choisi)} />}
     </View>
   );
 }
@@ -69,7 +63,7 @@ export function ListeLogements({ onOuvrir, onPublier, onAlertes }: { onOuvrir: (
   const [liste, setListe] = useState<Annonce[] | null>(null);
   const [err, setErr] = useState(false);
   const [feuille, setFeuille] = useState(false);
-  const [carte, setCarte] = useState(false);
+  const [affichage, setAffichage] = useAffichage('logement');
   const [localise, setLocalise] = useState(false);
   useEffect(() => { AsyncStorage.getItem(CLE_FILTRES).then(v => { if (v) { const s = JSON.parse(v) as FiltresLogement; delete s.lat; delete s.lng; delete s.rayon_km; if (s.tri === 'distance') s.tri = 'recent'; setF(s); } }).catch(() => {}); }, []);
   useEffect(() => {
@@ -93,19 +87,25 @@ export function ListeLogements({ onOuvrir, onPublier, onAlertes }: { onOuvrir: (
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Bouton label="Publier un logement" icone="ajouter" variante="ambre" onPress={onPublier} style={{ flex: 1 }} />
         <Bouton label="Mes alertes" icone="cloche" variante="fantome" large={false} onPress={onAlertes} />
+        <ChoixAffichage valeur={affichage} onChange={setAffichage} />
       </View>
       <Rangee>
         <Puce label={nbFiltres ? `Filtres · ${nbFiltres}` : 'Filtres'} icone="filtre" actif={nbFiltres > 0} onPress={() => setFeuille(true)} />
         <Puce label={f.rayon_km ? `≤ ${f.rayon_km} km` : localise ? 'Localisation…' : 'Autour de moi'} icone="itineraire" actif={!!f.rayon_km} onPress={() => (f.rayon_km ? set({ rayon_km: undefined, lat: undefined, lng: undefined, tri: f.tri === 'distance' ? 'recent' : f.tri }) : autourDeMoi(3))} />
         <Puce label="Avec 360°" actif={!!f.avec360} onPress={() => set({ avec360: !f.avec360 })} />
         <Puce label="Certifiées" actif={!!f.certifiee} onPress={() => set({ certifiee: !f.certifiee })} />
-        <Puce label={carte ? 'Liste' : 'Voir sur la carte'} icone={carte ? 'liste' : 'carte'} onPress={() => setCarte(!carte)} />
+        {RAYONS_KM.map(km => <Puce key={km} label={`${km} km`} actif={f.rayon_km === km} onPress={() => (f.rayon_km === km ? set({ rayon_km: undefined, lat: undefined, lng: undefined, tri: f.tri === 'distance' ? 'recent' : f.tri }) : f.lat !== undefined ? set({ rayon_km: km }) : autourDeMoi(km))} />)}
       </Rangee>
       <Rangee>{TRIS.map(([id, l]) => <Puce key={id} label={l} actif={f.tri === id} onPress={() => (id === 'distance' && f.lat === undefined ? autourDeMoi() .then(() => set({ tri: 'distance' })) : set({ tri: id }))} />)}</Rangee>
       <EmplacementPub zone="annonce_dans_liste" />
       {err ? <EtatVide icone="alerte" titre="Annonces indisponibles" texte="Réessayez quand vous aurez du réseau." /> : !liste ? <Chargement lignes={2} /> :
         liste.length === 0 ? <EtatVide icone="maison" titre="Aucun logement trouvé" texte={nbFiltres ? 'Élargissez vos filtres.' : 'Soyez le premier à publier.'} /> :
-        carte ? <CarteLogements liste={liste} onOuvrir={onOuvrir} /> :
+        affichage === 'carte' ? <CarteLogements liste={liste} onOuvrir={onOuvrir} moi={f.lat !== undefined && f.lng !== undefined ? { lat: f.lat, lng: f.lng } : null} rayonKm={f.rayon_km} /> :
+        affichage === 'grille' ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>{liste.map(a => (
+          <Pressable key={a.id} accessibilityRole="button" accessibilityLabel={a.titre} onPress={() => onOuvrir(a)} style={{ width: '47%', borderRadius: 16, overflow: 'hidden', backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord }}>
+            <View style={{ aspectRatio: 1.2, backgroundColor: c.fond2 }}>{a.logement?.couvertureUrl ? <Image source={{ uri: a.logement.couvertureUrl }} style={{ width: '100%', height: '100%' }} /> : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Ic nom="maison" taille={30} couleur={c.discret} /></View>}</View>
+            <View style={{ padding: 8, gap: 2 }}><T v="petit" fort couleur={c.accent} numberOfLines={1}>{a.logement ? prixAnnonce(a) : a.prix ? `${a.prix} FCFA` : ''}</T><T v="petit" numberOfLines={2}>{a.titre}</T></View>
+          </Pressable>))}</View> :
         <FilAvecPubs items={liste} zone="annonce_dans_liste" cle={a => a.id} rendu={a => (a.logement ? <CarteLogement a={a} onPress={() => onOuvrir(a)} /> :
           <Carte onPress={() => onOuvrir(a)} label={a.titre}><View style={{ padding: 14, gap: 4 }}><T v="carte">{a.titre}</T>{(a.prix ?? 0) > 0 && <T v="sousTitre" couleur={c.accent}>{Number(a.prix).toLocaleString('fr-FR')} FCFA</T>}<T v="petit">{[a.ville, a.auteur].filter(Boolean).join(' · ')}</T></View></Carte>)} />}
       <Feuille visible={feuille} onClose={() => setFeuille(false)} titre="Filtres">

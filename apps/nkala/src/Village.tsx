@@ -17,13 +17,17 @@ import { Verrou } from './Verrou';
 import { ListeLogements } from './logement/ListeLogements';
 import { ActionsLogement, MesAlertes, VueLogement, type AnnonceVue } from './logement/DetailLogement';
 import { PublierLogement } from './logement/PublierLogement';
+import { ListeAnnonces, MesAnnonces } from './annonces/ListeAnnonces';
+import { PublierAnnonce } from './annonces/PublierAnnonce';
+import { DetailAnnonceGenerique, type AnnonceGeneriqueVue } from './annonces/DetailAnnonce';
+import { categorieAnnonce } from '@nkala/noyau';
 import { useTempsOnglet } from './Mesure';
 import { ecouterOuvertureAnnonce, prendreAnnonceEnAttente } from './logement/alertesProximite';
 
 type Section = 'chercher' | 'annonces' | 'actus' | 'commune' | 'magazine' | 'services';
 type E =
   | { t: 'racine' } | { t: 'resultats'; q: string; cat?: string } | { t: 'carte'; cat?: string } | { t: 'lieu'; id: string } | { t: 'garde' }
-  | { t: 'annonce'; a: Ligne } | { t: 'publier' } | { t: 'publierLogement' } | { t: 'alertes' } | { t: 'actu'; id: string } | { t: 'article'; id: string } | { t: 'signaler' } | { t: 'taxi' } | { t: 'idee' };
+  | { t: 'annonce'; a: Ligne } | { t: 'publier' } | { t: 'publierLogement' } | { t: 'alertes' } | { t: 'publierAnnonce'; categorie: string } | { t: 'mesAnnonces' } | { t: 'actu'; id: string } | { t: 'article'; id: string } | { t: 'signaler' } | { t: 'taxi' } | { t: 'idee' };
 type Pile = ReturnType<typeof usePile<E>>;
 const num = (v: unknown) => Number(v) || 0;
 
@@ -66,6 +70,8 @@ export function Village() {
     case 'annonce': return <DetailAnnonce a={e.a} pile={pile} />;
     case 'publier': return <Publier D={D} pile={pile} />;
     case 'publierLogement': return <PublierLogementEcran D={D} pile={pile} />;
+    case 'publierAnnonce': return <PublierAnnonce categorie={e.categorie} retour={pile.retour} />;
+    case 'mesAnnonces': return <MesAnnonces retour={pile.retour} onOuvrir={a => pile.pousser({ t: 'annonce', a: a as unknown as Ligne })} />;
     case 'alertes': return <Ecran bas={40}><Entete titre="Mes alertes" sous="Logements suivis à proximité" retour={pile.retour} /><MesAlertes onOuvrir={id => chargerAnnonce(id).then(a => pile.pousser({ t: 'annonce', a: a as Ligne })).catch(() => {})} /></Ecran>;
     case 'actu': return <DetailTexte l={D.actus.find(x => x.id === e.id)} pile={pile} />;
     case 'article': return <DetailTexte l={D.mag.find(x => x.id === e.id)} pile={pile} verrou />;
@@ -220,9 +226,11 @@ function Annonces({ D, pile }: Ctx) {
   const setCat = (k: string | undefined) => { derniereCategorie = k; setCat0(k); };
   const [liste, setListe] = useState<Ligne[] | null>(null);
   const [err, setErr] = useState(false);
-  useEffect(() => { if (cat === 'logement') return; setListe(null); setErr(false); chargerAnnonces(cat).then(l => setListe(l as Ligne[])).catch(() => setErr(true)); }, [cat]);
+  useEffect(() => { if (cat === 'logement' || categorieAnnonce(cat)) return; setListe(null); setErr(false); chargerAnnonces(cat).then(l => setListe(l as Ligne[])).catch(() => setErr(true)); }, [cat]);
   const puces = <Rangee><Puce label="Toutes" actif={!cat} onPress={() => setCat(undefined)} />{D.catAnn.map(k => <Puce key={k.id} label={k.titre} icone={k.icone} actif={cat === k.id} onPress={() => setCat(k.id)} />)}</Rangee>;
   // Logement : liste riche (filtres, distance, 360°), formulaire complet
+  // Autres catégories du catalogue (auto, équipement, emploi, services, animaux, divers) : même richesse que le logement.
+  if (cat && categorieAnnonce(cat)) return <>{puces}<ListeAnnonces categorie={cat} onOuvrir={a => pile.pousser({ t: 'annonce', a: a as unknown as Ligne })} onPublier={() => pile.pousser({ t: 'publierAnnonce', categorie: cat })} onMesAnnonces={() => pile.pousser({ t: 'mesAnnonces' })} /></>;
   if (cat === 'logement') return <>{puces}<ListeLogements onOuvrir={a => pile.pousser({ t: 'annonce', a: a as unknown as Ligne })} onPublier={() => pile.pousser({ t: 'publierLogement' })} onAlertes={() => pile.pousser({ t: 'alertes' })} /></>;
   return (
     <>
@@ -236,6 +244,7 @@ function Annonces({ D, pile }: Ctx) {
 }
 function DetailAnnonce({ a, pile }: { a: Ligne; pile: Pile }) {
   const { c } = useTheme();
+  if (a.fiche) return <DetailAnnonceGenerique a={a as unknown as AnnonceGeneriqueVue & { id: string }} retour={pile.retour} />;
   if (a.logement) return (
     <Ecran bas={40}>
       <Entete titre={a.titre} sous={a.auteur ? `Par ${a.auteur}` : undefined} retour={pile.retour} />
@@ -278,6 +287,7 @@ function Publier({ D, pile }: { D: Ctx['D']; pile: Pile }) {
       <Champ valeur={f.prix} onChange={t => setF({ ...f, prix: t.replace(/\D/g, '') })} placeholder="Prix en FCFA (facultatif)" clavier="number-pad" />
       <Champ valeur={f.ville} onChange={t => setF({ ...f, ville: t })} placeholder="Ville" auto="words" />
       <Champ valeur={f.telephone} onChange={t => setF({ ...f, telephone: t })} placeholder="Téléphone" clavier="phone-pad" />
+      {!!categorieAnnonce(f.categorie_id) && <Carte accent="#F59E0B" onPress={() => pile.remplacer({ t: 'publierAnnonce', categorie: f.categorie_id })} label="Annonce complète"><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ic nom={categorieAnnonce(f.categorie_id)!.icon} taille={26} couleur="#F59E0B" /><View style={{ flex: 1 }}><T v="carte">Annonce complète : {categorieAnnonce(f.categorie_id)!.label}</T><T v="petit">Photos, vidéos, caractéristiques, emplacement et filtres.</T></View><Ic nom="suivant" taille={18} /></View></Carte>}
       {f.categorie_id === 'logement' && <Carte accent="#F59E0B" onPress={() => pile.remplacer({ t: 'publierLogement' })} label="Annonce de logement complète"><View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ic nom="maison" taille={26} couleur="#F59E0B" /><View style={{ flex: 1 }}><T v="carte">Annonce de logement complète</T><T v="petit">Photos, vidéos, photos 360°, équipements, conditions et emplacement.</T></View><Ic nom="suivant" taille={18} /></View></Carte>}
       <T v="petit">Quota gratuit : {ceMois} / {quota} annonces ce mois-ci. Chaque annonce est relue avant d'être publiée.</T>
       <Bouton label="Envoyer pour relecture" charge={occupe} desactive={!f.titre.trim() || ceMois >= quota} onPress={envoyer} />

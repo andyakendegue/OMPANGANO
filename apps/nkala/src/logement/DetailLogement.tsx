@@ -52,7 +52,7 @@ function PleinEcranPhotos({ photos, depart, visible, onClose }: { photos: MediaV
   );
 }
 
-function Galerie({ medias }: { medias: MediaVu[] }) {
+export function Galerie({ medias }: { medias: MediaVu[] }) {
   const { c } = useTheme();
   const { width } = useWindowDimensions();
   const larg = Math.min(width, 640) - 32;

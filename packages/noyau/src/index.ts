@@ -48,3 +48,4 @@ export * from './fil';
 export * from './lecture';
 export * from './logement';
 export * from './donneesPerso';
+export * from './annonces';

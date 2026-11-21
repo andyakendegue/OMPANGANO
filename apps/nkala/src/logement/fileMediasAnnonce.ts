@@ -11,7 +11,9 @@ import { Platform } from 'react-native';
 import { demanderUrlEnvoi, isPermanentApiError, prefixeMediasAnnonce, type FicheLogement } from '@nkala/noyau';
 import { nouvelId, type MediaLocal } from './medias';
 
-const CLE = 'nkala_brouillon_logement';
+let CLE = 'nkala_brouillon_logement';
+/** Choisit le brouillon actif : logement (par défaut) ou annonce d'une autre catégorie (un seul formulaire ouvert à la fois). */
+export const utiliserBrouillon = (cle: 'nkala_brouillon_logement' | 'nkala_brouillon_annonce') => { CLE = cle; };
 
 export interface BaseBrouillon { titre: string; description: string; prix: string; ville: string; telephone: string; whatsappIdentique: boolean }
 export interface BrouillonLogement {

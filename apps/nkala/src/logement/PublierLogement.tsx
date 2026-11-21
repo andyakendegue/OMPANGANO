@@ -17,7 +17,7 @@ import { VueLogement } from './DetailLogement';
 import { positionActuelle, type MediaLocal } from './medias';
 import {
   attribuerChemins, copierDurable, effacerBrouillon, ecrireBrouillon, envoyerMedias, lireBrouillon, nouveauBrouillon, progressionDe,
-  relancerAuRetourDuReseau, tousEnvoyes, type BrouillonLogement, type Progression,
+  relancerAuRetourDuReseau, tousEnvoyes, utiliserBrouillon, type BrouillonLogement, type Progression,
 } from './fileMediasAnnonce';
 
 const ETAPES = ['Le bien', 'Pièces', 'Équipements', 'Conditions', 'Médias', 'Emplacement', 'Contact et aperçu'];
@@ -60,6 +60,7 @@ export function PublierLogement({ retour, quota, ceMois, aModifier }: { retour: 
   // Brouillon : repris tel quel s'il existe (coupure, fermeture, connexion), sinon nouveau
   useEffect(() => {
     (async () => {
+      utiliserBrouillon('nkala_brouillon_logement');
       const ancien = aModifier ?? (await lireBrouillon());
       if (ancien && !aModifier) toast('Brouillon retrouvé : vous reprenez où vous en étiez.', 'succes');
       const n = ancien ?? nouveauBrouillon();

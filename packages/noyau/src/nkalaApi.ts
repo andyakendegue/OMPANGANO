@@ -143,6 +143,24 @@ export function chargerLogements(f: FiltresLogement = {}) {
   return api<Record<string, any>[]>('GET', `/pub/annonces?${q}`);
 }
 export const chargerAnnonce = (id: string) => api<Record<string, any>>('GET', `/pub/annonces/${encodeURIComponent(id)}`);
+// ------------------------------------------------------------------ annonces de tous types (auto, équipement, emploi, services…)
+export interface BaseAnnonceEnvoi { titre: string; description?: string; prix?: number; ville?: string; telephone: string; categorie_id: string }
+export const publierAnnonceFiche = (base: BaseAnnonceEnvoi, fiche: unknown) => api<Record<string, any>>('POST', '/v1/utilisateur/annonces', { ...base, fiche });
+export const modifierAnnonceFiche = (id: string, base: Partial<BaseAnnonceEnvoi>, fiche?: unknown) => api<Record<string, any>>('PUT', `/v1/utilisateur/annonces/${encodeURIComponent(id)}`, { ...base, ...(fiche ? { fiche } : {}) });
+/** Liste filtrée : categorie, sc (sous-catégorie), transaction, q, prix_min/max, f_<champ>, f_<champ>_min/_max, lat, lng, rayon_km, tri, page. */
+export function chargerAnnoncesFiltrees(filtres: Record<string, string | number | boolean | undefined | null>) {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(filtres)) if (v !== undefined && v !== null && v !== '' && v !== false) q.set(k, v === true ? '1' : String(v));
+  return api<Record<string, any>[]>('GET', `/pub/annonces?${q}`);
+}
+export interface QuotaAnnonces { gratuites_mois: number; utilisees: number; credits: number; produit: string; prix_fcfa: number | null; prix_nkr: number | null }
+export const chargerQuotaAnnonces = () => api<QuotaAnnonces>('GET', '/v1/annonces/quota');
+export const repositionnerAnnonce = (id: string) => api<{ ok: boolean; remonte_le: string; prochaine: string }>('POST', `/v1/utilisateur/annonces/${encodeURIComponent(id)}/repositionner`);
+export interface AlerteAnnonces { id: number; nom: string; filtres: Record<string, unknown>; actif: boolean; derniere_notif: string | null; created_at: string }
+export const chargerAlertesAnnonces = () => api<AlerteAnnonces[]>('GET', '/v1/annonces/alertes');
+export const creerAlerteAnnonces = (nom: string, filtres: Record<string, unknown>) => api<AlerteAnnonces>('POST', '/v1/annonces/alertes', { nom, filtres });
+export const basculerAlerteAnnonces = (id: number, actif: boolean) => api('PATCH', `/v1/annonces/alertes/${id}`, { actif });
+export const supprimerAlerteAnnonces = (id: number) => api('DELETE', `/v1/annonces/alertes/${id}`);
 /** URL d'envoi d'un média d'annonce (annonces/{uid}/{brouillonId}/{fichier}). */
 export const demanderUrlEnvoi = (path: string, contentType: string, size: number) =>
   api<{ uploadUrl: string; headers: Record<string, string> }>('POST', '/v1/media/upload-url', { path, contentType, size });

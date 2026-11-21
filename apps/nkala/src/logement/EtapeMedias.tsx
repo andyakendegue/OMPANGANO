@@ -12,13 +12,17 @@ import { Capture360 } from './Capture360';
 
 const LIBELLES: Record<TypeMedia, string> = { photo: 'Photos', video: 'Vidéos', pano360: 'Photos 360°' };
 
-export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, progression, onRelancer }: {
+export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, progression, onRelancer, limites = LIMITES_MEDIAS, pieces = true }: {
   medias: MediaLocal[];
   ajouter: (m: MediaLocal[]) => Promise<void>;
   modifier: (id: string, p: Partial<MediaLocal>) => void;
   retirer: (id: string) => void;
   deplacer: (id: string, sens: -1 | 1) => void;
   progression: Progression;
+  /** Limites de la catégorie (automobile : 20 photos, 3 vidéos, 3 photos 360° ; 0 = type masqué). */
+  limites?: Record<TypeMedia, number>;
+  /** Étiquette de pièce (logement) ; masquée pour les autres catégories. */
+  pieces?: boolean;
   onRelancer: () => void;
 }) {
   const { c } = useTheme();
@@ -28,7 +32,7 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
   const [piecePour, setPiecePour] = useState<string | null>(null);
   const [capture360, setCapture360] = useState(false);
   const compte = (t: TypeMedia) => medias.filter(m => m.type === t).length;
-  const reste = (t: TypeMedia) => LIMITES_MEDIAS[t] - compte(t);
+  const reste = (t: TypeMedia) => limites[t] - compte(t);
 
   const traiter = async (imgs: ImageChoisie[], type: 'photo' | 'pano360') => {
     if (!imgs.length) return;
@@ -38,7 +42,7 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
       let ordre = medias.length;
       for (const im of imgs.slice(0, reste(type))) prets.push(await preparerImage(im, type, ordre++));
       await ajouter(prets);
-      if (imgs.length > reste(type)) toast(`${LIBELLES[type]} : ${LIMITES_MEDIAS[type]} au plus.`, 'erreur');
+      if (imgs.length > reste(type)) toast(`${LIBELLES[type]} : ${limites[type]} au plus.`, 'erreur');
     } catch (e) { toast((e as Error).message || 'Image illisible.', 'erreur'); } finally { setOccupe(null); }
   };
 
@@ -47,7 +51,7 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
   const { ouvrirBoutique } = useGlobale();
   const choisir = async (type: TypeMedia, src: Source) => {
     if (type === 'pano360' && !aAvantage(droits, 'photos_360')) { toast('Les photos 360° sont incluses dans les formules qui les proposent.', 'info'); ouvrirBoutique(); return; }
-    if (reste(type) <= 0) { toast(`${LIBELLES[type]} : ${LIMITES_MEDIAS[type]} au plus.`, 'erreur'); return; }
+    if (reste(type) <= 0) { toast(`${LIBELLES[type]} : ${limites[type]} au plus.`, 'erreur'); return; }
     if (type === 'video') {
       setOccupe('Préparation de la vidéo…');
       try { const r = await choisirVideo(src, medias.length); if (r.erreur) toast(r.erreur, 'erreur'); if (r.media) await ajouter([r.media]); }
@@ -82,12 +86,12 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
   return (
     <View style={{ gap: 14 }}>
       <T v="corps">Ajoutez au moins une photo. Les vidéos et photos 360° aident beaucoup les personnes qui ne peuvent pas se déplacer.</T>
-      {(['photo', 'video', 'pano360'] as TypeMedia[]).map(t => (
+      {(['photo', 'video', 'pano360'] as TypeMedia[]).filter(t => limites[t] > 0).map(t => (
         <Carte key={t} plat><View style={{ padding: 12, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ic nom={t === 'photo' ? 'camera' : t === 'video' ? 'video' : 'globe-outline'} taille={22} couleur={c.accent} />
             <T v="carte" style={{ flex: 1 }}>{LIBELLES[t]}</T>
-            <T v="petit" couleur={c.discret}>{compte(t)} / {LIMITES_MEDIAS[t]}</T>
+            <T v="petit" couleur={c.discret}>{compte(t)} / {limites[t]}</T>
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Bouton label={t === 'photo' ? 'Prendre' : t === 'video' ? 'Filmer' : 'Capturer'} icone={t === 'video' ? 'video' : t === 'pano360' ? 'globe-outline' : 'camera'} petit desactive={!!occupe || reste(t) <= 0} onPress={() => choisir(t, 'camera')} style={{ flex: 1 }} />
@@ -124,9 +128,9 @@ export function EtapeMedias({ medias, ajouter, modifier, retirer, deplacer, prog
                   {m.id === premierePhoto && <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(23,13,8,0.75)', paddingVertical: 2 }}><T v="petit" couleur="#F59E0B" style={{ textAlign: 'center', fontSize: 10 }}>Couverture</T></View>}
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
-                  <Pressable accessibilityRole="button" accessibilityLabel="Choisir la pièce" onPress={() => setPiecePour(m.id)}>
+                  {pieces ? <Pressable accessibilityRole="button" accessibilityLabel="Choisir la pièce" onPress={() => setPiecePour(m.id)}>
                     <T v="corps" fort couleur={m.piece ? c.texte : c.accent}>{libellePiece(m.piece) || 'Quelle pièce ? ›'}</T>
-                  </Pressable>
+                  </Pressable> : <T v="corps" fort>{LIBELLES[m.type]}</T>}
                   <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
                     {m.erreur ? <Pastille label="Erreur" couleur={c.erreur} fond={c.carte} /> : fini ? <Pastille label="✓ Envoyé" couleur={c.succes} fond={c.carte} /> : <Pastille label="En attente" fond={c.carte} />}
                     {m.capturedInApp && <Pastille label="Pris sur place" couleur={c.accent} fond={c.carte} />}

@@ -8,6 +8,21 @@ import { journaliser, str } from './ctx.ts';
 const URL_EXPO = 'https://exp.host/--/api/v2/push/send';
 export const jetonExpoValide = (j: unknown): j is string => str(j) && /^Expo(nent)?PushToken\[[A-Za-z0-9_-]{10,}\]$/.test(j);
 
+/** Envoi à des comptes précis (alertes d'annonces…), par lots de 100 ; rien n'est envoyé en simulation. Renvoie le nombre de jetons visés. */
+export async function envoyerPush(db: Ctx['db'], env: NodeJS.ProcessEnv, userIds: string[], titre: string, corps: string, data: Record<string, unknown> = {}): Promise<number> {
+  if (!userIds.length) return 0;
+  const jetons = (await db.query<any>(`SELECT jeton FROM push_jetons WHERE user_id = ANY($1::text[]) LIMIT 20000`, [userIds])).map(r => r.jeton as string);
+  if (env.PUSH_FOURNISSEUR === 'simulation') return jetons.length;
+  for (let i = 0; i < jetons.length; i += 100) {
+    const lot = jetons.slice(i, i + 100);
+    try {
+      await fetch(URL_EXPO, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(env.EXPO_ACCESS_TOKEN ? { Authorization: `Bearer ${env.EXPO_ACCESS_TOKEN}` } : {}) },
+        body: JSON.stringify(lot.map(to => ({ to, title: titre.slice(0, 80), body: corps.slice(0, 300), data, sound: null }))) });
+    } catch { /* réseau : notification perdue, sans gêner l'appelant */ }
+  }
+  return jetons.length;
+}
+
 export function registerPush({ app, db, fail, acteur, env }: Ctx) {
   const admin = async (req: any) => { const a = await acteur(req); if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.'); return a; };
   const simule = () => env.PUSH_FOURNISSEUR === 'simulation';

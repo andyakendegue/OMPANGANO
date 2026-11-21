@@ -210,17 +210,21 @@ test('droits : accès payant, licence de lecture', async () => {
 test('annonces : quota mensuel, modération avant publication, lecture publique', async () => {
   const u = await user();
   await call('POST', '/v1/admin/contenus/categories_annonces/import', ADMIN, { lignes: [{ id: 'logement', titre: 'Logement', quota_gratuit: 2, publie: 'oui' }], mode: 'ajouter' });
+  // Quota global (décision du 18/11/2026) : réglé à 2 annonces gratuites par mois pour ce test, puis annonce payante (402).
+  assert.equal((await call('PUT', '/v1/admin/parametres/annonces', ADMIN, { valeur: { gratuites_mois: 2 } })).status, 200);
   const a1 = await call('POST', '/v1/utilisateur/annonces', u.token, { titre: 'Studio', categorie_id: 'logement', prix: 50000 });
   assert.equal(a1.status, 201); assert.equal(a1.body.statut, 'en_attente');
   assert.equal((await call('GET', '/pub/annonces?categorie=logement')).body.length, 0, 'rien avant modération');
   await call('POST', '/v1/utilisateur/annonces', u.token, { titre: 'Maison', categorie_id: 'logement' });
-  assert.equal((await call('POST', '/v1/utilisateur/annonces', u.token, { titre: 'Trop', categorie_id: 'logement' })).status, 429);
+  const trop = await call('POST', '/v1/utilisateur/annonces', u.token, { titre: 'Trop', categorie_id: 'logement' });
+  assert.equal(trop.status, 402); assert.equal(trop.body.code, 'quota');
   assert.equal((await call('POST', '/v1/admin/moderation/annonces/' + a1.body.id, u.token, { decision: 'publier' })).status, 403);
   const file = await call('GET', '/v1/admin/moderation?collection=annonces', ADMIN);
   assert.ok(file.body.length >= 2);
   await call('POST', '/v1/admin/moderation/annonces/' + a1.body.id, ADMIN, { decision: 'publier' });
   assert.equal((await call('GET', '/pub/annonces?categorie=logement')).body.length, 1);
   assert.equal((await call('GET', '/v1/utilisateur/annonces', u.token)).body.length, 2);
+  await call('PUT', '/v1/admin/parametres/annonces', ADMIN, { valeur: { gratuites_mois: 1000 } });
 });
 
 test('sondages : un vote par compte, résultats publics', async () => {

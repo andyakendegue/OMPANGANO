@@ -118,6 +118,7 @@ before(async () => {
   process.env.MODULES_ACTIFS = 'ompangano,onenji,azeva,ontci,nkala';
   app = await buildApp({ db, verify, storage, corsOrigins: [], logger: !!process.env.DEBUG_TESTS, rateLimitMax: 100000, sessionSecret: 'secret-de-test-0123456789abcdef' });
   await call('POST', '/v1/admin/contenus/categories_annonces/import', ADMIN, { lignes: [{ id: 'logement', titre: 'Logement', quota_gratuit: 10, publie: 'oui' }, { id: 'divers', titre: 'Divers', quota_gratuit: 10, publie: 'oui' }], mode: 'ajouter' });
+  await call('PUT', '/v1/admin/parametres/annonces', ADMIN, { valeur: { gratuites_mois: 1000 } });
 });
 after(async () => { await app.close(); await db.close(); delete process.env.MODULES_ACTIFS; });
 
