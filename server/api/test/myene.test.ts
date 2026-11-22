@@ -227,3 +227,18 @@ test('recherche web : demandée par le modèle, faite par notre moteur, jamais s
   assert.deepEqual(await rechercherWeb('x', 5, {} as any), [], 'sans moteur : aucun appel');
   moteur.close();
 });
+
+test('recherche web : repli quand le modèle avoue ne pas savoir (hors myènè seulement)', async () => {
+  const { rechercheDeRepli, repondreAvecRecherche } = await import('../src/rechercheWeb.ts');
+  assert.equal(rechercheDeRepli('Cela, je ne le sais pas, mon enfant.', "Qui est le président du Gabon aujourd'hui ?"), "Qui est le président du Gabon aujourd'hui ?");
+  assert.equal(rechercheDeRepli('Cela, je ne le sais pas, mon enfant.', 'Comment dit-on ordinateur en myènè ?'), null, 'jamais pour le myènè');
+  assert.equal(rechercheDeRepli('Le président est …', "Qui est le président du Gabon ?"), null);
+  const moteur = createServer((_req, res) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ results: [{ title: 'Gabon', url: 'https://fr.wikipedia.org/wiki/Gabon', content: 'Pays d\'Afrique centrale.' }] })); });
+  await new Promise<void>(r => moteur.listen(0, '127.0.0.1', () => r()));
+  const env = { SEARXNG_URL: `http://127.0.0.1:${(moteur.address() as any).port}` } as any;
+  let n = 0;
+  const ia = { nom: 't', repondre: async () => ({ texte: ++n === 1 ? 'Cela, je ne le sais pas, mon enfant.' : 'Selon Wikipédia…', usage: { entree: 10, sortie: 5 }, modele: 't', simule: false }) };
+  const r = await repondreAvecRecherche(ia as any, { systeme: 'S', messages: [{ role: 'user', content: "Qui dirige le Gabon aujourd'hui ?" }], modele: '' }, true, env);
+  assert.equal(r.texte, 'Selon Wikipédia…'); assert.equal(r.recherche!.requete, "Qui dirige le Gabon aujourd'hui ?");
+  moteur.close();
+});

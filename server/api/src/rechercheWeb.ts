@@ -18,9 +18,22 @@ export const CONSIGNE_RECHERCHE = `
 
 ### Recherche sur Internet
 - Si la question demande une information récente ou un fait que ni ta connaissance ni le contexte ne donnent (actualité, date, personne, lieu, chiffre…), réponds UNIQUEMENT par : [[recherche: quelques mots-clés]] — rien d'autre. On te redonnera la question avec les résultats.
+- Pour ces questions-là, ne réponds jamais « je ne sais pas » sans avoir d'abord demandé une recherche.
 - Jamais pour le myènè (mot, grammaire, traduction, phonétique) : là, seuls ta connaissance du myènè, le lexique et le contexte comptent.`;
 
 const RE_DEMANDE = /\[\[\s*recherche\s*:\s*([^\]\n]{2,200})\]\]/i;
+/**
+ * Repli (essai du 22 nov. 2026 : à « Qui est le président du Gabon aujourd'hui ? », le modèle a répondu « je ne le sais pas »
+ * au lieu de demander une recherche) : un aveu d'ignorance sur une question qui ne porte pas sur le myènè déclenche la recherche
+ * avec la question elle-même.
+ */
+const RE_IGNORANCE = /je ne (le |la |les )?(sais|connais) pas|je n'en sais rien|je ne suis pas (sûr|certain)|je n'ai pas (cette|l')information/i;
+const RE_QUESTION_MYENE = /my[eè]n[eè]|[oô]rungu|mpongw|galwa|nkomi|traduis|tradui[st]|comment (dit|dire|écri)|que veut dire|ça veut dire|en v3|graphie|phon[eé]ti/i;
+export function rechercheDeRepli(reponse: string, question: string): string | null {
+  if (!RE_IGNORANCE.test(reponse) || RE_QUESTION_MYENE.test(question) || question.trim().length < 6) return null;
+  return question.replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
 /** Requête demandée par le modèle, ou null. */
 export const demandeRecherche = (texte: string): string | null => texte.match(RE_DEMANDE)?.[1].trim() ?? null;
 
@@ -52,7 +65,8 @@ ${res.length ? res.map((x, i) => `[W${i + 1}] ${x.titre} (${new URL(x.url).hostn
 export async function repondreAvecRecherche(ia: FournisseurIa, demande: DemandeIa, actif: boolean, env = process.env): Promise<ReponseIaFournisseur & { recherche?: { requete: string; resultats: ResultatWeb[] } }> {
   if (!actif) return ia.repondre(demande);
   const r1 = await ia.repondre({ ...demande, systeme: demande.systeme + CONSIGNE_RECHERCHE });
-  const requete = demandeRecherche(r1.texte);
+  const question = [...demande.messages].reverse().find(m => m.role === 'user')?.content ?? '';
+  const requete = demandeRecherche(r1.texte) ?? rechercheDeRepli(r1.texte, question);
   if (!requete) return r1;
   const resultats = await rechercherWeb(requete, 5, env);
   const r2 = await ia.repondre({ ...demande, systeme: demande.systeme + blocResultats(requete, resultats) });
