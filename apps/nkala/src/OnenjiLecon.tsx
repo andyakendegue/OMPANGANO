@@ -18,6 +18,8 @@ import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 import { useAuth } from './AuthProvider';
 import { mouvement } from './theme';
+import { consentementDonne, construireContribution, type QuestionnaireItem } from '@nkala/noyau';
+import { soumettre } from './fileAttente';
 
 /**
  * Lecture d'un son : copie hors ligne, adresse du stockage ou https. Sans fichier, le bouton l'indique (aucune voix de synthèse : elle déformerait le myènè).
@@ -88,8 +90,15 @@ function CarteLecture({ ex, enfant, libelle, onSuite, bouton = 'Continuer' }: { 
   );
 }
 
-function Dire({ modele, onFini }: { modele?: string | null; onFini: () => void }) {
+/**
+ * Exercice « dire » : l'élève s'enregistre ; avec un compte et le consentement donné, la voix part dans la file de validation
+ * d'Ompangano (lot 7 du cursus v3) et un modérateur juge la prononciation. La note indicative de la machine viendra quand la
+ * reconnaissance des sons sera prête : jamais d'échec sur la seule note de la machine (plan de développement, 22 nov. 2026).
+ */
+function Dire({ modele, onFini, ex }: { modele?: string | null; onFini: () => void; ex?: Exercice }) {
   const { c } = useTheme();
+  const { profil } = useAuth();
+  const [envoye, setEnvoye] = useState<'non' | 'envoye' | 'en_attente'>('non');
   const rec = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [etat, setEtat] = useState<'attente' | 'enreg' | 'fait' | 'refus'>('attente');
   const [uri, setUri] = useState<string | null>(null);
@@ -103,6 +112,17 @@ function Dire({ modele, onFini }: { modele?: string | null; onFini: () => void }
     } catch { setEtat('refus'); }
   };
   const arreter = async () => { try { await rec.stop(); setUri(rec.uri); await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }); } catch { /* */ } setEtat('fait'); };
+  // Envoi au modérateur (une fois l'enregistrement accepté par l'élève) : contribution sans fiche, avec le mot attendu.
+  const envoyerAuModerateur = async () => {
+    if (!uri || !ex?.mot_myene || !profil || !consentementDonne(profil) || envoye !== 'non') return;
+    try {
+      const fiche = { id: `onenji-dire-${ex.id}`, myeneText: ex.mot_myene, frenchText: ex.mot_francais ?? '', dialect: 'orungu' } as unknown as QuestionnaireItem;
+      const contribution = construireContribution(profil, fiche, { orthographeCorrecte: true, sensFrancaisExact: true, commentaire: `Exercice « dire » d'Onênji (${ex.id}) : prononciation à juger.`, dureeAudio: 0, mimeAudio: 'audio/mp4' });
+      (contribution as { itemId: string }).itemId = '';
+      const r = await soumettre(contribution, uri, 'audio/mp4');
+      if (r !== 'refuse') setEnvoye(r);
+    } catch { /* la leçon continue sans envoi */ }
+  };
   if (etat === 'refus') return (<View style={{ gap: 12 }}><T v="corps">Le micro est refusé. Tu peux l'autoriser dans les réglages du téléphone, ou passer cet exercice.</T><Bouton label="Passer" variante="fantome" onPress={onFini} /></View>);
   return (
     <View style={{ gap: 14, alignItems: 'center' }}>
@@ -114,7 +134,8 @@ function Dire({ modele, onFini }: { modele?: string | null; onFini: () => void }
       {etat === 'enreg' && <Bouton label="Arrêter" icone="pause" variante="ambre" onPress={arreter} />}
       {etat === 'fait' && <>
         <Pressable onPress={() => { lecteur.seekTo(0); lecteur.play(); }} accessibilityRole="button" style={{ flexDirection: 'row', gap: 8, alignItems: 'center', padding: 10 }}><Ic nom="lecture" taille={20} couleur={c.accent} /><T v="corps" couleur={c.accent}>Réécouter ma voix</T></Pressable>
-        <Bouton label="Continuer" onPress={onFini} />
+        {!!profil && consentementDonne(profil) && <T v="petit" style={{ textAlign: 'center' }}>{envoye === 'non' ? 'En continuant, ta voix part chez un correcteur, qui te dira si c\'est juste.' : envoye === 'envoye' ? 'Ta voix est chez un correcteur.' : 'Ta voix partira chez un correcteur dès que le réseau revient.'}</T>}
+        <Bouton label="Continuer" onPress={() => { void envoyerAuModerateur(); onFini(); }} />
         <Pressable onPress={() => setEtat('attente')} accessibilityRole="button"><T v="petit" style={{ textDecorationLine: 'underline' }}>Recommencer</T></Pressable>
       </>}
     </View>
@@ -142,7 +163,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
       <Bouton label={enfant ? 'Suivant' : 'J\'ai répété'} onPress={() => onRepondre(true)} />
     </View>
   );
-  if (ex.type === 'dire') return (<View style={{ gap: 14, alignItems: 'center' }}><T v="titre" style={{ fontStyle: 'italic' }}>{ex.mot_myene}</T><T v="corps">{ex.mot_francais}</T><Dire modele={ex.audio} onFini={() => onRepondre(true)} /></View>);
+  if (ex.type === 'dire') return (<View style={{ gap: 14, alignItems: 'center' }}><T v="titre" style={{ fontStyle: 'italic' }}>{ex.mot_myene}</T><T v="corps">{ex.mot_francais}</T><Dire modele={ex.audio} ex={ex} onFini={() => onRepondre(true)} /></View>);
 
   // formats immersifs (15 nov. 2026) : sons dans leur propre système, tons, écriture au doigt, scènes à explorer
   if (ex.type === 'son') return <CarteSon ex={ex} enfant={enfant} onSuite={() => onRepondre(true)} Son={Son} />;
