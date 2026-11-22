@@ -16,7 +16,7 @@ import { clientRunpod } from './runpod.ts';
 import { vecteursParDefaut } from './vecteurs.ts';
 import { dossierEnCours, etatDossier, synchroniserDossier } from './dossier.ts';
 import { GRAMMAIRE_MYENE, VERSION_GRAMMAIRE } from './promptMyene.ts';
-import { blocLexique, chercherLexique, etatLexique } from './lexiqueMyene.ts';
+import { blocLexique, chercherLexique, etatLexique, messageEnMyene } from './lexiqueMyene.ts';
 
 const vecteurs = vecteursParDefaut();
 
@@ -387,6 +387,9 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
     // Le titre aide le modèle à juger le document ; il ne doit jamais le citer à l'apprenant (aucune référence aux sources).
     if (contexte.length) systeme += `\n\n### Contexte (extraits de documents de référence ; sers-t'en, ne dis rien sur le myènè qui ne figure ni ici ni dans ta connaissance ; ne cite jamais ni auteur, ni ouvrage, ni page)\n` + contexte.map((c, i) => `[${i + 1}] (${etiquetteSource(c.titre).libelle}) ${c.titre} : ${c.texte}`).join('\n');
   }
+  // Règle 5 (v3.3) : question en myènè → réponse en myènè seulement. Rappel placé à la fin, là où le modèle y est le plus attentif
+  // (essai du 22 nov. 2026 : « Mbolo ! Incango sê ? » recevait une réponse surtout en français).
+  if (messageEnMyene(o.message)) systeme += `\n\n### LE MESSAGE EST EN MYÈNÈ\nRéponds UNIQUEMENT en myènè, en graphie v3, même court : aucune phrase en français, pas de traduction, pas de mot à mot. Mots attestés seulement ; formules de politesse bienvenues (Mbolo, Akewa…).`;
   return { systeme, contexte, cfg, socle };
 }
 

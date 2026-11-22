@@ -9,6 +9,7 @@ Le service est fait pour accueillir plus tard un modèle entraîné sur des enre
 Écoute seulement sur LISTEN_HOST (passerelle Docker interne 172.17.0.1 sur le serveur) ; jamais exposé sur Internet.
 
   POST /synthese  {"api": "[m̩bólò]", "voix": "im_nicola", "vitesse": 0.9, "tons": "accent"}  → audio/wav
+  POST /reconnaitre {"audio_base64": "…"}                                              → {"api": "…", "duree_s": 2.4} (ZIPA)
   POST /phonemes  {"api": "..."}                                                          → ce que lit le modèle (contrôle)
   GET  /sante                                                                              → état, voix disponibles
 """
@@ -20,9 +21,13 @@ import threading
 import unicodedata
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import base64
+
 import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
+
+import reconnaissance
 
 MODELE = os.environ.get('TTS_MODELE', '/modele/kokoro-v1.0.onnx')
 VOIX = os.environ.get('TTS_VOIX_FICHIER', '/modele/voices-v1.0.bin')
@@ -107,9 +112,16 @@ class Gestion(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             n = int(self.headers.get('Content-Length') or 0)
-            if n > 20000:
+            if n > (3_000_000 if self.path == '/reconnaitre' else 20000):
                 return self._json(413, {'erreur': 'demande trop longue'})
             d = json.loads(self.rfile.read(n) or b'{}')
+            if self.path == '/reconnaitre':
+                # Sons du myènè parlé (ZIPA) : l'audio arrive en base64, n'est jamais écrit sur disque ni gardé.
+                octets = base64.b64decode(str(d.get('audio_base64') or ''), validate=False)
+                if not octets:
+                    return self._json(400, {'erreur': 'audio attendu'})
+                with verrou:
+                    return self._json(200, reconnaissance.reconnaitre(octets))
             api = str(d.get('api') or '')[:MAX_CAR]
             tons = d.get('tons') if d.get('tons') in ('accent', 'fleches', 'aucun') else 'accent'
             if self.path == '/phonemes':

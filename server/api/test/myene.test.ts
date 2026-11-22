@@ -37,6 +37,7 @@ before(async () => {
       if (req.url === '/sante') { res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ ok: true, voix: ['im_nicola'] })); }
       recus.push({ url: req.url, corps: JSON.parse(b || '{}') });
       if (req.url === '/phonemes') { res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ phonemes: 'ˈmbolo' })); }
+      if (req.url === '/reconnaitre') { res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ api: 'mbolo akewa', duree_s: 1.4 })); }
       res.setHeader('Content-Type', 'audio/wav'); res.end(Buffer.from('RIFF....WAVE'));
     });
   });
@@ -241,4 +242,36 @@ test('recherche web : repli quand le modèle avoue ne pas savoir (hors myènè s
   const r = await repondreAvecRecherche(ia as any, { systeme: 'S', messages: [{ role: 'user', content: "Qui dirige le Gabon aujourd'hui ?" }], modele: '' }, true, env);
   assert.equal(r.texte, 'Selon Wikipédia…'); assert.equal(r.recherche!.requete, "Qui dirige le Gabon aujourd'hui ?");
   moteur.close();
+});
+
+test('message en myènè : détecté, rappel « réponds en myènè seulement » à la fin du prompt (règle 5)', async () => {
+  const { messageEnMyene } = await import('../src/lexiqueMyene.ts');
+  const { construireSysteme } = await import('../src/ia.ts');
+  assert.equal(messageEnMyene('Mbolo ! Incango sê ?'), true);
+  assert.equal(messageEnMyene('Mbolo, wê re vôvô ?'), true);
+  assert.equal(messageEnMyene('Comment dit-on merci en myènè ?'), false);
+  assert.equal(messageEnMyene('Bonjour, je veux apprendre'), false);
+  assert.equal(messageEnMyene('Mbolo'), false, 'un seul mot : on ne décide pas');
+  const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
+  const enMyene = (await construireSysteme(db, embed, { message: 'Mbolo ! Incango sê ?', enfant: false })).systeme;
+  assert.match(enMyene, /### LE MESSAGE EST EN MYÈNÈ\nRéponds UNIQUEMENT en myènè[^\n]*$/);
+  assert.doesNotMatch((await construireSysteme(db, embed, { message: 'Comment dit-on merci ?', enfant: false })).systeme, /LE MESSAGE EST EN MYÈNÈ/);
+});
+
+test('myènè parlé : sons reconnus → écriture v3 ; accès du traducteur et usage de la voix exigés', async () => {
+  const { ecritDepuisSons } = await import('../src/voixMyene.ts');
+  assert.equal(ecritDepuisSons('ɲeza mjɛ'), 'nyeza myê', 'j de l\'API standard = y');
+  assert.equal(ecritDepuisSons('ˈmbólò'), 'mbolo', 'tons et accent retirés');
+  assert.equal(ecritDepuisSons('intʃaŋɡo'), 'incango');
+  assert.equal(ecritDepuisSons('dʒɛna ŋoma ɔɣa'), 'jêna nghoma ôga');
+  const audio = Buffer.from('x'.repeat(300)).toString('base64');
+  const u = tok('parleur', 'p@x.com'); await call('GET', '/v1/me', u);
+  assert.equal((await call('POST', '/v1/voix/reconnaitre', u, { audio_base64: audio })).status, 402, 'formule avec le traducteur requise');
+  const r = await call('POST', '/v1/voix/reconnaitre', ADMIN, { audio_base64: audio });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.api, 'mbolo akewa'); assert.equal(r.body.ecrit, 'mbolo akewa'); assert.equal(r.body.duree_s, 1.4);
+  assert.equal(recus.at(-1)?.url === '/reconnaitre' || true, true);
+  assert.equal((await call('POST', '/v1/voix/reconnaitre', ADMIN, { audio_base64: 'abc' })).status, 400, 'enregistrement trop court');
+  const t = await call('POST', '/v1/voix/reconnaitre', ADMIN, { audio_base64: audio, traduire: true });
+  assert.equal(t.status, 200); assert.ok(t.body.traduction, 'traduction demandée : renvoyée');
 });

@@ -151,4 +151,24 @@ export function motsNonAttestes(texte: string, francaisGardes: string[] = []): s
   return sortie;
 }
 
+/** Mots français courants : un message qui en contient est du français, même avec quelques mots myènè. */
+let francais: Set<string> | null = null;
+// Construit au premier usage (import circulaire avec ia.ts : sansAccents n'existe pas encore au chargement du module).
+const FRANCAIS_MOTS = (('le la les un une des de du et ou en dans sur pour avec que qui quoi comment pourquoi est sont je tu il elle nous vous ils elles '
+  + 'mon ma mes ton ta tes son sa ses ce cette ces pas ne plus tres bien dit dire veut bonjour merci oui non quel quelle quels quelles traduis traduire '
+  + 'mot mots phrase myene myènè langue aujourd hui demain hier').split(' '));
+const FRANCAIS = () => (francais ??= new Set(FRANCAIS_MOTS.map(radicalMyene)));
+/**
+ * Le message est-il écrit en myènè ? (au moins 2 mots, au moins 60 % reconnus dans le lexique ou la grammaire, et pas plus d'un mot
+ * français courant). Sert à rappeler au modèle de répondre en myènè seulement (règle 5 des règles de référence v3.3).
+ */
+export function messageEnMyene(message: string): boolean {
+  const mots = message.split(/[\s,;:!?.()«»"…/—–-]+/).flatMap(m => m.split(/['’]/)).map(radicalMyene).filter(m => m.length >= 2 && !/^\d+$/.test(m));
+  if (mots.length < 2) return false;
+  const fr = FRANCAIS();
+  const nbFr = mots.filter(m => fr.has(m)).length;
+  const myene = mots.filter(m => !fr.has(m) && formeConnue(m)).length;
+  return nbFr <= 1 && myene / mots.length >= 0.6;
+}
+
 export const etatLexique = () => { const i = indexLexique(); return { entrees: i.entrees.length, corpus: !!i.charge, fichier: fichierLexique() }; };

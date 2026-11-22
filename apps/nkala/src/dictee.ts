@@ -7,6 +7,10 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { MiseAJourNecessaire, moduleNatifPresent, moduleParesseux } from './natif';
+import { Platform } from 'react-native';
+import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
+import { File } from 'expo-file-system';
+import { api, ApiError } from '@nkala/noyau';
 
 type ModuleDictee = {
   start(o: Record<string, unknown>): void;
@@ -67,4 +71,59 @@ export function useDictee(onTexte: (texte: string, final: boolean) => void, lang
   };
   const arreter = () => { try { Dictee.stop(); } catch { /* module absent */ } };
   return { ecoute, erreur, demarrer, arreter };
+}
+
+// ------------------------------------------------------------------ myènè parlé (serveur : sons → graphie v3)
+
+/** Fichier enregistré → base64 (téléphone : expo-file-system ; web : l'enregistrement est une adresse blob:). */
+async function versBase64(uri: string): Promise<string> {
+  if (Platform.OS !== 'web') return new File(uri).base64();
+  const blob = await (await fetch(uri)).blob();
+  return new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] ?? ''); r.onerror = () => ko(r.error); r.readAsDataURL(blob); });
+}
+
+export interface ReconnaissanceMyene { api: string; ecrit: string; duree_s: number | null; vide?: boolean; traduction?: { traduction: string } }
+
+/**
+ * Parler en myènè : `demarrer()` enregistre (30 s au plus), `arreter()` envoie au serveur, qui rend les sons reconnus et leur écriture
+ * en graphie v3 (proposition à relire : le modèle n'a jamais entendu d'ôrungu). Le micro utilise expo-audio, déjà présent dans l'app.
+ */
+export function useParoleMyene(onEcrit: (r: ReconnaissanceMyene) => void) {
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const [etat, setEtatVisible] = useState<'repos' | 'ecoute' | 'analyse'>('repos');
+  // Référence toujours à jour : l'arrêt automatique (30 s) ne doit pas lire un état périmé.
+  const etatRef = useRef<'repos' | 'ecoute' | 'analyse'>('repos');
+  const setEtat = (e: 'repos' | 'ecoute' | 'analyse') => { etatRef.current = e; setEtatVisible(e); };
+  const [erreur, setErreur] = useState<string | null>(null);
+  const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const arreter = async () => {
+    if (minuterie.current) { clearTimeout(minuterie.current); minuterie.current = null; }
+    if (etatRef.current !== 'ecoute') return;
+    setEtat('analyse');
+    try {
+      await recorder.stop();
+      const uri = recorder.uri;
+      if (!uri) throw new Error('vide');
+      const r = await api<ReconnaissanceMyene>('POST', '/v1/voix/reconnaitre', { audio_base64: await versBase64(uri) });
+      if (r.vide || !r.ecrit) setErreur('Je n\'ai rien reconnu. Parle un peu plus fort, près du téléphone.');
+      else onEcrit(r);
+    } catch (e) {
+      setErreur(e instanceof ApiError ? e.message : 'La reconnaissance du myènè n\'a pas marché. Réessaie.');
+    } finally { setEtat('repos'); }
+  };
+
+  const demarrer = async () => {
+    setErreur(null);
+    try {
+      const perm = await AudioModule.requestRecordingPermissionsAsync();
+      if (!perm.granted) { setErreur('Autorise le micro dans les réglages du téléphone.'); return; }
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setEtat('ecoute');
+      minuterie.current = setTimeout(() => { void arreter(); }, 30_000);
+    } catch { setErreur('Impossible d\'utiliser le micro.'); setEtat('repos'); }
+  };
+  return { etat, erreur, demarrer, arreter };
 }

@@ -10,6 +10,7 @@ services:
       TTS_VOIX: ${TTS_VOIX:-im_nicola}
       TTS_MODELE: ${TTS_MODELE:-/modele/kokoro-v1.0.onnx}   # ou /modele/kokoro-v1.0.int8.onnx (plus léger)
       OMP_NUM_THREADS: ${OMP_NUM_THREADS:-2}   # 4 cœurs partagés avec l'API et la base
-    mem_limit: 1500m
+      ZIPA_ECHELLE: ${ZIPA_ECHELLE:-1.0}   # échelle du son pour ZIPA, fixée par l'essai du 22 nov. 2026
+    mem_limit: 2200m
     cpus: 2
     restart: unless-stopped

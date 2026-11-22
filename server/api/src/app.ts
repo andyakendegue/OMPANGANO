@@ -31,6 +31,7 @@ import { registerChats } from './chats.ts';
 import { fournisseurEmbeddingParDefaut, fournisseurIaParDefaut, registerIaAdmin, type FournisseurEmbedding, type FournisseurIa } from './ia.ts';
 import { registerSynthese } from './synthese.ts';
 import { registerTraduction } from './traduction.ts';
+import { registerVoixMyene } from './voixMyene.ts';
 import { registerSupervision } from './supervision.ts';
 import { registerMedia } from './media.ts';
 import { registerRegie } from './regie.ts';
@@ -1216,6 +1217,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   registerIaAdmin(nk);
   registerSynthese(nk);
   registerTraduction(nk);
+  registerVoixMyene(nk);
   registerSupervision(nk);
   registerMedia(nk, storage);
   registerDonnees(nk, storage);

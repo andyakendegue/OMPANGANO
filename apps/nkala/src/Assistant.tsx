@@ -29,7 +29,7 @@ export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 import { VieilOrungu, texteAttenteKakIgonjo } from './KakIgonjo';
 import { useSurchargeModule } from './Mesure';
 import { AppelForfait, estRefusForfait, texteQuestionsGratuites } from './ForfaitIa';
-import { useDictee } from './dictee';
+import { useDictee, useParoleMyene } from './dictee';
 export { VieilOrungu };
 
 
@@ -148,6 +148,10 @@ export function AssistantFlottant() {
   const [texte, setTexte] = useState('');
   // Dictée en français (reconnaissance du téléphone) : le texte reconnu remplit la saisie, à relire avant l'envoi.
   const dictee = useDictee(t => setTexte(t));
+  // Parler en myènè : le serveur reconnaît les sons et propose l'écriture v3, à relire avant l'envoi.
+  const [langueMicro, setLangueMicro] = useState<'fr' | 'myene'>('fr');
+  const parole = useParoleMyene(r => setTexte(r.ecrit));
+  const microActif = langueMicro === 'fr' ? dictee.ecoute : parole.etat === 'ecoute';
   const [occupe, setOccupe] = useState(false);
   const [attente, setAttente] = useState<number | null>(null);
   /** Envoi refusé par le serveur (contexte en excès ou plein), avec le message en attente. */
@@ -371,6 +375,9 @@ export function AssistantFlottant() {
                   {!!forfait && <AppelForfait message={forfait} />}
                   {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
                   {!!dictee.erreur && <T v="petit" couleur={c.erreur} accessibilityRole="alert">{dictee.erreur}</T>}
+                  {!!parole.erreur && <T v="petit" couleur={c.erreur} accessibilityRole="alert">{parole.erreur}</T>}
+                  {parole.etat === 'analyse' && <T v="petit" couleur={c.discret}>J'écoute ce que tu as dit en myènè…</T>}
+                  {langueMicro === 'myene' && parole.etat === 'repos' && !parole.erreur && <T v="petit" couleur={c.discret}>Micro en myènè : je propose l'écriture de ce que j'entends ; relis-la avant d'envoyer.</T>}
                   {quota?.alerte && <T v="petit" couleur={c.accent}>Il te reste peu de messages aujourd'hui.</T>}
                   {!forfait && !!texteQuestionsGratuites(quota?.gratuitesRestantes) && <T v="petit" couleur={c.accent}>{texteQuestionsGratuites(quota?.gratuitesRestantes)}</T>}
                 </>}
@@ -380,10 +387,14 @@ export function AssistantFlottant() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: retrait, paddingRight: 10, paddingVertical: 10, borderTopWidth: 1, borderTopColor: c.bord }}>
             <TextInput accessibilityLabel="Ta question à Kak'Igonjo" value={texte} onChangeText={setTexte} editable={utilisable && vue === 'chat'} placeholder="Ta question…" placeholderTextColor={c.discret} autoCapitalize="sentences" maxLength={2000} onSubmitEditing={() => envoyer()} returnKeyType="send"
               style={[{ flex: 1, minWidth: 0, height: 44, borderRadius: 22, paddingHorizontal: 14, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, fontFamily: polices.corps, fontSize: 15, color: c.fort }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null]} />
-            <Pressable accessibilityRole="button" accessibilityLabel={dictee.ecoute ? 'Arrêter la dictée' : 'Dicter ma question en français'} accessibilityState={{ selected: dictee.ecoute }} disabled={!utilisable || occupe || vue !== 'chat'}
-              onPress={() => (dictee.ecoute ? dictee.arreter() : dictee.demarrer())}
-              style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: dictee.ecoute ? c.erreur : c.carte, borderWidth: 1, borderColor: dictee.ecoute ? c.erreur : c.bord }}>
-              <Ic nom={dictee.ecoute ? 'stop' : 'micro'} taille={19} couleur={dictee.ecoute ? c.surAccent : c.accent} /></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={langueMicro === 'fr' ? 'Micro en français : toucher pour parler en myènè' : 'Micro en myènè : toucher pour parler en français'} disabled={microActif || parole.etat === 'analyse'}
+              onPress={() => setLangueMicro(l => (l === 'fr' ? 'myene' : 'fr'))}
+              style={{ height: 44, paddingHorizontal: 8, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: c.bord, backgroundColor: c.carte }}>
+              <Text style={{ fontFamily: polices.corps, fontSize: 12, color: c.accent }}>{langueMicro === 'fr' ? 'FR' : 'Myènè'}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={microActif ? 'Arrêter' : langueMicro === 'fr' ? 'Dicter ma question en français' : 'Parler en myènè'} accessibilityState={{ selected: microActif, busy: parole.etat === 'analyse' }} disabled={!utilisable || occupe || vue !== 'chat' || parole.etat === 'analyse'}
+              onPress={() => (langueMicro === 'fr' ? (dictee.ecoute ? dictee.arreter() : dictee.demarrer()) : (parole.etat === 'ecoute' ? parole.arreter() : parole.demarrer()))}
+              style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: microActif ? c.erreur : c.carte, borderWidth: 1, borderColor: microActif ? c.erreur : c.bord, opacity: parole.etat === 'analyse' ? 0.5 : 1 }}>
+              <Ic nom={microActif ? 'stop' : 'micro'} taille={19} couleur={microActif ? c.surAccent : c.accent} /></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Envoyer" accessibilityState={{ disabled: !texte.trim() || occupe }} disabled={!texte.trim() || occupe || vue !== 'chat'} onPress={() => envoyer()}
               style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent, opacity: !texte.trim() || occupe ? 0.45 : 1 }}><Ic nom="envoyer" taille={19} couleur={c.surAccent} /></Pressable>
           </View>
