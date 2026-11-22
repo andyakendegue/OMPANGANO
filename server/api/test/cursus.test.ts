@@ -65,3 +65,13 @@ test('corrections de Capp du 21 nov. 2026 appliquées aux nombres', () => {
   assert.ok(!t.includes("m'itondo"), 'agom\'ambani m\'itondo remplacé');
   assert.ok(!t.includes('igomi gni mboni'), 'forme remplacée le 10 nov.');
 });
+
+test('« montre-moi » (lot 6) : les petits touchent la bonne image, sans lire', async () => {
+  const { jugerReponse, etapeDe, exerciceNote } = await import('../../../packages/noyau/src/lecons.ts');
+  const p12 = new Set(U.filter(u => u.parcours_id === 'ntina' && (u.palier ?? 0) < 3).map(u => u.id));
+  const montre = E.filter(e => e.type === 'montre' && p12.has(L.find(l => l.id === e.lecon_id)?.unite_id));
+  assert.ok(montre.length >= 20, `${montre.length} exercices montre-moi`);
+  for (const e of montre) { assert.ok(e.options.length >= 3 && e.options.includes(e.reponse), e.id); assert.ok(e.options.every((o: string) => !/[a-z]{3,}/i.test(o)), `${e.id} : des images, pas des mots`); }
+  assert.equal(etapeDe({ type: 'montre' }), 'voir'); assert.equal(exerciceNote({ type: 'montre' }), true);
+  assert.equal(jugerReponse({ id: 'm', lecon_id: 'l', type: 'montre', reponse: '🐕' }, '🐕'), true);
+});

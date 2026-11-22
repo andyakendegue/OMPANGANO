@@ -355,3 +355,35 @@ export function QuelSon({ ex, onRepondre, Son, opts }: { ex: Exercice; onRepondr
     </View>
   );
 }
+
+// ------------------------------------------------------------------ montre-moi (lot 6 du cursus v3)
+/**
+ * « Montre-moi » : l'enfant entend le mot (lu par la voix ou par l'adulte) et touche la bonne image parmi 3 ou 4.
+ * Pour les paliers 1 et 2 de Ntina, à la place des choix écrits : l'enfant de 3-4 ans ne lit pas encore.
+ * Options : émojis (ou adresses d'images) ; réponse : la bonne option.
+ */
+export function MontreMoi({ ex, onRepondre, Son, opts }: { ex: Exercice; onRepondre: (juste: boolean) => void; Son: React.ComponentType<{ audio?: string | null; auto?: boolean; lent?: boolean; grand?: boolean }>; opts: string[] }) {
+  const { c } = useTheme();
+  const [choisi, setChoisi] = useState<string | null>(null);
+  const bon = (o: string) => o.trim() === (ex.reponse ?? '').trim();
+  const fin = (o: string) => { if (choisi) return; setChoisi(o); const ok = bon(o); setTimeout(() => onRepondre(ok), ok ? 900 : 1700); };
+  return (
+    <View style={{ gap: 16, alignItems: 'center' }}>
+      {!!ex.mot_myene && <T v="titre" style={{ fontStyle: 'italic', textAlign: 'center' }}>{ex.mot_myene}</T>}
+      <Son audio={ex.audio} auto grand />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, justifyContent: 'center' }}>
+        {opts.map(o => {
+          const etat = choisi ? (bon(o) ? 'ok' : choisi === o ? 'ko' : 'n') : 'n';
+          const image = /^(https?:|images\/)/.test(o);
+          return (
+            <Pressable key={o} accessibilityRole="button" accessibilityLabel={image ? 'Image' : o} disabled={!!choisi} onPress={() => fin(o)}
+              style={{ width: 132, height: 132, borderRadius: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: etat === 'ok' ? c.succes + '33' : etat === 'ko' ? c.erreur + '33' : c.carte, borderColor: etat === 'ok' ? c.succes : etat === 'ko' ? c.erreur : c.bord }}>
+              {image ? <Illustration image={o} taille={110} /> : <T style={{ fontSize: 72, lineHeight: 84 }}>{o}</T>}
+            </Pressable>
+          );
+        })}
+      </View>
+      {choisi && <Ic nom={bon(choisi) ? 'ok' : 'fermer'} taille={34} couleur={bon(choisi) ? c.succes : c.erreur} />}
+    </View>
+  );
+}

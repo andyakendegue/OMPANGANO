@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import { avancerLecon, composerTestNiveau, etapeDe, etapeParAge, ETAPES_UNITE, exerciceNote, jugerReponse, justesse, melanger, nouvelleLecon, optionsDe, placementTest, repliques, SEUIL_UNITE, testTermine, TYPES_NOTES, type EtatLecon, type Exercice, type Lecon, type Parcours, type Unite } from '@nkala/noyau';
 import { useMedia } from './OnenjiHorsLigne';
-import { CarteSon, CarteTon, EntreeAnimee, Illustration, MelodieTonale, QuelSon, SceneImmersive, Tracer } from './OnenjiImmersif';
+import { CarteSon, CarteTon, EntreeAnimee, Illustration, MelodieTonale, MontreMoi, QuelSon, SceneImmersive, Tracer } from './OnenjiImmersif';
 import { consignes, KakIgonjoFeuille, useIaCours } from './KakIgonjoCours';
 import { noterReponse } from './OnenjiEtat';
 import { Confettis } from './Confettis';
@@ -150,6 +150,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
   if (ex.type === 'tracer') return <Tracer ex={ex} onSuite={() => onRepondre(true)} />;
   if (ex.type === 'scene') return <SceneImmersive ex={ex} onRepondre={onRepondre} Son={Son} />;
   if (ex.type === 'quel_son') return <QuelSon ex={ex} onRepondre={onRepondre} Son={Son} opts={opts} />;
+  if (ex.type === 'montre') return <MontreMoi ex={ex} onRepondre={onRepondre} Son={Son} opts={opts} />;
 
   // étape « cours » : on montre et on fait entendre avant de contrôler
   if (ex.type === 'cours') return <CarteLecture ex={ex} enfant={enfant} libelle="À découvrir" onSuite={() => onRepondre(true)} bouton="J'ai compris" />;

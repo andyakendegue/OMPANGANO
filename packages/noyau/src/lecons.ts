@@ -23,8 +23,8 @@ import type { NiveauAcces } from './acces';
  * - tracer : écrire la lettre au doigt sur un modèle (exercice d'entraînement, non noté) ;
  * - scene : paysage animé (colonne « scene ») où l'on touche les éléments (colonne « zones ») pour les découvrir, puis on retrouve ceux qu'on nomme (noté).
  */
-export type TypeExercice = 'ecouter' | 'associer' | 'ordre' | 'dire' | 'choix' | 'trou' | 'saisie' | 'cours' | 'dictee' | 'comprendre' | 'proverbe' | 'culture' | 'jouer' | 'son' | 'quel_son' | 'ton' | 'tracer' | 'scene';
-export const TYPES_EXERCICE: readonly TypeExercice[] = ['ecouter', 'associer', 'ordre', 'dire', 'choix', 'trou', 'saisie', 'cours', 'dictee', 'comprendre', 'proverbe', 'culture', 'jouer', 'son', 'quel_son', 'ton', 'tracer', 'scene'];
+export type TypeExercice = 'ecouter' | 'associer' | 'ordre' | 'dire' | 'choix' | 'trou' | 'saisie' | 'cours' | 'dictee' | 'comprendre' | 'proverbe' | 'culture' | 'jouer' | 'son' | 'quel_son' | 'ton' | 'tracer' | 'scene' | 'montre';
+export const TYPES_EXERCICE: readonly TypeExercice[] = ['ecouter', 'associer', 'ordre', 'dire', 'choix', 'trou', 'saisie', 'cours', 'dictee', 'comprendre', 'proverbe', 'culture', 'jouer', 'son', 'quel_son', 'ton', 'tracer', 'scene', 'montre'];
 export interface Exercice {
   id: string; lecon_id: string; type: TypeExercice; consigne?: string | null; mot_myene?: string | null; mot_francais?: string | null;
   options?: string[]; reponse?: string | null; indice?: string | null; image?: string | null; audio?: string | null; dialecte?: string | null; source?: string | null; ordre?: number | null;
@@ -146,7 +146,7 @@ export const progressionUnite = (lecons: Lecon[], p: ProgressionOnenji) => lecon
 
 // ------------------------------------------------------------------ test de niveau (décision de Capp, 13 nov. 2026)
 /** Types d'exercice qui se notent (les autres ne servent pas au test). */
-export const TYPES_NOTES = ['associer', 'choix', 'ordre', 'trou', 'saisie', 'dictee', 'comprendre', 'quel_son'] as const;
+export const TYPES_NOTES = ['associer', 'choix', 'ordre', 'trou', 'saisie', 'dictee', 'comprendre', 'quel_son', 'montre'] as const;
 export interface QuestionTest { ex: Exercice; parcoursId: string; uniteId: string }
 /** Fin du test : 3 erreurs de suite. */
 export const TEST_ERREURS_DE_SUITE = 3;
@@ -227,7 +227,7 @@ export const ETAPES_UNITE: { id: EtapeUnite; label: string }[] = [
 export function etapeDe(ex: Pick<Exercice, 'type' | 'image'>): EtapeUnite {
   switch (ex.type) {
     case 'ecouter': case 'son': case 'quel_son': case 'ton': return 'ecouter';
-    case 'scene': return 'voir';
+    case 'scene': case 'montre': return 'voir'; // montre-moi : toucher la bonne image (paliers 1 et 2 de Ntina)
     case 'tracer': return 'ecrire';
     case 'cours': return ex.image ? 'voir' : 'ecouter';
     case 'associer': return 'voir';

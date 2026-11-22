@@ -7581,36 +7581,38 @@
  {
   "id": "ntina-l36-01",
   "lecon_id": "ntina-l36",
-  "type": "associer",
-  "consigne": "Que veut dire « mbani » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « mbani »",
   "mot_myene": "mbani",
   "options": [
-   "deux",
-   "un",
-   "quatre",
-   "cinq"
+   "2️⃣",
+   "1️⃣",
+   "4️⃣",
+   "5️⃣"
   ],
-  "reponse": "deux",
+  "reponse": "2️⃣",
   "illustration": "2️⃣",
   "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
-  "ordre": 1
+  "ordre": 1,
+  "mot_francais": "deux"
  },
  {
   "id": "ntina-l36-02",
   "lecon_id": "ntina-l36",
-  "type": "associer",
-  "consigne": "Que veut dire « otani » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « otani »",
   "mot_myene": "otani",
   "options": [
-   "cinq",
-   "trois",
-   "deux",
-   "un"
+   "5️⃣",
+   "3️⃣",
+   "2️⃣",
+   "1️⃣"
   ],
-  "reponse": "cinq",
+  "reponse": "5️⃣",
   "illustration": "5️⃣",
   "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
-  "ordre": 2
+  "ordre": 2,
+  "mot_francais": "cinq"
  },
  {
   "id": "ntina-l36-03",
@@ -7754,36 +7756,38 @@
  {
   "id": "ntina-l18-08",
   "lecon_id": "ntina-l18",
-  "type": "associer",
-  "consigne": "Que veut dire « Inco » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Inco »",
   "mot_myene": "Inco",
   "options": [
-   "l'œil",
-   "le nez",
-   "la tête",
-   "la langue"
+   "👁️",
+   "👃",
+   "🙂",
+   "👅"
   ],
-  "reponse": "l'œil",
+  "reponse": "👁️",
   "illustration": "👁️",
   "source": "[LEC] Le Corps humain",
-  "ordre": 8
+  "ordre": 8,
+  "mot_francais": "l'œil"
  },
  {
   "id": "ntina-l18-09",
   "lecon_id": "ntina-l18",
-  "type": "associer",
-  "consigne": "Que veut dire « Ompombo » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ompombo »",
   "mot_myene": "Ompombo",
   "options": [
-   "le nez",
-   "l'œil",
-   "les oreilles",
-   "les dents"
+   "👃",
+   "👁️",
+   "👂",
+   "🦷"
   ],
-  "reponse": "le nez",
+  "reponse": "👃",
   "illustration": "👃",
   "source": "[LEC] Le Corps humain",
-  "ordre": 9
+  "ordre": 9,
+  "mot_francais": "le nez"
  },
  {
   "id": "ntina-l18-10",
@@ -7917,19 +7921,20 @@
  {
   "id": "ntina-l19-09",
   "lecon_id": "ntina-l19",
-  "type": "associer",
-  "consigne": "Que veut dire « Ogolo » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ogolo »",
   "mot_myene": "Ogolo",
   "options": [
-   "le pied",
-   "la main",
-   "le doigt",
-   "la jambe"
+   "🦶",
+   "✋",
+   "☝️",
+   "🦵"
   ],
-  "reponse": "le pied",
+  "reponse": "🦶",
   "illustration": "🦶",
   "source": "[LEC] Le Corps humain",
-  "ordre": 9
+  "ordre": 9,
+  "mot_francais": "le pied"
  },
  {
   "id": "ntina-l19-10",
@@ -8304,19 +8309,20 @@
  {
   "id": "ntina-l22-06",
   "lecon_id": "ntina-l22",
-  "type": "associer",
-  "consigne": "Que veut dire « Mbwa » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Mbwa »",
   "mot_myene": "Mbwa",
   "options": [
-   "le chien",
-   "le chat",
-   "la poule",
-   "le cabri"
+   "🐕",
+   "🐈",
+   "🐔",
+   "🐐"
   ],
-  "reponse": "le chien",
+  "reponse": "🐕",
   "illustration": "🐕",
   "source": "[LEC] Animaux du Gabon",
-  "ordre": 6
+  "ordre": 6,
+  "mot_francais": "le chien"
  },
  {
   "id": "ntina-l22-07",
@@ -8439,36 +8445,38 @@
  {
   "id": "ntina-l23-07",
   "lecon_id": "ntina-l23",
-  "type": "associer",
-  "consigne": "Que veut dire « Njôgu » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Njôgu »",
   "mot_myene": "Njôgu",
   "options": [
-   "l'éléphant",
-   "le gorille",
-   "le singe",
-   "l'antilope"
+   "🐘",
+   "🦍",
+   "🐒",
+   "🦌"
   ],
-  "reponse": "l'éléphant",
+  "reponse": "🐘",
   "illustration": "🐘",
   "source": "[LEC] Animaux du Gabon",
-  "ordre": 7
+  "ordre": 7,
+  "mot_francais": "l'éléphant"
  },
  {
   "id": "ntina-l23-08",
   "lecon_id": "ntina-l23",
-  "type": "associer",
-  "consigne": "Que veut dire « Kêma » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Kêma »",
   "mot_myene": "Kêma",
   "options": [
-   "le singe",
-   "l'éléphant",
-   "la panthère",
-   "le porc-épic"
+   "🐒",
+   "🐘",
+   "🐆",
+   "🦔"
   ],
-  "reponse": "le singe",
+  "reponse": "🐒",
   "illustration": "🐒",
   "source": "[LEC] Animaux du Gabon",
-  "ordre": 8
+  "ordre": 8,
+  "mot_francais": "le singe"
  },
  {
   "id": "ntina-l23-09",
@@ -8585,36 +8593,38 @@
  {
   "id": "ntina-l24-08",
   "lecon_id": "ntina-l24",
-  "type": "associer",
-  "consigne": "Que veut dire « Ewêrê » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ewêrê »",
   "mot_myene": "Ewêrê",
   "options": [
-   "le poisson",
-   "la viande",
-   "l'œuf",
-   "le riz"
+   "🐟",
+   "🍖",
+   "🥚",
+   "🍚"
   ],
-  "reponse": "le poisson",
+  "reponse": "🐟",
   "illustration": "🐟",
   "source": "[LEC] LES ALIMENTS",
-  "ordre": 8
+  "ordre": 8,
+  "mot_francais": "le poisson"
  },
  {
   "id": "ntina-l24-09",
   "lecon_id": "ntina-l24",
-  "type": "associer",
-  "consigne": "Que veut dire « Ilasa » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ilasa »",
   "mot_myene": "Ilasa",
   "options": [
-   "l'orange",
-   "l'arachide",
-   "la banane plantain",
-   "le poisson"
+   "🍊",
+   "🥜",
+   "🍌",
+   "🐟"
   ],
-  "reponse": "l'orange",
+  "reponse": "🍊",
   "illustration": "🍊",
   "source": "[LEC] LES ALIMENTS",
-  "ordre": 9
+  "ordre": 9,
+  "mot_francais": "l'orange"
  },
  {
   "id": "ntina-l24-10",
@@ -8698,19 +8708,20 @@
  {
   "id": "ntina-l25-05",
   "lecon_id": "ntina-l25",
-  "type": "associer",
-  "consigne": "Que veut dire « Ogaso mbia » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ogaso mbia »",
   "mot_myene": "Ogaso mbia",
   "options": [
-   "Bon appétit",
-   "Viens manger",
-   "On mange quoi ?",
-   "Donne-moi de l'eau"
+   "🍲",
+   "🍽️",
+   "🥄",
+   "💧"
   ],
-  "reponse": "Bon appétit",
+  "reponse": "🍲",
   "illustration": "🍲",
   "source": "[LEC] Formules de politesse",
-  "ordre": 5
+  "ordre": 5,
+  "mot_francais": "Bon appétit"
  },
  {
   "id": "ntina-l25-06",
@@ -8832,19 +8843,20 @@
  {
   "id": "ntina-l26-07",
   "lecon_id": "ntina-l26",
-  "type": "associer",
-  "consigne": "Que veut dire « Nago » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Nago »",
   "mot_myene": "Nago",
   "options": [
-   "la maison",
-   "le lit",
-   "le feu",
-   "le balai"
+   "🏠",
+   "🛏️",
+   "🔥",
+   "🧹"
   ],
-  "reponse": "la maison",
+  "reponse": "🏠",
   "illustration": "🏠",
   "source": "[LEC] La Nature",
-  "ordre": 7
+  "ordre": 7,
+  "mot_francais": "la maison"
  },
  {
   "id": "ntina-l26-08",
@@ -8962,19 +8974,20 @@
  {
   "id": "ntina-l27-06",
   "lecon_id": "ntina-l27",
-  "type": "associer",
-  "consigne": "Que veut dire « Epokolo » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Epokolo »",
   "mot_myene": "Epokolo",
   "options": [
-   "le chapeau",
-   "la robe",
-   "le lit",
-   "le balai"
+   "👒",
+   "👗",
+   "🛏️",
+   "🧹"
   ],
-  "reponse": "le chapeau",
+  "reponse": "👒",
   "illustration": "👒",
   "source": "[LEC] La Nature",
-  "ordre": 6
+  "ordre": 6,
+  "mot_francais": "le chapeau"
  },
  {
   "id": "ntina-l27-07",
@@ -9080,19 +9093,20 @@
  {
   "id": "ntina-l28-07",
   "lecon_id": "ntina-l28",
-  "type": "associer",
-  "consigne": "Que veut dire « Onghwêyi » ?",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Onghwêyi »",
   "mot_myene": "Onghwêyi",
   "options": [
-   "le soleil",
-   "la lune",
-   "la pluie",
-   "la mer"
+   "☀️",
+   "🌙",
+   "🌧️",
+   "🌊"
   ],
-  "reponse": "le soleil",
+  "reponse": "☀️",
   "illustration": "☀️",
   "source": "[LEC] La Nature",
-  "ordre": 7
+  "ordre": 7,
+  "mot_francais": "le soleil"
  },
  {
   "id": "ntina-l28-08",
@@ -13745,5 +13759,341 @@
   "illustration": "❓",
   "source": "[LEC] LES DEVINETTES EN OMYENE",
   "ordre": 7
+ },
+ {
+  "id": "mm-ntina-l15-1",
+  "lecon_id": "ntina-l15",
+  "type": "montre",
+  "consigne": "Touche le dessin : « môri »",
+  "mot_myene": "môri",
+  "mot_francais": "un",
+  "options": [
+   "1️⃣",
+   "2️⃣",
+   "3️⃣"
+  ],
+  "reponse": "1️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "ordre": 10
+ },
+ {
+  "id": "mm-ntina-l15-2",
+  "lecon_id": "ntina-l15",
+  "type": "montre",
+  "consigne": "Touche le dessin : « mbani »",
+  "mot_myene": "mbani",
+  "mot_francais": "deux",
+  "options": [
+   "2️⃣",
+   "4️⃣",
+   "5️⃣"
+  ],
+  "reponse": "2️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "ordre": 11
+ },
+ {
+  "id": "mm-ntina-l18-1",
+  "lecon_id": "ntina-l18",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ewonjo »",
+  "mot_myene": "Ewonjo",
+  "mot_francais": "la tête",
+  "options": [
+   "🙂",
+   "👁️",
+   "👂"
+  ],
+  "reponse": "🙂",
+  "source": "[LEC] Le Corps humain",
+  "ordre": 13
+ },
+ {
+  "id": "mm-ntina-l18-2",
+  "lecon_id": "ntina-l18",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Aroyi »",
+  "mot_myene": "Aroyi",
+  "mot_francais": "les oreilles",
+  "options": [
+   "👂",
+   "👃",
+   "🦷"
+  ],
+  "reponse": "👂",
+  "source": "[LEC] Le Corps humain",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l19-1",
+  "lecon_id": "ntina-l19",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ogô »",
+  "mot_myene": "Ogô",
+  "mot_francais": "le bras",
+  "options": [
+   "💪",
+   "🙂",
+   "👁️"
+  ],
+  "reponse": "💪",
+  "source": "[LEC] Le Corps humain",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l20-1",
+  "lecon_id": "ntina-l20",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Rerê »",
+  "mot_myene": "Rerê",
+  "mot_francais": "papa",
+  "options": [
+   "👨",
+   "👩",
+   "🧒"
+  ],
+  "reponse": "👨",
+  "source": "[LEC] La famille",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l22-1",
+  "lecon_id": "ntina-l22",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Pusi »",
+  "mot_myene": "Pusi",
+  "mot_francais": "le chat",
+  "options": [
+   "🐈",
+   "🦋",
+   "🐕"
+  ],
+  "reponse": "🐈",
+  "source": "[LEC] Animaux du Gabon",
+  "ordre": 13
+ },
+ {
+  "id": "mm-ntina-l22-2",
+  "lecon_id": "ntina-l22",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Mboni »",
+  "mot_myene": "Mboni",
+  "mot_francais": "le cabri",
+  "options": [
+   "🐐",
+   "🐈",
+   "🐔"
+  ],
+  "reponse": "🐐",
+  "source": "[LEC] Animaux du Gabon",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l23-1",
+  "lecon_id": "ntina-l23",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Njêgô »",
+  "mot_myene": "Njêgô",
+  "mot_francais": "la panthère",
+  "options": [
+   "🐆",
+   "🦋",
+   "🐕"
+  ],
+  "reponse": "🐆",
+  "source": "[LEC] Animaux du Gabon",
+  "ordre": 13
+ },
+ {
+  "id": "mm-ntina-l23-2",
+  "lecon_id": "ntina-l23",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Njina »",
+  "mot_myene": "Njina",
+  "mot_francais": "le gorille",
+  "options": [
+   "🦍",
+   "🐈",
+   "🐐"
+  ],
+  "reponse": "🦍",
+  "source": "[LEC] Animaux du Gabon",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l24-1",
+  "lecon_id": "ntina-l24",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ikôndô »",
+  "mot_myene": "Ikôndô",
+  "mot_francais": "la banane plantain",
+  "options": [
+   "🍌",
+   "🐟",
+   "🍖"
+  ],
+  "reponse": "🍌",
+  "source": "[LEC] LES ALIMENTS",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l25-1",
+  "lecon_id": "ntina-l25",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Yàga gonya »",
+  "mot_myene": "Yàga gonya",
+  "mot_francais": "Viens manger",
+  "options": [
+   "🍽️",
+   "🍌",
+   "🐟"
+  ],
+  "reponse": "🍽️",
+  "source": "[LEC] Les incontournables",
+  "ordre": 11
+ },
+ {
+  "id": "mm-ntina-l25-2",
+  "lecon_id": "ntina-l25",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Zê nya nde ? »",
+  "mot_myene": "Zê nya nde ?",
+  "mot_francais": "On mange quoi ?",
+  "options": [
+   "🥄",
+   "🍖",
+   "🥚"
+  ],
+  "reponse": "🥄",
+  "source": "[LEC] Les incontournables",
+  "ordre": 12
+ },
+ {
+  "id": "mm-ntina-l26-1",
+  "lecon_id": "ntina-l26",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Odo »",
+  "mot_myene": "Odo",
+  "mot_francais": "le lit",
+  "options": [
+   "🛏️",
+   "🏠",
+   "🪑"
+  ],
+  "reponse": "🛏️",
+  "source": "[LEC] La Nature",
+  "ordre": 13
+ },
+ {
+  "id": "mm-ntina-l26-2",
+  "lecon_id": "ntina-l26",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ebongo »",
+  "mot_myene": "Ebongo",
+  "mot_francais": "le banc",
+  "options": [
+   "🪑",
+   "🔥",
+   "🧹"
+  ],
+  "reponse": "🪑",
+  "source": "[LEC] La Nature",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l27-1",
+  "lecon_id": "ntina-l27",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Elinga »",
+  "mot_myene": "Elinga",
+  "mot_francais": "la robe",
+  "options": [
+   "👗",
+   "🏠",
+   "🛏️"
+  ],
+  "reponse": "👗",
+  "source": "[LEC] La Nature",
+  "ordre": 11
+ },
+ {
+  "id": "mm-ntina-l27-2",
+  "lecon_id": "ntina-l27",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Gềnda godêwa ! »",
+  "mot_myene": "Gềnda godêwa !",
+  "mot_francais": "Va dormir !",
+  "options": [
+   "😴",
+   "🪑",
+   "🔥"
+  ],
+  "reponse": "😴",
+  "source": "[LEC] Les incontournables",
+  "ordre": 12
+ },
+ {
+  "id": "mm-ntina-l28-1",
+  "lecon_id": "ntina-l28",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ogwêli »",
+  "mot_myene": "Ogwêli",
+  "mot_francais": "la lune",
+  "options": [
+   "🌙",
+   "☀️",
+   "🌧️"
+  ],
+  "reponse": "🌙",
+  "source": "[LEC] La Nature",
+  "ordre": 13
+ },
+ {
+  "id": "mm-ntina-l28-2",
+  "lecon_id": "ntina-l28",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ningo »",
+  "mot_myene": "Ningo",
+  "mot_francais": "la pluie",
+  "options": [
+   "🌧️",
+   "🌊",
+   "🌳"
+  ],
+  "reponse": "🌧️",
+  "source": "[LEC] La Nature",
+  "ordre": 14
+ },
+ {
+  "id": "mm-ntina-l29-1",
+  "lecon_id": "ntina-l29",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Wulinya myê »",
+  "mot_myene": "Wulinya myê",
+  "mot_francais": "formule pour ouvrir un conte",
+  "options": [
+   "📖",
+   "☀️",
+   "🌙"
+  ],
+  "reponse": "📖",
+  "source": "Capp (formule d'ouverture du conte)",
+  "ordre": 9
+ },
+ {
+  "id": "mm-ntina-l29-2",
+  "lecon_id": "ntina-l29",
+  "type": "montre",
+  "consigne": "Touche le dessin : « Ogoni »",
+  "mot_myene": "Ogoni",
+  "mot_francais": "le feu",
+  "options": [
+   "🔥",
+   "🌧️",
+   "🌊"
+  ],
+  "reponse": "🔥",
+  "source": "[LEC] La Nature",
+  "ordre": 10
  }
 ]
