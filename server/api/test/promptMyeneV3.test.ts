@@ -41,3 +41,9 @@ test('contrôleur : les phrases de référence de Capp passent, les erreurs du �
   for (const p of ['Ê a va', 'Omwana', "Agom'ambani m'itondo", 'Incango nde wê bele ?', 'Intchango sè ?', 'Mi be luwo me nya'])
     assert.equal(controlerMyene(p).ok, false, p);
 });
+
+test('budget : le prompt de base reste court et le contexte est coupé au budget (modèle à 8 192 jetons)', async () => {
+  const { CONFIG_IA_DEFAUT, PROMPT_DEFAUT } = await import('../src/ia.ts');
+  assert.ok(GRAMMAIRE_MYENE.length + PROMPT_DEFAUT.length < 12000, `grammaire ${GRAMMAIRE_MYENE.length} + prompt ${PROMPT_DEFAUT.length}`);
+  assert.ok(CONFIG_IA_DEFAUT.budgetSysteme <= 20000, '≈ 3,4 caractères par jeton : 19 000 caractères laissent la place à l\'historique et à la réponse');
+});

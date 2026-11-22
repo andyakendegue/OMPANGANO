@@ -129,7 +129,8 @@ test('le socle myènè (grammaire + lexique) ne compte pas dans le contexte incl
   const { estimerJetons } = await import('../../../packages/noyau/src/jetons.ts');
   const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
   const { systeme, socle } = await construireSysteme(db, embed, { message: 'Traduis : ma mère prépare la viande', enfant: false });
-  assert.ok(socle > 3000, `socle mesuré : ${socle}`);
+  assert.ok(socle > 2000, `socle mesuré : ${socle}`);
+  assert.ok(systeme.length <= 19000, `prompt système de ${systeme.length} caractères : le modèle n'accepte que 8 192 jetons en tout`);
   assert.ok(estimerJetons(systeme) - socle < 6000, 'sans le socle, le reste du prompt tient dans l\'inclus');
   const id = (await call('POST', '/v1/ia/chats', u, {})).body.chat.id;
   const r = await call('POST', `/v1/ia/chats/${id}/messages`, u, { message: 'Traduis : ma mère prépare la viande' });

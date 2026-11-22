@@ -25,8 +25,12 @@ const vecteurs = vecteursParDefaut();
  * grammaireMyene : ajoute la compétence myènè (promptMyene.ts) ; lexiqueMax : nombre d'entrées du lexique de référence placées
  * dans le prompt (0 = coupé) ; ragMyeneK : morceaux pris d'abord dans les documents myènè (leçons, grammaires, dictionnaires), en plus de topK.
  */
-export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number; ragReglesK: number; ragPhrasesK: number }
-export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4, ragReglesK: 2, ragPhrasesK: 2 };
+export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number; ragReglesK: number; ragPhrasesK: number; budgetSysteme: number }
+export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4, ragReglesK: 2, ragPhrasesK: 2, budgetSysteme: 19000 };
+/**
+ * budgetSysteme : taille maximale du prompt système, en caractères. Le modèle du serveur accepte 8 192 jetons en tout (prompt, historique
+ * et réponse) ; au-delà, il refuse la question. Les extraits de contexte les moins prioritaires, puis des entrées du lexique, sont retirés.
+ */
 /**
  * Corpus consulté par Qwen (règles myènè de référence v3.3, § 15.2) : d'abord les règles de référence, découpées par section
  * (dossier `00_regles_myene_v3/` du corpus), puis les dictionnaires, grammaires, leçons et le lexique v3, puis les phrases en v3.
@@ -350,7 +354,13 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   if (o.actions) systeme += o.actions;
   // Lexique de référence : les mots attestés qui répondent à la question (lexiqueMyene.ts).
   let lexique = '';
-  if (cfg.lexiqueMax > 0) { try { lexique = blocLexique(o.message, cfg.lexiqueMax); systeme += lexique; } catch { /* jamais bloquant */ } }
+  if (cfg.lexiqueMax > 0) {
+    try {
+      // Lexique raccourci si le prompt dépasserait déjà le budget (une place reste réservée au contexte documentaire).
+      for (let n = cfg.lexiqueMax; n > 0; n = Math.floor(n / 2)) { lexique = blocLexique(o.message, n); if (systeme.length + lexique.length <= cfg.budgetSysteme - 3000 || n <= 5) break; }
+      systeme += lexique;
+    } catch { /* jamais bloquant */ }
+  }
   // Socle myènè (grammaire + lexique) : matériel du service, il ne compte pas dans le contexte inclus du chat de l'utilisateur
   // (sans cela, chaque chat dépasserait les 6 000 jetons inclus dès le premier message et des frais seraient proposés).
   const socle = estimerJetons(grammaire + lexique);
@@ -369,6 +379,9 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
     ]);
     const vus = new Set<number>();
     contexte = [...regles, ...myene, ...phrases, ...general].filter(c => !vus.has(c.id) && !!vus.add(c.id)).slice(0, cfg.topK + cfg.ragMyeneK + cfg.ragReglesK + cfg.ragPhrasesK);
+    // Budget : on garde les extraits dans l'ordre de priorité (règles, dictionnaires, phrases, corpus général) tant qu'ils tiennent.
+    let place = cfg.budgetSysteme - systeme.length - 400;
+    contexte = contexte.filter(c => { const t = c.titre.length + c.texte.length + 60; if (t > place) return false; place -= t; return true; });
     // Le titre aide le modèle à juger le document ; il ne doit jamais le citer à l'apprenant (aucune référence aux sources).
     if (contexte.length) systeme += `\n\n### Contexte (extraits de documents de référence ; sers-t'en, ne dis rien sur le myènè qui ne figure ni ici ni dans ta connaissance ; ne cite jamais ni auteur, ni ouvrage, ni page)\n` + contexte.map((c, i) => `[${i + 1}] (${etiquetteSource(c.titre).libelle}) ${c.titre} : ${c.texte}`).join('\n');
   }
@@ -394,7 +407,7 @@ export function registerIaAdmin(ctx: Ctx) {
     const b = (req.body || {}) as Partial<ConfigIa>;
     const propre: Partial<ConfigIa> = {};
     if (str(b.modele)) propre.modele = b.modele.slice(0, 120);
-    for (const [k, min, max] of [['temperature', 0, 2], ['maxTokens', 16, 8000], ['topK', 1, 20], ['seuil', 0, 1], ['chunkTaille', 200, 4000], ['chunkChevauchement', 0, 1000], ['lexiqueMax', 0, 80], ['ragMyeneK', 0, 12], ['ragReglesK', 0, 8], ['ragPhrasesK', 0, 8]] as const)
+    for (const [k, min, max] of [['temperature', 0, 2], ['maxTokens', 16, 8000], ['topK', 1, 20], ['seuil', 0, 1], ['chunkTaille', 200, 4000], ['chunkChevauchement', 0, 1000], ['lexiqueMax', 0, 80], ['ragMyeneK', 0, 12], ['ragReglesK', 0, 8], ['ragPhrasesK', 0, 8], ['budgetSysteme', 6000, 60000]] as const)
       if (typeof b[k] === 'number' && b[k]! >= min && b[k]! <= max) (propre as any)[k] = b[k];
     if (typeof b.ragActif === 'boolean') propre.ragActif = b.ragActif;
     if (typeof b.grammaireMyene === 'boolean') propre.grammaireMyene = b.grammaireMyene;
