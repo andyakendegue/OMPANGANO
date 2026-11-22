@@ -8116,7 +8116,7 @@
   "lecon_id": "ntina-l21",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Tata poyo",
+  "mot_myene": "Tâta poyo",
   "mot_francais": "le grand-père",
   "illustration": "👴",
   "source": "[LEC] La famille",
@@ -8127,7 +8127,7 @@
   "lecon_id": "ntina-l21",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Mama poyo",
+  "mot_myene": "Mâma poyo",
   "mot_francais": "la grand-mère",
   "illustration": "👵",
   "source": "[LEC] La famille",
@@ -8168,8 +8168,8 @@
   "id": "ntina-l21-06",
   "lecon_id": "ntina-l21",
   "type": "associer",
-  "consigne": "Que veut dire « Tata poyo » ?",
-  "mot_myene": "Tata poyo",
+  "consigne": "Que veut dire « Tâta poyo » ?",
+  "mot_myene": "Tâta poyo",
   "options": [
    "le grand-père",
    "la grand-mère",
@@ -8185,8 +8185,8 @@
   "id": "ntina-l21-07",
   "lecon_id": "ntina-l21",
   "type": "associer",
-  "consigne": "Que veut dire « Mama poyo » ?",
-  "mot_myene": "Mama poyo",
+  "consigne": "Que veut dire « Mâma poyo » ?",
+  "mot_myene": "Mâma poyo",
   "options": [
    "la grand-mère",
    "le grand-père",
@@ -8206,7 +8206,7 @@
   "options": [
    "Irônda",
    "Ombalo",
-   "Tata poyo"
+   "Tâta poyo"
   ],
   "reponse": "Irônda",
   "source": "[LEC] La famille",
@@ -8220,7 +8220,7 @@
   "options": [
    "Ombalo",
    "Irônda",
-   "Mama poyo"
+   "Mâma poyo"
   ],
   "reponse": "Ombalo",
   "source": "[LEC] La famille",
@@ -8230,8 +8230,8 @@
   "id": "ntina-l21-10",
   "lecon_id": "ntina-l21",
   "type": "dire",
-  "consigne": "Dis « Mama poyo » à voix haute.",
-  "mot_myene": "Mama poyo",
+  "consigne": "Dis « Mâma poyo » à voix haute.",
+  "mot_myene": "Mâma poyo",
   "mot_francais": "la grand-mère",
   "illustration": "👵",
   "source": "[LEC] La famille",
@@ -13587,5 +13587,163 @@
   "reponse": "les assiettes que j'ai lavées",
   "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
   "ordre": 8
+ },
+ {
+  "id": "nt5-ntina-l2-proverbe",
+  "lecon_id": "ntina-l2",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Ndego ê bandamino ni ncango.",
+  "mot_francais": "L'amitié s'entretient avec des nouvelles.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0069",
+  "ordre": 106
+ },
+ {
+  "id": "nt5-ntina-l19-proverbe",
+  "lecon_id": "ntina-l19",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Okuw'ezombôlô, orêm'iyumbuno.",
+  "mot_francais": "Le corps est un balai, le cœur est une forteresse.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0050",
+  "ordre": 13
+ },
+ {
+  "id": "nt5-ntina-l21-proverbe",
+  "lecon_id": "ntina-l21",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Iwênê ny'obota, nye re biko n'impaza.",
+  "mot_francais": "On ne refuse pas le sein de sa mère à cause des boutons.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0015",
+  "ordre": 12
+ },
+ {
+  "id": "nt5-ntina-l22-proverbe",
+  "lecon_id": "ntina-l22",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Mboni y'inkala re pôlino mango.",
+  "mot_francais": "On ne court pas après un mouton de village, il finira par revenir tout seul.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0011",
+  "ordre": 12
+ },
+ {
+  "id": "nt5-ntina-l25-proverbe",
+  "lecon_id": "ntina-l25",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Ntogolo re bônde g'egombe z'ingani.",
+  "mot_francais": "Le piment ne mûrit pas à la saison d'un autre.",
+  "texte": "Chaque chose en son temps.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0035",
+  "ordre": 10
+ },
+ {
+  "id": "nt5-ntina-l27-proverbe",
+  "lecon_id": "ntina-l27",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Nyam'okwende re nôg'ogoni.",
+  "mot_francais": "L'animal qui a une queue ne traverse pas le feu.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0047",
+  "ordre": 10
+ },
+ {
+  "id": "nt5-ntina-l29-proverbe",
+  "lecon_id": "ntina-l29",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Mbolo y'inkala re kênda ni mango.",
+  "mot_francais": "Un vieillard ne court pas.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0044",
+  "ordre": 8
+ },
+ {
+  "id": "nt5-ntina-l35-proverbe",
+  "lecon_id": "ntina-l35",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Njôgôni avile kundu, re koga « côcôriêgô ».",
+  "mot_francais": "Le poussin qui vient de naître ne chante pas le matin face au vieux coq de la basse-cour.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0051",
+  "ordre": 8
+ },
+ {
+  "id": "nt5-mbolo-we",
+  "lecon_id": "ntina-l1",
+  "type": "culture",
+  "consigne": "Bon à savoir",
+  "mot_myene": "‘mbolo wë !",
+  "mot_francais": "salut, bonjour, bonsoir",
+  "texte": "« Mbolo » se dit aussi « ‘mbolo wë ! », pour saluer quelqu'un à toute heure du jour.",
+  "source": "Règles de référence v3.3 § 3 (parenté), § 9, § 10",
+  "ordre": 103
+ },
+ {
+  "id": "nt5-parente-1",
+  "lecon_id": "ntina-l21",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Kâka",
+  "mot_francais": "le grand-parent",
+  "illustration": "🧓",
+  "source": "Règles de référence v3.3 § 3 (parenté), § 9, § 10",
+  "ordre": 12
+ },
+ {
+  "id": "nt5-parente-2",
+  "lecon_id": "ntina-l21",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Yâya",
+  "mot_francais": "le frère aîné",
+  "illustration": "🧑",
+  "source": "Règles de référence v3.3 § 3 (parenté), § 9, § 10",
+  "ordre": 13
+ },
+ {
+  "id": "nt5-dire-ntina-l16",
+  "lecon_id": "ntina-l16",
+  "type": "dire",
+  "consigne": "Dis « orowa » à voix haute.",
+  "mot_myene": "orowa",
+  "mot_francais": "six",
+  "illustration": "6️⃣",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "ordre": 14
+ },
+ {
+  "id": "nt5-dire-ntina-l17",
+  "lecon_id": "ntina-l17",
+  "type": "dire",
+  "consigne": "Dis « nago ncaro » à voix haute.",
+  "mot_myene": "nago ncaro",
+  "mot_francais": "trois maisons",
+  "illustration": "🏠",
+  "source": "[LEC] Comptons ; Leçon 13 ; Corrections de Capp, 31 oct. 2026",
+  "ordre": 12
+ },
+ {
+  "id": "nt5-dire-ntina-l31",
+  "lecon_id": "ntina-l31",
+  "type": "dire",
+  "consigne": "Dis « awana » à voix haute.",
+  "mot_myene": "awana",
+  "mot_francais": "des enfants",
+  "illustration": "🧒",
+  "source": "Ambouroue 2007, p. 12 ; [LEC] Comment écrire l'Omyènè",
+  "ordre": 10
+ },
+ {
+  "id": "nt5-dire-ntina-l34",
+  "lecon_id": "ntina-l34",
+  "type": "dire",
+  "consigne": "Dis « Tô tôngê, reviza ni myê » à voix haute.",
+  "mot_myene": "Tô tôngê, reviza ni myê",
+  "mot_francais": "formule de la devinette",
+  "illustration": "❓",
+  "source": "[LEC] LES DEVINETTES EN OMYENE",
+  "ordre": 7
  }
 ]
