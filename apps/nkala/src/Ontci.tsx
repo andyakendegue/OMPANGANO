@@ -198,7 +198,7 @@ function Radios({ D, pile, jouer }: Ctx) {
         <Rangee>{D.radios.map((x, i) => <Puce key={x.id} label={x.nom} actif={sel === i} onPress={() => setSel(i)} />)}</Rangee>
         <Carte accent={r.couleur} style={{ padding: 20, gap: 12, alignItems: 'center' }}>
           <Pastille label="● EN DIRECT" couleur="#FDFAF7" fond="#B91C1C" /><Visuel uri={r.image} couleur={r.couleur} taille={140} rayon={24} icone="radio" /><T v="sousTitre">{r.nom}</T>{enCours?.titre ? <T v="carte" style={{ textAlign: 'center' }}>♪ {enCours.titre}{enCours.artiste ? ` · ${enCours.artiste}` : ''}</T> : null}<T v="petit" style={{ textAlign: 'center' }}>{r.description}</T>
-          <Onde actif={L.enLecture && L.courant?.id === r.id} barres={20} />
+          <Onde actif={L.enLecture && L.courant?.id === r.id} barres={20} module="ontci" />
           <Bouton label={L.enLecture && L.courant?.id === r.id ? 'Pause' : 'Écouter le direct'} icone={L.enLecture && L.courant?.id === r.id ? 'pause' : 'lecture'} variante="ambre" desactive={!r.flux_url} onPress={() => (L.courant?.id === r.id ? L.basculer() : jouer([{ id: r.id, titre: r.nom, artiste: 'En direct', pochette: r.image, couleur: r.couleur, audio_url: r.flux_url, niveau_acces: 'libre' }], 0))} />
           {!r.flux_url && <T v="petit">L'adresse du flux n'est pas encore renseignée.</T>}
         </Carte>

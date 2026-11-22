@@ -41,7 +41,7 @@ export function LecteurPlein() {
 
         {vue === 'lecteur' && <View style={{ alignItems: 'center', gap: 18, flex: 1, justifyContent: 'center' }}>
           {L.charge && !message ? <Squelette l={260} h={260} r={24} /> : <Visuel uri={t.pochette} couleur={couleur} largeur={260} hauteur={260} rayon={24} icone="musique" />}
-          <Onde actif={L.enLecture} barres={22} hauteur={34} />
+          <Onde actif={L.enLecture} barres={22} hauteur={34} module="ontci" />
         </View>}
         {vue === 'paroles' && <ScrollView ref={refRef} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingVertical: 20 }} showsVerticalScrollIndicator={false}>
           {lignes.length === 0 ? <T v="corps" couleur="#FED7AA" style={{ textAlign: 'center' }}>Les paroles de ce titre ne sont pas encore disponibles.</T> : lignes.map((l, i) => (
@@ -50,7 +50,7 @@ export function LecteurPlein() {
         {vue === 'file' && <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 8 }}>
           {L.file.map((p, i) => <View key={p.id + i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, borderRadius: 14, backgroundColor: i === L.index ? 'rgba(255,255,255,0.14)' : 'transparent' }}>
             <Visuel uri={p.pochette} couleur={p.couleur ?? undefined} taille={44} rayon={10} icone="musique" /><View style={{ flex: 1 }}><T v="carte" couleur="#FDFAF7" numberOfLines={1}>{p.titre}</T><T v="petit" couleur="#FED7AA" numberOfLines={1}>{p.artiste}</T></View>
-            {i === L.index + 1 && <Pastille label="Prêt" couleur="#22C55E" fond="rgba(0,0,0,0.3)" />}{i === L.index && L.enLecture && <Onde barres={4} hauteur={16} />}</View>)}
+            {i === L.index + 1 && <Pastille label="Prêt" couleur="#22C55E" fond="rgba(0,0,0,0.3)" />}{i === L.index && L.enLecture && <Onde barres={4} hauteur={16} module="ontci" />}</View>)}
         </ScrollView>}
 
         <View style={{ gap: 4 }}>

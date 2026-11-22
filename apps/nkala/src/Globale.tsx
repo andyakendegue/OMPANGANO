@@ -104,7 +104,7 @@ function MiniLecteur({ onOuvrir }: { onOuvrir: () => void }) {
           <Text numberOfLines={1} style={{ fontFamily: polices.titre, fontSize: 14, color: '#FDFAF7' }}>{courant.titre}</Text>
           <Text numberOfLines={1} style={{ fontFamily: polices.corps, fontSize: 12, color: '#FED7AA' }}>{charge ? 'Chargement…' : courant.artiste}</Text>
         </View>
-        {enLecture && <Onde barres={6} hauteur={22} />}
+        {enLecture && <Onde barres={6} hauteur={22} module="ontci" />}
         <Pressable accessibilityRole="button" accessibilityLabel={enLecture ? 'Pause' : 'Lecture'} hitSlop={8} onPress={basculer} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center' }}><Ic nom={enLecture ? 'pause' : 'lecture'} taille={20} couleur="#170D08" /></Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Titre suivant" hitSlop={8} onPress={suivant}><Ic nom="suivantPiste" taille={22} couleur="#FED7AA" /></Pressable>
       </LinearGradient>

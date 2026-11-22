@@ -196,18 +196,23 @@ export function Squelette({ l = '100%', h = 16, r = 10, style }: { l?: number | 
   return <Animated.View style={[{ width: l, height: h, borderRadius: r, backgroundColor: c.squelette, opacity: v.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.5, 1, 0.5] }) }, style]} />;
 }
 
-/** Onde sonore animée (barres qui pulsent). Moins de barres sur appareil modeste. */
-export function Onde({ actif = true, barres = 18, hauteur = 48, couleur }: { actif?: boolean; barres?: number; hauteur?: number; couleur?: string }) {
+/**
+ * Onde sonore animée (barres qui pulsent). Moins de barres sur appareil modeste.
+ * Charte graphique (NKALA_IDENTITE_VISUELLE.md § 6.1, 22 nov. 2026) : une seule teinte, celle du module (Ompangano brique,
+ * Onênji ambre, Ontci sable…), nuancée par l'opacité ; plus de barres alternées ambre / terre / jaune.
+ */
+export function Onde({ actif = true, barres = 18, hauteur = 48, couleur, module }: { actif?: boolean; barres?: number; hauteur?: number; couleur?: string; module?: keyof ReturnType<typeof useTheme>['c']['modules'] }) {
   const { prefs } = usePrefs();
+  const { c } = useTheme();
   const n = prefs.animations === 'legeres' ? Math.min(barres, 10) : barres;
   const v = useBoucle(1100, actif);
-  const teintes = useMemo(() => [marque.ambre, marque.terre, marque.jaune], []);
+  const teinte = couleur ?? (module ? c.modules[module] : c.accent);
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, height: hauteur }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {Array.from({ length: n }, (_, i) => {
         const dec = (i * 0.17) % 1;
         const echelle = v.interpolate({ inputRange: [0, 0.25 + dec * 0.1, 0.5, 0.75, 1], outputRange: [0.35, 1, 0.5, 0.9, 0.35] });
-        return <Animated.View key={i} style={{ width: 5, height: hauteur, borderRadius: 4, backgroundColor: couleur ?? teintes[i % 3], transform: [{ scaleY: actif ? echelle : 0.35 }] }} />;
+        return <Animated.View key={i} style={{ width: 5, height: hauteur, borderRadius: 4, backgroundColor: teinte, opacity: actif ? 0.6 + 0.4 * Math.abs(Math.sin(i * 0.9)) : 0.45, transform: [{ scaleY: actif ? echelle : 0.35 }] }} />;
       })}
     </View>
   );

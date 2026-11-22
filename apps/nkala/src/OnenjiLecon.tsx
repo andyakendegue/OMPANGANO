@@ -137,7 +137,7 @@ function Dire({ modele, onFini, ex }: { modele?: string | null; onFini: () => vo
     <View style={{ gap: 14, alignItems: 'center' }}>
       <Son audio={modele} />
       <T v="petit">Écoute le modèle, puis dis-le à voix haute.</T>
-      <Onde actif={etat === 'enreg'} barres={20} />
+      <Onde actif={etat === 'enreg'} barres={20} module="onenji" />
       {etat === 'attente' && <Bouton label="Enregistrer ma voix" icone="micro" onPress={commencer} />}
       {etat !== 'fait' && <Pressable onPress={onFini} accessibilityRole="button" accessibilityLabel="Passer cet exercice" hitSlop={10}><T v="petit" style={{ textDecorationLine: 'underline' }}>Passer cet exercice</T></Pressable>}
       {etat === 'enreg' && <Bouton label="Arrêter" icone="pause" variante="ambre" onPress={arreter} />}

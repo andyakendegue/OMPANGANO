@@ -90,7 +90,7 @@ export function ProposerChant({ retour }: { retour: () => void }) {
         <T v="corps">Le micro est refusé. Tu peux l'autoriser dans les réglages du téléphone.</T>
       ) : (
         <View style={{ alignItems: 'center', gap: 12 }}>
-          <Onde actif={etat === 'enreg'} barres={24} />
+          <Onde actif={etat === 'enreg'} barres={24} module="ompangano" />
           {etat === 'attente' && <Bouton label="Chanter et enregistrer" icone="micro" onPress={commencer} />}
           {etat === 'enreg' && <Bouton label="Arrêter" icone="pause" variante="ambre" onPress={arreter} />}
           {etat === 'fait' && <>

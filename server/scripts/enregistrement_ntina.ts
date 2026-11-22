@@ -34,8 +34,8 @@ try {
         await q.query(`INSERT INTO themes (id, data) VALUES ('ntina_mots', $1) ON CONFLICT (id) DO NOTHING`, [JSON.stringify(theme)]);
         await q.query(`INSERT INTO challenges (id, data) VALUES ('defi-mots-ntina', $1) ON CONFLICT (id) DO NOTHING`, [JSON.stringify(defi)]);
         for (const f of fiches) {
-          const r = await q.query<any>(`INSERT INTO items (id, source_ref, dialect, category, status, data) VALUES ($1,$2,'orungu','ntina_mots','active',$3)
-            ON CONFLICT (id) DO NOTHING RETURNING id`, [f.id, f.sourceRef ?? null, JSON.stringify({ ...f, createdBy: 'planning_ntina', createdAt: maintenant.toISOString(), recordingsCount: 0, contributionsCount: 0 })]);
+          const r = await q.query<any>(`INSERT INTO items (id, source_ref, dialect, category, status, data) VALUES ($1,$1,'orungu','ntina_mots','active',$2)
+            ON CONFLICT DO NOTHING RETURNING id`, [f.id, JSON.stringify({ ...f, sourceRef: f.id, leconId: f.sourceRef, createdBy: 'planning_ntina', createdAt: maintenant.toISOString(), recordingsCount: 0, contributionsCount: 0 })]);
           if (r.length) ajoutees++;
         }
       }

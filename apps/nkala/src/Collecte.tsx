@@ -402,7 +402,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
                 <Text style={s.etiquette}>Enregistrement de la prononciation{enregistre ? `   EN DIRECT • ${mmss(secondes)}` : ''}</Text>
                 {!!erreurMicro && <Text style={s.erreur}>{erreurMicro}</Text>}
                 {(enregistre || (audioUri && niveaux.length > 0)) && (
-                  <View style={s.onde}>{niveaux.map((n, i) => <View key={i} style={[s.barreOnde, { height: `${n}%`, backgroundColor: enregistre ? '#ef4444' : '#22c55e' }]} />)}</View>
+                  <View style={s.onde}>{niveaux.map((n, i) => <View key={i} style={[s.barreOnde, { height: `${n}%`, backgroundColor: couleurs.terre, opacity: enregistre ? 1 : 0.55 }]} />)}</View>
                 )}
                 {!audioUri && !enregistre && <Text style={s.discret}>Appuyez sur le micro pour prononcer l’expression avec votre accent naturel</Text>}
                 {audioUri && !enregistre && <Text style={s.ok}>Voix capturée ({mmss(duree || 3)})</Text>}
