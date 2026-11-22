@@ -151,7 +151,8 @@ export function ReglagesEcran() {
       <LierTelephone />
       <Bouton label="Hors ligne et synchronisation" icone="reseau" variante="fantome" onPress={() => emettre('horsligne')} />
       <Bouton label={profil ? 'Me déconnecter' : 'Créer un compte ou me connecter'} variante="fantome" onPress={() => (profil ? confirmer({ titre: 'Te déconnecter ?', texte: 'Tes contenus en attente d\'envoi restent sur ce téléphone. Tu pourras te reconnecter avec ton numéro.', action: 'Me déconnecter', onOk: deconnexion }) : deconnexion())} />{dialogue}
-      <T v="petit" style={{ textAlign: 'center' }}>Nkala</T>
+      {/* Mention discrète de la société qui porte l'application (demande de Capp, 22 nov. 2026) */}
+      <T v="petit" couleur={c.discret} style={{ textAlign: 'center', fontSize: 11, opacity: 0.8 }}>Nkala · une application Essaka Engineering</T>
     </Ecran>
   );
 }
