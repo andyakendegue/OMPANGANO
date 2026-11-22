@@ -7,7 +7,7 @@ import { etiquetteSource, TITRES_EXCLUS, TITRES_MYENE, TITRES_PHRASES_V3, TITRES
 import { controlerMyene, AUTEURS } from '../../../packages/noyau/src/graphieV3.ts';
 
 test('prompt : version v3.3, aucune référence, aucune lettre v2 dans les exemples', () => {
-  assert.match(VERSION_GRAMMAIRE, /^DONDO v3\.3/);
+  assert.match(VERSION_GRAMMAIRE, /^DONDO v3\.[34]/);
   assert.ok(!AUTEURS.test(GRAMMAIRE_MYENE), 'aucun nom d\'auteur');
   assert.ok(!/\bp\. ?\d/.test(GRAMMAIRE_MYENE), 'aucun numéro de page');
   // Les lettres v2 n'apparaissent que dans les sections qui expliquent comment lire un texte ancien et les erreurs à éviter.
@@ -46,4 +46,15 @@ test('budget : le prompt de base reste court et le contexte est coupé au budget
   const { CONFIG_IA_DEFAUT, PROMPT_DEFAUT } = await import('../src/ia.ts');
   assert.ok(GRAMMAIRE_MYENE.length + PROMPT_DEFAUT.length < 12000, `grammaire ${GRAMMAIRE_MYENE.length} + prompt ${PROMPT_DEFAUT.length}`);
   assert.ok(CONFIG_IA_DEFAUT.budgetSysteme <= 20000, '≈ 3,4 caractères par jeton : 19 000 caractères laissent la place à l\'historique et à la réponse');
+});
+
+test('v3.4 (Capp, 22 nov. 2026, soir) : salutations et réponses, re… pa, Ibanga we, aucune phrase construite à la volée', async () => {
+  for (const x of ['Incango sê ?, Wê re vôvô ?, Incugu si nda ! demandent comment on va', 'Incango mbiambie', 'Incango vôvô', 'Du vôvô. Go nduani. Akewa',
+    'Wulinya myê, awê buta mya nde ?', 're… pa = action finie, jamais un état', 'Awa toli ? — He, ma toli.', 'Ibanga we. Ka mênê !', 'Jamais de phrase construite à la volée'])
+    assert.ok(GRAMMAIRE_MYENE.includes(x), x);
+  assert.ok(!GRAMMAIRE_MYENE.includes('Ibanga wê. Ka'), 'Ibanga we, jamais wê');
+  for (const p of ['Myê re vôvô pa.', 'Ibanga wê. Ka mênê !', 'Myê re nya go nce yêre.']) assert.equal(controlerMyene(p).ok, false, p);
+  for (const p of ['Incango mbiambie.', 'Myê re vôvô. Akewa.', 'Du vôvô. Go nduani. Akewa.', 'Ibanga we. Ka mênê !', 'Mere tolapa.']) assert.deepEqual(controlerMyene(p), { ok: true, ecarts: [] }, p);
+  const { MYENE } = await import('../../../packages/noyau/src/lexique.ts');
+  assert.equal(MYENE.KA_MENE.mot, 'Ibanga we. Ka mênê !');
 });

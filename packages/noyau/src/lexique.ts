@@ -11,7 +11,7 @@
  *  - [AMB] O. Ambouroué, thèse sur l'ôrungu (2007)
  *  - [EQ]  validé par l'équipe OMPANGANO (locuteur ôrungu natif)
  *
- * Graphie v3 (Rékanga, règles de référence v3.3, 22 nov. 2026) : Sale, Akewa, Nyeza myê, Ibanga wê. Ka mênê !, Onêro… ; impératif à
+ * Graphie v3 (Rékanga, règles de référence v3.4, 22 nov. 2026) : Sale, Akewa, Nyeza myê, Ibanga we. Ka mênê !, Onêro… ; impératif à
  * l'accent grave (Yàga). Ces mots entrent aussi dans le prompt de Kak'Igonjo (liste « Mots vérifiés ») : jamais de lettre v2 ici.
  */
 
@@ -35,7 +35,7 @@ export const MYENE = {
   /** C'est super ! / C'est bien. */
   MBIAMBIE: { mot: 'Mbiambie', sens: "C'est super ! / C'est bien", source: '[LEC] Les incontournables' },
   /** Au revoir. */
-  KA_MENE: { mot: 'Ibanga wê. Ka mênê !', sens: 'Au revoir', source: '[LEC] Bonjour' },
+  KA_MENE: { mot: 'Ibanga we. Ka mênê !', sens: 'Au revoir', source: '[LEC] Bonjour' },
   /** Excuse-moi. */
   NYEZA_MYE: { mot: 'Nyeza myê', sens: 'Excuse-moi', source: '[LEC] Formules de politesse ; [EQ]' },
   /** S'il te plaît. */

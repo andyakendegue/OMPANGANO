@@ -155,6 +155,10 @@ export const ERREURS_A_EVITER: { faux: RegExp; juste: string }[] = [
   { faux: /\b[oô]mwana\b/i, juste: 'onghwana' },
   { faux: /\banaga pyezo\b/i, juste: 'anaga wa vïezo iyoma' },
   { faux: /\bonghwant'iwami\b/i, juste: "onghwant'wami" },
+  // Règles v3.4 (Capp, 22 nov. 2026, soir) : re… pa = action finie, jamais un état ; Ibanga we ; phrase relevée incompréhensible.
+  { faux: /\bre v[ôo]v[ôo] pa\b/i, juste: 'Myê re vôvô' },
+  { faux: /\bIbanga w[êè](?!\p{L})/iu, juste: 'Ibanga we' },
+  { faux: /\bre nya go nce y[êe]re\b/i, juste: '(phrase incompréhensible : ne pas construire à la volée)' },
 ];
 
 /** Contrôle d'un texte écrit en myènè (réponse du modèle, phrase de données) : lettres v3 et formes refusées du § 12. */

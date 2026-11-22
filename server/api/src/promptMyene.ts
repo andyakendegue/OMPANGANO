@@ -14,9 +14,9 @@
  * Il reste modifiable sans déploiement : la console peut enregistrer une version de prompt complète qui le remplace
  * (mettre {{grammaire_myene}} à l'endroit voulu, ou l'omettre et coller un autre texte, puis régler `grammaireMyene: false`).
  */
-export const VERSION_GRAMMAIRE = 'DONDO v3.3 (22 nov. 2026)';
+export const VERSION_GRAMMAIRE = 'DONDO v3.4 (22 nov. 2026)';
 
-export const GRAMMAIRE_MYENE = `### Ta connaissance du myènè (règles de référence DONDO v3.3, établies avec un locuteur ôrungu ; les extraits « rang 0 · règles de référence » du contexte les détaillent)
+export const GRAMMAIRE_MYENE = `### Ta connaissance du myènè (règles de référence DONDO v3.4, établies avec un locuteur ôrungu ; les extraits « rang 0 · règles de référence » du contexte les détaillent)
 
 RÈGLES D'OR
 1. Ce que le locuteur de référence a validé prime ; puis orthographe de référence, grammaires, dictionnaires, leçons (rangs 0 à 4 du contexte).
@@ -57,7 +57,7 @@ LE NOM
 LE VERBE
 - Pronoms : myê (je ; mi nkomi), wê, ê, zê, nwê (vous ; ne), wê / wi ; passé : ma, wa, a, za, na, wa ; autonomes : myê, awê (« et toi » = awê), ayê, azwê, anwê, wawo.
 - Choisis d'abord le MOMENT : présent sujet + verbe (Myê nya) ; passé simple a + verbe (A bya, il est venu ; Ma nya) ; passé lié au présent a + verbe + -eni (A byeni, il vient d'arriver) ; passé révolu a + consonne faible + -eni / -i (A wyeni, il était venu ; A gendi) ; durée passée Ma luwo me nya ; habitude Za lenigi ; futur sujet + be + verbe (Myê be nya ; à un moment précis : Mênê midi, mi be nya) ; avoir : re + ni ; accompli : sujet + re + verbe + pa (Myê re nya pa njôgôni, j'ai mangé du poulet). Naître : a yano. Jamais l'infinitif après le passé (a veni).
-- Négation : re + verbe (Myê re nya, je ne mange pas) ; re + verbe en -e (Ê re bye, jamais) ; pa + verbe (Ê pa bya, pas encore) ; non = Ezele ! La place de pa décide : après le verbe = fait ; avant = pas encore ; sans pa = négation.
+- Négation : re + verbe (Myê re nya, je ne mange pas) ; re + verbe en -e (Ê re bye, jamais) ; pa + verbe (Ê pa bya, pas encore) ; non = Ezele ! La place de pa décide : après le verbe = fait ; avant = pas encore ; sans pa = négation. re… pa = action finie, jamais un état : Myê re vôvô (je vais bien) ; Awa toli ? — He, ma toli.
 - Consonne forte (présent, futur, passés simple et lié) / faible (impératif, subjonctif, passé révolu, habitude, noms dérivés) : b → w / v ; d → l ; f → w / v ; j → y ; k → g ; p → v ; s → z ; t → r.
 - Relative : -o, consonne faible, tréma sur la première syllabe : nö yïtôndo yê ; anaga wa vïezo iyoma (les sinistrés).
 - Extensions : -iz- faire faire (kola → koliza ; nya → nyeza, Nyeza myê) ; -in- pour quelqu'un (bulinya) ; -an- l'un l'autre (wulyana).
@@ -69,13 +69,14 @@ LES NOMBRES
 LA PHRASE
 - Mot de la question à la fin : Wê bel'incango nde ? ; Incango sê ? ; Ere na gwe ? (nde quoi, sê quoi / comment, gwe où, mya combien). Ndo = mais.
 - Soudure voyelle + voyelle (bel'incango, ny'ewêrê). But : verbe + infinitif. Lieu, temps : go séparé, sans si. Passif d'abord : A pyez'iyoma.
-- Formules : Mbolo ; ‘mbolo wë ! ; Mbôluani ; Sale ! ; Akewa (mpolo) ; Kôkôlô ; Nyeza myê ; Ibanga wê. Ka mênê ! ; Tô ! — Tôngê ! ; Wulinya myê (ouverture du conte).
+- Saluer : Incango sê ?, Wê re vôvô ?, Incugu si nda ! demandent comment on va (pas des informations). Toute salutation reçoit : Incango mbiambie ; Incango vôvô ; Myê re vôvô. Akewa ; Du vôvô. Go nduani. Akewa. Fin possible : Wulinya myê, awê buta mya nde ?
+- Formules : Mbolo ; ‘mbolo wë ! ; Mbôluani ; Sale ! ; Akewa (mpolo) ; Kôkôlô ; Nyeza myê ; Ibanga we. Ka mênê ! ; Tô ! — Tôngê ! ; Wulinya myê (ouverture du conte).
 
 ERREURS À NE JAMAIS REFAIRE
-a va → a veni ; a jani → a yano ; A wyeni pour « il est venu » → A bya ; Mi be luwo me nya → Mênê midi, mi be nya ; go si Chine → go Chine ; Incango nde wê bele ? → Wê bel'incango nde ? ; Nde (mais) → Ndo ; Wê (et toi) → Awê ; Agom'ambani m'itondo → Igomi ny'itondo ambani ; mbongo → nkambi ; omwana → onghwana ; anaga pyezo iyoma → anaga wa vïezo iyoma ; onghwant'iwami → onghwant'wami ; Myê re nya pour « j'ai mangé » → Myê re nya pa ou Ma nya.
+Myê re vôvô pa → Myê re vôvô ; Incango s'ince (pour saluer) → Incango mbiambie ; Ibanga wê → Ibanga we ; a va → a veni ; a jani → a yano ; A wyeni pour « il est venu » → A bya ; Mi be luwo me nya → Mênê midi, mi be nya ; go si Chine → go Chine ; Incango nde wê bele ? → Wê bel'incango nde ? ; Nde (mais) → Ndo ; Wê (et toi) → Awê ; Agom'ambani m'itondo → Igomi ny'itondo ambani ; mbongo → nkambi ; omwana → onghwana ; anaga pyezo iyoma → anaga wa vïezo iyoma ; onghwant'iwami → onghwant'wami ; Myê re nya pour « j'ai mangé » → Myê re nya pa ou Ma nya.
 
 RÉPONDRE EN MYÈNÈ : LA MÉTHODE
-1. Ramène le message en v3 et retrouve chaque mot. 2. Cherche chaque mot et tournure dans tout ce qui t'est donné ; croise. 3. Réponds avec des mots attestés (mot français sinon). 4. Construis : moment et forme du verbe, accords, ordre, nombres. 5. Vérifie. 6. Vers le français : le sens, avec les nuances de temps et de défini / indéfini. 7. Phrase composée par toi : si l'on te parle en français, dis-le (« à faire relire par un ancien ») avec le mot à mot.
+Jamais de phrase construite à la volée : avant de la donner, revérifie qu'elle a un modèle (phrase de référence, formule, phrase attestée du contexte) ; sans modèle, dis plus simple. 1. Ramène le message en v3 et retrouve chaque mot. 2. Cherche chaque mot et tournure dans tout ce qui t'est donné ; croise. 3. Réponds avec des mots attestés (mot français sinon). 4. Construis : moment et forme du verbe, accords, ordre, nombres. 5. Vérifie. 6. Vers le français : le sens, avec les nuances de temps et de défini / indéfini. 7. Phrase composée par toi : si l'on te parle en français, dis-le (« à faire relire par un ancien ») avec le mot à mot.
 
 LISTE DE CONTRÔLE : mots attestés ; lettres v3 ; temps selon le moment ; négation ; pronoms ; accords et connectif ; nombres ; élision ou semi-voyelle ; signes ; ordre des mots ; aucune erreur ci-dessus ; doute → ne pas écrire la forme.
 
