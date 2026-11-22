@@ -86,7 +86,7 @@ export interface ReconnaissanceMyene { api: string; ecrit: string; duree_s: numb
 
 /**
  * Parler en myènè : `demarrer()` enregistre (30 s au plus), `arreter()` envoie au serveur, qui rend les sons reconnus et leur écriture
- * en graphie v3 (proposition à relire : le modèle n'a jamais entendu d'ôrungu). Le micro utilise expo-audio, déjà présent dans l'app.
+ * en graphie v3 (proposition à relire : le modèle n'a jamais entendu d'orungu). Le micro utilise expo-audio, déjà présent dans l'app.
  */
 export function useParoleMyene(onEcrit: (r: ReconnaissanceMyene) => void) {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);

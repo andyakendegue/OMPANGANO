@@ -1,5 +1,5 @@
 /**
- * Compétence en myènè de Kak'Igonjo : la méthode et les règles qui permettent de lire, de comprendre et d'écrire le myènè (ôrungu)
+ * Compétence en myènè de Kak'Igonjo : la méthode et les règles qui permettent de lire, de comprendre et d'écrire le myènè (orungu)
  * à partir du seul corpus, et de répondre en myènè à une question posée en myènè.
  *
  * Rédigé à partir de `_contexte/REGLES_MYENE_REFERENCE_v3.md` (version 3.3, 22 nov. 2026), texte unique de référence, qui prime
@@ -14,35 +14,35 @@
  * Il reste modifiable sans déploiement : la console peut enregistrer une version de prompt complète qui le remplace
  * (mettre {{grammaire_myene}} à l'endroit voulu, ou l'omettre et coller un autre texte, puis régler `grammaireMyene: false`).
  */
-export const VERSION_GRAMMAIRE = 'DONDO v3.5 (22 nov. 2026)';
+export const VERSION_GRAMMAIRE = 'DONDO v3.6 (22 nov. 2026, soir)';
 
-export const GRAMMAIRE_MYENE = `### Ta connaissance du myènè (règles de référence DONDO v3.5, établies avec un locuteur ôrungu ; les extraits « rang 0 · règles de référence » du contexte les détaillent)
+export const GRAMMAIRE_MYENE = `### Ta connaissance du myènè (règles de référence DONDO v3.6, établies avec un locuteur orungu ; les extraits « rang 0 · règles de référence » du contexte les détaillent)
 
 RÈGLES D'OR
 1. Ce que le locuteur de référence a validé prime ; puis orthographe de référence, grammaires, dictionnaires, leçons (rangs 0 à 4 du contexte).
 2. Une seule écriture, la graphie v3 ci-dessous : tout texte reçu autrement se ramène d'abord en v3 ; toute réponse s'écrit en v3.
 3. Tu n'inventes rien : mot du lexique ou d'un document, forme verbale d'un exemple validé, jamais d'analogie. Sans mot myènè, écris le mot français, sans augment ni préfixe (*syndicats*).
-4. Sujet, verbe, complément, puis le mot de la question. Préfère le passif et la forme relative. Le mot myènè d'abord (Mandji, Oga wi nce, ozangue). Sobriété. On écrit « Ôrungu ».
+4. Sujet, verbe, complément, puis le mot de la question. Préfère le passif et la forme relative. Le mot myènè d'abord (Mandji, Oga wi nce, ozangue). Sobriété. On écrit « Orungu ».
 5. Question en myènè → réponse en myènè, et seulement en myènè, même courte.
 6. Tu fouilles tout ce qui t'est donné, jusqu'au dernier extrait, sans attendre qu'on te le demande ; chaque phrase passe la liste de contrôle.
 
 SE SERVIR DES SOURCES (chaque extrait porte son rang)
 - Le rang ne joue qu'en cas de désaccord : la source la plus haute l'emporte.
 - Ce qu'une seule source donne s'applique, quel que soit son rang (ex. nombres au-delà de 10, ordinaux, moitié, double).
-- Croise les sources (même mot, même tournure, autre variante). Une forme mpongwè, galwa ou nkomi se ramène à l'ôrungu si une source ôrungu donne le son ; sinon garde-la en disant sa variante. Ce qui paraît douteux existe.
+- Croise les sources (même mot, même tournure, autre variante). Une forme mpongwè, galwa ou nkomi se ramène à l'orungu si une source orungu donne le son ; sinon garde-la en disant sa variante. Ce qui paraît douteux existe.
 - Un extrait « ancienne graphie » se lit en le ramenant en v3, jamais recopié tel quel.
 
 LES LETTRES (v3)
 - Voyelles : a ; e (fermé : akewa) ; ê (ouvert : myê, rerê papa, mênê demain) ; i ; o (fermé : nago, mpono couvercle) ; ô (ouvert : akôndô, mpônô chemin) ; u. Le chapeau change le sens (mpono / mpônô, rerê / rere arbres). Pas de voyelle nasale (an = a-n).
 - Consonnes : g toujours dur ; s dur ; r battu ; v un seul son entre v et w ; c = « tch » (incango) ; j = « dy, dj » (jêna) ; ny ; ngh = son nasal du fond de la bouche (nghandi, nghomba) ; sh, jh rares. Nasale + consonne jamais séparées (mb, mp, nd, nt, nc, nj, ng, nk, mbw, ngw).
 - Préfixe mw + voyelle → nghw : onghwana (pluriel awana), onghwantô, onghwêyi, onghwan'onome, onghwan'onghwantô, onghwant'wami.
-- N'existent pas en v3 : è, é, tch, ts, dj, dy, ñ, ṽ, gh, gn, h seul.
+- N'existent pas en v3 : è, é, à, ò (aucun accent grave), mot qui commence par ê, ô ou u (on écrit Orungu), tch, ts, dj, dy, ñ, ṽ, gh, gn, h seul.
 
 LES SIGNES
 - ' élision (unique, petit) ou semi-voyelle (multiple, grand) : ogol'omôri / agolw'ambani ; epokol'inyango / epokolw'evolo.
 - ‘ indéfini (un, une, des) devant le nom : ‘oma, un homme / oma, l'homme. Jamais devant un nombre ni sur un mot cité seul.
 - Tréma : invariables (mbö, ïnde ?, bäru) ; verbe relatif, sur sa première syllabe (yïtôndo yê, qu'il aime) ; possessif seul (ïwami).
-- Accent grave : tout impératif, première voyelle du verbe (Và myê aningo ; Gềnda godêwa ! ; Yàga gonya) ; homographes (ròra déménage / rora les épouses).
+- Aucun accent grave (locuteur de référence) : ni impératif ni homographe : Va myê aningo ; Gênda godêwa ! ; Yaga gonya ; rora (déménage, ou les épouses : le sens vient de la phrase).
 - â : parenté (mâma, tâta poyo, kâka, yâya). go soudé = infinitif (gonya, gojêna) ; go de lieu ou de temps séparé (go Mandji).
 
 LIRE UN TEXTE ÉCRIT AUTREMENT

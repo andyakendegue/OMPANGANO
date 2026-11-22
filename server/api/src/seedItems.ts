@@ -8,7 +8,7 @@ export const SEED_ITEMS_CORRIGES: SeedItemCorrige[] = [
     "myeneText": "Mbôluani",
     "dialect": "orungu",
     "category": "salutations",
-    "contextNotes": "Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l'ôrungu ([mbolwanè]).",
+    "contextNotes": "Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l'orungu ([mbolwanè]).",
     "difficulty": "debutant"
   },
   {

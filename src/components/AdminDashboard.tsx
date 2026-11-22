@@ -896,7 +896,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-[#d4af94]">Ethnie :</span>
-              {['all', 'Mpongwè', 'Adyumba', 'Enenga', 'Nkomi', 'Galoa', 'Ôrungu', 'inconnue'].map(e => (
+              {['all', 'Mpongwè', 'Adyumba', 'Enenga', 'Nkomi', 'Galoa', 'Orungu', 'inconnue'].map(e => (
                 <button key={e} onClick={() => setUserEthnieFilter(e)}
                   className={`px-3 py-1 rounded-lg font-medium transition-all ${userEthnieFilter === e ? 'bg-[#c85a32] text-white shadow' : 'bg-[#27150c] text-[#a8826d] hover:bg-[#341b10]'}`}>
                   {e === 'all' ? 'Toutes' : e === 'inconnue' ? 'Autre / non renseignée' : e}{e !== 'all' ? ` (${segEthnie[e] || 0})` : ''}
@@ -1707,7 +1707,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   className="w-full px-3 py-2 bg-[#140a05] border border-[#4a2412] rounded-xl text-xs text-[#fed7aa] focus:outline-none focus:border-[#f59e0b]"
                 >
                   <option value="all">Tous dialectes</option>
-                  <option value="orungu">Ôrungu</option>
+                  <option value="orungu">Orungu</option>
                   <option value="enenga">Enenga</option>
                   <option value="galwa">Galoa</option>
                   <option value="mpongwe">Mpongwè</option>

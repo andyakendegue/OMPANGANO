@@ -39,7 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         email: user.email || undefined,
         photoURL: user.photoURL || undefined,
         // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
-        tribe: 'Ôrungu'
+        tribe: 'Orungu'
       });
       onClose();
     } catch (err: any) {

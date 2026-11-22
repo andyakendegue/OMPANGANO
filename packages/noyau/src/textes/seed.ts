@@ -7,7 +7,7 @@ export const FICHES_DE_SECOURS: QuestionnaireItem[] = [
     "myeneText": "Mbôluani",
     "dialect": "orungu",
     "category": "salutations",
-    "contextNotes": "Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l'ôrungu ([mbolwanè]).",
+    "contextNotes": "Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l'orungu ([mbolwanè]).",
     "imageUrl": "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80",
     "difficulty": "debutant",
     "status": "active",

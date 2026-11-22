@@ -13,12 +13,12 @@ C = os.path.join(OMP, "packages/noyau/contenu")
 SRC = "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga"
 
 UNITE = {"id": "ogendo-u7", "parcours_id": "ogendo", "titre": "Lire et écrire", "titre_myene": "",
-         "description": "L'alphabet de l'ôrungu : les sept voyelles, le chapeau qui change le sens, les lettres simples, c et j, ny et ngh, les lettres qui vont par deux, la musique des mots et les mots venus d'ailleurs.",
+         "description": "L'alphabet de l'orungu : les sept voyelles, le chapeau qui change le sens, les lettres simples, c et j, ny et ngh, les lettres qui vont par deux, la musique des mots et les mots venus d'ailleurs.",
          "ordre": 1, "publie": True}
 LECONS = [  # id, titre, ordre
     ("ogendo-l18", "Les sept voyelles", 1), ("ogendo-l19", "Le chapeau change le sens", 2), ("ogendo-l20", "Les lettres simples", 3),
     ("ogendo-l21", "c et j", 4), ("ogendo-l22", "ny, sh, jh, ngh", 5), ("ogendo-l23", "Les lettres qui vont par deux", 6),
-    ("ogendo-l1", "Révision : les consonnes de l'ôrungu", 7), ("ogendo-l2", "La musique des mots", 8), ("ogendo-l24", "Les mots venus d'ailleurs", 9),
+    ("ogendo-l1", "Révision : les consonnes de l'orungu", 7), ("ogendo-l2", "La musique des mots", 8), ("ogendo-l24", "Les mots venus d'ailleurs", 9),
 ]
 
 E = []
@@ -35,7 +35,7 @@ def mot(lecon, n, m, sens, ill=None):
 
 # 1. Les sept voyelles
 L = "ogendo-l18"
-ex(L, 1, "cours", consigne="Les sept voyelles", texte="L'ôrungu a sept voyelles : a, e, ê, i, o, ô, u. Deux portent un chapeau : ê et ô. Le e se dit la bouche un peu ouverte ; le ê, la bouche plus ouverte. Le o se dit les lèvres arrondies ; le ô, la bouche bien ouverte.",
+ex(L, 1, "cours", consigne="Les sept voyelles", texte="L'orungu a sept voyelles : a, e, ê, i, o, ô, u. Deux portent un chapeau : ê et ô. Le e se dit la bouche un peu ouverte ; le ê, la bouche plus ouverte. Le o se dit les lèvres arrondies ; le ô, la bouche bien ouverte.",
    conseil="Chaque lettre se dit toujours : le e n'est jamais muet.")
 for i, (m, s, il) in enumerate([("akewa", "merci", "🙏"), ("kisini", "la cuisine", "🍳"), ("epokolo", "le chapeau", "👒"), ("ekuru", "le hibou", "🦉"), ("mbêrê", "la sardine", "🐟"), ("akôndô", "les bananes plantains", "🍌")], 2):
     mot(L, i, m, s, il)
@@ -114,7 +114,7 @@ ex(L, 11, "tracer", consigne="Écris les lettres qui vont ensemble.", graphie="n
 
 # 9. Les mots venus d'ailleurs
 L = "ogendo-l24"
-ex(L, 1, "cours", consigne="Les mots venus d'ailleurs", texte="Dans les mots de l'ôrungu, an, en, on se lisent a-n, e-n, o-n. Les mots venus d'autres langues peuvent garder leur son par le nez : on l'écrit avec n ou m après la voyelle, comme dans kômpita, l'ordinateur.",
+ex(L, 1, "cours", consigne="Les mots venus d'ailleurs", texte="Dans les mots de l'orungu, an, en, on se lisent a-n, e-n, o-n. Les mots venus d'autres langues peuvent garder leur son par le nez : on l'écrit avec n ou m après la voyelle, comme dans kômpita, l'ordinateur.",
    conseil="Quand un mot n'existe pas en myènè, on garde le mot français tel quel.")
 mot(L, 2, "kômpita", "l'ordinateur", "💻")
 ex(L, 3, "choix", consigne="Comment dit-on « l'ordinateur » ?", options=["kômpita", "kisini", "nago"], reponse="kômpita", illustration="💻")

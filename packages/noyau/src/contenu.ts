@@ -32,11 +32,11 @@ export const supprimerElement = (nom: Collection, id: string) =>
 export const nouvelId = (prefixe: string) => `${prefixe}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 export const DIALECTES: { code: string; nom: string }[] = [
-  { code: 'orungu', nom: 'Ôrungu' }, { code: 'mpongwe', nom: 'Mpongwè' }, { code: 'galoa', nom: 'Galwa' },
+  { code: 'orungu', nom: 'Orungu' }, { code: 'mpongwe', nom: 'Mpongwè' }, { code: 'galoa', nom: 'Galwa' },
   { code: 'nkomi', nom: 'Nkomi' }, { code: 'enenga', nom: 'Enenga' }, { code: 'adyumba', nom: 'Adyumba' },
 ];
 
-/** « Ôrungu », « mpongwè », « galwa »… -> code de dialecte (null si inconnu). */
+/** « Orungu », « mpongwè », « galwa »… -> code de dialecte (null si inconnu). */
 export function codeDialecte(texte: string): string | null {
   const t = texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   if (!t) return null;

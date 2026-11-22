@@ -61,7 +61,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'description', type: 'long', aide: 'Description.' },
     { nom: 'palier', type: 'entier', aide: 'Palier dans l\'étape (Ntina : 1 écouter et montrer, 2 nommer et dire, 3 jouer avec les sons).', exemple: '1' },
     { nom: 'palier_titre', type: 'texte', aide: 'Titre du palier, affiché au-dessus de ses unités.', exemple: 'Palier 1 · Écouter et montrer (3-4 ans)' },
-    { nom: 'entree', type: 'choix', choix: ['adulte_debutant', 'adulte_parle', 'transmetteurs'], aide: 'adulte_debutant : l\'adulte qui débute commence ici après le test de niveau ; adulte_parle : l\'adulte qui parle déjà ôrungu et apprend à écrire ; transmetteurs : parents, enseignants, personnes-ressources.' },
+    { nom: 'entree', type: 'choix', choix: ['adulte_debutant', 'adulte_parle', 'transmetteurs'], aide: 'adulte_debutant : l\'adulte qui débute commence ici après le test de niveau ; adulte_parle : l\'adulte qui parle déjà orungu et apprend à écrire ; transmetteurs : parents, enseignants, personnes-ressources.' },
     { nom: 'suite_id', type: 'texte', ref: 'unites', aide: 'Unité proposée ensuite, si ce n\'est pas la suivante dans l\'ordre.' }, ordre, publie, rangMin, plans] },
   { id: 'lecons', module: 'onenji', titre: 'Leçons', description: 'Une leçon = une suite d\'exercices courts. Les cours sont gratuits (15 nov. 2026) : « niveau_acces » et « plans » ne ferment plus une leçon ; seuls « reserve » (personnel) et « rang_min » la retiennent.', champs: [
     id, { nom: 'unite_id', type: 'texte', requis: true, ref: 'unites', aide: 'Unité parente.' },
@@ -69,7 +69,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'duree_min', type: 'entier', aide: 'Durée estimée en minutes.', exemple: '5' },
     { nom: 'xp', type: 'entier', aide: 'XP gagnés à la fin (15 par défaut).', exemple: '15' },
     { nom: 'mode', type: 'choix', choix: ['tous', 'enfant', 'adulte'], aide: 'Public.', exemple: 'tous' }, acces, rangMin, plans, ordre, publie] },
-  { id: 'exercices', module: 'onenji', prive: true, titre: 'Exercices', description: 'Collection privée (décision de Capp, 14 nov. 2026) : l\'application ne reçoit que les exercices des leçons que le compte peut ouvrir. Une leçon suit l\'unité en 9 étapes : écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier. Plusieurs variantes d\'un même exercice se placent à la même position (colonne « ordre ») avec des dialectes différents : l\'apprenant voit celle de sa variante (ôrungu par défaut).', champs: [
+  { id: 'exercices', module: 'onenji', prive: true, titre: 'Exercices', description: 'Collection privée (décision de Capp, 14 nov. 2026) : l\'application ne reçoit que les exercices des leçons que le compte peut ouvrir. Une leçon suit l\'unité en 9 étapes : écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier. Plusieurs variantes d\'un même exercice se placent à la même position (colonne « ordre ») avec des dialectes différents : l\'apprenant voit celle de sa variante (orungu par défaut).', champs: [
     id, { nom: 'lecon_id', type: 'texte', requis: true, ref: 'lecons', aide: 'Leçon parente.' },
     { nom: 'type', type: 'choix', requis: true, choix: ['ecouter', 'associer', 'ordre', 'dire', 'choix', 'trou', 'saisie', 'cours', 'dictee', 'comprendre', 'proverbe', 'culture', 'jouer', 'son', 'quel_son', 'ton', 'tracer', 'scene', 'montre'], aide: 'Type d\'exercice : montre = « montre-moi » pour les petits qui ne lisent pas : on entend le mot et on touche la bonne image (options = 3 ou 4 émojis ou images, reponse = la bonne) ; son = carte d\'un son (API, articulation, schéma animé de la bouche, mots d\'exemple « mot = sens = [transcription] = émoji » dans options ; jamais de comparaison au français) ; ton = mélodie tonale d\'un mot (colonne phonetique) ; quel_son = trouver la lettre d\'un mot (options = lettres, reponse = la bonne) ; tracer = écrire la lettre au doigt (colonne graphie) ; scene = paysage animé à explorer (colonnes scene et zones) ; trou = mot à placer dans la phrase ; saisie = réponse à écrire ; cours = présentation avant les contrôles (non notée) ; dictee = écouter puis écrire ; comprendre = dialogue ou texte (colonne « texte ») puis question à choix ; proverbe et culture = cartes à lire (non notées) ; jouer = lien vers un jeu d\'Azeva (colonne « jeu_id »).', exemple: 'ecouter' },
     { nom: 'consigne', type: 'texte', aide: 'Consigne affichée (texte ou lue).' },
@@ -85,8 +85,9 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'credit_image', type: 'texte', aide: 'Crédit de la photo : auteur, licence et lien (obligatoire pour une photo qui n\'est pas à Essaka Engineering).', exemple: 'Photo : Jean Dupont, CC BY-SA 4.0, commons.wikimedia.org/…' },
     { nom: 'graphie', type: 'texte', aide: 'Types son, quel_son, tracer : le son travaillé, en API (ɓ, ɛ, β…) ou en graphie DONDO (è, ṽ, tch…).', exemple: 'ɓ' },
     { nom: 'phonetique', type: 'texte', aide: 'Transcription phonétique avec les tons, notation d\'Ambouroue entre crochets : aigu = haut, grave = bas, trait vertical = haut-abaissé, circonflexe = descendant.', exemple: '[àwáná]' },
-    { nom: 'scene', type: 'choix', choix: ['lagune', 'village'], aide: 'Type scene : paysage animé intégré.', exemple: 'lagune' },
-    { nom: 'zones', type: 'json', aide: 'Type scene : éléments à toucher, positions en % : [{"x":30,"y":60,"mot":"nguwu","sens":"hippopotame","illustration":"🦛"}].' },
+    { nom: 'scene', type: 'choix', choix: ['lagune', 'village', 'foret', 'marche', 'maison', 'ciel', 'mer'], aide: 'Type scene : décor animé en panorama (lagune et mangrove, village et cour, forêt, marché, intérieur de la maison, ciel du jour à la nuit, mer et plage).', exemple: 'lagune' },
+    { nom: 'liens', type: 'json', aide: 'Type scene : chemins vers les scènes voisines [{"x":95,"y":80,"libelle":"Vers la lagune","scene":"lagune","zones":[…]}].' },
+    { nom: 'zones', type: 'json', aide: 'Type scene : éléments à toucher, positions en % du panorama : [{"x":30,"y":60,"mot":"nguwu","sens":"hippopotame","illustration":"🦛","plan":1,"cache":false,"phrase":"…","phrase_fr":"…"}].' },
     { nom: 'dialecte', type: 'texte', aide: 'Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes).' },
     { nom: 'exiger_signes', type: 'booleen', aide: 'Dictée : oui = les signes (‘, tréma, accent grave) sont exigés ; non (défaut) = tolérés tant que la leçon ne les enseigne pas.' }, source, ordre] },
   { id: 'cours_artisans', module: 'onenji', titre: 'Vidéothèque (Igolani)', description: 'Tous les cours vidéo d\'Onenji, rangés par catégorie ; les cours d\'artisans sont une catégorie (nom de collection gardé pour les données déjà importées).', champs: [
@@ -235,7 +236,7 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'debut', type: 'date', aide: 'Début.' }, { nom: 'fin', type: 'date', aide: 'Fin.' }, { nom: 'commune', type: 'texte', aide: 'Commune.' }, publie] },
 
   // ---------------------------------------------------------------- commun
-  { id: 'rangs', module: 'commun', titre: 'Rangs', description: 'Classes d\'âge ôrungu : paliers d\'XP.', champs: [
+  { id: 'rangs', module: 'commun', titre: 'Rangs', description: 'Classes d\'âge orungu : paliers d\'XP.', champs: [
     id, { nom: 'nom', type: 'texte', requis: true, aide: 'Nom du rang.' }, { nom: 'min_xp', type: 'entier', requis: true, aide: 'XP minimal.' },
     { nom: 'description', type: 'texte', aide: 'Définition.' }, { nom: 'source', type: 'texte', aide: 'Source.' }, ordre] },
   { id: 'messages', module: 'commun', titre: 'Messages et rappels doux', description: 'Textes des rappels, encouragements et phrases de Kak\'Igonjo.', champs: [

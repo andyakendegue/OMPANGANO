@@ -19,7 +19,7 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
   const [contact, setContact] = useState(profil?.contact || profil?.phoneNumber || profil?.email || '');
   const [naissance, setNaissance] = useState(profil?.birthDate || '');
   const [lieu, setLieu] = useState(profil?.birthPlace || '');
-  const [tribu, setTribu] = useState<TribeName>(profil?.tribe || 'Ôrungu');
+  const [tribu, setTribu] = useState<TribeName>(profil?.tribe || 'Orungu');
 
   const [tribuPere, setTribuPere] = useState<TribuParent>(tribu);
   const [paternel, setPaternel] = useState(profil?.paternalClan || '');

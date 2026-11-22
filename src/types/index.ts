@@ -1,6 +1,6 @@
 export type UserRole = 'user' | 'validator' | 'admin';
 
-export type TribeName = 'Mpongwè' | 'Adyumba' | 'Enenga' | 'Nkomi' | 'Galoa' | 'Ôrungu';
+export type TribeName = 'Mpongwè' | 'Adyumba' | 'Enenga' | 'Nkomi' | 'Galoa' | 'Orungu';
 
 export type AccountStatus = 'active' | 'flagged' | 'suspended';
 

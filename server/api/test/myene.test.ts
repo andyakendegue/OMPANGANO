@@ -28,7 +28,7 @@ before(async () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'lex-'));
   const f = path.join(dir, 'lexique_myene.json');
   writeFileSync(f, JSON.stringify({ version: 1, entrees: [
-    { f: 'Nyama', s: 'La viande', v: 'ôrungu', r: 1 }, { f: 'ngwè', s: 'mère', v: 'galwa', r: 3 }, { f: 'Ozèwè', s: 'Cuiller', v: 'mpongwè', r: 4, i: 's. cl.' },
+    { f: 'Nyama', s: 'La viande', v: 'orungu', r: 1 }, { f: 'ngwè', s: 'mère', v: 'galwa', r: 3 }, { f: 'Ozèwè', s: 'Cuiller', v: 'mpongwè', r: 4, i: 's. cl.' },
   ], rejets: [{ f: 'Nyaré', s: 'Viande', regle: 'nyaré = bœuf ; viande = nyama' }] }));
   process.env.LEXIQUE_MYENE_FICHIER = f;
   // Service de synthèse simulé
@@ -75,7 +75,7 @@ test('prompt : grammaire myènè, lexique trouvé, formes refusées, aucune réf
   assert.match(systeme, /RÉPONDRE EN MYÈNÈ : LA MÉTHODE/);
   assert.doesNotMatch(systeme, /\{\{\s*grammaire_myene\s*\}\}/);
   assert.match(systeme, /### Lexique trouvé/);
-  assert.match(systeme, /- Nyama : La viande — ôrungu/);
+  assert.match(systeme, /- Nyama : La viande — orungu/);
   assert.match(systeme, /- ngwè : mère — galwa/);
   assert.doesNotMatch(systeme, /Ozèwè/, 'seuls les mots de la question entrent');
   assert.match(systeme, /Formes refusées[\s\S]*Nyaré/);

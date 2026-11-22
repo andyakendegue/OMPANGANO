@@ -234,7 +234,7 @@ export function PushAdmin() {
       <Champ valeur={titre} onChange={setTitre} placeholder="Titre (80 caractères)" auto="sentences" maxLength={80} />
       <Champ valeur={corps} onChange={setCorps} placeholder="Message (300 caractères)" lignes={3} auto="sentences" maxLength={300} />
       <Rangee>{([['tous', 'Tout le monde'], ['tribu', 'Une ethnie'], ['role', 'Un rôle']] as const).map(([k, l]) => <Puce key={k} label={l} actif={cible === k} onPress={() => setCible(k)} />)}</Rangee>
-      {cible !== 'tous' && <Champ valeur={valeur} onChange={setValeur} placeholder={cible === 'tribu' ? 'Ethnie (ex. Ôrungu)' : 'Rôle : user, validator, admin'} auto="sentences" />}
+      {cible !== 'tous' && <Champ valeur={valeur} onChange={setValeur} placeholder={cible === 'tribu' ? 'Ethnie (ex. Orungu)' : 'Rôle : user, validator, admin'} auto="sentences" />}
       <Bouton label="Envoyer" icone="envoyer" desactive={!titre.trim() || !corps.trim()} onPress={() => adminPushEnvoyer(titre, corps, cible === 'tous' ? { tous: true } : cible === 'tribu' ? { tribu: valeur } : { role: valeur }).then(r => { toast(`${r.envoyes}/${r.destinataires} envoyé(s)${r.simule ? ' (simulation)' : ''}.`, 'succes'); setTitre(''); setCorps(''); charger(); }).catch(ko)} />
       <SectionTitre titre="Historique" />
       {hist.map(h => <T key={h.id} v="petit">{new Date(h.at).toLocaleString('fr-FR')} · {h.titre} · {h.ok}/{h.nb}{h.simule ? ' (simulé)' : ''}</T>)}

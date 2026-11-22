@@ -194,7 +194,7 @@ function ClansVillages() {
   const [clans, setClans] = useState<ClanRegistry[] | null>(null);
   const [villages, setVillages] = useState<VillageRegistry[] | null>(null);
   const [nomClan, setNomClan] = useState('');
-  const [tribuClan, setTribuClan] = useState<string>('Ôrungu');
+  const [tribuClan, setTribuClan] = useState<string>('Orungu');
   const [nomVillage, setNomVillage] = useState('');
   const [clanVillage, setClanVillage] = useState('');
 

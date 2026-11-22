@@ -7,7 +7,7 @@ import { estMineur, VERSION_ACCORD_PARENTAL } from './accordVoix';
 export const JE_NE_SAIS_PAS = 'Je ne sais pas';
 
 /** Mêmes noms de tribus que le web (clans.tribe et profil.tribe). */
-export const TRIBUS: TribeName[] = ['Ôrungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
+export const TRIBUS: TribeName[] = ['Orungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
 
 /** Version des conditions acceptées (identique à TermsConsentModal.tsx). */
 export const VERSION_CONDITIONS = '2.1-contributeur-badges-xp-2026';

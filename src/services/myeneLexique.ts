@@ -8,8 +8,8 @@
  * Sources :
  *  - [LEC] Leçons omyènè (C. Hombouhiry), DONDO/01_sources_myene/03_lecons_omyene
  *  - [RW]  A. Raponda-Walker, Dictionnaire mpongwè-français
- *  - [AMB] O. Ambouroué, thèse sur l'ôrungu (2007)
- *  - [EQ]  validé par l'équipe OMPANGANO (locuteur ôrungu natif)
+ *  - [AMB] O. Ambouroué, thèse sur l'orungu (2007)
+ *  - [EQ]  validé par l'équipe OMPANGANO (locuteur orungu natif)
  */
 
 export interface MotMyene {

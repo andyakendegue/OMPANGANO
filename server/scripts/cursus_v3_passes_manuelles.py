@@ -68,8 +68,8 @@ def retirer(e, raison):
 
 # ------------------------------------------------------------------------------------------------ 1. textes réécrits
 TEXTES = {
-    "nl6-cours-00": {"texte": "L'ôrungu a plusieurs consonnes faites avec les lèvres. Pour le b, l'air entre dans la bouche au lieu d'en sortir. Devant u, le p sort avec un petit souffle. Le v se dit entre v et w. Le f se fait avec la lèvre du bas contre les dents du haut."},
-    "nl7-cours-00": {"texte": "Avec la pointe de la langue derrière les dents du haut, l'ôrungu fait t, d, n, s, z, l et r. Pour le d, l'air entre dans la bouche, sauf après n. Devant u, le t sort avec un petit souffle. Pour le r, la langue tape une seule fois. Le s reste dur, même entre deux voyelles.",
+    "nl6-cours-00": {"texte": "L'orungu a plusieurs consonnes faites avec les lèvres. Pour le b, l'air entre dans la bouche au lieu d'en sortir. Devant u, le p sort avec un petit souffle. Le v se dit entre v et w. Le f se fait avec la lèvre du bas contre les dents du haut."},
+    "nl7-cours-00": {"texte": "Avec la pointe de la langue derrière les dents du haut, l'orungu fait t, d, n, s, z, l et r. Pour le d, l'air entre dans la bouche, sauf après n. Devant u, le t sort avec un petit souffle. Pour le r, la langue tape une seule fois. Le s reste dur, même entre deux voyelles.",
                      "conseil": "Après n, le d et le t ne font qu'un son avec le n : nd, nt."},
     "nl8-cours-00": {"consigne": "Le haut et le fond de la bouche",
                      "texte": "Contre le haut de la bouche se font c, nc, nj, ny et y ; au fond de la bouche, k, g, ngh, nk et ng. Le g se dit doux entre deux voyelles, et dur après n (ng). Devant i, e, ê ou y, le w se dit la langue en avant."},
@@ -81,7 +81,7 @@ TEXTES = {
                    "conseil": "Compare nghomba et nomba : seule la première lettre change."},
     "nl13-cours": {"consigne": "Même écriture, autre mélodie, autre sens",
                    "texte": "La hauteur de la voix change le sens. À l'écrit, le petit signe ‘ veut dire « un » : ‘oga, un roi ; oga, le roi. Suis la ligne de la mélodie : en haut la voix haute, en bas la voix basse, au milieu la voix entre les deux.",
-                   "conseil": "En ôrungu, la voix ne monte jamais sur une même syllabe."},
+                   "conseil": "En orungu, la voix ne monte jamais sur une même syllabe."},
     "nl14-cours": {"texte": "Dans une phrase, la voix descend peu à peu : une syllabe haute qui suit une syllabe basse se dit un peu plus bas que la syllabe haute d'avant. Plusieurs syllabes hautes de suite peuvent aussi descendre comme des marches. Suis la mélodie de chaque phrase, puis répète-la d'un seul souffle."},
     "nl17-cours": {"texte": "De 1 à 5, le nombre se place après le nom et s'accorde avec lui : nago ncaro, trois maisons. Après n, raro devient ncaro. Pour dix, on dit igomi, puis ny' et le nom avec son i : igomi ny'imboni, dix chèvres."},
     "ton-h": {"consigne": "La voix haute",
@@ -114,7 +114,7 @@ TEXTES = {
     "qs-t-1": {"consigne": "Dans « ezo » (le mortier), la dernière syllabe est haute, basse, ou au milieu ?", "options": ["haute", "basse", "au milieu"], "reponse": "basse",
                "indice": "« Le mortier » : la voix est haute puis basse. « Un mortier », ‘ezo : basse puis haute."},
     "qs-t-2": {"consigne": "Dans « ilasa » (l'orange), la syllabe du milieu est haute, basse, ou au milieu ?", "options": ["haute", "au milieu", "basse"], "reponse": "au milieu"},
-    "qs-t-3": {"consigne": "Sur « pa » (donner), la voix…", "options": ["reste haute", "descend", "monte"], "reponse": "descend", "indice": "En ôrungu, la voix ne monte jamais sur une même syllabe.", "mot_francais": "donner"},
+    "qs-t-3": {"consigne": "Sur « pa » (donner), la voix…", "options": ["reste haute", "descend", "monte"], "reponse": "descend", "indice": "En orungu, la voix ne monte jamais sur une même syllabe.", "mot_francais": "donner"},
 }
 RETRAITS = {
     "qs-c-3": "v et ṽ ne font qu'un son (Capp, 22 nov.) : l'exercice n'a plus d'objet",
@@ -146,8 +146,8 @@ def main():
         for k in ("texte", "consigne", "indice", "conseil"):
             if isinstance(e.get(k), str):
                 e[k] = e[k].replace("« Salé ! »", "« Sale ! »")
-    if "conseil" in par_id["nl9-cours"]:  # « ɛ, ɔ et u ne commencent jamais un mot » : contredit Ôrungu ; à revoir avec Capp
-        doutes.append({"forme": par_id["nl9-cours"].pop("conseil"), "sens": "conseil de la leçon des voyelles", "regle": "v3 § 2.1", "raison": "« ô ne commence jamais un mot » contredit Ôrungu ; retiré en attendant Capp"})
+    if "conseil" in par_id["nl9-cours"]:  # « ɛ, ɔ et u ne commencent jamais un mot » : contredit Orungu ; à revoir avec Capp
+        doutes.append({"forme": par_id["nl9-cours"].pop("conseil"), "sens": "conseil de la leçon des voyelles", "regle": "v3 § 2.1", "raison": "« ô ne commence jamais un mot » contredit Orungu ; retiré en attendant Capp"})
     # 2. mots impératifs (sens « … ! ») : accent grave, dans les leçons de paires et partout où le mot est seul
     for e in ex:
         f = (e.get("mot_francais") or "").strip()

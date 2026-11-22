@@ -171,7 +171,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
 
       setParsedItems(allItems);
       setDiscoveredThemes(newDiscoveredThemes);
-      setSelectedFileName(`Corpus TTS Ôrungu (${allItems.length} phrases sélectionnées)`);
+      setSelectedFileName(`Corpus TTS Orungu (${allItems.length} phrases sélectionnées)`);
 
       let msg = `Analyse du corpus : ${allItems.length} phrase(s) analysée(s). `;
       if (dedup.alreadyExistingItems.length > 0) {
@@ -263,7 +263,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
             <span>Import CSV de Phrases & Classification Thématique</span>
           </h3>
           <p className="text-xs text-[#d4af94] mt-1">
-            Importez des lots massifs de vocabulaire, proverbes et récits en Myènè (Ôrungu, Enenga, Mpongwè...) avec classification automatique par thème.
+            Importez des lots massifs de vocabulaire, proverbes et récits en Myènè (Orungu, Enenga, Mpongwè...) avec classification automatique par thème.
           </p>
         </div>
 
@@ -340,7 +340,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider mb-1">
               <Sparkles className="w-4 h-4" />
-              <span>Corpus TTS Ôrungu Intégré (2 200 phrases disponibles)</span>
+              <span>Corpus TTS Orungu Intégré (2 200 phrases disponibles)</span>
             </div>
             <h4 className="text-base font-extrabold text-white">
               Injection Rapide depuis le Fichier du Projet
@@ -416,7 +416,7 @@ export const CsvImportSection: React.FC<CsvImportSectionProps> = ({
               Déposez votre fichier CSV ici, ou cliquez pour parcourir
             </h4>
             <p className="text-xs text-[#d4af94] mt-1">
-              Prend en charge le format officiel <strong>Nkala</strong> ou le schéma de corpus audio <strong>TTS Ôrungu</strong>.
+              Prend en charge le format officiel <strong>Nkala</strong> ou le schéma de corpus audio <strong>TTS Orungu</strong>.
             </p>
           </div>
 

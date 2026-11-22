@@ -522,7 +522,7 @@ export const CrowdsourceCard: React.FC<CrowdsourceCardProps> = ({
                       <option value="mpongwe">Ethnie Mpongwè (Estuaire / Libreville)</option>
                       <option value="galwa">Ethnie Galwa (Lambaréné fleuve)</option>
                       <option value="nkomi">Ethnie Nkomi (Fernan Vaz)</option>
-                      <option value="orungu">Ethnie Ôrungu (Port-Gentil)</option>
+                      <option value="orungu">Ethnie Orungu (Port-Gentil)</option>
                       <option value="adyumba">Ethnie Adyumba (Lac Azingo)</option>
                     </select>
                   </div>

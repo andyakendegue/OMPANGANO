@@ -16,7 +16,7 @@ export const MYENE_TRIBES: TribeName[] = [
   'Enenga',
   'Nkomi',
   'Galoa',
-  'Ôrungu'
+  'Orungu'
 ];
 
 // Version du contenu des fiches de clans. À incrémenter après une correction :
@@ -32,7 +32,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-abulya',
     name: 'Abulya',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -43,7 +43,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-agalikewa',
     name: 'Agalikewa',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -54,7 +54,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-agenje',
     name: 'Agenje',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -65,7 +65,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-agonjo-awenga',
     name: 'Agônjô - Awenga',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -76,7 +76,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-ajena',
     name: 'Ajena',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -87,7 +87,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-ajiwe',
     name: 'Ajiwè',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -98,7 +98,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-alengonyango',
     name: 'Alèngonyangô',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -109,7 +109,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-ananga',
     name: 'Ananga',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -120,7 +120,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-anombwe',
     name: 'Anômbwè',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -131,7 +131,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-anori',
     name: 'Anori',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -142,7 +142,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-anuva-azino',
     name: 'Anuva - Azinô',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -153,7 +153,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-avange',
     name: 'Avange',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -164,7 +164,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-avanji',
     name: 'Avanji',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -175,7 +175,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-aworidela',
     name: 'Awôridèla',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -186,7 +186,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-ayamba',
     name: 'Ayamba',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -197,7 +197,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-ayanji',
     name: 'Ayanji',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -208,7 +208,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-ayege-avemba',
     name: 'Ayege - Avèmba',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -219,7 +219,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-azandi',
     name: 'Azandi',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -230,7 +230,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-aziza',
     name: 'Aziza',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -241,7 +241,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-azume-aka-abele',
     name: 'Azumè – Aka - Abèlè',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -252,7 +252,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
   {
     id: 'clan-orungu-azuwa-akosa-aworidela',
     name: 'Azuwa – Akôsa - Awôridèla',
-    tribe: 'Ôrungu',
+    tribe: 'Orungu',
     description: '',
     historicalMeaning: '',
     geographicalOrigins: '',
@@ -263,7 +263,7 @@ export const INITIAL_CLANS: ClanRegistry[] = [
 
 ];
 
-// IDs of obsolete pre-seeded clans (unverified non-Ôrungu seed entries & old Ôrungu placeholders) to purge automatically
+// IDs of obsolete pre-seeded clans (unverified non-Orungu seed entries & old Orungu placeholders) to purge automatically
 const OBSOLETE_SEED_CLAN_IDS = new Set([
   'clan-alamba',
   'clan-amwiri',
@@ -289,7 +289,7 @@ const OBSOLETE_ORUNGU_SEED_NAMES = new Set([
 ]);
 
 /**
- * Merges the 21 official Ôrungu INITIAL_CLANS into an existing cached or cloud-loaded clan list
+ * Merges the 21 official Orungu INITIAL_CLANS into an existing cached or cloud-loaded clan list
  * while purging old unverified pre-seeded clans and preserving any custom/CSV-imported clans.
  */
 export function mergeOfficialClans(
@@ -300,7 +300,7 @@ export function mergeOfficialClans(
   const cleanedExisting = existingClans.filter(c => {
     if (deletedIds.has(c.id)) return false;
     const normName = (c.name || '').trim().toLowerCase();
-    if (OBSOLETE_SEED_CLAN_IDS.has(c.id) || (c.tribe === 'Ôrungu' && OBSOLETE_ORUNGU_SEED_NAMES.has(normName))) {
+    if (OBSOLETE_SEED_CLAN_IDS.has(c.id) || (c.tribe === 'Orungu' && OBSOLETE_ORUNGU_SEED_NAMES.has(normName))) {
       removedObsoleteIds.push(c.id);
       return false;
     }
@@ -392,8 +392,8 @@ export interface TribalDialectMetadata {
 }
 
 export const TRIBAL_DIALECT_INFO: Record<TribeName, TribalDialectMetadata> = {
-  'Ôrungu': {
-    tribe: 'Ôrungu',
+  'Orungu': {
+    tribe: 'Orungu',
     dialectCode: 'orungu',
     geographicalZone: 'Delta maritime de l’Ogooué, île Mandji (Port-Gentil), Cap Lopez et lagune d’Ozouri (Ogooué-Maritime).',
     historicalOrigins:
@@ -456,13 +456,13 @@ export const TRIBAL_DIALECT_INFO: Record<TribeName, TribalDialectMetadata> = {
 
 export function mapDialectToTribeName(dialect?: string): TribeName {
   const clean = (dialect || '').trim().toLowerCase();
-  if (clean.includes('orungu') || clean.includes('ôrungu')) return 'Ôrungu';
+  if (clean.includes('orungu') || clean.includes('orungu')) return 'Orungu';
   if (clean.includes('mpong')) return 'Mpongwè';
   if (clean.includes('galoa') || clean.includes('galwa')) return 'Galoa';
   if (clean.includes('nkomi')) return 'Nkomi';
   if (clean.includes('adyumba') || clean.includes('ajumba')) return 'Adyumba';
   if (clean.includes('enenga')) return 'Enenga';
-  return 'Ôrungu';
+  return 'Orungu';
 }
 
 export function mapTribeNameToDialectCode(tribe?: string): string {
@@ -480,7 +480,7 @@ export const INITIAL_ENENGA_ITEMS: QuestionnaireItem[] = [
     myeneText: 'Mbôluani',
     dialect: 'orungu',
     category: 'salutations',
-    contextNotes: 'Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l\'ôrungu ([mbolwanè]).',
+    contextNotes: 'Salutation adressée à plusieurs personnes. À une seule personne : « Mbolo ». Sources : Raponda-Walker (Mboloani), Ambouroué 2007 pour l\'orungu ([mbolwanè]).',
     imageUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80',
     difficulty: 'debutant',
     status: 'active',
@@ -1223,7 +1223,7 @@ export function parsePhrasesAndDiscoverThemes(
   return { items: results, newDiscoveredThemes };
 }
 
-// Convertit le contenu d'un CSV (Corpus TTS Ôrungu ou format Standarde Nkala) en QuestionnaireItem[]
+// Convertit le contenu d'un CSV (Corpus TTS Orungu ou format Standarde Nkala) en QuestionnaireItem[]
 export function parsePhrasesFromCsv(
   csvText: string, 
   defaultDialect: string = 'orungu', 
@@ -1250,7 +1250,7 @@ ORU_0004,M6_Oralite_Proverbes,"Ngow' orové azongo mbani","","On ne poursuit pas
 function normalizeTribeName(raw: string, fallback: string = 'Enenga'): string {
   const s = (raw || '').trim().toLowerCase();
   if (!s) return fallback;
-  if (s.includes('orungu') || s.includes('ôrungu')) return 'Ôrungu';
+  if (s.includes('orungu') || s.includes('orungu')) return 'Orungu';
   if (s.includes('mpongw')) return 'Mpongwè';
   if (s.includes('enenga') || s.includes('eninga')) return 'Enenga';
   if (s.includes('galoa') || s.includes('galwa')) return 'Galoa';
@@ -1409,7 +1409,7 @@ export function generateClansCsvTemplate(): string {
  * Colonnes supportées (avec ou sans en-tête) :
  * Nom_Village (ou Village / Name), Tribu (ou Tribe), Clan_Rattachement (ou Clan, optionnel), Region_Province (ou Region)
  */
-export function parseVillagesFromCsv(csvText: string, defaultTribe: string = 'Ôrungu'): VillageRegistry[] {
+export function parseVillagesFromCsv(csvText: string, defaultTribe: string = 'Orungu'): VillageRegistry[] {
   const rows = parseCSVRows(csvText);
   if (rows.length === 0) return [];
 
@@ -1503,8 +1503,8 @@ export function deduplicateParsedCsvVillages(
 
 export function generateVillagesCsvTemplate(): string {
   return `Nom_Village,Ethnie,Clan_Rattachement,Region_Province
-"Ozouri","Ôrungu","Agenje","Ogooué-Maritime"
-"Alumbè","Ôrungu","Ajena","Ogooué-Maritime"
+"Ozouri","Orungu","Agenje","Ogooué-Maritime"
+"Alumbè","Orungu","Ajena","Ogooué-Maritime"
 "NomDuVillageEnenga","Enenga","","Moyen-Ogooué"`;
 }
 

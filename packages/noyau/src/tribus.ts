@@ -1,29 +1,29 @@
 import type { TribeName } from './types';
 
 // Copie de MYENE_TRIBES, mapDialectToTribeName et mapTribeNameToDialectCode (src/services/seedData.ts) : à garder identiques.
-export const MYENE_TRIBES: TribeName[] = ['Mpongwè', 'Adyumba', 'Enenga', 'Nkomi', 'Galoa', 'Ôrungu'];
+export const MYENE_TRIBES: TribeName[] = ['Mpongwè', 'Adyumba', 'Enenga', 'Nkomi', 'Galoa', 'Orungu'];
 
 export function tribuDuDialecte(dialecte?: string): TribeName {
   const c = (dialecte || '').trim().toLowerCase();
-  if (c.includes('orungu') || c.includes('ôrungu')) return 'Ôrungu';
+  if (c.includes('orungu') || c.includes('ôrungu')) return 'Orungu'; // « Ôrungu » : ancienne écriture (profils enregistrés avant la v3.6)
   if (c.includes('mpong')) return 'Mpongwè';
   if (c.includes('galoa') || c.includes('galwa')) return 'Galoa';
   if (c.includes('nkomi')) return 'Nkomi';
   if (c.includes('adyumba') || c.includes('ajumba')) return 'Adyumba';
   if (c.includes('enenga')) return 'Enenga';
-  return 'Ôrungu';
+  return 'Orungu';
 }
 
 /** Code de dialecte proposé par défaut pour une tribu (variante tribale). */
 export const CODE_DIALECTE_TRIBU: Record<TribeName, string> = {
-  'Mpongwè': 'mpongwe', 'Adyumba': 'adyumba', 'Enenga': 'enenga', 'Nkomi': 'nkomi', 'Galoa': 'galoa', 'Ôrungu': 'orungu',
+  'Mpongwè': 'mpongwe', 'Adyumba': 'adyumba', 'Enenga': 'enenga', 'Nkomi': 'nkomi', 'Galoa': 'galoa', 'Orungu': 'orungu',
 };
 export const dialecteDeLaTribu = (tribu?: string) => CODE_DIALECTE_TRIBU[tribuDuDialecte(tribu)];
 
 /** Variante tribale proposée à l'étape 1 (mêmes libellés que la liste du site web). */
 export const VARIANTES_TRIBALES: [string, string][] = [
   ['enenga', 'Ethnie Enenga (Lambaréné & Lacs)'], ['mpongwe', 'Ethnie Mpongwè (Estuaire / Libreville)'], ['galwa', 'Ethnie Galwa (Lambaréné fleuve)'],
-  ['nkomi', 'Ethnie Nkomi (Fernan Vaz)'], ['orungu', 'Ethnie Ôrungu (Port-Gentil)'], ['adyumba', 'Ethnie Adyumba (Lac Azingo)'],
+  ['nkomi', 'Ethnie Nkomi (Fernan Vaz)'], ['orungu', 'Ethnie Orungu (Port-Gentil)'], ['adyumba', 'Ethnie Adyumba (Lac Azingo)'],
 ];
 
 /** Nuances du sens français (étape 2). */

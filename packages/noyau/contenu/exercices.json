@@ -117,11 +117,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « Viens ! » ?",
   "options": [
-   "Yàga",
+   "Yaga",
    "Mbolo",
    "Akewa"
   ],
-  "reponse": "Yàga",
+  "reponse": "Yaga",
   "source": "[LEC] Formules de politesse",
   "ordre": 3
  },
@@ -383,59 +383,6 @@
   "ordre": 13
  },
  {
-  "id": "sc-lagune",
-  "lecon_id": "ntina-l5",
-  "type": "scene",
-  "consigne": "Explore la lagune.",
-  "scene": "lagune",
-  "zones": [
-   {
-    "x": 62,
-    "y": 76,
-    "mot": "nguwu",
-    "sens": "hippopotame",
-    "illustration": "🦛"
-   },
-   {
-    "x": 13,
-    "y": 30,
-    "mot": "ngozo",
-    "sens": "perroquet",
-    "illustration": "🦜"
-   },
-   {
-    "x": 12,
-    "y": 86,
-    "mot": "ekaga",
-    "sens": "tortue (terrestre)",
-    "illustration": "🐢"
-   },
-   {
-    "x": 22,
-    "y": 60,
-    "mot": "jôgu",
-    "sens": "éléphant",
-    "illustration": "🐘"
-   },
-   {
-    "x": 50,
-    "y": 28,
-    "mot": "owonya-wonya",
-    "sens": "papillon",
-    "illustration": "🦋"
-   },
-   {
-    "x": 82,
-    "y": 16,
-    "mot": "onghwêyi",
-    "sens": "soleil",
-    "illustration": "☀️"
-   }
-  ],
-  "source": "[LEC] 06_illustrations (nguwu, ngozo, ekaga, djôgu, owonya-wonya) ; Corrections de Capp du 31 oct. 2026 (omwèyi = soleil chez les Ôrungu) ; papillon [òwónyàwónyà] : Ambouroue 2007, p. 57",
-  "ordre": 1
- },
- {
   "id": "ton-papillon",
   "lecon_id": "ntina-l5",
   "type": "ton",
@@ -695,7 +642,7 @@
   "consigne": "Le ton descendant",
   "phonetique": "[nyâ]",
   "mot_francais": "manger",
-  "texte": "Il commence haut et finit bas sur la même syllabe. Le ton montant, lui, n'existe pas en ôrungu.",
+  "texte": "Il commence haut et finit bas sur la même syllabe. Le ton montant, lui, n'existe pas en orungu.",
   "source": "Ambouroue 2007, p. 53-54",
   "ordre": 4,
   "mot_myene": "nya"
@@ -761,7 +708,7 @@
    "monte"
   ],
   "reponse": "descend",
-  "indice": "En ôrungu, la voix ne monte jamais sur une même syllabe.",
+  "indice": "En orungu, la voix ne monte jamais sur une même syllabe.",
   "source": "Ambouroue 2007, p. 54 et 56",
   "ordre": 8,
   "mot_myene": "pa"
@@ -771,7 +718,7 @@
   "lecon_id": "ntina-l6",
   "type": "cours",
   "consigne": "Les consonnes des lèvres",
-  "texte": "L'ôrungu a plusieurs consonnes faites avec les lèvres. Pour le b, l'air entre dans la bouche au lieu d'en sortir. Devant u, le p sort avec un petit souffle. Le v se dit entre v et w. Le f se fait avec la lèvre du bas contre les dents du haut.",
+  "texte": "L'orungu a plusieurs consonnes faites avec les lèvres. Pour le b, l'air entre dans la bouche au lieu d'en sortir. Devant u, le p sort avec un petit souffle. Le v se dit entre v et w. Le f se fait avec la lèvre du bas contre les dents du haut.",
   "conseil": "Regarde la coupe de la bouche sur chaque carte : le point qui pulse montre où se fait le son.",
   "source": "Ambouroue 2007, p. 12-17 ; RÈGLES DONDO § 2.2",
   "ordre": 0
@@ -969,7 +916,7 @@
   "lecon_id": "ntina-l7",
   "type": "cours",
   "consigne": "La pointe de la langue",
-  "texte": "Avec la pointe de la langue derrière les dents du haut, l'ôrungu fait t, d, n, s, z, l et r. Pour le d, l'air entre dans la bouche, sauf après n. Devant u, le t sort avec un petit souffle. Pour le r, la langue tape une seule fois. Le s reste dur, même entre deux voyelles.",
+  "texte": "Avec la pointe de la langue derrière les dents du haut, l'orungu fait t, d, n, s, z, l et r. Pour le d, l'air entre dans la bouche, sauf après n. Devant u, le t sort avec un petit souffle. Pour le r, la langue tape une seule fois. Le s reste dur, même entre deux voyelles.",
   "conseil": "Après n, le d et le t ne font qu'un son avec le n : nd, nt.",
   "source": "Ambouroue 2007, p. 12-14 ; RÈGLES DONDO § 2.2",
   "ordre": 0
@@ -1419,7 +1366,8 @@
   "consigne": "Une voyelle change le mot",
   "texte": "Dans chaque paire, une seule voyelle change, et le mot change de sens. Lis le mot, suis la ligne de la mélodie, et répète lentement.",
   "source": "Ambouroue 2007, p. 11-12 et annexe 1, p. 361-363",
-  "ordre": 0
+  "ordre": 0,
+  "conseil": "ê, ô et u ne commencent jamais un mot : on écrit Orungu."
  },
  {
   "id": "nl9-mot-01",
@@ -1460,12 +1408,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « malaxe ! » ?",
   "options": [
-   "wìnda",
-   "wènda",
+   "winda",
+   "wênda",
    "incini"
   ],
-  "reponse": "wìnda",
-  "indice": "wìnda « malaxe ! » / wènda « fâche-toi ! »",
+  "reponse": "winda",
+  "indice": "winda « malaxe ! » / wênda « fâche-toi ! »",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
   "ordre": 4
  },
@@ -1496,7 +1444,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "wìnda",
+  "mot_myene": "winda",
   "phonetique": "[ɥìndá]",
   "mot_francais": "malaxe !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1508,12 +1456,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « puise (de l'eau) ! » ?",
   "options": [
-   "gìla",
-   "gùla",
+   "gila",
+   "gula",
    "incini"
   ],
-  "reponse": "gùla",
-  "indice": "gìla « râpe ! » / gùla « puise (de l'eau) ! »",
+  "reponse": "gula",
+  "indice": "gila « râpe ! » / gula « puise (de l'eau) ! »",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
   "ordre": 8
  },
@@ -1522,7 +1470,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "wènda",
+  "mot_myene": "wênda",
   "phonetique": "[ɥèndá]",
   "mot_francais": "fâche-toi !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1532,8 +1480,8 @@
   "id": "nl9-mot-08",
   "lecon_id": "ntina-l9",
   "type": "dire",
-  "consigne": "Dis « gìla » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "gìla",
+  "consigne": "Dis « gila » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "gila",
   "phonetique": "[ɣìlá]",
   "mot_francais": "râpe !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1544,7 +1492,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "gùla",
+  "mot_myene": "gula",
   "phonetique": "[ɣùlá]",
   "mot_francais": "puise (de l'eau) !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1591,8 +1539,8 @@
   "id": "nl9-mot-12",
   "lecon_id": "ntina-l9",
   "type": "dire",
-  "consigne": "Dis « zìza » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "zìza",
+  "consigne": "Dis « ziza » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "ziza",
   "phonetique": "[zìzá]",
   "mot_francais": "essuie !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1604,12 +1552,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « plaide ! » ?",
   "options": [
-   "zìza",
-   "zồza",
+   "ziza",
+   "zôza",
    "incini"
   ],
-  "reponse": "zồza",
-  "indice": "zìza « essuie ! » / zồza « plaide ! »",
+  "reponse": "zôza",
+  "indice": "ziza « essuie ! » / zôza « plaide ! »",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
   "ordre": 16
  },
@@ -1618,7 +1566,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "zồza",
+  "mot_myene": "zôza",
   "phonetique": "[zɔ̀zá]",
   "mot_francais": "plaide !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1665,8 +1613,8 @@
   "id": "nl9-mot-16",
   "lecon_id": "ntina-l9",
   "type": "dire",
-  "consigne": "Dis « vèra » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "vèra",
+  "consigne": "Dis « vêra » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "vêra",
   "phonetique": "[βèɾá]",
   "mot_francais": "fuis !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1677,7 +1625,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "vùra",
+  "mot_myene": "vura",
   "phonetique": "[βùɾá]",
   "mot_francais": "plie !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1688,7 +1636,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "gèra",
+  "mot_myene": "gêra",
   "phonetique": "[ɣèɾá]",
   "mot_francais": "partage !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1700,12 +1648,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « plie ! » ?",
   "options": [
-   "vèra",
-   "vùra",
+   "vêra",
+   "vura",
    "incini"
   ],
-  "reponse": "vùra",
-  "indice": "vèra « fuis ! » / vùra « plie ! »",
+  "reponse": "vura",
+  "indice": "vêra « fuis ! » / vura « plie ! »",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
   "ordre": 24
  },
@@ -1714,7 +1662,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "gòra",
+  "mot_myene": "gora",
   "phonetique": "[ɣòɾá]",
   "mot_francais": "attache !",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
@@ -1748,12 +1696,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « partage ! » ?",
   "options": [
-   "gèra",
-   "gòra",
+   "gêra",
+   "gora",
    "incini"
   ],
-  "reponse": "gèra",
-  "indice": "gèra « partage ! » / gòra « attache ! »",
+  "reponse": "gêra",
+  "indice": "gêra « partage ! » / gora « attache ! »",
   "source": "Ambouroue 2007, p. 361 (annexe 1, paires minimales)",
   "ordre": 28
  },
@@ -1783,8 +1731,8 @@
   "id": "nl9-mot-24",
   "lecon_id": "ntina-l9",
   "type": "dire",
-  "consigne": "Dis « mềna » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "mềna",
+  "consigne": "Dis « mêna » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "mêna",
   "phonetique": "[mɛ̀ná]",
   "mot_francais": "avale !",
   "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
@@ -1810,7 +1758,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "mồna",
+  "mot_myene": "môna",
   "phonetique": "[mɔ̀ná]",
   "mot_francais": "observe !",
   "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
@@ -1857,8 +1805,8 @@
   "id": "nl9-mot-28",
   "lecon_id": "ntina-l9",
   "type": "dire",
-  "consigne": "Dis « nùga » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "nùga",
+  "consigne": "Dis « nuga » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "nuga",
   "phonetique": "[nùɣá]",
   "mot_francais": "pagaie !",
   "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
@@ -1869,7 +1817,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "nòga",
+  "mot_myene": "noga",
   "phonetique": "[nòɣá]",
   "mot_francais": "construis !",
   "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
@@ -1892,12 +1840,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « observe ! » ?",
   "options": [
-   "mềna",
-   "mồna",
+   "mêna",
+   "môna",
    "incini"
   ],
-  "reponse": "mồna",
-  "indice": "mềna « avale ! » / mồna « observe ! »",
+  "reponse": "môna",
+  "indice": "mêna « avale ! » / môna « observe ! »",
   "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
   "ordre": 40
  },
@@ -1928,7 +1876,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "vồna",
+  "mot_myene": "vôna",
   "phonetique": "[βɔ̀ná]",
   "mot_francais": "regarde !",
   "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
@@ -1954,7 +1902,7 @@
   "lecon_id": "ntina-l9",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "vàna",
+  "mot_myene": "vana",
   "phonetique": "[βàná]",
   "mot_francais": "sculpte !",
   "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
@@ -1966,12 +1914,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « construis ! » ?",
   "options": [
-   "nùga",
-   "nòga",
+   "nuga",
+   "noga",
    "incini"
   ],
-  "reponse": "nòga",
-  "indice": "nùga « pagaie ! » / nòga « construis ! »",
+  "reponse": "noga",
+  "indice": "nuga « pagaie ! » / noga « construis ! »",
   "source": "Ambouroue 2007, p. 362 (annexe 1, paires minimales)",
   "ordre": 46
  },
@@ -2011,12 +1959,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « regarde ! » ?",
   "options": [
-   "vồna",
-   "vàna",
+   "vôna",
+   "vana",
    "incini"
   ],
-  "reponse": "vồna",
-  "indice": "vồna « regarde ! » / vàna « sculpte ! »",
+  "reponse": "vôna",
+  "indice": "vôna « regarde ! » / vana « sculpte ! »",
   "source": "Ambouroue 2007, p. 363 (annexe 1, paires minimales)",
   "ordre": 49
  },
@@ -2441,7 +2389,7 @@
   "lecon_id": "ntina-l10",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "vàla",
+  "mot_myene": "vala",
   "phonetique": "[vàlá]",
   "mot_francais": "abandonne !",
   "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
@@ -2466,8 +2414,8 @@
   "id": "nl10-mot-28",
   "lecon_id": "ntina-l10",
   "type": "dire",
-  "consigne": "Dis « wàla » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "wàla",
+  "consigne": "Dis « wala » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "wala",
   "phonetique": "[wàlá]",
   "mot_francais": "rends visite !",
   "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
@@ -2478,7 +2426,7 @@
   "lecon_id": "ntina-l10",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "vàla",
+  "mot_myene": "vala",
   "phonetique": "[βàlá]",
   "mot_francais": "dépoussière !",
   "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
@@ -2549,12 +2497,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « abandonne ! » ?",
   "options": [
-   "vàla",
-   "wàla",
+   "vala",
+   "wala",
    "pupu"
   ],
-  "reponse": "vàla",
-  "indice": "vàla « abandonne ! » / wàla « rends visite ! »",
+  "reponse": "vala",
+  "indice": "vala « abandonne ! » / wala « rends visite ! »",
   "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
   "ordre": 44
  },
@@ -2564,12 +2512,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « dépoussière ! » ?",
   "options": [
-   "vàla",
-   "vàla",
+   "vala",
+   "vala",
    "pupu"
   ],
-  "reponse": "vàla",
-  "indice": "vàla « abandonne ! » / vàla « dépoussière ! »",
+  "reponse": "vala",
+  "indice": "vala « abandonne ! » / vala « dépoussière ! »",
   "source": "Ambouroue 2007, p. 366 (annexe 1, paires minimales)",
   "ordre": 45,
   "publie": false
@@ -3147,7 +3095,7 @@
   "lecon_id": "ntina-l11",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "gòla",
+  "mot_myene": "gola",
   "phonetique": "[ɣòlá]",
   "mot_francais": "achète !",
   "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
@@ -3158,7 +3106,7 @@
   "lecon_id": "ntina-l11",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "gòka",
+  "mot_myene": "goka",
   "phonetique": "[ɣòká]",
   "mot_francais": "appelle !",
   "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
@@ -3230,12 +3178,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « appelle ! » ?",
   "options": [
-   "gòla",
-   "gòka",
+   "gola",
+   "goka",
    "itutu"
   ],
-  "reponse": "gòka",
-  "indice": "gòla « achète ! » / gòka « appelle ! »",
+  "reponse": "goka",
+  "indice": "gola « achète ! » / goka « appelle ! »",
   "source": "Ambouroue 2007, p. 370 (annexe 1, paires minimales)",
   "ordre": 51
  },
@@ -3419,8 +3367,8 @@
   "id": "nl12-mot-12",
   "lecon_id": "ntina-l12",
   "type": "dire",
-  "consigne": "Dis « gòka » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "gòka",
+  "consigne": "Dis « goka » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "goka",
   "phonetique": "[ɣòká]",
   "mot_francais": "appelle !",
   "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
@@ -3432,12 +3380,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « attache ! » ?",
   "options": [
-   "gòka",
-   "gòra",
+   "goka",
+   "gora",
    "nyama"
   ],
-  "reponse": "gòra",
-  "indice": "gòka « appelle ! » / gòra « attache ! »",
+  "reponse": "gora",
+  "indice": "goka « appelle ! » / gora « attache ! »",
   "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
   "ordre": 16
  },
@@ -3446,7 +3394,7 @@
   "lecon_id": "ntina-l12",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "gòra",
+  "mot_myene": "gora",
   "phonetique": "[ɣòɾá]",
   "mot_francais": "attache !",
   "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
@@ -3457,7 +3405,7 @@
   "lecon_id": "ntina-l12",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "ròka",
+  "mot_myene": "roka",
   "phonetique": "[ɾòká]",
   "mot_francais": "creuse !",
   "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
@@ -3468,7 +3416,7 @@
   "lecon_id": "ntina-l12",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "ròla",
+  "mot_myene": "rola",
   "phonetique": "[ɾòlá]",
   "mot_francais": "perce !",
   "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
@@ -3480,12 +3428,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « creuse ! » ?",
   "options": [
-   "ròka",
-   "ròla",
+   "roka",
+   "rola",
    "nyama"
   ],
-  "reponse": "ròka",
-  "indice": "ròka « creuse ! » / ròla « perce ! »",
+  "reponse": "roka",
+  "indice": "roka « creuse ! » / rola « perce ! »",
   "source": "Ambouroue 2007, p. 369 (annexe 1, paires minimales)",
   "ordre": 20
  },
@@ -3917,7 +3865,7 @@
   "type": "cours",
   "consigne": "Même écriture, autre mélodie, autre sens",
   "texte": "La hauteur de la voix change le sens. À l'écrit, le petit signe ‘ veut dire « un » : ‘oga, un roi ; oga, le roi. Suis la ligne de la mélodie : en haut la voix haute, en bas la voix basse, au milieu la voix entre les deux.",
-  "conseil": "En ôrungu, la voix ne monte jamais sur une même syllabe.",
+  "conseil": "En orungu, la voix ne monte jamais sur une même syllabe.",
   "source": "Ambouroue 2007, p. 52-56",
   "ordre": 0
  },
@@ -4105,11 +4053,11 @@
   "consigne": "Lequel veut dire « déménage ! » ?",
   "options": [
    "rora",
-   "ròra",
+   "rora",
    "mênê"
   ],
-  "reponse": "ròra",
-  "indice": "rora « des épouses » / ròra « déménage ! »",
+  "reponse": "rora",
+  "indice": "rora « des épouses » / rora « déménage ! »",
   "source": "Ambouroue 2007, p. 56",
   "ordre": 16
  },
@@ -4152,15 +4100,14 @@
   "type": "choix",
   "consigne": "Lequel veut dire « des os » ?",
   "options": [
-   "pa",
+   "ipa",
    "pa",
    "mênê"
   ],
-  "reponse": "pa",
-  "indice": "pa « des os » / pa « donner »",
+  "reponse": "ipa",
+  "indice": "ipa « des os » ; epa « l'os » ; pa « donner »",
   "source": "Ambouroue 2007, p. 56",
-  "ordre": 20,
-  "publie": false
+  "ordre": 20
  },
  {
   "id": "nl13-mot-16",
@@ -4189,7 +4136,7 @@
   "lecon_id": "ntina-l13",
   "type": "ton",
   "consigne": "Suis la mélodie, puis répète.",
-  "mot_myene": "ròra",
+  "mot_myene": "rora",
   "phonetique": "[ɾòɾá]",
   "mot_francais": "déménage !",
   "source": "Ambouroue 2007, p. 56",
@@ -4201,22 +4148,21 @@
   "type": "choix",
   "consigne": "Lequel veut dire « se battre » ?",
   "options": [
-   "nwà",
+   "nwa",
    "nwa",
    "mênê"
   ],
   "reponse": "nwa",
-  "indice": "nwà « bats-toi ! » / nwa « se battre »",
+  "indice": "nwa « bats-toi ! » / nwa « se battre »",
   "source": "Ambouroue 2007, p. 56",
   "ordre": 24
  },
  {
   "id": "nl13-mot-19",
   "lecon_id": "ntina-l13",
-  "type": "ton",
-  "consigne": "Suis la mélodie, puis répète.",
-  "mot_myene": "pa",
-  "phonetique": "[pá]",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ipa",
   "mot_francais": "des os",
   "source": "Ambouroue 2007, p. 56",
   "ordre": 25
@@ -4237,7 +4183,7 @@
   "lecon_id": "ntina-l13",
   "type": "ton",
   "consigne": "Suis la mélodie, puis répète.",
-  "mot_myene": "nwà",
+  "mot_myene": "nwa",
   "phonetique": "[nwá]",
   "mot_francais": "bats-toi !",
   "source": "Ambouroue 2007, p. 56",
@@ -4250,11 +4196,11 @@
   "consigne": "Lequel veut dire « des gouvernails » ?",
   "options": [
    "vêpa",
-   "vềpa",
+   "vêpa",
    "mênê"
   ],
   "reponse": "vêpa",
-  "indice": "vêpa « des gouvernails » / vềpa « fais signe de la main ! »",
+  "indice": "vêpa « des gouvernails » / vêpa « fais signe de la main ! »",
   "source": "Ambouroue 2007, p. 56",
   "ordre": 28
  },
@@ -4284,8 +4230,8 @@
   "id": "nl13-mot-24",
   "lecon_id": "ntina-l13",
   "type": "dire",
-  "consigne": "Dis « vềpa » à voix haute. Un correcteur écoutera ta voix.",
-  "mot_myene": "vềpa",
+  "consigne": "Dis « vêpa » à voix haute. Un correcteur écoutera ta voix.",
+  "mot_myene": "vêpa",
   "phonetique": "[βɛ̀pá]",
   "mot_francais": "fais signe de la main !",
   "source": "Ambouroue 2007, p. 56",
@@ -4297,12 +4243,12 @@
   "type": "choix",
   "consigne": "Lequel veut dire « la longue robe » ?",
   "options": [
-   "‘elingh ela",
-   "elingh ela",
+   "‘eling'ela",
+   "eling'ela",
    "mênê"
   ],
-  "reponse": "elingh ela",
-  "indice": "‘elingh ela « une robe longue » / elingh ela « la longue robe »",
+  "reponse": "eling'ela",
+  "indice": "‘eling'ela « une robe longue » / eling'ela « la longue robe »",
   "source": "Ambouroue 2007, p. 56",
   "ordre": 32
  },
@@ -4311,7 +4257,7 @@
   "lecon_id": "ntina-l13",
   "type": "ton",
   "consigne": "Suis la mélodie, puis répète.",
-  "mot_myene": "‘elingh ela",
+  "mot_myene": "‘eling'ela",
   "phonetique": "[èlíŋ élà]",
   "mot_francais": "une robe longue",
   "source": "Ambouroue 2007, p. 56",
@@ -4322,7 +4268,7 @@
   "lecon_id": "ntina-l13",
   "type": "ton",
   "consigne": "Suis la mélodie, puis répète.",
-  "mot_myene": "elingh ela",
+  "mot_myene": "eling'ela",
   "phonetique": "[èlíŋ e̍là]",
   "mot_francais": "la longue robe",
   "source": "Ambouroue 2007, p. 56",
@@ -4408,7 +4354,7 @@
   "type": "cours",
   "consigne": "Dire une phrase entière",
   "texte": "Dans une phrase, la voix descend peu à peu : une syllabe haute qui suit une syllabe basse se dit un peu plus bas que la syllabe haute d'avant. Plusieurs syllabes hautes de suite peuvent aussi descendre comme des marches. Suis la mélodie de chaque phrase, puis répète-la d'un seul souffle.",
-  "conseil": "Un mot finit souvent par perdre sa voyelle devant le mot suivant : àwáná devient àwán dans « combien d'enfants ? ».",
+  "conseil": "Un mot finit souvent par perdre sa voyelle devant le mot suivant : awáná devient awán dans « combien d'enfants ? ».",
   "source": "Ambouroue 2007, p. 54-57 ; élision des voyelles finales : annexe 1, p. 363",
   "ordre": 0
  },
@@ -5060,7 +5006,7 @@
   "id": "gl3-mot-02",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "omwanja-mwanja",
+  "mot_myene": "onghwanja-nghwanja",
   "mot_francais": "le toit",
   "illustration": "🏚️",
   "source": "[LEC] La Nature",
@@ -5271,7 +5217,7 @@
   "type": "dictee",
   "consigne": "Écris en myènè le mot qui veut dire « le toit ».",
   "mot_francais": "le toit",
-  "reponse": "omwanja-mwanja",
+  "reponse": "onghwanja-nghwanja",
   "indice": "Il commence par « om… ».",
   "source": "[LEC] La Nature",
   "lecon_id": "ogendo-l3",
@@ -5785,7 +5731,7 @@
   "id": "gl5-phrase-01",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "Và myê aningo.",
+  "mot_myene": "Va myê aningo.",
   "mot_francais": "Donne-moi de l'eau.",
   "illustration": "💧",
   "source": "[LEC] Les incontournables",
@@ -6567,7 +6513,7 @@
   "id": "gl9-cours",
   "type": "cours",
   "consigne": "Du matin au soir",
-  "texte": "Les moments de la journée et ce qu'on voit dans le ciel. Chez les Ôrungu, le soleil se dit onghwêyi.",
+  "texte": "Les moments de la journée et ce qu'on voit dans le ciel. Chez les Orungu, le soleil se dit onghwêyi.",
   "source": "[LEC] La Nature ; Teisserès-Dubois 1957, vocabulaire 13 (graphie DONDO, RÈGLES § 2) ; Corrections de Capp, 31 oct. 2026",
   "lecon_id": "ogendo-l9",
   "ordre": 0
@@ -7537,7 +7483,7 @@
   "options": [
    "Nyeza myê",
    "Kôkôlô",
-   "Yàga"
+   "Yaga"
   ],
   "reponse": "Nyeza myê",
   "source": "[LEC] Formules de politesse ; [EQ]",
@@ -7548,7 +7494,7 @@
   "lecon_id": "ntina-l3",
   "type": "associer",
   "consigne": "Que veut dire « Yaga » ?",
-  "mot_myene": "Yàga",
+  "mot_myene": "Yaga",
   "options": [
    "Viens !",
    "S'il te plaît",
@@ -8165,7 +8111,7 @@
   "consigne": "Bon à savoir",
   "mot_myene": "Ombalo",
   "mot_francais": "l'oncle maternel",
-  "texte": "Chez les Ôrungu, l'oncle maternel, frère de maman, compte beaucoup : l'enfant appartient au lignage de sa mère (ozombi).",
+  "texte": "Chez les Orungu, l'oncle maternel, frère de maman, compte beaucoup : l'enfant appartient au lignage de sa mère (ozombi).",
   "source": "[LEC] La famille ; Teisserès-Dubois 1957, voc. 1 (ômbalô, oncle maternel) ; programme de formation, cycle 3 (ozombi)",
   "ordre": 5
  },
@@ -8414,7 +8360,7 @@
   "lecon_id": "ntina-l23",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Kêma",
+  "mot_myene": "Nkêma",
   "mot_francais": "le singe",
   "illustration": "🐒",
   "source": "[LEC] Animaux du Gabon",
@@ -8464,8 +8410,8 @@
   "id": "ntina-l23-08",
   "lecon_id": "ntina-l23",
   "type": "montre",
-  "consigne": "Touche le dessin : « Kêma »",
-  "mot_myene": "Kêma",
+  "consigne": "Touche le dessin : « Nkêma »",
+  "mot_myene": "Nkêma",
   "options": [
    "🐒",
    "🐘",
@@ -8666,7 +8612,7 @@
   "lecon_id": "ntina-l25",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Yàga gonya",
+  "mot_myene": "Yaga gonya",
   "mot_francais": "Viens manger",
   "illustration": "🍽️",
   "source": "[LEC] Les incontournables",
@@ -8699,7 +8645,7 @@
   "lecon_id": "ntina-l25",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Và myê aningo",
+  "mot_myene": "Va myê aningo",
   "mot_francais": "Donne-moi de l'eau",
   "illustration": "💧",
   "source": "[LEC] Les incontournables",
@@ -8727,8 +8673,8 @@
   "id": "ntina-l25-06",
   "lecon_id": "ntina-l25",
   "type": "associer",
-  "consigne": "Que veut dire « Yàga gonya » ?",
-  "mot_myene": "Yàga gonya",
+  "consigne": "Que veut dire « Yaga gonya » ?",
+  "mot_myene": "Yaga gonya",
   "options": [
    "Viens manger",
    "Bon appétit",
@@ -8746,11 +8692,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « Donne-moi de l'eau » ?",
   "options": [
-   "Và myê aningo",
+   "Va myê aningo",
    "Zê nya nde ?",
    "Ogaso mbia"
   ],
-  "reponse": "Và myê aningo",
+  "reponse": "Va myê aningo",
   "illustration": "💧",
   "source": "[LEC] Les incontournables",
   "ordre": 7
@@ -8937,7 +8883,7 @@
   "lecon_id": "ntina-l27",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Gềnda godêwa !",
+  "mot_myene": "Gênda godêwa !",
   "mot_francais": "Va dormir !",
   "illustration": "😴",
   "source": "[LEC] Les incontournables",
@@ -8958,8 +8904,8 @@
   "id": "ntina-l27-05",
   "lecon_id": "ntina-l27",
   "type": "associer",
-  "consigne": "Que veut dire « Gềnda godêwa ! » ?",
-  "mot_myene": "Gềnda godêwa !",
+  "consigne": "Que veut dire « Gênda godêwa ! » ?",
+  "mot_myene": "Gênda godêwa !",
   "options": [
    "Va dormir !",
    "Viens manger",
@@ -9329,8 +9275,8 @@
   "id": "ntina-l30-06",
   "lecon_id": "ntina-l30",
   "type": "choix",
-  "consigne": "Tape les syllabes de « Kêma » (le singe). Combien en entends-tu ?",
-  "mot_myene": "Kêma",
+  "consigne": "Tape les syllabes de « Nkêma » (le singe). Combien en entends-tu ?",
+  "mot_myene": "Nkêma",
   "options": [
    "2",
    "1",
@@ -9499,7 +9445,7 @@
   "lecon_id": "ntina-l32",
   "type": "cours",
   "consigne": "Regarde et écoute avant de jouer.",
-  "texte": "En ôrungu, la voix monte et descend : c'est le ton. Suis la ligne avec ton doigt et chante le mot.",
+  "texte": "En orungu, la voix monte et descend : c'est le ton. Suis la ligne avec ton doigt et chante le mot.",
   "illustration": "🎵",
   "source": "Ambouroue 2007, p. 52-57",
   "ordre": 1
@@ -9728,7 +9674,7 @@
   "consigne": "J'ai une trompe et de grandes oreilles.",
   "options": [
    "Njôgu",
-   "Kêma",
+   "Nkêma",
    "Pusi"
   ],
   "reponse": "Njôgu",
@@ -9963,7 +9909,7 @@
   "type": "cours",
   "consigne": "Regarde et écoute avant de jouer.",
   "texte": "Le présent dit ce qu'on fait maintenant, et aussi ce qui est toujours vrai. On le forme avec le sujet et le verbe sans « go ».",
-  "conseil": "« Ôrungu wi ny'ewêrê » : les Ôrungu mangent du poisson (c'est toujours vrai).",
+  "conseil": "« Orungu wi ny'ewêrê » : les Orungu mangent du poisson (c'est toujours vrai).",
   "illustration": "⏱️",
   "source": "Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2) ; [LEC] Les pronoms et la conjugaison",
   "ordre": 1
@@ -10033,8 +9979,8 @@
   "lecon_id": "ogendo-l14",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Ôrungu wi ny'ewêrê",
-  "mot_francais": "Les Ôrungu mangent du poisson",
+  "mot_myene": "Orungu wi ny'ewêrê",
+  "mot_francais": "Les Orungu mangent du poisson",
   "source": "Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2)",
   "ordre": 8
  },
@@ -10104,13 +10050,13 @@
   "id": "ogendo-l14-13",
   "lecon_id": "ogendo-l14",
   "type": "ordre",
-  "consigne": "Remets la phrase dans l'ordre : « Les Ôrungu mangent du poisson ».",
+  "consigne": "Remets la phrase dans l'ordre : « Les Orungu mangent du poisson ».",
   "options": [
-   "Ôrungu",
+   "Orungu",
    "wi",
    "ny'ewêrê"
   ],
-  "reponse": "Ôrungu wi ny'ewêrê",
+  "reponse": "Orungu wi ny'ewêrê",
   "source": "Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2)",
   "ordre": 13
  },
@@ -10401,7 +10347,7 @@
   "lecon_id": "ogendo-l17",
   "type": "cours",
   "consigne": "Regarde et écoute avant de jouer.",
-  "texte": "En ôrungu, on ne construit pas la question comme en français : sujet, verbe, complément, et le mot de la question à la fin (nde, sê, gwe).",
+  "texte": "En orungu, on ne construit pas la question comme en français : sujet, verbe, complément, et le mot de la question à la fin (nde, sê, gwe).",
   "conseil": "On dit « Wê bel'incango nde ? », jamais « Incango nde wê bele ? ».",
   "illustration": "❓",
   "source": "Capp, 12 nov. 2026 (RÈGLES v2.1, § 14.1)",
@@ -10598,7 +10544,7 @@
   "lecon_id": "ikoko-l1",
   "type": "proverbe",
   "consigne": "Un proverbe",
-  "mot_myene": "Ndego ê bandamino ni ncango",
+  "mot_myene": "Ndego e bandamino ni ncango",
   "mot_francais": "L'amitié s'entretient avec des nouvelles.",
   "texte": "Prendre des nouvelles, c'est entretenir le lien.",
   "source": "[LEC] Proverbes O.docx (recueil proverbes_DONDO)",
@@ -10841,7 +10787,7 @@
   "lecon_id": "ikoko-l3",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Và myê aningo",
+  "mot_myene": "Va myê aningo",
   "mot_francais": "Donne-moi de l'eau",
   "source": "[LEC] Les incontournables",
   "ordre": 5
@@ -10918,11 +10864,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « Donne-moi de l'eau » ?",
   "options": [
-   "Và myê aningo",
+   "Va myê aningo",
    "Ogaso mbia",
    "Mi kênda godêwa"
   ],
-  "reponse": "Và myê aningo",
+  "reponse": "Va myê aningo",
   "source": "[LEC] Les incontournables",
   "ordre": 11
  },
@@ -10950,661 +10896,11 @@
   "ordre": 13
  },
  {
-  "id": "sc-ntina-l20",
-  "lecon_id": "ntina-l20",
-  "type": "scene",
-  "consigne": "Touche chaque personne du village pour entendre son nom.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "Rerê",
-    "sens": "papa",
-    "illustration": "👨"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "Ngwê",
-    "sens": "maman",
-    "illustration": "👩"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "Onghwana",
-    "sens": "un enfant",
-    "illustration": "🧒"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "Awana",
-    "sens": "des enfants",
-    "illustration": "👧"
-   }
-  ],
-  "source": "Mots de la leçon (exercices ntina-l20-02, ntina-l20-03, ntina-l20-04, ntina-l20-05)",
-  "ordre": 13
- },
- {
-  "id": "sc-ntina-l22",
-  "lecon_id": "ntina-l22",
-  "type": "scene",
-  "consigne": "Touche les animaux de la maison.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "Mbwa",
-    "sens": "le chien",
-    "illustration": "🐕"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "Pusi",
-    "sens": "le chat",
-    "illustration": "🐈"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "Mboni",
-    "sens": "le cabri",
-    "illustration": "🐐"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "Njôgôni",
-    "sens": "la poule",
-    "illustration": "🐔"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "Nyare",
-    "sens": "le bœuf, la vache",
-    "illustration": "🐄"
-   }
-  ],
-  "source": "Mots de la leçon (exercices ntina-l22-01, ntina-l22-02, ntina-l22-03, ntina-l22-04, ntina-l22-05)",
-  "ordre": 11
- },
- {
-  "id": "sc-ntina-l23",
-  "lecon_id": "ntina-l23",
-  "type": "scene",
-  "consigne": "Touche les animaux de la forêt et de la lagune.",
-  "scene": "lagune",
-  "zones": [
-   {
-    "x": 18,
-    "y": 34,
-    "mot": "Njôgu",
-    "sens": "l'éléphant",
-    "illustration": "🐘"
-   },
-   {
-    "x": 50,
-    "y": 26,
-    "mot": "Njêgô",
-    "sens": "la panthère",
-    "illustration": "🐆"
-   },
-   {
-    "x": 82,
-    "y": 36,
-    "mot": "Njina",
-    "sens": "le gorille",
-    "illustration": "🦍"
-   },
-   {
-    "x": 22,
-    "y": 70,
-    "mot": "Kêma",
-    "sens": "le singe",
-    "illustration": "🐒"
-   },
-   {
-    "x": 55,
-    "y": 78,
-    "mot": "Nkambi",
-    "sens": "l'antilope",
-    "illustration": "🦌"
-   },
-   {
-    "x": 84,
-    "y": 70,
-    "mot": "Homba",
-    "sens": "le porc-épic",
-    "illustration": "🦔"
-   }
-  ],
-  "source": "Mots de la leçon (exercices ntina-l23-01, ntina-l23-02, ntina-l23-03, ntina-l23-04, ntina-l23-05, ntina-l23-06)",
-  "ordre": 12
- },
- {
-  "id": "sc-ntina-l24",
-  "lecon_id": "ntina-l24",
-  "type": "scene",
-  "consigne": "Au marché : touche ce que tu vois.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "Ikôndô",
-    "sens": "la banane plantain",
-    "illustration": "🍌"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "Ewêrê",
-    "sens": "le poisson",
-    "illustration": "🐟"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "Nyama",
-    "sens": "la viande",
-    "illustration": "🍖"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "Ike",
-    "sens": "l'œuf",
-    "illustration": "🥚"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "Mbenda",
-    "sens": "l'arachide",
-    "illustration": "🥜"
-   },
-   {
-    "x": 24,
-    "y": 90,
-    "mot": "Ilasa",
-    "sens": "l'orange",
-    "illustration": "🍊"
-   },
-   {
-    "x": 64,
-    "y": 92,
-    "mot": "Oresi",
-    "sens": "le riz",
-    "illustration": "🍚"
-   }
-  ],
-  "source": "Mots de la leçon (exercices ntina-l24-01, ntina-l24-02, ntina-l24-03, ntina-l24-04, ntina-l24-05, ntina-l24-06, ntina-l24-07)",
-  "ordre": 13
- },
- {
-  "id": "sc-ntina-l26",
-  "lecon_id": "ntina-l26",
-  "type": "scene",
-  "consigne": "Dans la maison : touche chaque chose.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "Nago",
-    "sens": "la maison",
-    "illustration": "🏠"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "Odo",
-    "sens": "le lit",
-    "illustration": "🛏️"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "Ebongo",
-    "sens": "le banc",
-    "illustration": "🪑"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "Ogoni",
-    "sens": "le feu",
-    "illustration": "🔥"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "Ezômbôlô",
-    "sens": "le balai",
-    "illustration": "🧹"
-   }
-  ],
-  "source": "Mots de la leçon (exercices ntina-l26-01, ntina-l26-02, ntina-l26-04, ntina-l26-05, ntina-l26-06)",
-  "ordre": 12
- },
- {
-  "id": "sc-ntina-l28",
-  "lecon_id": "ntina-l28",
-  "type": "scene",
-  "consigne": "Touche le ciel, l'eau et les arbres.",
-  "scene": "lagune",
-  "zones": [
-   {
-    "x": 18,
-    "y": 34,
-    "mot": "Onghwêyi",
-    "sens": "le soleil",
-    "illustration": "☀️"
-   },
-   {
-    "x": 50,
-    "y": 26,
-    "mot": "Ogwêli",
-    "sens": "la lune",
-    "illustration": "🌙"
-   },
-   {
-    "x": 82,
-    "y": 36,
-    "mot": "Ningo",
-    "sens": "la pluie",
-    "illustration": "🌧️"
-   },
-   {
-    "x": 22,
-    "y": 70,
-    "mot": "Ncuwa",
-    "sens": "la mer",
-    "illustration": "🌊"
-   },
-   {
-    "x": 55,
-    "y": 78,
-    "mot": "Iga",
-    "sens": "la forêt",
-    "illustration": "🌳"
-   },
-   {
-    "x": 84,
-    "y": 70,
-    "mot": "Erere",
-    "sens": "l'arbre",
-    "illustration": "🌳"
-   }
-  ],
-  "source": "Mots de la leçon (exercices ntina-l28-01, ntina-l28-02, ntina-l28-03, ntina-l28-04, ntina-l28-05, ntina-l28-06)",
-  "ordre": 12
- },
- {
-  "id": "sc-ogendo-l3",
-  "lecon_id": "ogendo-l3",
-  "type": "scene",
-  "consigne": "Touche chaque partie de la maison, écoute et lis son nom.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "nago",
-    "sens": "la maison",
-    "illustration": "🏠"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "omwanja-mwanja",
-    "sens": "le toit",
-    "illustration": "🏚️"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "ipaga",
-    "sens": "les murs (epaga : un mur)",
-    "illustration": "🧱"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "windê",
-    "sens": "la fenêtre",
-    "illustration": "🪟"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "iguge",
-    "sens": "la porte",
-    "illustration": "🚪"
-   },
-   {
-    "x": 24,
-    "y": 90,
-    "mot": "nônce",
-    "sens": "la chambre",
-    "illustration": "🛏️"
-   },
-   {
-    "x": 64,
-    "y": 92,
-    "mot": "kisini",
-    "sens": "la cuisine",
-    "illustration": "🍳"
-   }
-  ],
-  "source": "Mots de la leçon (exercices gl3-mot-01, gl3-mot-02, gl3-mot-03, gl3-mot-04, gl3-mot-05, gl3-mot-07, gl3-mot-08)",
-  "ordre": 22
- },
- {
-  "id": "sc-ogendo-l4",
-  "lecon_id": "ogendo-l4",
-  "type": "scene",
-  "consigne": "Touche les meubles, écoute et lis leur nom.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "epwe z'atanga",
-    "sens": "la chaise",
-    "illustration": "🪑"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "odo",
-    "sens": "le lit",
-    "illustration": "🛏️"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "kôbôti y'ozira",
-    "sens": "le placard",
-    "illustration": "🗄️"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "eyeno",
-    "sens": "le miroir",
-    "illustration": "🪞"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "otondo",
-    "sens": "le panier",
-    "illustration": "🧺"
-   },
-   {
-    "x": 24,
-    "y": 90,
-    "mot": "ezômbôlô",
-    "sens": "le balai",
-    "illustration": "🧹"
-   }
-  ],
-  "source": "Mots de la leçon (exercices gl4-mot-01, gl4-mot-04, gl4-mot-07, gl4-mot-10, gl4-mot-12, gl4-mot-13)",
-  "ordre": 21
- },
- {
-  "id": "sc-ogendo-l5",
-  "lecon_id": "ogendo-l5",
-  "type": "scene",
-  "consigne": "À la cuisine : touche chaque objet, écoute et lis son nom.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "incwana",
-    "sens": "les marmites",
-    "illustration": "🍲"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "izêwê",
-    "sens": "les cuillères",
-    "illustration": "🥄"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "intuma",
-    "sens": "les fourchettes",
-    "illustration": "🍴"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "iswaka",
-    "sens": "les couteaux",
-    "illustration": "🔪"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "swaka",
-    "sens": "un couteau",
-    "illustration": "🔪"
-   },
-   {
-    "x": 24,
-    "y": 90,
-    "mot": "epêlê",
-    "sens": "l'assiette",
-    "illustration": "🍽️"
-   },
-   {
-    "x": 64,
-    "y": 92,
-    "mot": "elasi",
-    "sens": "le verre",
-    "illustration": "🥛"
-   }
-  ],
-  "source": "Mots de la leçon (exercices gl5-mot-01, gl5-mot-02, gl5-mot-03, gl5-mot-04, gl5-mot-05, gl5-mot-06, gl5-mot-07)",
-  "ordre": 28
- },
- {
-  "id": "sc-ogendo-l6",
-  "lecon_id": "ogendo-l6",
-  "type": "scene",
-  "consigne": "Touche chaque habit, écoute et lis son nom.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "ambôra",
-    "sens": "les habits",
-    "illustration": "👚"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "obati",
-    "sens": "le short",
-    "illustration": "🩳"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "ngôyi",
-    "sens": "le haut (vêtement)",
-    "illustration": "👕"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "elinga",
-    "sens": "la robe",
-    "illustration": "👗"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "epokolo",
-    "sens": "le chapeau",
-    "illustration": "👒"
-   },
-   {
-    "x": 24,
-    "y": 90,
-    "mot": "panga",
-    "sens": "la chaînette",
-    "illustration": "📿"
-   },
-   {
-    "x": 64,
-    "y": 92,
-    "mot": "puka",
-    "sens": "le sac",
-    "illustration": "👜"
-   }
-  ],
-  "source": "Mots de la leçon (exercices gl6-mot-01, gl6-mot-02, gl6-mot-03, gl6-mot-04, gl6-mot-05, gl6-mot-06, gl6-mot-07)",
-  "ordre": 20
- },
- {
-  "id": "sc-ogendo-l7",
-  "lecon_id": "ogendo-l7",
-  "type": "scene",
-  "consigne": "Touche chaque lieu, écoute et lis son nom.",
-  "scene": "village",
-  "zones": [
-   {
-    "x": 14,
-    "y": 62,
-    "mot": "nkala",
-    "sens": "le village",
-    "illustration": "🏘️"
-   },
-   {
-    "x": 36,
-    "y": 82,
-    "mot": "okili",
-    "sens": "la route, le chemin",
-    "illustration": "🛣️"
-   },
-   {
-    "x": 56,
-    "y": 64,
-    "mot": "mbôra",
-    "sens": "la place, l'endroit",
-    "illustration": "📍"
-   },
-   {
-    "x": 76,
-    "y": 84,
-    "mot": "iga",
-    "sens": "la forêt",
-    "illustration": "🌳"
-   },
-   {
-    "x": 90,
-    "y": 62,
-    "mot": "ncuwa",
-    "sens": "la mer",
-    "illustration": "🌊"
-   },
-   {
-    "x": 24,
-    "y": 90,
-    "mot": "mbene",
-    "sens": "le fleuve, l'étendue d'eau",
-    "illustration": "🏞️"
-   },
-   {
-    "x": 64,
-    "y": 92,
-    "mot": "sikul",
-    "sens": "l'école",
-    "illustration": "🏫"
-   }
-  ],
-  "source": "Mots de la leçon (exercices gl7-mot-01, gl7-mot-02, gl7-mot-04, gl7-mot-06, gl7-mot-07, gl7-mot-08, gl7-mot-10)",
-  "ordre": 20
- },
- {
-  "id": "sc-ogendo-l9",
-  "lecon_id": "ogendo-l9",
-  "type": "scene",
-  "consigne": "Du matin au soir : touche chaque moment.",
-  "scene": "lagune",
-  "zones": [
-   {
-    "x": 18,
-    "y": 34,
-    "mot": "ibanga",
-    "sens": "le matin",
-    "illustration": "🌅"
-   },
-   {
-    "x": 50,
-    "y": 26,
-    "mot": "owenja",
-    "sens": "la journée",
-    "illustration": "☀️"
-   },
-   {
-    "x": 82,
-    "y": 36,
-    "mot": "nkolo",
-    "sens": "le soir",
-    "illustration": "🌇"
-   },
-   {
-    "x": 22,
-    "y": 70,
-    "mot": "ogwêra",
-    "sens": "la nuit",
-    "illustration": "🌃"
-   },
-   {
-    "x": 55,
-    "y": 78,
-    "mot": "igwêra",
-    "sens": "l'heure",
-    "illustration": "🕐"
-   },
-   {
-    "x": 84,
-    "y": 70,
-    "mot": "nkôla",
-    "sens": "la montre",
-    "illustration": "⌚"
-   },
-   {
-    "x": 38,
-    "y": 52,
-    "mot": "onghwêyi",
-    "sens": "le soleil",
-    "illustration": "☀️"
-   }
-  ],
-  "source": "Mots de la leçon (exercices gl9-mot-01, gl9-mot-02, gl9-mot-04, gl9-mot-05, gl9-mot-07, gl9-mot-08, gl9-mot-09)",
-  "ordre": 20
- },
- {
   "id": "le-l18-01",
   "lecon_id": "ogendo-l18",
   "type": "cours",
   "consigne": "Les sept voyelles",
-  "texte": "L'ôrungu a sept voyelles : a, e, ê, i, o, ô, u. Deux portent un chapeau : ê et ô. Le e se dit la bouche un peu ouverte ; le ê, la bouche plus ouverte. Le o se dit les lèvres arrondies ; le ô, la bouche bien ouverte.",
+  "texte": "L'orungu a sept voyelles : a, e, ê, i, o, ô, u. Deux portent un chapeau : ê et ô. Le e se dit la bouche un peu ouverte ; le ê, la bouche plus ouverte. Le o se dit les lèvres arrondies ; le ô, la bouche bien ouverte.",
   "conseil": "Chaque lettre se dit toujours : le e n'est jamais muet.",
   "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
   "ordre": 1
@@ -12461,7 +11757,7 @@
   "id": "le-l23-08",
   "lecon_id": "ogendo-l23",
   "type": "choix",
-  "consigne": "Comment coupe-t-on « kêma » (le singe) ?",
+  "consigne": "Comment coupe-t-on « nkêma » (le singe) ?",
   "options": [
    "kê-ma",
    "kêm-a"
@@ -12509,7 +11805,7 @@
   "lecon_id": "ogendo-l24",
   "type": "cours",
   "consigne": "Les mots venus d'ailleurs",
-  "texte": "Dans les mots de l'ôrungu, an, en, on se lisent a-n, e-n, o-n. Les mots venus d'autres langues peuvent garder leur son par le nez : on l'écrit avec n ou m après la voyelle, comme dans kômpita, l'ordinateur.",
+  "texte": "Dans les mots de l'orungu, an, en, on se lisent a-n, e-n, o-n. Les mots venus d'autres langues peuvent garder leur son par le nez : on l'écrit avec n ou m après la voyelle, comme dans kômpita, l'ordinateur.",
   "conseil": "Quand un mot n'existe pas en myènè, on garde le mot français tel quel.",
   "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
   "ordre": 1
@@ -12907,8 +12203,8 @@
   "lecon_id": "ogendo-l27",
   "type": "cours",
   "consigne": "Donner un ordre",
-  "texte": "Pour donner un ordre, la première lettre du verbe s'adoucit et la première voyelle porte un accent qui descend : Và myê aningo, donne-moi de l'eau. Gềnda godêwa !, va dormir. Yàga gonya, viens manger.",
-  "conseil": "L'accent change le sens : ròra, déménage ! ; rora, les épouses.",
+  "texte": "Pour donner un ordre, la première lettre du verbe s'adoucit et la première voyelle porte un accent qui descend : Va myê aningo, donne-moi de l'eau. Gênda godêwa !, va dormir. Yaga gonya, viens manger.",
+  "conseil": "L'accent change le sens : rora, déménage ! ; rora, les épouses.",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 1
  },
@@ -12917,7 +12213,7 @@
   "lecon_id": "ogendo-l27",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Và myê aningo",
+  "mot_myene": "Va myê aningo",
   "mot_francais": "donne-moi de l'eau",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 2
@@ -12927,7 +12223,7 @@
   "lecon_id": "ogendo-l27",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Gềnda godêwa !",
+  "mot_myene": "Gênda godêwa !",
   "mot_francais": "va dormir !",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 3
@@ -12937,7 +12233,7 @@
   "lecon_id": "ogendo-l27",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Yàga gonya",
+  "mot_myene": "Yaga gonya",
   "mot_francais": "viens manger",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 4
@@ -12947,7 +12243,7 @@
   "lecon_id": "ogendo-l27",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Lwàna bäru !",
+  "mot_myene": "Lwana bäru !",
   "mot_francais": "assieds-toi !",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 5
@@ -12957,7 +12253,7 @@
   "lecon_id": "ogendo-l27",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "ròra",
+  "mot_myene": "rora",
   "mot_francais": "déménage !",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 6
@@ -12978,10 +12274,10 @@
   "type": "choix",
   "consigne": "Lequel est un ordre : « déménage ! » ?",
   "options": [
-   "ròra",
+   "rora",
    "rora"
   ],
-  "reponse": "ròra",
+  "reponse": "rora",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 8
  },
@@ -12989,8 +12285,8 @@
   "id": "fp-l27-09",
   "lecon_id": "ogendo-l27",
   "type": "associer",
-  "consigne": "Que veut dire « Và myê aningo » ?",
-  "mot_myene": "Và myê aningo",
+  "consigne": "Que veut dire « Va myê aningo » ?",
+  "mot_myene": "Va myê aningo",
   "options": [
    "donne-moi de l'eau",
    "viens manger",
@@ -13007,11 +12303,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « va dormir ! » ?",
   "options": [
-   "Gềnda godêwa !",
-   "Yàga gonya",
-   "Lwàna bäru !"
+   "Gênda godêwa !",
+   "Yaga gonya",
+   "Lwana bäru !"
   ],
-  "reponse": "Gềnda godêwa !",
+  "reponse": "Gênda godêwa !",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 10
  },
@@ -13019,8 +12315,8 @@
   "id": "fp-l27-11",
   "lecon_id": "ogendo-l27",
   "type": "dire",
-  "consigne": "Dis « Yàga gonya » à voix haute.",
-  "mot_myene": "Yàga gonya",
+  "consigne": "Dis « Yaga gonya » à voix haute.",
+  "mot_myene": "Yaga gonya",
   "mot_francais": "viens manger",
   "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
   "ordre": 11
@@ -13607,7 +12903,7 @@
   "lecon_id": "ntina-l2",
   "type": "proverbe",
   "consigne": "Un proverbe",
-  "mot_myene": "Ndego ê bandamino ni ncango.",
+  "mot_myene": "Ndego e bandamino ni ncango.",
   "mot_francais": "L'amitié s'entretient avec des nouvelles.",
   "source": "Recueil des proverbes DONDO v3, PRV-0069",
   "ordre": 106
@@ -13940,8 +13236,8 @@
   "id": "mm-ntina-l25-1",
   "lecon_id": "ntina-l25",
   "type": "montre",
-  "consigne": "Touche le dessin : « Yàga gonya »",
-  "mot_myene": "Yàga gonya",
+  "consigne": "Touche le dessin : « Yaga gonya »",
+  "mot_myene": "Yaga gonya",
   "mot_francais": "Viens manger",
   "options": [
    "🍽️",
@@ -14020,8 +13316,8 @@
   "id": "mm-ntina-l27-2",
   "lecon_id": "ntina-l27",
   "type": "montre",
-  "consigne": "Touche le dessin : « Gềnda godêwa ! »",
-  "mot_myene": "Gềnda godêwa !",
+  "consigne": "Touche le dessin : « Gênda godêwa ! »",
+  "mot_myene": "Gênda godêwa !",
   "mot_francais": "Va dormir !",
   "options": [
    "😴",
@@ -14101,7 +13397,7 @@
   "lecon_id": "emeno-l1",
   "type": "cours",
   "consigne": "Les familles de mots",
-  "texte": "Les mots de l'ôrungu vont par familles. Chaque famille a sa façon de dire « un » et « plusieurs » : onghwana, l'enfant / awana, les enfants ; nago, la maison / inago, les maisons ; ezôma, la chose / iyoma, les choses ; owaro, la pirogue / amaro, les pirogues.",
+  "texte": "Les mots de l'orungu vont par familles. Chaque famille a sa façon de dire « un » et « plusieurs » : onghwana, l'enfant / awana, les enfants ; nago, la maison / inago, les maisons ; ezôma, la chose / iyoma, les choses ; owaro, la pirogue / amaro, les pirogues.",
   "source": "Règles de référence v3.3 § 5.1",
   "ordre": 1
  },
@@ -14477,7 +13773,7 @@
   "lecon_id": "emeno-l3",
   "type": "cours",
   "consigne": "Quand le mot change de son",
-  "texte": "La première lettre d'un verbe a deux formes : une forte, une douce. kênda (aller) devient gềnda ! (va !), ogêndo (le voyage), a gendi (il était allé). bya (venir) devient a wyeni (il était venu). bola (taper) devient a woli myê (elle m'avait tapé).",
+  "texte": "La première lettre d'un verbe a deux formes : une forte, une douce. kênda (aller) devient gênda ! (va !), ogêndo (le voyage), a gendi (il était allé). bya (venir) devient a wyeni (il était venu). bola (taper) devient a woli myê (elle m'avait tapé).",
   "conseil": "b devient w ou v ; d devient l ; k devient g ; p devient v ; s devient z ; t devient r.",
   "source": "Règles de référence v3.3 § 6.4-6.5",
   "ordre": 1
@@ -14487,7 +13783,7 @@
   "lecon_id": "emeno-l3",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Gềnda godêwa !",
+  "mot_myene": "Gênda godêwa !",
   "mot_francais": "va dormir !",
   "source": "Règles de référence v3.3 § 6.4-6.5",
   "ordre": 2
@@ -14537,7 +13833,7 @@
   "lecon_id": "emeno-l3",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "wònga !",
+  "mot_myene": "wonga !",
   "mot_francais": "prends !",
   "source": "Règles de référence v3.3 § 6.4-6.5",
   "ordre": 7
@@ -14624,11 +13920,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « prends ! » ?",
   "options": [
-   "wònga !",
+   "wonga !",
    "za lenigi",
    "avila"
   ],
-  "reponse": "wònga !",
+  "reponse": "wonga !",
   "source": "Règles de référence v3.3 § 6.4-6.5",
   "ordre": 14
  },
@@ -15146,7 +14442,7 @@
   "lecon_id": "emeno-l7",
   "type": "cours",
   "consigne": "Les nouvelles du pays",
-  "texte": "Voici des nouvelles écrites en ôrungu. On dit ce qui a été fait, plutôt que qui l'a fait : A pyez'iyoma go carrefour Château, des biens ont été brûlés au carrefour Château.",
+  "texte": "Voici des nouvelles écrites en orungu. On dit ce qui a été fait, plutôt que qui l'a fait : A pyez'iyoma go carrefour Château, des biens ont été brûlés au carrefour Château.",
   "conseil": "On garde les noms de personnes et de lieux tels qu'ils sont, et le mot myènè d'abord : Mandji pour Port-Gentil.",
   "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
   "ordre": 1
@@ -15216,7 +14512,7 @@
   "lecon_id": "emeno-l7",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Và m'y'incango sa nêno go nce yazo",
+  "mot_myene": "Va m'y'incango sa nêno go nce yazo",
   "mot_francais": "donne-moi les nouvelles du jour dans notre pays",
   "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
   "ordre": 8
@@ -15283,8 +14579,8 @@
   "id": "em-07-13",
   "lecon_id": "emeno-l7",
   "type": "associer",
-  "consigne": "Que veut dire « Và m'y'incango sa nêno go nce yazo » ?",
-  "mot_myene": "Và m'y'incango sa nêno go nce yazo",
+  "consigne": "Que veut dire « Va m'y'incango sa nêno go nce yazo » ?",
+  "mot_myene": "Va m'y'incango sa nêno go nce yazo",
   "options": [
    "donne-moi les nouvelles du jour dans notre pays",
    "les nouvelles du pays",
@@ -15450,7 +14746,7 @@
   "lecon_id": "emeno-l9",
   "type": "cours",
   "consigne": "Notre histoire",
-  "texte": "La royauté actuelle des Ôrungu s'appelle AMPENDA M'ÔRUNGU, « Royauté Ôrungu ». Sa devise : Egongo – Ôzange – Ivenda, « Solidarité – Vérité – Royauté ». On écrit toujours « Ôrungu », avec un Ô majuscule.",
+  "texte": "La royauté actuelle des Orungu s'appelle AMPENDA M'ORUNGU, « Royauté Orungu ». Sa devise : Egongo – Ôzange – Ivenda, « Solidarité – Vérité – Royauté ». On écrit toujours « Orungu », avec un Ô majuscule.",
   "conseil": "Pour ouvrir un conte, l'ancien dit « Wulinya myê » : dis-moi, raconte-moi.",
   "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
   "ordre": 1
@@ -15460,8 +14756,8 @@
   "lecon_id": "emeno-l9",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Ampenda m'Ôrungu",
-  "mot_francais": "la royauté ôrungu",
+  "mot_myene": "Ampenda m'Orungu",
+  "mot_francais": "la royauté orungu",
   "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
   "ordre": 2
  },
@@ -15816,7 +15112,7 @@
   "lecon_id": "ikoko-l5",
   "type": "cours",
   "consigne": "Les signes",
-  "texte": "‘ devant un mot veut dire « un » : ‘oma, un homme ; oma, l'homme. L'accent qui descend marque un ordre : Và myê aningo, donne-moi de l'eau ; ròra, déménage ! (rora, les épouses). Deux points sur la première voyelle du verbe disent « que, qui » : aningo mïjôngo wê, l'eau que tu bois. Le chapeau sur a marque la parenté : mâma, kâka, yâya. « go » se colle au verbe : gonya, manger ; mais go Mandji, à Mandji.",
+  "texte": "‘ devant un mot veut dire « un » : ‘oma, un homme ; oma, l'homme. L'accent qui descend marque un ordre : Va myê aningo, donne-moi de l'eau ; rora, déménage ! (rora, les épouses). Deux points sur la première voyelle du verbe disent « que, qui » : aningo mïjôngo wê, l'eau que tu bois. Le chapeau sur a marque la parenté : mâma, kâka, yâya. « go » se colle au verbe : gonya, manger ; mais go Mandji, à Mandji.",
   "source": "Règles de référence v3.3 § 3 (signes)",
   "ordre": 1
  },
@@ -15839,10 +15135,10 @@
   "type": "choix",
   "consigne": "Lequel est un ordre : « déménage ! » ?",
   "options": [
-   "ròra",
+   "rora",
    "rora"
   ],
-  "reponse": "ròra",
+  "reponse": "rora",
   "source": "Règles de référence v3.3 § 3 (signes)",
   "ordre": 3
  },
@@ -15879,7 +15175,7 @@
   "consigne": "Laquelle veut dire « l'eau que tu bois » ?",
   "options": [
    "aningo mïjôngo wê",
-   "Và myê aningo"
+   "Va myê aningo"
   ],
   "reponse": "aningo mïjôngo wê",
   "source": "Règles de référence v3.3 § 3 (signes)",
@@ -15968,9 +15264,9 @@
   "id": "ik-l6-09",
   "lecon_id": "ikoko-l6",
   "type": "dictee",
-  "consigne": "Écris en myènè : « les Ôrungu mangent du poisson ».",
-  "mot_francais": "les Ôrungu mangent du poisson",
-  "reponse": "Ôrungu wi ny'ewêrê.",
+  "consigne": "Écris en myènè : « les Orungu mangent du poisson ».",
+  "mot_francais": "les Orungu mangent du poisson",
+  "reponse": "Orungu wi ny'ewêrê.",
   "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
   "ordre": 9
  },
@@ -15979,7 +15275,7 @@
   "lecon_id": "ikoko-l7",
   "type": "cours",
   "consigne": "Écrire et corriger",
-  "texte": "Pour transmettre, on écrit avec l'alphabet de tous : une lettre pour un son, les signes à leur place, et l'ordre de la phrase de l'ôrungu (le mot de la question à la fin). Pour corriger une écriture ancienne : è devient ê, é devient e, tch devient c, dj et dy deviennent j.",
+  "texte": "Pour transmettre, on écrit avec l'alphabet de tous : une lettre pour un son, les signes à leur place, et l'ordre de la phrase de l'orungu (le mot de la question à la fin). Pour corriger une écriture ancienne : è devient ê, é devient e, tch devient c, dj et dy deviennent j.",
   "source": "Règles de référence v3.3 § 2-4, § 12",
   "ordre": 1
  },
@@ -16168,5 +15464,6468 @@
   "mot_francais": "Ça va bien. Je me maintiens. Merci.",
   "source": "Règles de référence v3.5 § 10.1 (Capp, 22 nov. 2026)",
   "ordre": 14
+ },
+ {
+  "id": "nl13-epa",
+  "lecon_id": "ntina-l13",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "epa",
+  "mot_francais": "l'os",
+  "source": "Capp, 22 nov. 2026 (epa l'os, ipa des os) ; leçon « Le corps humain »",
+  "ordre": 41
+ },
+ {
+  "id": "sc-lagune",
+  "lecon_id": "ntina-l5",
+  "type": "scene",
+  "consigne": "Explore la lagune et la mangrove. Fais glisser le paysage.",
+  "scene": "lagune",
+  "zones": [
+   {
+    "x": 12,
+    "y": 14,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   },
+   {
+    "x": 22,
+    "y": 30,
+    "mot": "ngozo",
+    "sens": "le perroquet",
+    "illustration": "🦜",
+    "plan": 1
+   },
+   {
+    "x": 8,
+    "y": 46,
+    "mot": "erere",
+    "sens": "un arbre",
+    "illustration": "🌳",
+    "plan": 1
+   },
+   {
+    "x": 30,
+    "y": 52,
+    "mot": "itanda",
+    "sens": "le palétuvier",
+    "illustration": "🌿",
+    "plan": 1
+   },
+   {
+    "x": 36,
+    "y": 38,
+    "mot": "ijavi",
+    "sens": "les feuilles",
+    "illustration": "🍃",
+    "plan": 1
+   },
+   {
+    "x": 44,
+    "y": 34,
+    "mot": "isômbô",
+    "sens": "le martin-pêcheur",
+    "illustration": "🐦",
+    "plan": 1
+   },
+   {
+    "x": 52,
+    "y": 60,
+    "mot": "mbene",
+    "sens": "l'étendue d'eau",
+    "illustration": "🏞️",
+    "plan": 0
+   },
+   {
+    "x": 60,
+    "y": 66,
+    "mot": "owaro",
+    "sens": "la pirogue",
+    "illustration": "🛶",
+    "plan": 1
+   },
+   {
+    "x": 64,
+    "y": 58,
+    "mot": "onghwana",
+    "sens": "un enfant",
+    "illustration": "🧒",
+    "plan": 2
+   },
+   {
+    "x": 70,
+    "y": 82,
+    "mot": "aningo",
+    "sens": "l'eau",
+    "illustration": "💧",
+    "plan": 2,
+    "phrase": "Va myê aningo",
+    "phrase_fr": "Donne-moi de l'eau"
+   },
+   {
+    "x": 78,
+    "y": 88,
+    "mot": "ewêrê",
+    "sens": "le poisson",
+    "illustration": "🐟",
+    "plan": 2,
+    "cache": true,
+    "phrase": "Orungu wi ny'ewêrê",
+    "phrase_fr": "Les Orungu mangent du poisson"
+   },
+   {
+    "x": 40,
+    "y": 86,
+    "mot": "osênjêlê",
+    "sens": "la sardine des lacs",
+    "illustration": "🐟",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 86,
+    "y": 74,
+    "mot": "nguwu",
+    "sens": "l'hippopotame",
+    "illustration": "🦛",
+    "plan": 1,
+    "cache": true
+   },
+   {
+    "x": 92,
+    "y": 40,
+    "mot": "owonya-wonya",
+    "sens": "le papillon",
+    "illustration": "🦋",
+    "plan": 1
+   },
+   {
+    "x": 20,
+    "y": 80,
+    "mot": "mbêrê",
+    "sens": "une sardine",
+    "illustration": "🐟",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 4,
+    "y": 74,
+    "mot": "mpônô",
+    "sens": "le chemin",
+    "illustration": "🛤️",
+    "plan": 2
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   },
+   {
+    "x": 3,
+    "y": 9,
+    "libelle": "Vers la mer",
+    "scene": "mer",
+    "consigne": "Au bord de la mer : touche ce que tu vois, cherche ce qui se cache dans l'eau.",
+    "zones": [
+     {
+      "x": 80,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     },
+     {
+      "x": 50,
+      "y": 52,
+      "mot": "ncuwa",
+      "sens": "la mer",
+      "illustration": "🌊",
+      "plan": 0
+     },
+     {
+      "x": 36,
+      "y": 50,
+      "mot": "owaro",
+      "sens": "la pirogue",
+      "illustration": "🛶",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 44,
+      "mot": "rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 46,
+      "y": 66,
+      "mot": "ogôli",
+      "sens": "la corde",
+      "illustration": "🪢",
+      "plan": 2
+     },
+     {
+      "x": 60,
+      "y": 62,
+      "mot": "nkawa",
+      "sens": "le thon",
+      "illustration": "🐟",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 70,
+      "y": 70,
+      "mot": "civo",
+      "sens": "le rouge (poisson)",
+      "illustration": "🐠",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 88,
+      "y": 56,
+      "mot": "nkojê",
+      "sens": "le requin",
+      "illustration": "🦈",
+      "plan": 0,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 64,
+      "mot": "nyuwan",
+      "sens": "la raie",
+      "illustration": "🐟",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 14,
+      "y": 58,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 8,
+      "y": 40,
+      "mot": "imangatanga",
+      "sens": "les noix de coco",
+      "illustration": "🥥",
+      "plan": 1
+     },
+     {
+      "x": 20,
+      "y": 84,
+      "mot": "onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 58,
+      "y": 86,
+      "mot": "epokolo",
+      "sens": "le chapeau",
+      "illustration": "👒",
+      "plan": 2
+     },
+     {
+      "x": 74,
+      "y": 88,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 92,
+      "y": 84,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 2,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 1
+ },
+ {
+  "id": "sc-ntina-l20",
+  "lecon_id": "ntina-l20",
+  "type": "scene",
+  "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+  "scene": "village",
+  "zones": [
+   {
+    "x": 8,
+    "y": 36,
+    "mot": "nkala",
+    "sens": "le village",
+    "illustration": "🏘️",
+    "plan": 0,
+    "phrase": "Ncango si nkala",
+    "phrase_fr": "des nouvelles du village"
+   },
+   {
+    "x": 20,
+    "y": 46,
+    "mot": "nago",
+    "sens": "la maison",
+    "illustration": "🏠",
+    "plan": 1,
+    "phrase": "Nago yi re zange.",
+    "phrase_fr": "La maison est ouverte."
+   },
+   {
+    "x": 28,
+    "y": 62,
+    "mot": "Rerê",
+    "sens": "papa",
+    "illustration": "👨",
+    "plan": 1
+   },
+   {
+    "x": 34,
+    "y": 66,
+    "mot": "Ngwê",
+    "sens": "maman",
+    "illustration": "👩",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 78,
+    "mot": "Onghwana",
+    "sens": "un enfant",
+    "illustration": "🧒",
+    "plan": 2
+   },
+   {
+    "x": 48,
+    "y": 60,
+    "mot": "Tâta poyo",
+    "sens": "le grand-père",
+    "illustration": "👴",
+    "plan": 1
+   },
+   {
+    "x": 54,
+    "y": 64,
+    "mot": "Mâma poyo",
+    "sens": "la grand-mère",
+    "illustration": "👵",
+    "plan": 1
+   },
+   {
+    "x": 60,
+    "y": 74,
+    "mot": "Yâya",
+    "sens": "le frère aîné",
+    "illustration": "🧑",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 88,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 52,
+    "y": 82,
+    "mot": "ebongo",
+    "sens": "le banc",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 68,
+    "y": 84,
+    "mot": "Mbwa",
+    "sens": "le chien",
+    "illustration": "🐕",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "Njôgôni",
+    "sens": "la poule",
+    "illustration": "🐔",
+    "plan": 2,
+    "phrase": "Myê re nya pa njôgôni",
+    "phrase_fr": "j'ai mangé du poulet"
+   },
+   {
+    "x": 84,
+    "y": 76,
+    "mot": "Mboni",
+    "sens": "le cabri",
+    "illustration": "🐐",
+    "plan": 1
+   },
+   {
+    "x": 92,
+    "y": 62,
+    "mot": "Nyare",
+    "sens": "le bœuf, la vache",
+    "illustration": "🐄",
+    "plan": 0
+   },
+   {
+    "x": 16,
+    "y": 82,
+    "mot": "Pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 24,
+    "y": 86,
+    "mot": "ogulu",
+    "sens": "la gargoulette",
+    "illustration": "🏺",
+    "plan": 2
+   },
+   {
+    "x": 72,
+    "y": 40,
+    "mot": "erere",
+    "sens": "un arbre",
+    "illustration": "🌳",
+    "plan": 0
+   },
+   {
+    "x": 96,
+    "y": 88,
+    "mot": "okili",
+    "sens": "la route, le chemin",
+    "illustration": "🛣️",
+    "plan": 2
+   },
+   {
+    "x": 86,
+    "y": 12,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers la lagune",
+    "scene": "lagune",
+    "consigne": "Explore la lagune et la mangrove. Fais glisser le paysage.",
+    "zones": [
+     {
+      "x": 12,
+      "y": 14,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     },
+     {
+      "x": 22,
+      "y": 30,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 8,
+      "y": 46,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 30,
+      "y": 52,
+      "mot": "itanda",
+      "sens": "le palétuvier",
+      "illustration": "🌿",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 38,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 34,
+      "mot": "isômbô",
+      "sens": "le martin-pêcheur",
+      "illustration": "🐦",
+      "plan": 1
+     },
+     {
+      "x": 52,
+      "y": 60,
+      "mot": "mbene",
+      "sens": "l'étendue d'eau",
+      "illustration": "🏞️",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 66,
+      "mot": "owaro",
+      "sens": "la pirogue",
+      "illustration": "🛶",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 58,
+      "mot": "onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 70,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 78,
+      "y": 88,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 40,
+      "y": 86,
+      "mot": "osênjêlê",
+      "sens": "la sardine des lacs",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 86,
+      "y": 74,
+      "mot": "nguwu",
+      "sens": "l'hippopotame",
+      "illustration": "🦛",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 92,
+      "y": 40,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 1
+     },
+     {
+      "x": 20,
+      "y": 80,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 4,
+      "y": 74,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 3,
+    "y": 9,
+    "libelle": "Vers la forêt",
+    "scene": "foret",
+    "consigne": "Entre dans la forêt. Des animaux se cachent derrière les arbres : trouve-les.",
+    "zones": [
+     {
+      "x": 6,
+      "y": 40,
+      "mot": "iga",
+      "sens": "la forêt",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 18,
+      "y": 50,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 24,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 20,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 46,
+      "y": 30,
+      "mot": "nkêma",
+      "sens": "le singe",
+      "illustration": "🐒",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 62,
+      "mot": "njina",
+      "sens": "le gorille",
+      "illustration": "🦍",
+      "plan": 1
+     },
+     {
+      "x": 70,
+      "y": 58,
+      "mot": "njôgu",
+      "sens": "l'éléphant",
+      "illustration": "🐘",
+      "plan": 0
+     },
+     {
+      "x": 82,
+      "y": 66,
+      "mot": "nkambi",
+      "sens": "l'antilope",
+      "illustration": "🦌",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 52,
+      "mot": "njêgô",
+      "sens": "la panthère",
+      "illustration": "🐆",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 84,
+      "mot": "homba",
+      "sens": "le porc-épic",
+      "illustration": "🦔",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 62,
+      "y": 86,
+      "mot": "omamba",
+      "sens": "un serpent",
+      "illustration": "🐍",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 76,
+      "y": 24,
+      "mot": "ekuru",
+      "sens": "le hibou",
+      "illustration": "🦉",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 40,
+      "y": 88,
+      "mot": "ekaga",
+      "sens": "la tortue",
+      "illustration": "🐢",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 72,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 90,
+      "mot": "orônga",
+      "sens": "le champignon",
+      "illustration": "🍄",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 88,
+      "y": 84,
+      "mot": "ngowa",
+      "sens": "le sanglier",
+      "illustration": "🐗",
+      "plan": 2
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 38,
+    "y": 9,
+    "libelle": "Vers le marché",
+    "scene": "marche",
+    "consigne": "Au marché : touche chaque chose, écoute son nom.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 56,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 16,
+      "y": 70,
+      "mot": "ikôndô",
+      "sens": "la banane plantain",
+      "illustration": "🍌",
+      "plan": 2
+     },
+     {
+      "x": 24,
+      "y": 62,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 1,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 32,
+      "y": 70,
+      "mot": "nyama",
+      "sens": "la viande",
+      "illustration": "🍖",
+      "plan": 2
+     },
+     {
+      "x": 38,
+      "y": 60,
+      "mot": "ike",
+      "sens": "l'œuf",
+      "illustration": "🥚",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 72,
+      "mot": "mbenda",
+      "sens": "l'arachide",
+      "illustration": "🥜",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 60,
+      "mot": "ilasa",
+      "sens": "l'orange",
+      "illustration": "🍊",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 72,
+      "mot": "ntogolo",
+      "sens": "le piment",
+      "illustration": "🌶️",
+      "plan": 2,
+      "phrase": "ntogolo ya gelo, nö yïtôndo yê",
+      "phrase_fr": "c'est le piment rouge qu'il aime"
+     },
+     {
+      "x": 62,
+      "y": 60,
+      "mot": "ilosi",
+      "sens": "un citron",
+      "illustration": "🍋",
+      "plan": 1
+     },
+     {
+      "x": 68,
+      "y": 72,
+      "mot": "nyôndô",
+      "sens": "l'oignon",
+      "illustration": "🧅",
+      "plan": 2
+     },
+     {
+      "x": 74,
+      "y": 52,
+      "mot": "ikoko",
+      "sens": "la canne à sucre",
+      "illustration": "🎋",
+      "plan": 1
+     },
+     {
+      "x": 80,
+      "y": 70,
+      "mot": "oresi",
+      "sens": "le riz",
+      "illustration": "🍚",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 60,
+      "mot": "ezanga",
+      "sens": "le sel",
+      "illustration": "🧂",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 70,
+      "mot": "mpêmba",
+      "sens": "le pain",
+      "illustration": "🍞",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 86,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 30,
+      "y": 88,
+      "mot": "puka",
+      "sens": "le sac",
+      "illustration": "👜",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 88,
+      "mot": "sika",
+      "sens": "l'argent",
+      "illustration": "💰",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 66,
+      "y": 88,
+      "mot": "njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 88,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2
+     },
+     {
+      "x": 60,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   },
+   {
+    "x": 64,
+    "y": 9,
+    "libelle": "Entrer dans la maison",
+    "scene": "maison",
+    "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+    "zones": [
+     {
+      "x": 14,
+      "y": 30,
+      "mot": "windê",
+      "sens": "la fenêtre",
+      "illustration": "🪟",
+      "plan": 0
+     },
+     {
+      "x": 10,
+      "y": 74,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 18,
+      "y": 66,
+      "mot": "incwana",
+      "sens": "les marmites",
+      "illustration": "🍲",
+      "plan": 1
+     },
+     {
+      "x": 24,
+      "y": 50,
+      "mot": "izêwê",
+      "sens": "les cuillères",
+      "illustration": "🥄",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 58,
+      "mot": "intuma",
+      "sens": "les fourchettes",
+      "illustration": "🍴",
+      "plan": 1
+     },
+     {
+      "x": 32,
+      "y": 50,
+      "mot": "epêlê",
+      "sens": "l'assiette",
+      "illustration": "🍽️",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 58,
+      "mot": "elasi",
+      "sens": "le verre",
+      "illustration": "🥛",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 50,
+      "mot": "kopu",
+      "sens": "la tasse",
+      "illustration": "☕",
+      "plan": 1
+     },
+     {
+      "x": 22,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "inyela",
+      "sens": "la poubelle",
+      "illustration": "🗑️",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 76,
+      "mot": "ezômbôlô",
+      "sens": "le balai",
+      "illustration": "🧹",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 46,
+      "mot": "iguge",
+      "sens": "la porte",
+      "illustration": "🚪",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 14,
+      "mot": "ozange",
+      "sens": "la lumière",
+      "illustration": "💡",
+      "plan": 0
+     },
+     {
+      "x": 72,
+      "y": 70,
+      "mot": "odo",
+      "sens": "le lit",
+      "illustration": "🛏️",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 40,
+      "mot": "eyeno",
+      "sens": "le miroir",
+      "illustration": "🪞",
+      "plan": 1
+     },
+     {
+      "x": 86,
+      "y": 50,
+      "mot": "kôbôti y'ozira",
+      "sens": "le placard",
+      "illustration": "🗄️",
+      "plan": 1
+     },
+     {
+      "x": 58,
+      "y": 76,
+      "mot": "epwe z'atanga",
+      "sens": "la chaise",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 94,
+      "y": 82,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 96,
+      "y": 40,
+      "mot": "mpandino",
+      "sens": "l'échelle",
+      "illustration": "🪜",
+      "plan": 1
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 13
+ },
+ {
+  "id": "sc-ntina-l22",
+  "lecon_id": "ntina-l22",
+  "type": "scene",
+  "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+  "scene": "village",
+  "zones": [
+   {
+    "x": 8,
+    "y": 36,
+    "mot": "nkala",
+    "sens": "le village",
+    "illustration": "🏘️",
+    "plan": 0,
+    "phrase": "Ncango si nkala",
+    "phrase_fr": "des nouvelles du village"
+   },
+   {
+    "x": 20,
+    "y": 46,
+    "mot": "nago",
+    "sens": "la maison",
+    "illustration": "🏠",
+    "plan": 1,
+    "phrase": "Nago yi re zange.",
+    "phrase_fr": "La maison est ouverte."
+   },
+   {
+    "x": 28,
+    "y": 62,
+    "mot": "Rerê",
+    "sens": "papa",
+    "illustration": "👨",
+    "plan": 1
+   },
+   {
+    "x": 34,
+    "y": 66,
+    "mot": "Ngwê",
+    "sens": "maman",
+    "illustration": "👩",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 78,
+    "mot": "Onghwana",
+    "sens": "un enfant",
+    "illustration": "🧒",
+    "plan": 2
+   },
+   {
+    "x": 48,
+    "y": 60,
+    "mot": "Tâta poyo",
+    "sens": "le grand-père",
+    "illustration": "👴",
+    "plan": 1
+   },
+   {
+    "x": 54,
+    "y": 64,
+    "mot": "Mâma poyo",
+    "sens": "la grand-mère",
+    "illustration": "👵",
+    "plan": 1
+   },
+   {
+    "x": 60,
+    "y": 74,
+    "mot": "Yâya",
+    "sens": "le frère aîné",
+    "illustration": "🧑",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 88,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 52,
+    "y": 82,
+    "mot": "ebongo",
+    "sens": "le banc",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 68,
+    "y": 84,
+    "mot": "Mbwa",
+    "sens": "le chien",
+    "illustration": "🐕",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "Njôgôni",
+    "sens": "la poule",
+    "illustration": "🐔",
+    "plan": 2,
+    "phrase": "Myê re nya pa njôgôni",
+    "phrase_fr": "j'ai mangé du poulet"
+   },
+   {
+    "x": 84,
+    "y": 76,
+    "mot": "Mboni",
+    "sens": "le cabri",
+    "illustration": "🐐",
+    "plan": 1
+   },
+   {
+    "x": 92,
+    "y": 62,
+    "mot": "Nyare",
+    "sens": "le bœuf, la vache",
+    "illustration": "🐄",
+    "plan": 0
+   },
+   {
+    "x": 16,
+    "y": 82,
+    "mot": "Pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 24,
+    "y": 86,
+    "mot": "ogulu",
+    "sens": "la gargoulette",
+    "illustration": "🏺",
+    "plan": 2
+   },
+   {
+    "x": 72,
+    "y": 40,
+    "mot": "erere",
+    "sens": "un arbre",
+    "illustration": "🌳",
+    "plan": 0
+   },
+   {
+    "x": 96,
+    "y": 88,
+    "mot": "okili",
+    "sens": "la route, le chemin",
+    "illustration": "🛣️",
+    "plan": 2
+   },
+   {
+    "x": 86,
+    "y": 12,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers la lagune",
+    "scene": "lagune",
+    "consigne": "Explore la lagune et la mangrove. Fais glisser le paysage.",
+    "zones": [
+     {
+      "x": 12,
+      "y": 14,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     },
+     {
+      "x": 22,
+      "y": 30,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 8,
+      "y": 46,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 30,
+      "y": 52,
+      "mot": "itanda",
+      "sens": "le palétuvier",
+      "illustration": "🌿",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 38,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 34,
+      "mot": "isômbô",
+      "sens": "le martin-pêcheur",
+      "illustration": "🐦",
+      "plan": 1
+     },
+     {
+      "x": 52,
+      "y": 60,
+      "mot": "mbene",
+      "sens": "l'étendue d'eau",
+      "illustration": "🏞️",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 66,
+      "mot": "owaro",
+      "sens": "la pirogue",
+      "illustration": "🛶",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 58,
+      "mot": "onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 70,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 78,
+      "y": 88,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 40,
+      "y": 86,
+      "mot": "osênjêlê",
+      "sens": "la sardine des lacs",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 86,
+      "y": 74,
+      "mot": "nguwu",
+      "sens": "l'hippopotame",
+      "illustration": "🦛",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 92,
+      "y": 40,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 1
+     },
+     {
+      "x": 20,
+      "y": 80,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 4,
+      "y": 74,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 3,
+    "y": 9,
+    "libelle": "Vers la forêt",
+    "scene": "foret",
+    "consigne": "Entre dans la forêt. Des animaux se cachent derrière les arbres : trouve-les.",
+    "zones": [
+     {
+      "x": 6,
+      "y": 40,
+      "mot": "iga",
+      "sens": "la forêt",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 18,
+      "y": 50,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 24,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 20,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 46,
+      "y": 30,
+      "mot": "nkêma",
+      "sens": "le singe",
+      "illustration": "🐒",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 62,
+      "mot": "njina",
+      "sens": "le gorille",
+      "illustration": "🦍",
+      "plan": 1
+     },
+     {
+      "x": 70,
+      "y": 58,
+      "mot": "njôgu",
+      "sens": "l'éléphant",
+      "illustration": "🐘",
+      "plan": 0
+     },
+     {
+      "x": 82,
+      "y": 66,
+      "mot": "nkambi",
+      "sens": "l'antilope",
+      "illustration": "🦌",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 52,
+      "mot": "njêgô",
+      "sens": "la panthère",
+      "illustration": "🐆",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 84,
+      "mot": "homba",
+      "sens": "le porc-épic",
+      "illustration": "🦔",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 62,
+      "y": 86,
+      "mot": "omamba",
+      "sens": "un serpent",
+      "illustration": "🐍",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 76,
+      "y": 24,
+      "mot": "ekuru",
+      "sens": "le hibou",
+      "illustration": "🦉",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 40,
+      "y": 88,
+      "mot": "ekaga",
+      "sens": "la tortue",
+      "illustration": "🐢",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 72,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 90,
+      "mot": "orônga",
+      "sens": "le champignon",
+      "illustration": "🍄",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 88,
+      "y": 84,
+      "mot": "ngowa",
+      "sens": "le sanglier",
+      "illustration": "🐗",
+      "plan": 2
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 38,
+    "y": 9,
+    "libelle": "Vers le marché",
+    "scene": "marche",
+    "consigne": "Au marché : touche chaque chose, écoute son nom.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 56,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 16,
+      "y": 70,
+      "mot": "ikôndô",
+      "sens": "la banane plantain",
+      "illustration": "🍌",
+      "plan": 2
+     },
+     {
+      "x": 24,
+      "y": 62,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 1,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 32,
+      "y": 70,
+      "mot": "nyama",
+      "sens": "la viande",
+      "illustration": "🍖",
+      "plan": 2
+     },
+     {
+      "x": 38,
+      "y": 60,
+      "mot": "ike",
+      "sens": "l'œuf",
+      "illustration": "🥚",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 72,
+      "mot": "mbenda",
+      "sens": "l'arachide",
+      "illustration": "🥜",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 60,
+      "mot": "ilasa",
+      "sens": "l'orange",
+      "illustration": "🍊",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 72,
+      "mot": "ntogolo",
+      "sens": "le piment",
+      "illustration": "🌶️",
+      "plan": 2,
+      "phrase": "ntogolo ya gelo, nö yïtôndo yê",
+      "phrase_fr": "c'est le piment rouge qu'il aime"
+     },
+     {
+      "x": 62,
+      "y": 60,
+      "mot": "ilosi",
+      "sens": "un citron",
+      "illustration": "🍋",
+      "plan": 1
+     },
+     {
+      "x": 68,
+      "y": 72,
+      "mot": "nyôndô",
+      "sens": "l'oignon",
+      "illustration": "🧅",
+      "plan": 2
+     },
+     {
+      "x": 74,
+      "y": 52,
+      "mot": "ikoko",
+      "sens": "la canne à sucre",
+      "illustration": "🎋",
+      "plan": 1
+     },
+     {
+      "x": 80,
+      "y": 70,
+      "mot": "oresi",
+      "sens": "le riz",
+      "illustration": "🍚",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 60,
+      "mot": "ezanga",
+      "sens": "le sel",
+      "illustration": "🧂",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 70,
+      "mot": "mpêmba",
+      "sens": "le pain",
+      "illustration": "🍞",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 86,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 30,
+      "y": 88,
+      "mot": "puka",
+      "sens": "le sac",
+      "illustration": "👜",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 88,
+      "mot": "sika",
+      "sens": "l'argent",
+      "illustration": "💰",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 66,
+      "y": 88,
+      "mot": "njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 88,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2
+     },
+     {
+      "x": 60,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   },
+   {
+    "x": 64,
+    "y": 9,
+    "libelle": "Entrer dans la maison",
+    "scene": "maison",
+    "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+    "zones": [
+     {
+      "x": 14,
+      "y": 30,
+      "mot": "windê",
+      "sens": "la fenêtre",
+      "illustration": "🪟",
+      "plan": 0
+     },
+     {
+      "x": 10,
+      "y": 74,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 18,
+      "y": 66,
+      "mot": "incwana",
+      "sens": "les marmites",
+      "illustration": "🍲",
+      "plan": 1
+     },
+     {
+      "x": 24,
+      "y": 50,
+      "mot": "izêwê",
+      "sens": "les cuillères",
+      "illustration": "🥄",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 58,
+      "mot": "intuma",
+      "sens": "les fourchettes",
+      "illustration": "🍴",
+      "plan": 1
+     },
+     {
+      "x": 32,
+      "y": 50,
+      "mot": "epêlê",
+      "sens": "l'assiette",
+      "illustration": "🍽️",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 58,
+      "mot": "elasi",
+      "sens": "le verre",
+      "illustration": "🥛",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 50,
+      "mot": "kopu",
+      "sens": "la tasse",
+      "illustration": "☕",
+      "plan": 1
+     },
+     {
+      "x": 22,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "inyela",
+      "sens": "la poubelle",
+      "illustration": "🗑️",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 76,
+      "mot": "ezômbôlô",
+      "sens": "le balai",
+      "illustration": "🧹",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 46,
+      "mot": "iguge",
+      "sens": "la porte",
+      "illustration": "🚪",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 14,
+      "mot": "ozange",
+      "sens": "la lumière",
+      "illustration": "💡",
+      "plan": 0
+     },
+     {
+      "x": 72,
+      "y": 70,
+      "mot": "odo",
+      "sens": "le lit",
+      "illustration": "🛏️",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 40,
+      "mot": "eyeno",
+      "sens": "le miroir",
+      "illustration": "🪞",
+      "plan": 1
+     },
+     {
+      "x": 86,
+      "y": 50,
+      "mot": "kôbôti y'ozira",
+      "sens": "le placard",
+      "illustration": "🗄️",
+      "plan": 1
+     },
+     {
+      "x": 58,
+      "y": 76,
+      "mot": "epwe z'atanga",
+      "sens": "la chaise",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 94,
+      "y": 82,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 96,
+      "y": 40,
+      "mot": "mpandino",
+      "sens": "l'échelle",
+      "illustration": "🪜",
+      "plan": 1
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 11
+ },
+ {
+  "id": "sc-ntina-l23",
+  "lecon_id": "ntina-l23",
+  "type": "scene",
+  "consigne": "Entre dans la forêt. Des animaux se cachent derrière les arbres : trouve-les.",
+  "scene": "foret",
+  "zones": [
+   {
+    "x": 6,
+    "y": 40,
+    "mot": "iga",
+    "sens": "la forêt",
+    "illustration": "🌳",
+    "plan": 0
+   },
+   {
+    "x": 18,
+    "y": 50,
+    "mot": "erere",
+    "sens": "un arbre",
+    "illustration": "🌳",
+    "plan": 1
+   },
+   {
+    "x": 28,
+    "y": 24,
+    "mot": "ijavi",
+    "sens": "les feuilles",
+    "illustration": "🍃",
+    "plan": 1
+   },
+   {
+    "x": 36,
+    "y": 20,
+    "mot": "ngozo",
+    "sens": "le perroquet",
+    "illustration": "🦜",
+    "plan": 1
+   },
+   {
+    "x": 46,
+    "y": 30,
+    "mot": "nkêma",
+    "sens": "le singe",
+    "illustration": "🐒",
+    "plan": 1
+   },
+   {
+    "x": 56,
+    "y": 62,
+    "mot": "njina",
+    "sens": "le gorille",
+    "illustration": "🦍",
+    "plan": 1
+   },
+   {
+    "x": 70,
+    "y": 58,
+    "mot": "njôgu",
+    "sens": "l'éléphant",
+    "illustration": "🐘",
+    "plan": 0
+   },
+   {
+    "x": 82,
+    "y": 66,
+    "mot": "nkambi",
+    "sens": "l'antilope",
+    "illustration": "🦌",
+    "plan": 1
+   },
+   {
+    "x": 92,
+    "y": 52,
+    "mot": "njêgô",
+    "sens": "la panthère",
+    "illustration": "🐆",
+    "plan": 1,
+    "cache": true
+   },
+   {
+    "x": 24,
+    "y": 84,
+    "mot": "homba",
+    "sens": "le porc-épic",
+    "illustration": "🦔",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 62,
+    "y": 86,
+    "mot": "omamba",
+    "sens": "un serpent",
+    "illustration": "🐍",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 76,
+    "y": 24,
+    "mot": "ekuru",
+    "sens": "le hibou",
+    "illustration": "🦉",
+    "plan": 1,
+    "cache": true
+   },
+   {
+    "x": 40,
+    "y": 88,
+    "mot": "ekaga",
+    "sens": "la tortue",
+    "illustration": "🐢",
+    "plan": 2
+   },
+   {
+    "x": 12,
+    "y": 72,
+    "mot": "owonya-wonya",
+    "sens": "le papillon",
+    "illustration": "🦋",
+    "plan": 2
+   },
+   {
+    "x": 50,
+    "y": 90,
+    "mot": "orônga",
+    "sens": "le champignon",
+    "illustration": "🍄",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 88,
+    "y": 84,
+    "mot": "ngowa",
+    "sens": "le sanglier",
+    "illustration": "🐗",
+    "plan": 2
+   },
+   {
+    "x": 4,
+    "y": 86,
+    "mot": "mpônô",
+    "sens": "le chemin",
+    "illustration": "🛤️",
+    "plan": 2
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 12
+ },
+ {
+  "id": "sc-ntina-l24",
+  "lecon_id": "ntina-l24",
+  "type": "scene",
+  "consigne": "Au marché : touche chaque chose, écoute son nom.",
+  "scene": "marche",
+  "zones": [
+   {
+    "x": 8,
+    "y": 56,
+    "mot": "Ngwê",
+    "sens": "maman",
+    "illustration": "👩",
+    "plan": 1
+   },
+   {
+    "x": 16,
+    "y": 70,
+    "mot": "ikôndô",
+    "sens": "la banane plantain",
+    "illustration": "🍌",
+    "plan": 2
+   },
+   {
+    "x": 24,
+    "y": 62,
+    "mot": "ewêrê",
+    "sens": "le poisson",
+    "illustration": "🐟",
+    "plan": 1,
+    "phrase": "Orungu wi ny'ewêrê",
+    "phrase_fr": "Les Orungu mangent du poisson"
+   },
+   {
+    "x": 32,
+    "y": 70,
+    "mot": "nyama",
+    "sens": "la viande",
+    "illustration": "🍖",
+    "plan": 2
+   },
+   {
+    "x": 38,
+    "y": 60,
+    "mot": "ike",
+    "sens": "l'œuf",
+    "illustration": "🥚",
+    "plan": 1
+   },
+   {
+    "x": 44,
+    "y": 72,
+    "mot": "mbenda",
+    "sens": "l'arachide",
+    "illustration": "🥜",
+    "plan": 2
+   },
+   {
+    "x": 50,
+    "y": 60,
+    "mot": "ilasa",
+    "sens": "l'orange",
+    "illustration": "🍊",
+    "plan": 1
+   },
+   {
+    "x": 56,
+    "y": 72,
+    "mot": "ntogolo",
+    "sens": "le piment",
+    "illustration": "🌶️",
+    "plan": 2,
+    "phrase": "ntogolo ya gelo, nö yïtôndo yê",
+    "phrase_fr": "c'est le piment rouge qu'il aime"
+   },
+   {
+    "x": 62,
+    "y": 60,
+    "mot": "ilosi",
+    "sens": "un citron",
+    "illustration": "🍋",
+    "plan": 1
+   },
+   {
+    "x": 68,
+    "y": 72,
+    "mot": "nyôndô",
+    "sens": "l'oignon",
+    "illustration": "🧅",
+    "plan": 2
+   },
+   {
+    "x": 74,
+    "y": 52,
+    "mot": "ikoko",
+    "sens": "la canne à sucre",
+    "illustration": "🎋",
+    "plan": 1
+   },
+   {
+    "x": 80,
+    "y": 70,
+    "mot": "oresi",
+    "sens": "le riz",
+    "illustration": "🍚",
+    "plan": 2
+   },
+   {
+    "x": 86,
+    "y": 60,
+    "mot": "ezanga",
+    "sens": "le sel",
+    "illustration": "🧂",
+    "plan": 1
+   },
+   {
+    "x": 92,
+    "y": 70,
+    "mot": "mpêmba",
+    "sens": "le pain",
+    "illustration": "🍞",
+    "plan": 2
+   },
+   {
+    "x": 12,
+    "y": 86,
+    "mot": "otondo",
+    "sens": "le panier",
+    "illustration": "🧺",
+    "plan": 2
+   },
+   {
+    "x": 30,
+    "y": 88,
+    "mot": "puka",
+    "sens": "le sac",
+    "illustration": "👜",
+    "plan": 2
+   },
+   {
+    "x": 48,
+    "y": 88,
+    "mot": "sika",
+    "sens": "l'argent",
+    "illustration": "💰",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 66,
+    "y": 88,
+    "mot": "njôgôni",
+    "sens": "la poule",
+    "illustration": "🐔",
+    "plan": 2,
+    "phrase": "Myê re nya pa njôgôni",
+    "phrase_fr": "j'ai mangé du poulet"
+   },
+   {
+    "x": 84,
+    "y": 88,
+    "mot": "mbêrê",
+    "sens": "une sardine",
+    "illustration": "🐟",
+    "plan": 2
+   },
+   {
+    "x": 60,
+    "y": 12,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 13
+ },
+ {
+  "id": "sc-ntina-l26",
+  "lecon_id": "ntina-l26",
+  "type": "scene",
+  "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+  "scene": "maison",
+  "zones": [
+   {
+    "x": 14,
+    "y": 30,
+    "mot": "windê",
+    "sens": "la fenêtre",
+    "illustration": "🪟",
+    "plan": 0
+   },
+   {
+    "x": 10,
+    "y": 74,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 18,
+    "y": 66,
+    "mot": "incwana",
+    "sens": "les marmites",
+    "illustration": "🍲",
+    "plan": 1
+   },
+   {
+    "x": 24,
+    "y": 50,
+    "mot": "izêwê",
+    "sens": "les cuillères",
+    "illustration": "🥄",
+    "plan": 1
+   },
+   {
+    "x": 28,
+    "y": 58,
+    "mot": "intuma",
+    "sens": "les fourchettes",
+    "illustration": "🍴",
+    "plan": 1
+   },
+   {
+    "x": 32,
+    "y": 50,
+    "mot": "epêlê",
+    "sens": "l'assiette",
+    "illustration": "🍽️",
+    "plan": 1
+   },
+   {
+    "x": 36,
+    "y": 58,
+    "mot": "elasi",
+    "sens": "le verre",
+    "illustration": "🥛",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 50,
+    "mot": "kopu",
+    "sens": "la tasse",
+    "illustration": "☕",
+    "plan": 1
+   },
+   {
+    "x": 22,
+    "y": 82,
+    "mot": "aningo",
+    "sens": "l'eau",
+    "illustration": "💧",
+    "plan": 2,
+    "phrase": "Va myê aningo",
+    "phrase_fr": "Donne-moi de l'eau"
+   },
+   {
+    "x": 4,
+    "y": 86,
+    "mot": "inyela",
+    "sens": "la poubelle",
+    "illustration": "🗑️",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 76,
+    "mot": "ezômbôlô",
+    "sens": "le balai",
+    "illustration": "🧹",
+    "plan": 2
+   },
+   {
+    "x": 50,
+    "y": 46,
+    "mot": "iguge",
+    "sens": "la porte",
+    "illustration": "🚪",
+    "plan": 0
+   },
+   {
+    "x": 60,
+    "y": 14,
+    "mot": "ozange",
+    "sens": "la lumière",
+    "illustration": "💡",
+    "plan": 0
+   },
+   {
+    "x": 72,
+    "y": 70,
+    "mot": "odo",
+    "sens": "le lit",
+    "illustration": "🛏️",
+    "plan": 1
+   },
+   {
+    "x": 64,
+    "y": 40,
+    "mot": "eyeno",
+    "sens": "le miroir",
+    "illustration": "🪞",
+    "plan": 1
+   },
+   {
+    "x": 86,
+    "y": 50,
+    "mot": "kôbôti y'ozira",
+    "sens": "le placard",
+    "illustration": "🗄️",
+    "plan": 1
+   },
+   {
+    "x": 58,
+    "y": 76,
+    "mot": "epwe z'atanga",
+    "sens": "la chaise",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 94,
+    "y": 82,
+    "mot": "otondo",
+    "sens": "le panier",
+    "illustration": "🧺",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 96,
+    "y": 40,
+    "mot": "mpandino",
+    "sens": "l'échelle",
+    "illustration": "🪜",
+    "plan": 1
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 12
+ },
+ {
+  "id": "sc-ntina-l28",
+  "lecon_id": "ntina-l28",
+  "type": "scene",
+  "consigne": "Regarde le ciel du matin à la nuit : le soleil, la lune, les étoiles.",
+  "scene": "ciel",
+  "zones": [
+   {
+    "x": 6,
+    "y": 60,
+    "mot": "ibanga",
+    "sens": "le matin",
+    "illustration": "🌅",
+    "plan": 0
+   },
+   {
+    "x": 18,
+    "y": 18,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   },
+   {
+    "x": 30,
+    "y": 30,
+    "mot": "owenja",
+    "sens": "la journée",
+    "illustration": "🌤️",
+    "plan": 0
+   },
+   {
+    "x": 38,
+    "y": 46,
+    "mot": "ngozo",
+    "sens": "le perroquet",
+    "illustration": "🦜",
+    "plan": 1
+   },
+   {
+    "x": 46,
+    "y": 24,
+    "mot": "ningo",
+    "sens": "la pluie",
+    "illustration": "🌧️",
+    "plan": 0
+   },
+   {
+    "x": 54,
+    "y": 40,
+    "mot": "ogula",
+    "sens": "la tornade",
+    "illustration": "🌪️",
+    "plan": 0,
+    "cache": true
+   },
+   {
+    "x": 62,
+    "y": 60,
+    "mot": "nkolo",
+    "sens": "le soir",
+    "illustration": "🌇",
+    "plan": 0
+   },
+   {
+    "x": 70,
+    "y": 40,
+    "mot": "ogwêra",
+    "sens": "la nuit",
+    "illustration": "🌃",
+    "plan": 0
+   },
+   {
+    "x": 78,
+    "y": 18,
+    "mot": "ogwêli",
+    "sens": "la lune",
+    "illustration": "🌙",
+    "plan": 0
+   },
+   {
+    "x": 86,
+    "y": 28,
+    "mot": "ogêgêni",
+    "sens": "l'étoile",
+    "illustration": "⭐",
+    "plan": 0
+   },
+   {
+    "x": 92,
+    "y": 14,
+    "mot": "inanga",
+    "sens": "le clair de lune",
+    "illustration": "🌕",
+    "plan": 0,
+    "cache": true
+   },
+   {
+    "x": 82,
+    "y": 66,
+    "mot": "ekuru",
+    "sens": "le hibou",
+    "illustration": "🦉",
+    "plan": 1,
+    "cache": true
+   },
+   {
+    "x": 50,
+    "y": 86,
+    "mot": "nce",
+    "sens": "la terre",
+    "illustration": "🌍",
+    "plan": 2
+   },
+   {
+    "x": 26,
+    "y": 82,
+    "mot": "nkala",
+    "sens": "le village",
+    "illustration": "🏘️",
+    "plan": 1,
+    "phrase": "Ncango si nkala",
+    "phrase_fr": "des nouvelles du village"
+   },
+   {
+    "x": 94,
+    "y": 74,
+    "mot": "igwêra",
+    "sens": "l'heure",
+    "illustration": "🕐",
+    "plan": 1
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 12
+ },
+ {
+  "id": "sc-ogendo-l3",
+  "lecon_id": "ogendo-l3",
+  "type": "scene",
+  "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+  "scene": "maison",
+  "zones": [
+   {
+    "x": 14,
+    "y": 30,
+    "mot": "windê",
+    "sens": "la fenêtre",
+    "illustration": "🪟",
+    "plan": 0
+   },
+   {
+    "x": 10,
+    "y": 74,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 18,
+    "y": 66,
+    "mot": "incwana",
+    "sens": "les marmites",
+    "illustration": "🍲",
+    "plan": 1
+   },
+   {
+    "x": 24,
+    "y": 50,
+    "mot": "izêwê",
+    "sens": "les cuillères",
+    "illustration": "🥄",
+    "plan": 1
+   },
+   {
+    "x": 28,
+    "y": 58,
+    "mot": "intuma",
+    "sens": "les fourchettes",
+    "illustration": "🍴",
+    "plan": 1
+   },
+   {
+    "x": 32,
+    "y": 50,
+    "mot": "epêlê",
+    "sens": "l'assiette",
+    "illustration": "🍽️",
+    "plan": 1
+   },
+   {
+    "x": 36,
+    "y": 58,
+    "mot": "elasi",
+    "sens": "le verre",
+    "illustration": "🥛",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 50,
+    "mot": "kopu",
+    "sens": "la tasse",
+    "illustration": "☕",
+    "plan": 1
+   },
+   {
+    "x": 22,
+    "y": 82,
+    "mot": "aningo",
+    "sens": "l'eau",
+    "illustration": "💧",
+    "plan": 2,
+    "phrase": "Va myê aningo",
+    "phrase_fr": "Donne-moi de l'eau"
+   },
+   {
+    "x": 4,
+    "y": 86,
+    "mot": "inyela",
+    "sens": "la poubelle",
+    "illustration": "🗑️",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 76,
+    "mot": "ezômbôlô",
+    "sens": "le balai",
+    "illustration": "🧹",
+    "plan": 2
+   },
+   {
+    "x": 50,
+    "y": 46,
+    "mot": "iguge",
+    "sens": "la porte",
+    "illustration": "🚪",
+    "plan": 0
+   },
+   {
+    "x": 60,
+    "y": 14,
+    "mot": "ozange",
+    "sens": "la lumière",
+    "illustration": "💡",
+    "plan": 0
+   },
+   {
+    "x": 72,
+    "y": 70,
+    "mot": "odo",
+    "sens": "le lit",
+    "illustration": "🛏️",
+    "plan": 1
+   },
+   {
+    "x": 64,
+    "y": 40,
+    "mot": "eyeno",
+    "sens": "le miroir",
+    "illustration": "🪞",
+    "plan": 1
+   },
+   {
+    "x": 86,
+    "y": 50,
+    "mot": "kôbôti y'ozira",
+    "sens": "le placard",
+    "illustration": "🗄️",
+    "plan": 1
+   },
+   {
+    "x": 58,
+    "y": 76,
+    "mot": "epwe z'atanga",
+    "sens": "la chaise",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 94,
+    "y": 82,
+    "mot": "otondo",
+    "sens": "le panier",
+    "illustration": "🧺",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 96,
+    "y": 40,
+    "mot": "mpandino",
+    "sens": "l'échelle",
+    "illustration": "🪜",
+    "plan": 1
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 22
+ },
+ {
+  "id": "sc-ogendo-l4",
+  "lecon_id": "ogendo-l4",
+  "type": "scene",
+  "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+  "scene": "maison",
+  "zones": [
+   {
+    "x": 14,
+    "y": 30,
+    "mot": "windê",
+    "sens": "la fenêtre",
+    "illustration": "🪟",
+    "plan": 0
+   },
+   {
+    "x": 10,
+    "y": 74,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 18,
+    "y": 66,
+    "mot": "incwana",
+    "sens": "les marmites",
+    "illustration": "🍲",
+    "plan": 1
+   },
+   {
+    "x": 24,
+    "y": 50,
+    "mot": "izêwê",
+    "sens": "les cuillères",
+    "illustration": "🥄",
+    "plan": 1
+   },
+   {
+    "x": 28,
+    "y": 58,
+    "mot": "intuma",
+    "sens": "les fourchettes",
+    "illustration": "🍴",
+    "plan": 1
+   },
+   {
+    "x": 32,
+    "y": 50,
+    "mot": "epêlê",
+    "sens": "l'assiette",
+    "illustration": "🍽️",
+    "plan": 1
+   },
+   {
+    "x": 36,
+    "y": 58,
+    "mot": "elasi",
+    "sens": "le verre",
+    "illustration": "🥛",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 50,
+    "mot": "kopu",
+    "sens": "la tasse",
+    "illustration": "☕",
+    "plan": 1
+   },
+   {
+    "x": 22,
+    "y": 82,
+    "mot": "aningo",
+    "sens": "l'eau",
+    "illustration": "💧",
+    "plan": 2,
+    "phrase": "Va myê aningo",
+    "phrase_fr": "Donne-moi de l'eau"
+   },
+   {
+    "x": 4,
+    "y": 86,
+    "mot": "inyela",
+    "sens": "la poubelle",
+    "illustration": "🗑️",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 76,
+    "mot": "ezômbôlô",
+    "sens": "le balai",
+    "illustration": "🧹",
+    "plan": 2
+   },
+   {
+    "x": 50,
+    "y": 46,
+    "mot": "iguge",
+    "sens": "la porte",
+    "illustration": "🚪",
+    "plan": 0
+   },
+   {
+    "x": 60,
+    "y": 14,
+    "mot": "ozange",
+    "sens": "la lumière",
+    "illustration": "💡",
+    "plan": 0
+   },
+   {
+    "x": 72,
+    "y": 70,
+    "mot": "odo",
+    "sens": "le lit",
+    "illustration": "🛏️",
+    "plan": 1
+   },
+   {
+    "x": 64,
+    "y": 40,
+    "mot": "eyeno",
+    "sens": "le miroir",
+    "illustration": "🪞",
+    "plan": 1
+   },
+   {
+    "x": 86,
+    "y": 50,
+    "mot": "kôbôti y'ozira",
+    "sens": "le placard",
+    "illustration": "🗄️",
+    "plan": 1
+   },
+   {
+    "x": 58,
+    "y": 76,
+    "mot": "epwe z'atanga",
+    "sens": "la chaise",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 94,
+    "y": 82,
+    "mot": "otondo",
+    "sens": "le panier",
+    "illustration": "🧺",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 96,
+    "y": 40,
+    "mot": "mpandino",
+    "sens": "l'échelle",
+    "illustration": "🪜",
+    "plan": 1
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 21
+ },
+ {
+  "id": "sc-ogendo-l5",
+  "lecon_id": "ogendo-l5",
+  "type": "scene",
+  "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+  "scene": "maison",
+  "zones": [
+   {
+    "x": 14,
+    "y": 30,
+    "mot": "windê",
+    "sens": "la fenêtre",
+    "illustration": "🪟",
+    "plan": 0
+   },
+   {
+    "x": 10,
+    "y": 74,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 18,
+    "y": 66,
+    "mot": "incwana",
+    "sens": "les marmites",
+    "illustration": "🍲",
+    "plan": 1
+   },
+   {
+    "x": 24,
+    "y": 50,
+    "mot": "izêwê",
+    "sens": "les cuillères",
+    "illustration": "🥄",
+    "plan": 1
+   },
+   {
+    "x": 28,
+    "y": 58,
+    "mot": "intuma",
+    "sens": "les fourchettes",
+    "illustration": "🍴",
+    "plan": 1
+   },
+   {
+    "x": 32,
+    "y": 50,
+    "mot": "epêlê",
+    "sens": "l'assiette",
+    "illustration": "🍽️",
+    "plan": 1
+   },
+   {
+    "x": 36,
+    "y": 58,
+    "mot": "elasi",
+    "sens": "le verre",
+    "illustration": "🥛",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 50,
+    "mot": "kopu",
+    "sens": "la tasse",
+    "illustration": "☕",
+    "plan": 1
+   },
+   {
+    "x": 22,
+    "y": 82,
+    "mot": "aningo",
+    "sens": "l'eau",
+    "illustration": "💧",
+    "plan": 2,
+    "phrase": "Va myê aningo",
+    "phrase_fr": "Donne-moi de l'eau"
+   },
+   {
+    "x": 4,
+    "y": 86,
+    "mot": "inyela",
+    "sens": "la poubelle",
+    "illustration": "🗑️",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 76,
+    "mot": "ezômbôlô",
+    "sens": "le balai",
+    "illustration": "🧹",
+    "plan": 2
+   },
+   {
+    "x": 50,
+    "y": 46,
+    "mot": "iguge",
+    "sens": "la porte",
+    "illustration": "🚪",
+    "plan": 0
+   },
+   {
+    "x": 60,
+    "y": 14,
+    "mot": "ozange",
+    "sens": "la lumière",
+    "illustration": "💡",
+    "plan": 0
+   },
+   {
+    "x": 72,
+    "y": 70,
+    "mot": "odo",
+    "sens": "le lit",
+    "illustration": "🛏️",
+    "plan": 1
+   },
+   {
+    "x": 64,
+    "y": 40,
+    "mot": "eyeno",
+    "sens": "le miroir",
+    "illustration": "🪞",
+    "plan": 1
+   },
+   {
+    "x": 86,
+    "y": 50,
+    "mot": "kôbôti y'ozira",
+    "sens": "le placard",
+    "illustration": "🗄️",
+    "plan": 1
+   },
+   {
+    "x": 58,
+    "y": 76,
+    "mot": "epwe z'atanga",
+    "sens": "la chaise",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 94,
+    "y": 82,
+    "mot": "otondo",
+    "sens": "le panier",
+    "illustration": "🧺",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 96,
+    "y": 40,
+    "mot": "mpandino",
+    "sens": "l'échelle",
+    "illustration": "🪜",
+    "plan": 1
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 28
+ },
+ {
+  "id": "sc-ogendo-l6",
+  "lecon_id": "ogendo-l6",
+  "type": "scene",
+  "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+  "scene": "village",
+  "zones": [
+   {
+    "x": 8,
+    "y": 36,
+    "mot": "nkala",
+    "sens": "le village",
+    "illustration": "🏘️",
+    "plan": 0,
+    "phrase": "Ncango si nkala",
+    "phrase_fr": "des nouvelles du village"
+   },
+   {
+    "x": 20,
+    "y": 46,
+    "mot": "nago",
+    "sens": "la maison",
+    "illustration": "🏠",
+    "plan": 1,
+    "phrase": "Nago yi re zange.",
+    "phrase_fr": "La maison est ouverte."
+   },
+   {
+    "x": 28,
+    "y": 62,
+    "mot": "Rerê",
+    "sens": "papa",
+    "illustration": "👨",
+    "plan": 1
+   },
+   {
+    "x": 34,
+    "y": 66,
+    "mot": "Ngwê",
+    "sens": "maman",
+    "illustration": "👩",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 78,
+    "mot": "Onghwana",
+    "sens": "un enfant",
+    "illustration": "🧒",
+    "plan": 2
+   },
+   {
+    "x": 48,
+    "y": 60,
+    "mot": "Tâta poyo",
+    "sens": "le grand-père",
+    "illustration": "👴",
+    "plan": 1
+   },
+   {
+    "x": 54,
+    "y": 64,
+    "mot": "Mâma poyo",
+    "sens": "la grand-mère",
+    "illustration": "👵",
+    "plan": 1
+   },
+   {
+    "x": 60,
+    "y": 74,
+    "mot": "Yâya",
+    "sens": "le frère aîné",
+    "illustration": "🧑",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 88,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 52,
+    "y": 82,
+    "mot": "ebongo",
+    "sens": "le banc",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 68,
+    "y": 84,
+    "mot": "Mbwa",
+    "sens": "le chien",
+    "illustration": "🐕",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "Njôgôni",
+    "sens": "la poule",
+    "illustration": "🐔",
+    "plan": 2,
+    "phrase": "Myê re nya pa njôgôni",
+    "phrase_fr": "j'ai mangé du poulet"
+   },
+   {
+    "x": 84,
+    "y": 76,
+    "mot": "Mboni",
+    "sens": "le cabri",
+    "illustration": "🐐",
+    "plan": 1
+   },
+   {
+    "x": 92,
+    "y": 62,
+    "mot": "Nyare",
+    "sens": "le bœuf, la vache",
+    "illustration": "🐄",
+    "plan": 0
+   },
+   {
+    "x": 16,
+    "y": 82,
+    "mot": "Pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 24,
+    "y": 86,
+    "mot": "ogulu",
+    "sens": "la gargoulette",
+    "illustration": "🏺",
+    "plan": 2
+   },
+   {
+    "x": 72,
+    "y": 40,
+    "mot": "erere",
+    "sens": "un arbre",
+    "illustration": "🌳",
+    "plan": 0
+   },
+   {
+    "x": 96,
+    "y": 88,
+    "mot": "okili",
+    "sens": "la route, le chemin",
+    "illustration": "🛣️",
+    "plan": 2
+   },
+   {
+    "x": 86,
+    "y": 12,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   },
+   {
+    "x": 10,
+    "y": 66,
+    "mot": "ambôra",
+    "sens": "les habits",
+    "illustration": "👚",
+    "plan": 2
+   },
+   {
+    "x": 14,
+    "y": 58,
+    "mot": "elinga",
+    "sens": "la robe",
+    "illustration": "👗",
+    "plan": 1
+   },
+   {
+    "x": 18,
+    "y": 64,
+    "mot": "ngôyi",
+    "sens": "le haut (vêtement)",
+    "illustration": "👕",
+    "plan": 1
+   },
+   {
+    "x": 22,
+    "y": 58,
+    "mot": "obati",
+    "sens": "le short",
+    "illustration": "🩳",
+    "plan": 1
+   },
+   {
+    "x": 30,
+    "y": 52,
+    "mot": "epokolo",
+    "sens": "le chapeau",
+    "illustration": "👒",
+    "plan": 1
+   },
+   {
+    "x": 64,
+    "y": 88,
+    "mot": "puka",
+    "sens": "le sac",
+    "illustration": "👜",
+    "plan": 2
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers la lagune",
+    "scene": "lagune",
+    "consigne": "Explore la lagune et la mangrove. Fais glisser le paysage.",
+    "zones": [
+     {
+      "x": 12,
+      "y": 14,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     },
+     {
+      "x": 22,
+      "y": 30,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 8,
+      "y": 46,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 30,
+      "y": 52,
+      "mot": "itanda",
+      "sens": "le palétuvier",
+      "illustration": "🌿",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 38,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 34,
+      "mot": "isômbô",
+      "sens": "le martin-pêcheur",
+      "illustration": "🐦",
+      "plan": 1
+     },
+     {
+      "x": 52,
+      "y": 60,
+      "mot": "mbene",
+      "sens": "l'étendue d'eau",
+      "illustration": "🏞️",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 66,
+      "mot": "owaro",
+      "sens": "la pirogue",
+      "illustration": "🛶",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 58,
+      "mot": "onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 70,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 78,
+      "y": 88,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 40,
+      "y": 86,
+      "mot": "osênjêlê",
+      "sens": "la sardine des lacs",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 86,
+      "y": 74,
+      "mot": "nguwu",
+      "sens": "l'hippopotame",
+      "illustration": "🦛",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 92,
+      "y": 40,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 1
+     },
+     {
+      "x": 20,
+      "y": 80,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 4,
+      "y": 74,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 3,
+    "y": 9,
+    "libelle": "Vers la forêt",
+    "scene": "foret",
+    "consigne": "Entre dans la forêt. Des animaux se cachent derrière les arbres : trouve-les.",
+    "zones": [
+     {
+      "x": 6,
+      "y": 40,
+      "mot": "iga",
+      "sens": "la forêt",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 18,
+      "y": 50,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 24,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 20,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 46,
+      "y": 30,
+      "mot": "nkêma",
+      "sens": "le singe",
+      "illustration": "🐒",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 62,
+      "mot": "njina",
+      "sens": "le gorille",
+      "illustration": "🦍",
+      "plan": 1
+     },
+     {
+      "x": 70,
+      "y": 58,
+      "mot": "njôgu",
+      "sens": "l'éléphant",
+      "illustration": "🐘",
+      "plan": 0
+     },
+     {
+      "x": 82,
+      "y": 66,
+      "mot": "nkambi",
+      "sens": "l'antilope",
+      "illustration": "🦌",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 52,
+      "mot": "njêgô",
+      "sens": "la panthère",
+      "illustration": "🐆",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 84,
+      "mot": "homba",
+      "sens": "le porc-épic",
+      "illustration": "🦔",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 62,
+      "y": 86,
+      "mot": "omamba",
+      "sens": "un serpent",
+      "illustration": "🐍",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 76,
+      "y": 24,
+      "mot": "ekuru",
+      "sens": "le hibou",
+      "illustration": "🦉",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 40,
+      "y": 88,
+      "mot": "ekaga",
+      "sens": "la tortue",
+      "illustration": "🐢",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 72,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 90,
+      "mot": "orônga",
+      "sens": "le champignon",
+      "illustration": "🍄",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 88,
+      "y": 84,
+      "mot": "ngowa",
+      "sens": "le sanglier",
+      "illustration": "🐗",
+      "plan": 2
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 38,
+    "y": 9,
+    "libelle": "Vers le marché",
+    "scene": "marche",
+    "consigne": "Au marché : touche chaque chose, écoute son nom.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 56,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 16,
+      "y": 70,
+      "mot": "ikôndô",
+      "sens": "la banane plantain",
+      "illustration": "🍌",
+      "plan": 2
+     },
+     {
+      "x": 24,
+      "y": 62,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 1,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 32,
+      "y": 70,
+      "mot": "nyama",
+      "sens": "la viande",
+      "illustration": "🍖",
+      "plan": 2
+     },
+     {
+      "x": 38,
+      "y": 60,
+      "mot": "ike",
+      "sens": "l'œuf",
+      "illustration": "🥚",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 72,
+      "mot": "mbenda",
+      "sens": "l'arachide",
+      "illustration": "🥜",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 60,
+      "mot": "ilasa",
+      "sens": "l'orange",
+      "illustration": "🍊",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 72,
+      "mot": "ntogolo",
+      "sens": "le piment",
+      "illustration": "🌶️",
+      "plan": 2,
+      "phrase": "ntogolo ya gelo, nö yïtôndo yê",
+      "phrase_fr": "c'est le piment rouge qu'il aime"
+     },
+     {
+      "x": 62,
+      "y": 60,
+      "mot": "ilosi",
+      "sens": "un citron",
+      "illustration": "🍋",
+      "plan": 1
+     },
+     {
+      "x": 68,
+      "y": 72,
+      "mot": "nyôndô",
+      "sens": "l'oignon",
+      "illustration": "🧅",
+      "plan": 2
+     },
+     {
+      "x": 74,
+      "y": 52,
+      "mot": "ikoko",
+      "sens": "la canne à sucre",
+      "illustration": "🎋",
+      "plan": 1
+     },
+     {
+      "x": 80,
+      "y": 70,
+      "mot": "oresi",
+      "sens": "le riz",
+      "illustration": "🍚",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 60,
+      "mot": "ezanga",
+      "sens": "le sel",
+      "illustration": "🧂",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 70,
+      "mot": "mpêmba",
+      "sens": "le pain",
+      "illustration": "🍞",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 86,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 30,
+      "y": 88,
+      "mot": "puka",
+      "sens": "le sac",
+      "illustration": "👜",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 88,
+      "mot": "sika",
+      "sens": "l'argent",
+      "illustration": "💰",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 66,
+      "y": 88,
+      "mot": "njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 88,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2
+     },
+     {
+      "x": 60,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   },
+   {
+    "x": 64,
+    "y": 9,
+    "libelle": "Entrer dans la maison",
+    "scene": "maison",
+    "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+    "zones": [
+     {
+      "x": 14,
+      "y": 30,
+      "mot": "windê",
+      "sens": "la fenêtre",
+      "illustration": "🪟",
+      "plan": 0
+     },
+     {
+      "x": 10,
+      "y": 74,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 18,
+      "y": 66,
+      "mot": "incwana",
+      "sens": "les marmites",
+      "illustration": "🍲",
+      "plan": 1
+     },
+     {
+      "x": 24,
+      "y": 50,
+      "mot": "izêwê",
+      "sens": "les cuillères",
+      "illustration": "🥄",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 58,
+      "mot": "intuma",
+      "sens": "les fourchettes",
+      "illustration": "🍴",
+      "plan": 1
+     },
+     {
+      "x": 32,
+      "y": 50,
+      "mot": "epêlê",
+      "sens": "l'assiette",
+      "illustration": "🍽️",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 58,
+      "mot": "elasi",
+      "sens": "le verre",
+      "illustration": "🥛",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 50,
+      "mot": "kopu",
+      "sens": "la tasse",
+      "illustration": "☕",
+      "plan": 1
+     },
+     {
+      "x": 22,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "inyela",
+      "sens": "la poubelle",
+      "illustration": "🗑️",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 76,
+      "mot": "ezômbôlô",
+      "sens": "le balai",
+      "illustration": "🧹",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 46,
+      "mot": "iguge",
+      "sens": "la porte",
+      "illustration": "🚪",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 14,
+      "mot": "ozange",
+      "sens": "la lumière",
+      "illustration": "💡",
+      "plan": 0
+     },
+     {
+      "x": 72,
+      "y": 70,
+      "mot": "odo",
+      "sens": "le lit",
+      "illustration": "🛏️",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 40,
+      "mot": "eyeno",
+      "sens": "le miroir",
+      "illustration": "🪞",
+      "plan": 1
+     },
+     {
+      "x": 86,
+      "y": 50,
+      "mot": "kôbôti y'ozira",
+      "sens": "le placard",
+      "illustration": "🗄️",
+      "plan": 1
+     },
+     {
+      "x": 58,
+      "y": 76,
+      "mot": "epwe z'atanga",
+      "sens": "la chaise",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 94,
+      "y": 82,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 96,
+      "y": 40,
+      "mot": "mpandino",
+      "sens": "l'échelle",
+      "illustration": "🪜",
+      "plan": 1
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 20
+ },
+ {
+  "id": "sc-ogendo-l7",
+  "lecon_id": "ogendo-l7",
+  "type": "scene",
+  "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+  "scene": "village",
+  "zones": [
+   {
+    "x": 8,
+    "y": 36,
+    "mot": "nkala",
+    "sens": "le village",
+    "illustration": "🏘️",
+    "plan": 0,
+    "phrase": "Ncango si nkala",
+    "phrase_fr": "des nouvelles du village"
+   },
+   {
+    "x": 20,
+    "y": 46,
+    "mot": "nago",
+    "sens": "la maison",
+    "illustration": "🏠",
+    "plan": 1,
+    "phrase": "Nago yi re zange.",
+    "phrase_fr": "La maison est ouverte."
+   },
+   {
+    "x": 28,
+    "y": 62,
+    "mot": "Rerê",
+    "sens": "papa",
+    "illustration": "👨",
+    "plan": 1
+   },
+   {
+    "x": 34,
+    "y": 66,
+    "mot": "Ngwê",
+    "sens": "maman",
+    "illustration": "👩",
+    "plan": 1
+   },
+   {
+    "x": 40,
+    "y": 78,
+    "mot": "Onghwana",
+    "sens": "un enfant",
+    "illustration": "🧒",
+    "plan": 2
+   },
+   {
+    "x": 48,
+    "y": 60,
+    "mot": "Tâta poyo",
+    "sens": "le grand-père",
+    "illustration": "👴",
+    "plan": 1
+   },
+   {
+    "x": 54,
+    "y": 64,
+    "mot": "Mâma poyo",
+    "sens": "la grand-mère",
+    "illustration": "👵",
+    "plan": 1
+   },
+   {
+    "x": 60,
+    "y": 74,
+    "mot": "Yâya",
+    "sens": "le frère aîné",
+    "illustration": "🧑",
+    "plan": 2
+   },
+   {
+    "x": 44,
+    "y": 88,
+    "mot": "ogoni",
+    "sens": "le feu",
+    "illustration": "🔥",
+    "plan": 2
+   },
+   {
+    "x": 52,
+    "y": 82,
+    "mot": "ebongo",
+    "sens": "le banc",
+    "illustration": "🪑",
+    "plan": 2
+   },
+   {
+    "x": 68,
+    "y": 84,
+    "mot": "Mbwa",
+    "sens": "le chien",
+    "illustration": "🐕",
+    "plan": 2
+   },
+   {
+    "x": 76,
+    "y": 88,
+    "mot": "Njôgôni",
+    "sens": "la poule",
+    "illustration": "🐔",
+    "plan": 2,
+    "phrase": "Myê re nya pa njôgôni",
+    "phrase_fr": "j'ai mangé du poulet"
+   },
+   {
+    "x": 84,
+    "y": 76,
+    "mot": "Mboni",
+    "sens": "le cabri",
+    "illustration": "🐐",
+    "plan": 1
+   },
+   {
+    "x": 92,
+    "y": 62,
+    "mot": "Nyare",
+    "sens": "le bœuf, la vache",
+    "illustration": "🐄",
+    "plan": 0
+   },
+   {
+    "x": 16,
+    "y": 82,
+    "mot": "Pusi",
+    "sens": "le chat",
+    "illustration": "🐈",
+    "plan": 2,
+    "cache": true
+   },
+   {
+    "x": 24,
+    "y": 86,
+    "mot": "ogulu",
+    "sens": "la gargoulette",
+    "illustration": "🏺",
+    "plan": 2
+   },
+   {
+    "x": 72,
+    "y": 40,
+    "mot": "erere",
+    "sens": "un arbre",
+    "illustration": "🌳",
+    "plan": 0
+   },
+   {
+    "x": 96,
+    "y": 88,
+    "mot": "okili",
+    "sens": "la route, le chemin",
+    "illustration": "🛣️",
+    "plan": 2
+   },
+   {
+    "x": 86,
+    "y": 12,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   },
+   {
+    "x": 98,
+    "y": 56,
+    "mot": "ncuwa",
+    "sens": "la mer",
+    "illustration": "🌊",
+    "plan": 0
+   },
+   {
+    "x": 2,
+    "y": 50,
+    "mot": "iga",
+    "sens": "la forêt",
+    "illustration": "🌳",
+    "plan": 0
+   },
+   {
+    "x": 14,
+    "y": 40,
+    "mot": "sikul",
+    "sens": "l'école",
+    "illustration": "🏫",
+    "plan": 0,
+    "phrase": "Mi kênda go sikul.",
+    "phrase_fr": "Je vais à l'école."
+   },
+   {
+    "x": 36,
+    "y": 88,
+    "mot": "mbôra",
+    "sens": "la place, l'endroit",
+    "illustration": "📍",
+    "plan": 2
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers la lagune",
+    "scene": "lagune",
+    "consigne": "Explore la lagune et la mangrove. Fais glisser le paysage.",
+    "zones": [
+     {
+      "x": 12,
+      "y": 14,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     },
+     {
+      "x": 22,
+      "y": 30,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 8,
+      "y": 46,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 30,
+      "y": 52,
+      "mot": "itanda",
+      "sens": "le palétuvier",
+      "illustration": "🌿",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 38,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 34,
+      "mot": "isômbô",
+      "sens": "le martin-pêcheur",
+      "illustration": "🐦",
+      "plan": 1
+     },
+     {
+      "x": 52,
+      "y": 60,
+      "mot": "mbene",
+      "sens": "l'étendue d'eau",
+      "illustration": "🏞️",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 66,
+      "mot": "owaro",
+      "sens": "la pirogue",
+      "illustration": "🛶",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 58,
+      "mot": "onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 70,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 78,
+      "y": 88,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 40,
+      "y": 86,
+      "mot": "osênjêlê",
+      "sens": "la sardine des lacs",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 86,
+      "y": 74,
+      "mot": "nguwu",
+      "sens": "l'hippopotame",
+      "illustration": "🦛",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 92,
+      "y": 40,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 1
+     },
+     {
+      "x": 20,
+      "y": 80,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 4,
+      "y": 74,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 3,
+    "y": 9,
+    "libelle": "Vers la forêt",
+    "scene": "foret",
+    "consigne": "Entre dans la forêt. Des animaux se cachent derrière les arbres : trouve-les.",
+    "zones": [
+     {
+      "x": 6,
+      "y": 40,
+      "mot": "iga",
+      "sens": "la forêt",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 18,
+      "y": 50,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 24,
+      "mot": "ijavi",
+      "sens": "les feuilles",
+      "illustration": "🍃",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 20,
+      "mot": "ngozo",
+      "sens": "le perroquet",
+      "illustration": "🦜",
+      "plan": 1
+     },
+     {
+      "x": 46,
+      "y": 30,
+      "mot": "nkêma",
+      "sens": "le singe",
+      "illustration": "🐒",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 62,
+      "mot": "njina",
+      "sens": "le gorille",
+      "illustration": "🦍",
+      "plan": 1
+     },
+     {
+      "x": 70,
+      "y": 58,
+      "mot": "njôgu",
+      "sens": "l'éléphant",
+      "illustration": "🐘",
+      "plan": 0
+     },
+     {
+      "x": 82,
+      "y": 66,
+      "mot": "nkambi",
+      "sens": "l'antilope",
+      "illustration": "🦌",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 52,
+      "mot": "njêgô",
+      "sens": "la panthère",
+      "illustration": "🐆",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 84,
+      "mot": "homba",
+      "sens": "le porc-épic",
+      "illustration": "🦔",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 62,
+      "y": 86,
+      "mot": "omamba",
+      "sens": "un serpent",
+      "illustration": "🐍",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 76,
+      "y": 24,
+      "mot": "ekuru",
+      "sens": "le hibou",
+      "illustration": "🦉",
+      "plan": 1,
+      "cache": true
+     },
+     {
+      "x": 40,
+      "y": 88,
+      "mot": "ekaga",
+      "sens": "la tortue",
+      "illustration": "🐢",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 72,
+      "mot": "owonya-wonya",
+      "sens": "le papillon",
+      "illustration": "🦋",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 90,
+      "mot": "orônga",
+      "sens": "le champignon",
+      "illustration": "🍄",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 88,
+      "y": 84,
+      "mot": "ngowa",
+      "sens": "le sanglier",
+      "illustration": "🐗",
+      "plan": 2
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "mpônô",
+      "sens": "le chemin",
+      "illustration": "🛤️",
+      "plan": 2
+     }
+    ]
+   },
+   {
+    "x": 38,
+    "y": 9,
+    "libelle": "Vers le marché",
+    "scene": "marche",
+    "consigne": "Au marché : touche chaque chose, écoute son nom.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 56,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 16,
+      "y": 70,
+      "mot": "ikôndô",
+      "sens": "la banane plantain",
+      "illustration": "🍌",
+      "plan": 2
+     },
+     {
+      "x": 24,
+      "y": 62,
+      "mot": "ewêrê",
+      "sens": "le poisson",
+      "illustration": "🐟",
+      "plan": 1,
+      "phrase": "Orungu wi ny'ewêrê",
+      "phrase_fr": "Les Orungu mangent du poisson"
+     },
+     {
+      "x": 32,
+      "y": 70,
+      "mot": "nyama",
+      "sens": "la viande",
+      "illustration": "🍖",
+      "plan": 2
+     },
+     {
+      "x": 38,
+      "y": 60,
+      "mot": "ike",
+      "sens": "l'œuf",
+      "illustration": "🥚",
+      "plan": 1
+     },
+     {
+      "x": 44,
+      "y": 72,
+      "mot": "mbenda",
+      "sens": "l'arachide",
+      "illustration": "🥜",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 60,
+      "mot": "ilasa",
+      "sens": "l'orange",
+      "illustration": "🍊",
+      "plan": 1
+     },
+     {
+      "x": 56,
+      "y": 72,
+      "mot": "ntogolo",
+      "sens": "le piment",
+      "illustration": "🌶️",
+      "plan": 2,
+      "phrase": "ntogolo ya gelo, nö yïtôndo yê",
+      "phrase_fr": "c'est le piment rouge qu'il aime"
+     },
+     {
+      "x": 62,
+      "y": 60,
+      "mot": "ilosi",
+      "sens": "un citron",
+      "illustration": "🍋",
+      "plan": 1
+     },
+     {
+      "x": 68,
+      "y": 72,
+      "mot": "nyôndô",
+      "sens": "l'oignon",
+      "illustration": "🧅",
+      "plan": 2
+     },
+     {
+      "x": 74,
+      "y": 52,
+      "mot": "ikoko",
+      "sens": "la canne à sucre",
+      "illustration": "🎋",
+      "plan": 1
+     },
+     {
+      "x": 80,
+      "y": 70,
+      "mot": "oresi",
+      "sens": "le riz",
+      "illustration": "🍚",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 60,
+      "mot": "ezanga",
+      "sens": "le sel",
+      "illustration": "🧂",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 70,
+      "mot": "mpêmba",
+      "sens": "le pain",
+      "illustration": "🍞",
+      "plan": 2
+     },
+     {
+      "x": 12,
+      "y": 86,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 30,
+      "y": 88,
+      "mot": "puka",
+      "sens": "le sac",
+      "illustration": "👜",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 88,
+      "mot": "sika",
+      "sens": "l'argent",
+      "illustration": "💰",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 66,
+      "y": 88,
+      "mot": "njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 88,
+      "mot": "mbêrê",
+      "sens": "une sardine",
+      "illustration": "🐟",
+      "plan": 2
+     },
+     {
+      "x": 60,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   },
+   {
+    "x": 64,
+    "y": 9,
+    "libelle": "Entrer dans la maison",
+    "scene": "maison",
+    "consigne": "Dans la maison : la cuisine d'un côté, la chambre de l'autre. Touche chaque chose.",
+    "zones": [
+     {
+      "x": 14,
+      "y": 30,
+      "mot": "windê",
+      "sens": "la fenêtre",
+      "illustration": "🪟",
+      "plan": 0
+     },
+     {
+      "x": 10,
+      "y": 74,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 18,
+      "y": 66,
+      "mot": "incwana",
+      "sens": "les marmites",
+      "illustration": "🍲",
+      "plan": 1
+     },
+     {
+      "x": 24,
+      "y": 50,
+      "mot": "izêwê",
+      "sens": "les cuillères",
+      "illustration": "🥄",
+      "plan": 1
+     },
+     {
+      "x": 28,
+      "y": 58,
+      "mot": "intuma",
+      "sens": "les fourchettes",
+      "illustration": "🍴",
+      "plan": 1
+     },
+     {
+      "x": 32,
+      "y": 50,
+      "mot": "epêlê",
+      "sens": "l'assiette",
+      "illustration": "🍽️",
+      "plan": 1
+     },
+     {
+      "x": 36,
+      "y": 58,
+      "mot": "elasi",
+      "sens": "le verre",
+      "illustration": "🥛",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 50,
+      "mot": "kopu",
+      "sens": "la tasse",
+      "illustration": "☕",
+      "plan": 1
+     },
+     {
+      "x": 22,
+      "y": 82,
+      "mot": "aningo",
+      "sens": "l'eau",
+      "illustration": "💧",
+      "plan": 2,
+      "phrase": "Va myê aningo",
+      "phrase_fr": "Donne-moi de l'eau"
+     },
+     {
+      "x": 4,
+      "y": 86,
+      "mot": "inyela",
+      "sens": "la poubelle",
+      "illustration": "🗑️",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 76,
+      "mot": "ezômbôlô",
+      "sens": "le balai",
+      "illustration": "🧹",
+      "plan": 2
+     },
+     {
+      "x": 50,
+      "y": 46,
+      "mot": "iguge",
+      "sens": "la porte",
+      "illustration": "🚪",
+      "plan": 0
+     },
+     {
+      "x": 60,
+      "y": 14,
+      "mot": "ozange",
+      "sens": "la lumière",
+      "illustration": "💡",
+      "plan": 0
+     },
+     {
+      "x": 72,
+      "y": 70,
+      "mot": "odo",
+      "sens": "le lit",
+      "illustration": "🛏️",
+      "plan": 1
+     },
+     {
+      "x": 64,
+      "y": 40,
+      "mot": "eyeno",
+      "sens": "le miroir",
+      "illustration": "🪞",
+      "plan": 1
+     },
+     {
+      "x": 86,
+      "y": 50,
+      "mot": "kôbôti y'ozira",
+      "sens": "le placard",
+      "illustration": "🗄️",
+      "plan": 1
+     },
+     {
+      "x": 58,
+      "y": 76,
+      "mot": "epwe z'atanga",
+      "sens": "la chaise",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 94,
+      "y": 82,
+      "mot": "otondo",
+      "sens": "le panier",
+      "illustration": "🧺",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 96,
+      "y": 40,
+      "mot": "mpandino",
+      "sens": "l'échelle",
+      "illustration": "🪜",
+      "plan": 1
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 20
+ },
+ {
+  "id": "sc-ogendo-l9",
+  "lecon_id": "ogendo-l9",
+  "type": "scene",
+  "consigne": "Regarde le ciel du matin à la nuit : le soleil, la lune, les étoiles.",
+  "scene": "ciel",
+  "zones": [
+   {
+    "x": 6,
+    "y": 60,
+    "mot": "ibanga",
+    "sens": "le matin",
+    "illustration": "🌅",
+    "plan": 0
+   },
+   {
+    "x": 18,
+    "y": 18,
+    "mot": "onghwêyi",
+    "sens": "le soleil",
+    "illustration": "☀️",
+    "plan": 0
+   },
+   {
+    "x": 30,
+    "y": 30,
+    "mot": "owenja",
+    "sens": "la journée",
+    "illustration": "🌤️",
+    "plan": 0
+   },
+   {
+    "x": 38,
+    "y": 46,
+    "mot": "ngozo",
+    "sens": "le perroquet",
+    "illustration": "🦜",
+    "plan": 1
+   },
+   {
+    "x": 46,
+    "y": 24,
+    "mot": "ningo",
+    "sens": "la pluie",
+    "illustration": "🌧️",
+    "plan": 0
+   },
+   {
+    "x": 54,
+    "y": 40,
+    "mot": "ogula",
+    "sens": "la tornade",
+    "illustration": "🌪️",
+    "plan": 0,
+    "cache": true
+   },
+   {
+    "x": 62,
+    "y": 60,
+    "mot": "nkolo",
+    "sens": "le soir",
+    "illustration": "🌇",
+    "plan": 0
+   },
+   {
+    "x": 70,
+    "y": 40,
+    "mot": "ogwêra",
+    "sens": "la nuit",
+    "illustration": "🌃",
+    "plan": 0
+   },
+   {
+    "x": 78,
+    "y": 18,
+    "mot": "ogwêli",
+    "sens": "la lune",
+    "illustration": "🌙",
+    "plan": 0
+   },
+   {
+    "x": 86,
+    "y": 28,
+    "mot": "ogêgêni",
+    "sens": "l'étoile",
+    "illustration": "⭐",
+    "plan": 0
+   },
+   {
+    "x": 92,
+    "y": 14,
+    "mot": "inanga",
+    "sens": "le clair de lune",
+    "illustration": "🌕",
+    "plan": 0,
+    "cache": true
+   },
+   {
+    "x": 82,
+    "y": 66,
+    "mot": "ekuru",
+    "sens": "le hibou",
+    "illustration": "🦉",
+    "plan": 1,
+    "cache": true
+   },
+   {
+    "x": 50,
+    "y": 86,
+    "mot": "nce",
+    "sens": "la terre",
+    "illustration": "🌍",
+    "plan": 2
+   },
+   {
+    "x": 26,
+    "y": 82,
+    "mot": "nkala",
+    "sens": "le village",
+    "illustration": "🏘️",
+    "plan": 1,
+    "phrase": "Ncango si nkala",
+    "phrase_fr": "des nouvelles du village"
+   },
+   {
+    "x": 94,
+    "y": 74,
+    "mot": "igwêra",
+    "sens": "l'heure",
+    "illustration": "🕐",
+    "plan": 1
+   }
+  ],
+  "liens": [
+   {
+    "x": 97,
+    "y": 9,
+    "libelle": "Vers le village",
+    "scene": "village",
+    "consigne": "Dans la cour du village : la famille, les animaux, le feu. Fais glisser pour tout voir.",
+    "zones": [
+     {
+      "x": 8,
+      "y": 36,
+      "mot": "nkala",
+      "sens": "le village",
+      "illustration": "🏘️",
+      "plan": 0,
+      "phrase": "Ncango si nkala",
+      "phrase_fr": "des nouvelles du village"
+     },
+     {
+      "x": 20,
+      "y": 46,
+      "mot": "nago",
+      "sens": "la maison",
+      "illustration": "🏠",
+      "plan": 1,
+      "phrase": "Nago yi re zange.",
+      "phrase_fr": "La maison est ouverte."
+     },
+     {
+      "x": 28,
+      "y": 62,
+      "mot": "Rerê",
+      "sens": "papa",
+      "illustration": "👨",
+      "plan": 1
+     },
+     {
+      "x": 34,
+      "y": 66,
+      "mot": "Ngwê",
+      "sens": "maman",
+      "illustration": "👩",
+      "plan": 1
+     },
+     {
+      "x": 40,
+      "y": 78,
+      "mot": "Onghwana",
+      "sens": "un enfant",
+      "illustration": "🧒",
+      "plan": 2
+     },
+     {
+      "x": 48,
+      "y": 60,
+      "mot": "Tâta poyo",
+      "sens": "le grand-père",
+      "illustration": "👴",
+      "plan": 1
+     },
+     {
+      "x": 54,
+      "y": 64,
+      "mot": "Mâma poyo",
+      "sens": "la grand-mère",
+      "illustration": "👵",
+      "plan": 1
+     },
+     {
+      "x": 60,
+      "y": 74,
+      "mot": "Yâya",
+      "sens": "le frère aîné",
+      "illustration": "🧑",
+      "plan": 2
+     },
+     {
+      "x": 44,
+      "y": 88,
+      "mot": "ogoni",
+      "sens": "le feu",
+      "illustration": "🔥",
+      "plan": 2
+     },
+     {
+      "x": 52,
+      "y": 82,
+      "mot": "ebongo",
+      "sens": "le banc",
+      "illustration": "🪑",
+      "plan": 2
+     },
+     {
+      "x": 68,
+      "y": 84,
+      "mot": "Mbwa",
+      "sens": "le chien",
+      "illustration": "🐕",
+      "plan": 2
+     },
+     {
+      "x": 76,
+      "y": 88,
+      "mot": "Njôgôni",
+      "sens": "la poule",
+      "illustration": "🐔",
+      "plan": 2,
+      "phrase": "Myê re nya pa njôgôni",
+      "phrase_fr": "j'ai mangé du poulet"
+     },
+     {
+      "x": 84,
+      "y": 76,
+      "mot": "Mboni",
+      "sens": "le cabri",
+      "illustration": "🐐",
+      "plan": 1
+     },
+     {
+      "x": 92,
+      "y": 62,
+      "mot": "Nyare",
+      "sens": "le bœuf, la vache",
+      "illustration": "🐄",
+      "plan": 0
+     },
+     {
+      "x": 16,
+      "y": 82,
+      "mot": "Pusi",
+      "sens": "le chat",
+      "illustration": "🐈",
+      "plan": 2,
+      "cache": true
+     },
+     {
+      "x": 24,
+      "y": 86,
+      "mot": "ogulu",
+      "sens": "la gargoulette",
+      "illustration": "🏺",
+      "plan": 2
+     },
+     {
+      "x": 72,
+      "y": 40,
+      "mot": "erere",
+      "sens": "un arbre",
+      "illustration": "🌳",
+      "plan": 0
+     },
+     {
+      "x": 96,
+      "y": 88,
+      "mot": "okili",
+      "sens": "la route, le chemin",
+      "illustration": "🛣️",
+      "plan": 2
+     },
+     {
+      "x": 86,
+      "y": 12,
+      "mot": "onghwêyi",
+      "sens": "le soleil",
+      "illustration": "☀️",
+      "plan": 0
+     }
+    ]
+   }
+  ],
+  "source": "Mots des cours ; mots des leçons omyènè (lexique v3) et décisions de Capp (règles v3.5 § 9) ; phrases des cours et des règles § 11 (lot 11)",
+  "ordre": 20
  }
 ]

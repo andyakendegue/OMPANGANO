@@ -55,7 +55,7 @@ function construire(): Index {
     const k = `${f.toLowerCase()}|${s.toLowerCase()}`;
     if (vus.has(k)) continue;
     vus.add(k);
-    entrees.push({ f, s, v: 'ôrungu (cours)', r: 0.5 });
+    entrees.push({ f, s, v: 'orungu (cours)', r: 0.5 });
   }
   // 2) lexique consolidé du corpus (hors dépôt)
   const fichier = fichierLexique();
@@ -82,7 +82,7 @@ export function indexLexique(): Index {
 
 /**
  * Entrées utiles pour une question : un mot de la question qui figure dans le sens (français) ou dans la forme (myènè).
- * Classement : nombre de mots trouvés, sûreté de la source (validé > cours > ôrungu > galwa > mpongwè), sens court (vraie définition).
+ * Classement : nombre de mots trouvés, sûreté de la source (validé > cours > orungu > galwa > mpongwè), sens court (vraie définition).
  */
 export function chercherLexique(question: string, max = 30): EntreeLexique[] {
   const idx = indexLexique();

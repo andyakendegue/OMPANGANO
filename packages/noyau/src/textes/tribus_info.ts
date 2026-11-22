@@ -1,8 +1,8 @@
 // FICHIER GÉNÉRÉ par apps/nkala/scripts/extraire-tribus-web.mts depuis src/services/seedData.ts — ne pas modifier à la main.
 export interface InfoTribu { tribe: string; dialectCode: string; geographicalZone: string; historicalOrigins: string; orthographicAndTonalTraits: string; mottoOrSymbol: string; associatedVillages?: string[] }
 export const INFO_TRIBUS: Record<string, InfoTribu> = {
-  "Ôrungu": {
-    "tribe": "Ôrungu",
+  "Orungu": {
+    "tribe": "Orungu",
     "dialectCode": "orungu",
     "geographicalZone": "Delta maritime de l’Ogooué, île Mandji (Port-Gentil), Cap Lopez et lagune d’Ozouri (Ogooué-Maritime).",
     "historicalOrigins": "Royauté maritime et fluviale fondée autour du delta de l’Ogooué et du Cap Lopez, structurée autour des souverains (Agamwinboni, Rogombé, Ndombi) et des 21 clans historiques.",

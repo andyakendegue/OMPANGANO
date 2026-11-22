@@ -30,7 +30,7 @@ export function FaqModale({ visible, tribu, filtreTribu, onFiltreTribu, onClose 
       <View style={s.note}>
         <Text style={s.noteTitre}>Rappel Linguistique Essentiel : Ethnies vs Clans</Text>
         <Text style={s.p}>
-          Les différences orthographiques, phonétiques et tonales en Myènè concernent uniquement les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et jamais les Clans. Les questions sont donc exclusivement filtrées par Ethnie et par Thème.
+          Les différences orthographiques, phonétiques et tonales en Myènè concernent uniquement les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu) et jamais les Clans. Les questions sont donc exclusivement filtrées par Ethnie et par Thème.
         </Text>
         {!!tribu && !!onFiltreTribu && (
           <Pressable onPress={() => { onFiltreTribu(filtreTribu === tribu ? 'all' : tribu); onClose(); }} style={s.bouton}>

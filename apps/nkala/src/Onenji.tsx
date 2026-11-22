@@ -62,7 +62,7 @@ export function Onenji() {
   const enfant = prefs.mode === 'enfant';
   const D = useMemo(() => {
     const parcours = tri(res.parcours ?? []).filter(p => !enfant || num(p.cycle) <= 2) as unknown as Parcours[];
-    // Variante de l'apprenant (ôrungu par défaut) : à chaque position d'une leçon, l'exercice de sa variante, sinon le commun.
+    // Variante de l'apprenant (orungu par défaut) : à chaque position d'une leçon, l'exercice de sa variante, sinon le commun.
     const exercices = filtrerVariante(tri(res.exercices ?? []) as unknown as Exercice[], prefs.variante || 'orungu');
     return { parcours, unites: tri(res.unites ?? []) as unknown as Unite[], lecons: tri(res.lecons ?? []).filter(l => !enfant || l.mode !== 'adulte') as unknown as Lecon[], exercices, cours: tri(res.cours_artisans ?? []), chapitres: tri(res.chapitres ?? []), biblio: [], opportunites: res.opportunites ?? [], grammaire: tri(res.grammaire ?? []) };
   }, [res, enfant, prefs.variante]);
@@ -248,14 +248,14 @@ function Outil({ icone, titre, sous, onPress }: { icone: string; titre: string; 
   );
 }
 
-/** Choix de la variante des cours (audit §8.3) : ôrungu par défaut ; un exercice sans version dans la variante choisie reste en version commune. */
+/** Choix de la variante des cours (audit §8.3) : orungu par défaut ; un exercice sans version dans la variante choisie reste en version commune. */
 function ChoixVariante({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { prefs, regler } = usePrefs();
   const actuelle = prefs.variante || 'orungu';
-  const liste: [string, string][] = [['orungu', 'Ôrungu (par défaut)'], ...VARIANTES_TRIBALES.filter(([k]) => k !== 'orungu').map(([k, l]) => [k, l.replace(/^Ethnie /, '')] as [string, string])];
+  const liste: [string, string][] = [['orungu', 'Orungu (par défaut)'], ...VARIANTES_TRIBALES.filter(([k]) => k !== 'orungu').map(([k, l]) => [k, l.replace(/^Ethnie /, '')] as [string, string])];
   return (
     <Feuille visible={visible} onClose={onClose} titre="Ma variante">
-      <T v="petit">Les leçons montrent les mots de ta variante quand ils existent ; sinon la forme commune, puis l'ôrungu. Chaque mot affiche son dialecte et sa source.</T>
+      <T v="petit">Les leçons montrent les mots de ta variante quand ils existent ; sinon la forme commune, puis l'orungu. Chaque mot affiche son dialecte et sa source.</T>
       <View style={{ gap: 8, marginTop: 10 }}>
         {liste.map(([k, l]) => <Puce key={k} label={l} actif={actuelle === k} onPress={() => { regler({ variante: k }); onClose(); }} />)}
       </View>
@@ -269,7 +269,7 @@ function TestFlux({ D, pile }: { D: Donnees; pile: Pile }) {
   return <TestNiveau parcours={D.parcours} unites={D.unites} lecons={D.lecons} exercices={D.exercices} onQuitter={pile.retour}
     onFini={async r => {
       // L'adulte placé au tout début commence à l'entrée « adulte qui débute » (Ikôkô), pas dans Ntina.
-      // L'adulte qui parle déjà ôrungu part de « Je parle, j'apprends à écrire » (lot 9 du cursus v3).
+      // L'adulte qui parle déjà orungu part de « Je parle, j'apprends à écrire » (lot 9 du cursus v3).
       const res = prefs.mode !== 'enfant' && !r.parAge ? { ...r, ...(r.locuteur ? departLocuteur(r, D.unites) : departAdulte(r, D.parcours, D.unites)) } : r;
       await enregistrer({ ...res, le: Date.now() }); pile.remplacer({ t: 'resultatTest' });
     }} />;

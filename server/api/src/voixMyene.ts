@@ -4,7 +4,7 @@
  * L'enregistrement (30 s au plus) passe par le service de voix interne (server/tts, ZIPA) et n'est jamais gardé.
  * Accès : celui du traducteur (avantage « traducteur ») ; et, comme pour tout enregistrement, l'usage de la voix doit être
  * autorisé (pour un mineur : accord de son parent ou représentant légal, noyau/accordVoix.ts).
- * ZIPA n'a jamais entendu d'ôrungu : l'écrit rendu est une proposition, que l'utilisateur relit avant de traduire ou d'envoyer.
+ * ZIPA n'a jamais entendu d'orungu : l'écrit rendu est une proposition, que l'utilisateur relit avant de traduire ou d'envoyer.
  */
 import { voixAutorisee } from '../../../packages/noyau/src/accordVoix.ts';
 import { str, type Ctx } from './ctx.ts';

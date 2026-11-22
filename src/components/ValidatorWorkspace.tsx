@@ -294,7 +294,7 @@ export const ValidatorWorkspace: React.FC<ValidatorWorkspaceProps> = ({
             <option value="Mpongwè">Ethnie Mpongwè</option>
             <option value="Galoa">Ethnie Galoa</option>
             <option value="Nkomi">Ethnie Nkomi</option>
-            <option value="Ôrungu">Ethnie Ôrungu</option>
+            <option value="Orungu">Ethnie Orungu</option>
             <option value="Adyumba">Ethnie Adyumba</option>
           </select>
 

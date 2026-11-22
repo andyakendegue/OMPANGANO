@@ -1,4 +1,4 @@
-// Sons et tons de l'ôrungu (noyau/phonetique.ts) et formats immersifs des leçons (15 nov. 2026).
+// Sons et tons de l'orungu (noyau/phonetique.ts) et formats immersifs des leçons (15 nov. 2026).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CONSONNES, PAIRES_TONALES, TONS, VOYELLES, melodie, phonemeDe, exemplesSon, graphieDondo, exempleComplet } from '../../../packages/noyau/src/phonetique.ts';

@@ -110,7 +110,7 @@ export function leaderboardEntryToProfile(e: LeaderboardEntry): UserProfile {
     displayName: e.displayName,
     fullName: e.fullName,
     photoURL: e.photoURL,
-    tribe: (e.tribe || 'Ôrungu') as UserProfile['tribe'],
+    tribe: (e.tribe || 'Orungu') as UserProfile['tribe'],
     villageOfOrigin: e.villageOfOrigin || '',
     xp: e.xp || 0,
     level: e.level,

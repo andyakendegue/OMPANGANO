@@ -15,7 +15,7 @@ export interface Prefs {
   rappel: string | null; entreeVue: boolean; invite: boolean; autorisationsVues: boolean;
   /** Espace parents : code à 4 chiffres et limite de jeu quotidienne en minutes. */
   parentsCode: string | null; limiteMinutes: number | null;
-  /** Variante (dialecte) des cours d'Onênji : ôrungu par défaut, les autres étiquetées (audit Apprendre §8.3). */
+  /** Variante (dialecte) des cours d'Onênji : orungu par défaut, les autres étiquetées (audit Apprendre §8.3). */
   variante: string;
 }
 

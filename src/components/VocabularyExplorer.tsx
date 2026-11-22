@@ -434,7 +434,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Rechercher en français, en Myènè ou par ethnie (ex: pirogue, Mbolo, Ôrungu, Enenga...)"
+              placeholder="Rechercher en français, en Myènè ou par ethnie (ex: pirogue, Mbolo, Orungu, Enenga...)"
               className="w-full pl-10 pr-4 py-3 bg-[#180d07] border border-[#4a2412] rounded-2xl text-xs sm:text-sm text-white focus:outline-none focus:border-[#f59e0b]"
             />
           </div>
@@ -620,7 +620,7 @@ export const VocabularyExplorer: React.FC<VocabularyExplorerProps> = ({
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#f59e0b] shrink-0" />
               <span>
-                En langue Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Ethnies</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et non les clans. Sélectionnez une ethnie pour explorer ses expressions et ses particularités linguistiques.
+                En langue Myènè, les différences <strong>orthographiques et tonales</strong> concernent uniquement les <strong>6 Ethnies</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu</em>) et non les clans. Sélectionnez une ethnie pour explorer ses expressions et ses particularités linguistiques.
               </span>
             </div>
           </div>

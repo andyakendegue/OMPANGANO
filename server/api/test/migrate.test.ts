@@ -18,7 +18,7 @@ const storage: MediaStorage = {
 const b64 = Buffer.from('RIFFfaux-audio').toString('base64');
 const FS: Record<string, any[]> = {
   users: [
-    { id: 'alice', email: 'Alice@X.com', displayName: 'Alice', role: 'user', xp: 150, level: 'Conteur des Lagunes', levelIndex: 2, badges: ['b1'], contributionsCount: 3, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-05-01T00:00:00Z', tribe: 'Ôrungu' },
+    { id: 'alice', email: 'Alice@X.com', displayName: 'Alice', role: 'user', xp: 150, level: 'Conteur des Lagunes', levelIndex: 2, badges: ['b1'], contributionsCount: 3, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-05-01T00:00:00Z', tribe: 'Orungu' },
     { id: 'bob', displayName: 'Bob (Firestore, ancien)', role: 'user', xp: 10, updatedAt: '2026-01-01T00:00:00Z' },
     { id: 'adm', displayName: 'Admin', role: 'user', xp: 0 },
     { id: 'u-mboumba', displayName: 'Mboumba Éric (démo)', xp: 1420 }

@@ -82,22 +82,22 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     question:
       'Pourquoi les questions et les variantes orthographiques ou tonales sont-elles classées par Ethnie et jamais par Clan ?',
     shortSummary:
-      'Règle linguistique fondamentale : en langue Omyènè, les différences d’orthographe, de vocabulaire et de tonalité existent uniquement entre les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et non entre les Clans.',
+      'Règle linguistique fondamentale : en langue Omyènè, les différences d’orthographe, de vocabulaire et de tonalité existent uniquement entre les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu) et non entre les Clans.',
     answerParagraphs: [
       'En linguistique Myènè (Omyènè), il ne faut jamais confondre l’Ethnie (sous-groupe dialectal et géographique) et le Clan (« mbuwé » : lignée exogamique issue d’un ancêtre commun ; le lignage se dit « ozombi »).',
-      'Les différences orthographiques, phonétiques et tonales ne concernent que les 6 Ethnies Myènè : Mpongwè, Adyumba, Enenga, Nkomi, Galoa et Ôrungu. Deux personnes appartenant à deux clans différents (par exemple Abulya et Agenje chez les Ôrungu) parlent exactement la même variété ethnique Ôrungu, avec la même grammaire, la même orthographe et les mêmes tons.',
+      'Les différences orthographiques, phonétiques et tonales ne concernent que les 6 Ethnies Myènè : Mpongwè, Adyumba, Enenga, Nkomi, Galoa et Orungu. Deux personnes appartenant à deux clans différents (par exemple Abulya et Agenje chez les Orungu) parlent exactement la même variété ethnique Orungu, avec la même grammaire, la même orthographe et les mêmes tons.',
       'C’est pourquoi toutes les questions du corpus Nkala sont filtrées et catégorisées par Ethnie (et par Thème culturel : pêche, faune, vie quotidienne, proverbes...), et jamais dans des « catégories claniques ». Votre clan dans votre profil sert uniquement à préserver la mémoire généalogique et coutumière.'
     ],
     examples: [
       {
         label: 'Différence entre Ethnies (Dialectes)',
         detail:
-          'Certaines consonnes ou inflexions tonales varient selon que l’on s’exprime en Mpongwè (Estuaire), en Ôrungu (Delta/Port-Gentil), en Nkomi (Fernan-Vaz) ou en Enenga / Galoa (Moyen-Ogooué et Lacs).'
+          'Certaines consonnes ou inflexions tonales varient selon que l’on s’exprime en Mpongwè (Estuaire), en Orungu (Delta/Port-Gentil), en Nkomi (Fernan-Vaz) ou en Enenga / Galoa (Moyen-Ogooué et Lacs).'
       },
       {
         label: 'Unité linguistique des Clans au sein d’une Ethnie',
         detail:
-          'Les 21 clans Ôrungu (Abulya, Agalikewa, Agenje, Ajena, Aziza...) partagent tous la même langue Ôrungu sans différence orthographique ni tonale entre clans.'
+          'Les 21 clans Orungu (Abulya, Agalikewa, Agenje, Ajena, Aziza...) partagent tous la même langue Orungu sans différence orthographique ni tonale entre clans.'
       }
     ],
     category: 'tribus_vs_clans',
@@ -129,7 +129,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     answerParagraphs: [
       'Lorsque vous consultez une fiche sur la page principale, observez attentivement la phrase en Myènè et l’étiquette de l’Ethnie affichée en haut de la carte.',
       'Si l’orthographe proposée est exacte dans votre ethnie, laissez sélectionné « Oui, l’orthographe est exacte ».',
-      'Si vous constatez une faute de frappe, une voyelle mal accentuée (`è`, `ô`) ou si votre Ethnie emploie une tournure ou une graphie différente, sélectionnez « Non, proposer ma variante », saisissez votre orthographe corrigée et choisissez l’Ethnie correspondante (Ôrungu, Enenga, Mpongwè, Galoa, Nkomi ou Adyumba).'
+      'Si vous constatez une faute de frappe, une voyelle mal accentuée (`è`, `ô`) ou si votre Ethnie emploie une tournure ou une graphie différente, sélectionnez « Non, proposer ma variante », saisissez votre orthographe corrigée et choisissez l’Ethnie correspondante (Orungu, Enenga, Mpongwè, Galoa, Nkomi ou Adyumba).'
     ],
     examples: [
       {
@@ -165,7 +165,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
       'Le Myènè est une langue tonale (ton haut, ton bas, ton modulé). Le sens d’un mot peut changer selon la hauteur de la voix et la mélodie propre à chaque ethnie.',
     answerParagraphs: [
       'En Omyènè, deux mots peuvent s’écrire avec les mêmes lettres mais avoir deux sens différents selon que les syllabes portent un ton haut, un ton bas ou un ton descendant.',
-      'De plus, la mélodie de la phrase (intonation finale et attaque consonantique) présente de subtiles variations entre les ethnies maritimes/lagunaires (Mpongwè, Ôrungu, Nkomi) et les ethnies fluviales/lacustres (Enenga, Galoa, Adyumba).',
+      'De plus, la mélodie de la phrase (intonation finale et attaque consonantique) présente de subtiles variations entre les ethnies maritimes/lagunaires (Mpongwè, Orungu, Nkomi) et les ethnies fluviales/lacustres (Enenga, Galoa, Adyumba).',
       'Si la fiche affiche une transcription phonétique (API) ou si vous souhaitez signaler une nuance tonale propre à votre ethnie, mentionnez-le dans le champ commentaire culturel et surtout faites-le entendre clairement lors de votre enregistrement vocal à l’Étape 3.'
     ],
     examples: [
@@ -262,7 +262,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
     question:
       'Comment filtrer les questions pour ne voir que celles de mon Ethnie ou d’une Ethnie précise ?',
     shortSummary:
-      'Utilisez le sélecteur d’Ethnie en haut de la page principale ou dans l’onglet Explorer pour filtrer par Mpongwè, Adyumba, Enenga, Nkomi, Galoa ou Ôrungu.',
+      'Utilisez le sélecteur d’Ethnie en haut de la page principale ou dans l’onglet Explorer pour filtrer par Mpongwè, Adyumba, Enenga, Nkomi, Galoa ou Orungu.',
     answerParagraphs: [
       'Sur la page principale (« Contribuer ») ainsi que dans l’onglet « Explorer », une barre de filtre par Ethnie vous permet de sélectionner soit « Toutes les ethnies », soit directement « Mon ethnie », soit l’une des 6 ethnies Myènè.',
       'Vous pouvez néanmoins contribuer sur une fiche initialement rédigée dans une autre ethnie Myènè : il vous suffit d’indiquer à l’Étape 1 comment cette expression se dit ou s’écrit dans votre propre Ethnie ! Cela permet justement de construire le dictionnaire comparatif inter-ethnique.'
@@ -280,7 +280,7 @@ export const MYENE_CONTRIBUTION_FAQS: FaqEntry[] = [
       'enenga',
       'nkomi',
       'galoa',
-      'ôrungu'
+      'orungu'
     ]
   },
   {
@@ -448,7 +448,7 @@ export const ContributionFaqSection: React.FC<ContributionFaqSectionProps> = ({
             </p>
             <p className="text-[#f5efe6]">
               Les différences <strong>orthographiques, phonétiques et tonales</strong> en Myènè concernent uniquement les{' '}
-              <strong className="text-[#f39c12]">6 Ethnies</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu</em>) et{' '}
+              <strong className="text-[#f39c12]">6 Ethnies</strong> (<em>Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu</em>) et{' '}
               <strong className="underline decoration-amber-400">jamais les Clans</strong>. Les questions sont donc exclusivement filtrées par <strong>Ethnie</strong> et par <strong>Thème</strong>.
             </p>
           </div>

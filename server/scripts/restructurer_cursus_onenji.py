@@ -230,7 +230,7 @@ fin(lc)
 lc = lecon('ntina-l21', 'ntina-u7', 2, 'Les grands-parents et l\'oncle')
 for m, f, i in [('Tata poyo', 'le grand-père', '👴'), ('Mama poyo', 'la grand-mère', '👵'), ('Ombalo', "l'oncle (frère de maman)", None), ('Irônda', "l'ami, l'amie", None)]:
     lc.ecouter(m, f, S_FAM, i)
-lc.culture('Ombalo', "l'oncle maternel", "Chez les Ôrungu, l'oncle maternel, frère de maman, compte beaucoup : l'enfant appartient au lignage de sa mère (ozombi).",
+lc.culture('Ombalo', "l'oncle maternel", "Chez les Orungu, l'oncle maternel, frère de maman, compte beaucoup : l'enfant appartient au lignage de sa mère (ozombi).",
            S_FAM + ' ; Teisserès-Dubois 1957, voc. 1 (ômbalô, oncle maternel) ; programme de formation, cycle 3 (ozombi)')
 lc.associer('Tata poyo', 'le grand-père', ['la grand-mère', "l'oncle", 'papa'], S_FAM, '👴')
 lc.associer('Mama poyo', 'la grand-mère', ['le grand-père', 'maman', "l'ami"], S_FAM, '👵')
@@ -357,7 +357,7 @@ lc.jouer('imagier-sonore', 'Imagier sonore')
 fin(lc)
 
 lc = lecon('ntina-l32', 'ntina-u12', 3, 'La musique des mots')
-lc.cours(None, None, "En ôrungu, la voix monte et descend : c'est le ton. Suis la ligne avec ton doigt et chante le mot.", 'Ambouroue 2007, p. 52-57', ill='🎵')
+lc.cours(None, None, "En orungu, la voix monte et descend : c'est le ton. Suis la ligne avec ton doigt et chante le mot.", 'Ambouroue 2007, p. 52-57', ill='🎵')
 for i, ill in [('nl13-mot-06', '🍊'), ('nl13-mot-05', '🔪'), ('nl13-mot-04', '🐍'), ('nl13-mot-11', '👑'), ('nl13-mot-12', '👑')]:
     c = lc.copier(ex_par_id[i], i); c['illustration'] = ill
 lc.jouer('le-rythme', 'Le rythme')
@@ -417,15 +417,15 @@ fin(lc)
 
 lc = lecon('ogendo-l14', G, 2, 'Maintenant : le présent', duree=8, xp=20)
 lc.cours(None, None, "Le présent dit ce qu'on fait maintenant, et aussi ce qui est toujours vrai. On le forme avec le sujet et le verbe sans « go ».",
-         S_CAPP + ' ; ' + S_PRON, conseil="« Ôrungu wi ny'éwèrè » : les Ôrungu mangent du poisson (c'est toujours vrai).", ill='⏱️')
+         S_CAPP + ' ; ' + S_PRON, conseil="« Orungu wi ny'éwèrè » : les Orungu mangent du poisson (c'est toujours vrai).", ill='⏱️')
 for m, f in [('Mi dura', 'je tire'), ('Wé pôla', 'tu cours'), ('E dyina', 'il danse'), ('E déna', 'elle pleure'), ('Zé séva', 'nous jouons'), ('Né djèna', 'vous voyez')]:
     lc.ecouter(m, f, S_PRON)
-lc.ecouter("Ôrungu wi ny'éwèrè", 'Les Ôrungu mangent du poisson', S_CAPP)
+lc.ecouter("Orungu wi ny'éwèrè", 'Les Orungu mangent du poisson', S_CAPP)
 lc.associer('E dyina', 'il danse', ['elle pleure', 'nous jouons', 'tu cours'], S_PRON)
 lc.associer('Zé séva', 'nous jouons', ['vous voyez', 'il danse', 'je tire'], S_PRON)
 lc.choix('elle pleure', 'E déna', ['E dyina', 'Zé séva'], S_PRON)
 lc.trou('Zé ___', 'séva', ['déna', 'dyina'], 'nous jouons', S_PRON)
-lc.ordre("Ôrungu wi ny'éwèrè", 'Les Ôrungu mangent du poisson', S_CAPP)
+lc.ordre("Orungu wi ny'éwèrè", 'Les Orungu mangent du poisson', S_CAPP)
 lc.jouer('course-des-verbes', 'La course des verbes')
 fin(lc)
 
@@ -461,7 +461,7 @@ lc.dire('Mi bé nya', 'je vais manger', S_CAPP)
 fin(lc)
 
 lc = lecon('ogendo-l17', G, 5, 'Poser une question', duree=8, xp=20)
-lc.cours(None, None, "En ôrungu, on ne construit pas la question comme en français : sujet, verbe, complément, et le mot de la question à la fin (ndé, sè, gwé).",
+lc.cours(None, None, "En orungu, on ne construit pas la question comme en français : sujet, verbe, complément, et le mot de la question à la fin (ndé, sè, gwé).",
          S_CAPP12, conseil="On dit « Wé bel'intchango ndé ? », jamais « Intchango ndé wé bele ? ».", ill='❓')
 for m, f, s in [('Intchango sè ?', 'Quelles nouvelles ?', 'Capp (RÈGLES v2.1, § 9, formules)'), ("Wé bel'intchango ndé ?", 'Quelles nouvelles veux-tu ?', S_CAPP12),
                 ('Eré na gwé ?', 'Il est où ?', S_INC), ('Zé nya ndé ?', 'On mange quoi ?', S_INC), ('Wé bulia sè ?', 'Tu dis quoi ?', S_INC)]:
@@ -563,7 +563,7 @@ U.extend(U_NOUV)
 MAJ_L = {
     'ntina-l5': dict(unite_id='ntina-u8', ordre=3),
     'ntina-l4': dict(ordre=1), 'ntina-l6': dict(ordre=2), 'ntina-l7': dict(ordre=3), 'ntina-l8': dict(ordre=4),
-    'ogendo-l1': dict(unite_id='ntina-u3', ordre=5, titre="Révision : les consonnes de l'ôrungu"),
+    'ogendo-l1': dict(unite_id='ntina-u3', ordre=5, titre="Révision : les consonnes de l'orungu"),
     'ogendo-l2': dict(unite_id='ntina-u3', ordre=6),
     'ntina-l16': dict(unite_id='ntina-u13', ordre=1), 'ntina-l17': dict(unite_id='ntina-u13', ordre=2),
 }

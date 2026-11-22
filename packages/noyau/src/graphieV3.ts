@@ -67,7 +67,7 @@ export function sansSignes(texte?: string | null): string {
   return NFC((texte ?? '').replace(/[‘’]/g, (m) => m === '’' ? "'" : '').normalize('NFD').replace(/[̀̈]/g, '')).trim();
 }
 
-export type Ecart = { champ: string; regle: 'lettre_v2' | 'auteur' | 'terme_specialiste' | 'crochets'; extrait: string };
+export type Ecart = { champ: string; regle: 'lettre_v2' | 'accent_grave' | 'auteur' | 'terme_specialiste' | 'crochets'; extrait: string };
 
 /**
  * L'accent grave de l'impératif (règles § 3, § 6.5) peut tomber sur un e (è) : c'est un signe v3, pas la lettre v2.
@@ -81,8 +81,15 @@ export function graveImperatifOte(mot: string): string {
 const GRAVES: Record<string, string> = { a: 'à', e: 'è', i: 'ì', o: 'ò', u: 'ù', ê: 'ề', ô: 'ồ' };
 /** Sens français d'un impératif (« râpe ! », « essuie ! ») ; les formules (« Au revoir ! », « Bienvenue ! ») n'en sont pas. */
 export const sensImperatif = (sens?: string | null) => /!\s*$/.test(sens ?? '') && !/^(au revoir|bienvenue|merci|bonjour|bonsoir|salut)/i.test((sens ?? '').trim());
-/** Accent grave de l'impératif sur la première voyelle d'un verbe cité seul (règles § 3, § 6.5) ; rien s'il est déjà posé. */
+/**
+ * Règles v3.6 (Capp, 22 nov. 2026, soir) : plus aucun accent grave, l'impératif s'écrit sans signe. La fonction rend le mot
+ * tel quel (gardée pour les appels existants) ; l'ancien comportement (accent sur la première voyelle) est désactivé.
+ */
 export function accentImperatif(mot: string): string {
+  return mot;
+}
+/** Ancien accent de l'impératif (v3.3 à v3.5), pour mémoire et pour lire les anciens textes. */
+export function accentImperatifV35(mot: string): string {
   if (/[àèìòùềồ]/.test(mot) || /\s/.test(mot.trim())) return mot;
   const i = [...mot].findIndex(ch => ch.toLowerCase() in GRAVES);
   if (i < 0) return mot;
@@ -105,6 +112,8 @@ export function controlerAffiche(champ: string, texte: string | null | undefined
   const a = t.match(AUTEURS); if (a) res.push({ champ, regle: 'auteur', extrait: a[0] });
   const s = t.match(RX_TERMES); if (s) res.push({ champ, regle: 'terme_specialiste', extrait: s[1] });
   const c = t.match(CROCHETS); if (c) res.push({ champ, regle: 'crochets', extrait: c[0] });
+  // Règles v3.6 : aucun accent grave dans un texte myènè (è, à, ì, ò, ù, ề, ồ).
+  if (myene) { const g = mots(t).find(m => /[àèìòùềồ]/i.test(m) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr')) && !(m.length === 1)); if (g) res.push({ champ, regle: 'accent_grave', extrait: g }); }
   const rx = myene ? LETTRES_V2 : SUITES_V2;
   // Dans un texte français, « tch », « dy », « dj » seuls disent comment se prononce c ou j (règles § 2.2) : admis.
   const fautif = mots(t).find(m => rx.test(graveImperatifOte(m)) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr')) && !(m.length === 1 && !myene) && !(!myene && /^(tch|dy|dj)$/i.test(m)));

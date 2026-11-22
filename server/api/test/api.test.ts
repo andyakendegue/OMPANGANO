@@ -150,7 +150,7 @@ test('un admin change un rôle, un statut ; rétrograder retire les droits', asy
 
 test('classement public : seulement les champs publics', async () => {
   const u = await newUser();
-  await call('PATCH', '/v1/me', u.token, { contact: '+241000', birthDate: '1990-01-01', tribe: 'Ôrungu', villageOfOrigin: 'Port-Gentil' });
+  await call('PATCH', '/v1/me', u.token, { contact: '+241000', birthDate: '1990-01-01', tribe: 'Orungu', villageOfOrigin: 'Port-Gentil' });
   const board = (await call('GET', '/v1/leaderboard', u.token)).body as any[];
   const mine = board.find(e => e.id === u.uid);
   assert.ok(mine);
@@ -338,7 +338,7 @@ test('catalogue : un contributeur lit mais ne modifie pas ; il peut ajouter un c
   assert.equal((await call('PUT', `/v1/items/${item}`, a.token, { myeneText: 'x' })).status, 403);
   assert.equal((await call('DELETE', `/v1/items/${item}`, a.token)).status, 403);
   const clan = uniq('clan');
-  assert.equal((await call('PUT', `/v1/clans/${clan}`, a.token, { name: 'Azizet', tribe: 'Ôrungu' })).status, 200);
+  assert.equal((await call('PUT', `/v1/clans/${clan}`, a.token, { name: 'Azizet', tribe: 'Orungu' })).status, 200);
   assert.equal((await call('PUT', `/v1/clans/${clan}`, a.token, { name: 'Autre' })).status, 403);
   assert.equal((await call('PUT', `/v1/badges/${uniq('b')}`, a.token, { title: 'x' })).status, 403);
 });

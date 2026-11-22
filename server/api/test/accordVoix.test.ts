@@ -26,7 +26,7 @@ before(async () => {
 after(async () => { await app.close(); });
 
 const AUJ = Date.parse('2026-11-22T12:00:00Z');
-const base: FormInscription = { nomComplet: 'Enfant Test', contact: '+24100000000', dateNaissance: '2014-05-01', lieuNaissance: 'Mandji', tribu: 'Ôrungu', clanPaternel: 'A', clanMaternel: 'B', village: 'V', conditions: true, donnees: true, voix: true, image: false };
+const base: FormInscription = { nomComplet: 'Enfant Test', contact: '+24100000000', dateNaissance: '2014-05-01', lieuNaissance: 'Mandji', tribu: 'Orungu', clanPaternel: 'A', clanMaternel: 'B', village: 'V', conditions: true, donnees: true, voix: true, image: false };
 
 test('règle : âge, mineur (date inconnue = mineur), voix autorisée seulement avec l\'accord du parent nommé', () => {
   assert.equal(ageEnAnnees('2008-11-22', AUJ), 18); assert.equal(ageEnAnnees('2008-11-23', AUJ), 17); assert.equal(ageEnAnnees(''), null);

@@ -1,5 +1,5 @@
 /**
- * Kaka Igonjo (Kak'Igonjo), l'assistant, en chat flottant : un vieux sage ôrungu, bienveillant.
+ * Kaka Igonjo (Kak'Igonjo), l'assistant, en chat flottant : un vieux sage orungu, bienveillant.
  * Au repos : la tête d'un vieil Orungu dans une auréole, en bas à droite. Au toucher : il glisse à gauche, son buste apparaît,
  * il se penche devant le chat, et la fenêtre sort de lui comme un génie de sa lampe.
  * Tenue (décrite par Capp, 11 nov. 2026) : vêtement blanc ; duku = bonnet blanc à bord, sans gland ; okorouè = pagne à motif

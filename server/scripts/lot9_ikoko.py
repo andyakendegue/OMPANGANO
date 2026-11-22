@@ -11,7 +11,7 @@ C = os.path.join(OMP, "packages/noyau/contenu")
 R = "Règles de référence v3.3"
 UNITES = [
     {"id": "ikoko-u2", "parcours_id": "ikoko", "titre": "Je parle, j'apprends à écrire", "titre_myene": "", "entree": "adulte_parle", "suite_id": "emeno-u10",
-     "description": "Pour l'adulte qui parle ôrungu sans savoir l'écrire : les lettres, les signes, puis des dictées de phrases de tous les jours.", "ordre": 2, "publie": True},
+     "description": "Pour l'adulte qui parle orungu sans savoir l'écrire : les lettres, les signes, puis des dictées de phrases de tous les jours.", "ordre": 2, "publie": True},
     {"id": "ikoko-u3", "parcours_id": "ikoko", "titre": "Transmetteurs", "titre_myene": "", "entree": "transmetteurs",
      "description": "Pour les parents, les enseignants et les personnes-ressources : écrire selon l'alphabet, corriger une écriture, conduire une veillée, enregistrer un ancien.", "ordre": 3, "publie": True},
 ]
@@ -62,11 +62,11 @@ lecon("ikoko-l6", "ikoko-u2", "Dictées de tous les jours", 3, [
     dictee(S, "au revoir", "Ibanga we. Ka mênê !"),
     dictee(S, "je ne mange pas", "Myê re nya"),
     dictee(S, "je vais manger", "Myê be nya"),
-    dictee(S, "les Ôrungu mangent du poisson", "Ôrungu wi ny'ewêrê."),
+    dictee(S, "les Orungu mangent du poisson", "Orungu wi ny'ewêrê."),
 ])
 S = R + " § 2-4, § 12"
 lecon("ikoko-l7", "ikoko-u3", "Écrire et corriger", 1, [
-    ("cours", {"consigne": "Écrire et corriger", "texte": "Pour transmettre, on écrit avec l'alphabet de tous : une lettre pour un son, les signes à leur place, et l'ordre de la phrase de l'ôrungu (le mot de la question à la fin). Pour corriger une écriture ancienne : è devient ê, é devient e, tch devient c, dj et dy deviennent j.", "source": S}),
+    ("cours", {"consigne": "Écrire et corriger", "texte": "Pour transmettre, on écrit avec l'alphabet de tous : une lettre pour un son, les signes à leur place, et l'ordre de la phrase de l'orungu (le mot de la question à la fin). Pour corriger une écriture ancienne : è devient ê, é devient e, tch devient c, dj et dy deviennent j.", "source": S}),
     choix(S, "Laquelle est juste ?", "Wê bel'incango nde ?", ["Incango nde wê bele ?"]),
     choix(S, "Laquelle est juste pour « il est venu » ?", "A bya", ["A wyeni"]),
     choix(S, "Laquelle est juste pour « il est né » ?", "a yano", ["a jani"]),

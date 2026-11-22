@@ -7,7 +7,7 @@ import { etiquetteSource, TITRES_EXCLUS, TITRES_MYENE, TITRES_PHRASES_V3, TITRES
 import { controlerMyene, AUTEURS } from '../../../packages/noyau/src/graphieV3.ts';
 
 test('prompt : version v3.3, aucune référence, aucune lettre v2 dans les exemples', () => {
-  assert.match(VERSION_GRAMMAIRE, /^DONDO v3\.[3-5]/);
+  assert.match(VERSION_GRAMMAIRE, /^DONDO v3\.[3-6]/);
   assert.ok(!AUTEURS.test(GRAMMAIRE_MYENE), 'aucun nom d\'auteur');
   assert.ok(!/\bp\. ?\d/.test(GRAMMAIRE_MYENE), 'aucun numéro de page');
   // Les lettres v2 n'apparaissent que dans les sections qui expliquent comment lire un texte ancien et les erreurs à éviter.
@@ -36,7 +36,7 @@ test('RAG : règles en premier, données v3 seulement, rang de chaque source', (
 });
 
 test('contrôleur : les phrases de référence de Capp passent, les erreurs du § 12 sont arrêtées', () => {
-  for (const p of ["Ôrungu wi ny'ewêrê.", "A pyez'iyoma, anaga wa vïezo iyoma.", 'Myê re nya pa njôgôni.', "Igomi ni ncaro y'inago.", "Wê bel'incango nde ?", 'Ê re bye. Ê pa bya.', 'Mênê ozangue ê be dwana byambie go Mandji.'])
+  for (const p of ["Orungu wi ny'ewêrê.", "A pyez'iyoma, anaga wa vïezo iyoma.", 'Myê re nya pa njôgôni.', "Igomi ni ncaro y'inago.", "Wê bel'incango nde ?", 'Ê re bye. Ê pa bya.', 'Mênê ozangue ê be dwana byambie go Mandji.'])
     assert.deepEqual(controlerMyene(p), { ok: true, ecarts: [] }, p);
   for (const p of ['Ê a va', 'Omwana', "Agom'ambani m'itondo", 'Incango nde wê bele ?', 'Intchango sè ?', 'Mi be luwo me nya'])
     assert.equal(controlerMyene(p).ok, false, p);

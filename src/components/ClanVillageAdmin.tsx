@@ -63,7 +63,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
   const [isClanFormOpen, setIsClanFormOpen] = useState(false);
   const [editingClan, setEditingClan] = useState<Partial<ClanRegistry> | null>(null);
   const [clanName, setClanName] = useState('');
-  const [clanTribe, setClanTribe] = useState<string>(MYENE_TRIBES[5] || 'Ôrungu');
+  const [clanTribe, setClanTribe] = useState<string>(MYENE_TRIBES[5] || 'Orungu');
   const [clanDesc, setClanDesc] = useState('');
   const [clanHistoricalMeaning, setClanHistoricalMeaning] = useState('');
   const [clanGeoOrigins, setClanGeoOrigins] = useState('');
@@ -83,7 +83,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
   const [isVillageFormOpen, setIsVillageFormOpen] = useState(false);
   const [editingVillage, setEditingVillage] = useState<Partial<VillageRegistry> | null>(null);
   const [villageName, setVillageName] = useState('');
-  const [villageTribe, setVillageTribe] = useState<string>('Ôrungu');
+  const [villageTribe, setVillageTribe] = useState<string>('Orungu');
   const [villageClan, setVillageClan] = useState<string>('');
   const [villageCustomClan, setVillageCustomClan] = useState<string>('');
   const [isUsingCustomClanForVillage, setIsUsingCustomClanForVillage] = useState<boolean>(false);
@@ -92,7 +92,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
 
   // Village CSV Import State
   const [isVillageCsvOpen, setIsVillageCsvOpen] = useState(false);
-  const [villageCsvDefaultTribe, setVillageCsvDefaultTribe] = useState<string>('Ôrungu');
+  const [villageCsvDefaultTribe, setVillageCsvDefaultTribe] = useState<string>('Orungu');
   const [villageCsvText, setVillageCsvText] = useState('');
   const [isImportingVillagesCsv, setIsImportingVillagesCsv] = useState(false);
   const [villageCsvProgress, setVillageCsvProgress] = useState<{ saved: number; total: number } | null>(null);
@@ -146,7 +146,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
   const openNewVillageModal = (presetTribe?: string, presetClanName?: string) => {
     setEditingVillage(null);
     setVillageName('');
-    const targetTribe = presetTribe || (selectedTribeFilter !== 'all' ? selectedTribeFilter : 'Ôrungu');
+    const targetTribe = presetTribe || (selectedTribeFilter !== 'all' ? selectedTribeFilter : 'Orungu');
     setVillageTribe(targetTribe);
     const clansForTribe = clans.filter(c => c.tribe === targetTribe);
     const defaultClan = presetClanName || clansForTribe[0]?.name || 'Non rattaché';
@@ -160,7 +160,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
   const openEditVillageModal = (village: VillageRegistry) => {
     setEditingVillage(village);
     setVillageName(village.name);
-    setVillageTribe(village.tribe || 'Ôrungu');
+    setVillageTribe(village.tribe || 'Orungu');
     const clansForTribe = clans.filter(c => c.tribe === village.tribe);
     const matchesExistingClan = clansForTribe.some(c => c.name === village.clan);
     if (matchesExistingClan || !village.clan || village.clan === 'Non rattaché') {
@@ -381,7 +381,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
               </h3>
             </div>
             <p className="text-xs text-[#d4af94] mt-1 leading-relaxed">
-              Seuls les <strong>21 clans officiels Ôrungu</strong> sont pré-enregistrés par défaut. Pour les autres ethnies (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba</strong>) ainsi que pour les <strong>villages</strong>, vous pouvez les ajouter manuellement ou les importer en lot par fichier <strong>CSV</strong> au fur et à mesure de la validation de leur orthographe.
+              Seuls les <strong>21 clans officiels Orungu</strong> sont pré-enregistrés par défaut. Pour les autres ethnies (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba</strong>) ainsi que pour les <strong>villages</strong>, vous pouvez les ajouter manuellement ou les importer en lot par fichier <strong>CSV</strong> au fur et à mesure de la validation de leur orthographe.
             </p>
           </div>
 
@@ -714,7 +714,7 @@ export const ClanVillageAdmin: React.FC<ClanVillageAdminProps> = ({
                 rows={5}
                 value={villageCsvText}
                 onChange={(e) => setVillageCsvText(e.target.value)}
-                placeholder={`Nom_Village,Ethnie,Clan_Rattachement,Region_Province\n"Ozouri","Ôrungu","Agenje","Ogooué-Maritime"\n"Alumbè","Ôrungu","Ajena","Ogooué-Maritime"`}
+                placeholder={`Nom_Village,Ethnie,Clan_Rattachement,Region_Province\n"Ozouri","Orungu","Agenje","Ogooué-Maritime"\n"Alumbè","Orungu","Ajena","Ogooué-Maritime"`}
                 className="w-full px-3.5 py-2.5 bg-[#180d07] border border-[#522915] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-teal-500"
               />
             </div>

@@ -42,7 +42,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({ onLoginSuccess }
         email: user.email || '',
         photoURL: user.photoURL || '',
         // rôle, XP, badges : jamais décidés par le navigateur (voir userSecurity.ts)
-        tribe: 'Ôrungu'
+        tribe: 'Orungu'
       });
     } catch (err: any) {
       console.warn('Google popup notice:', err);

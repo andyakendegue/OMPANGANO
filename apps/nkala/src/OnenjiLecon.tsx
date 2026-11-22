@@ -8,8 +8,9 @@ import { router } from 'expo-router';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import { avancerLecon, composerTestNiveau, etapeDe, etapeParAge, ETAPES_UNITE, exerciceNote, jugerReponse, justesse, melanger, nouvelleLecon, optionsDe, placementTest, repliques, SEUIL_UNITE, testTermine, TYPES_NOTES, type EtatLecon, type Exercice, type Lecon, type Parcours, type Unite } from '@nkala/noyau';
 import { useMedia } from './OnenjiHorsLigne';
-import { CarteSon, CarteTon, EntreeAnimee, Illustration, MelodieTonale, MontreMoi, QuelSon, SceneImmersive, Tracer } from './OnenjiImmersif';
+import { CarteSon, CarteTon, EntreeAnimee, Illustration, MelodieTonale, MontreMoi, QuelSon, Tracer } from './OnenjiImmersif';
 import { consignes, KakIgonjoFeuille, useIaCours } from './KakIgonjoCours';
+import { SceneRiche } from './OnenjiScenes';
 import { noterReponse } from './OnenjiEtat';
 import { Confettis } from './Confettis';
 import { Bouton, Carte, Champ, Chargement, Ecran, Ic, Mascotte, Onde, Barre, T, Visuel } from './kit';
@@ -51,7 +52,7 @@ function Image2({ src, taille, rayon = 24 }: { src?: string | null; taille: numb
   return <Visuel uri={uri} largeur={taille} hauteur={taille} rayon={rayon} icone="image" />;
 }
 
-const LIBELLES_DIALECTE: Record<string, string> = { orungu: 'Ôrungu', mpongwe: 'Mpongwè', galwa: 'Galwa', galoa: 'Galwa', nkomi: 'Nkomi', adyumba: 'Adyumba', enenga: 'Enenga' };
+const LIBELLES_DIALECTE: Record<string, string> = { orungu: 'Orungu', mpongwe: 'Mpongwè', galwa: 'Galwa', galoa: 'Galwa', nkomi: 'Nkomi', adyumba: 'Adyumba', enenga: 'Enenga' };
 export const libelleDialecte = (d?: string | null) => { const k = (d ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); return LIBELLES_DIALECTE[k] ?? (d ? d.charAt(0).toUpperCase() + d.slice(1) : ''); };
 
 /**
@@ -178,7 +179,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
   if (ex.type === 'son') return <CarteSon ex={ex} enfant={enfant} onSuite={() => onRepondre(true)} Son={Son} />;
   if (ex.type === 'ton') return <CarteTon ex={ex} onSuite={() => onRepondre(true)} />;
   if (ex.type === 'tracer') return <Tracer ex={ex} onSuite={() => onRepondre(true)} />;
-  if (ex.type === 'scene') return <SceneImmersive ex={ex} onRepondre={onRepondre} Son={Son} />;
+  if (ex.type === 'scene') return <SceneRiche ex={ex} onRepondre={onRepondre} Son={Son} />;
   if (ex.type === 'quel_son') return <QuelSon ex={ex} onRepondre={onRepondre} Son={Son} opts={opts} />;
   if (ex.type === 'montre') return <MontreMoi ex={ex} onRepondre={onRepondre} Son={Son} opts={opts} />;
 
@@ -441,7 +442,7 @@ export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuit
   const { c } = useTheme();
   const questions = useMemo(() => composerTestNiveau(parcours, unites, lecons, exercices), [parcours, unites, lecons, exercices]);
   const [demarre, setDemarre] = useState(false);
-  // Lot 9 du cursus v3 : première question pour l'adulte, « Parles-tu déjà ôrungu ? » (null : pas encore répondu).
+  // Lot 9 du cursus v3 : première question pour l'adulte, « Parles-tu déjà orungu ? » (null : pas encore répondu).
   const [locuteur, setLocuteur] = useState<boolean | null>(null);
   const [reponses, setReponses] = useState<boolean[]>([]);
   const enfant = prefs.mode === 'enfant';
@@ -463,7 +464,7 @@ export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuit
     <Ecran>
       <View style={{ alignItems: 'center', gap: 12 }}>
         <Mascotte taille={120} humeur="parle" />
-        <T v="titre" style={{ textAlign: 'center' }}>Parles-tu déjà ôrungu ?</T>
+        <T v="titre" style={{ textAlign: 'center' }}>Parles-tu déjà orungu ?</T>
         <T v="corps" style={{ textAlign: 'center' }}>Si tu le parles déjà, Kak'Igonjo regarde ce que tu sais écrire, puis tu apprends à écrire ce que tu dis.</T>
       </View>
       <Bouton label="Oui, je le parle" variante="ambre" onPress={() => setLocuteur(true)} />

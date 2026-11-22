@@ -1,5 +1,5 @@
 /**
- * Rangs de Nkala : les classes d'âge ôrungu du programme de formation (décision de Capp, 10 nov. 2026).
+ * Rangs de Nkala : les classes d'âge orungu du programme de formation (décision de Capp, 10 nov. 2026).
  * Un seul profil et un seul XP pour tous les modules. Les paliers peuvent être remplacés par la collection « rangs ».
  */
 export interface Rang { id: string; nom: string; minXp: number; description: string }
@@ -9,7 +9,7 @@ export const RANGS: Rang[] = [
   { id: 'omwana', nom: 'Onghwana', minXp: 200, description: 'L\'enfant, dès un an.' },
   { id: 'iwanjo', nom: 'Iwanjo', minXp: 500, description: 'Le garçon (Isesa pour la fille).' },
   { id: 'olengwani', nom: 'Olêngwani', minXp: 1500, description: 'Le jeune qui apprend les usages.' },
-  { id: 'okengele', nom: 'Okengele', minXp: 4000, description: 'Classe d\'âge ôrungu.' },
+  { id: 'okengele', nom: 'Okengele', minXp: 4000, description: 'Classe d\'âge orungu.' },
   { id: 'onerwama', nom: 'Onerwama', minXp: 8000, description: 'La tradition, avant Onêro.' },
   { id: 'onero', nom: 'Onêro', minXp: 15000, description: 'L\'aîné, le responsable.' },
   { id: 'mbolo', nom: 'Mbolo', minXp: 30000, description: 'Le sommet de l\'échelle.' },

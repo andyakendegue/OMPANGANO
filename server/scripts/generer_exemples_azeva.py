@@ -40,7 +40,7 @@ MOTS = {
     'nombres': (COMPTONS, [('Môri', 'Un'), ('Mbani', 'Deux'), ('Nayi', 'Quatre'), ('Otani', 'Cinq'), ('Orowa', 'Six'), ('Enanayi', 'Huit'), ('Enogomi', 'Neuf'), ('Igomi', 'Dix')]),
     'famille': (FAMILLE, [('Rérè', 'Papa'), ('Ngwè', 'Maman'), ('Ombalo', "L'oncle"), ('Irônda', "L'ami, l'amie"), ('Ogôyi', 'Le beau-frère')]),
 }
-SOURCES_PARTICULIERES = {'Omwèyi': NATURE + ' ; soleil chez les Ôrungu : ' + CAPP, 'Nkambi': ANIMAUX + ' ; ' + CAPP}
+SOURCES_PARTICULIERES = {'Omwèyi': NATURE + ' ; soleil chez les Orungu : ' + CAPP, 'Nkambi': ANIMAUX + ' ; ' + CAPP}
 
 def ecrire(nom, lignes):
     with open(os.path.join(DEST, nom + '.json'), 'w', encoding='utf-8') as f:
@@ -146,7 +146,7 @@ jeu('la-carte', 'nombres', 'La carte', 'zones', 'Situe les lieux de la côte my�
 # Famille et société
 jeu('la-famille', 'famille', 'La famille', 'relier', 'Relie chaque parent à son nom.', couleur=ROSE)
 jeu('salue-comme-il-faut', 'famille', 'Salue comme il faut', 'quiz', 'Choisis la bonne formule.', couleur=ROSE, consigne='Que dis-tu ?')
-jeu('classes-d-age', 'famille', 'Les classes d\'âge', 'sequence', 'Range les classes d\'âge ôrungu, du plus jeune au plus ancien.', couleur=ROSE, enfant=False)
+jeu('classes-d-age', 'famille', 'Les classes d\'âge', 'sequence', 'Range les classes d\'âge orungu, du plus jeune au plus ancien.', couleur=ROSE, enfant=False)
 jeu('arbre-du-clan', 'famille', 'L\'arbre du clan', 'relier', 'Place lignages et liens.', P, couleur=ROSE, enfant=False)
 jeu('qui-fait-quoi', 'famille', 'Qui fait quoi au village ?', 'relier', 'Relie le personnage à sa fonction.', P, couleur=ROSE)
 jeu('la-frise', 'famille', 'La frise', 'sequence', 'Remets les événements dans l\'ordre.', P, couleur=ROSE, enfant=False)
@@ -253,7 +253,7 @@ for situation, rep, faux, src in [('Tu salues une personne.', 'Mbolo', ['Mbôlua
                                   ('Tu t\'excuses.', 'Nyéza myè', ['Akéwa', 'Yaga', 'Mbolo'], '[LEC] Formules de politesse ; [EQ]')]:
     item('salue-comme-il-faut', situation, rep, src + ' ; ' + LEX, faux)
 
-RANGS = 'Classes d\'âge ôrungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)'
+RANGS = 'Classes d\'âge orungu (14_programme_et_jeux/01_programme_formation_Orungu.md ; ordre fixé par Capp le 10 nov. 2026)'
 for n, nom in enumerate(['Ekèï-kèï', 'Omwana', 'Iwanjo', 'Olèngwani', 'Okengele', 'Onerwama', 'Onèró', 'Mbolo'], 1):
     item('classes-d-age', nom, str(n), RANGS, groupe='classes', ordre=n, indice='Du plus jeune au plus ancien')
 

@@ -50,8 +50,8 @@ def en_v3(forme):
 AUDIT = racine / '_contexte' / 'audit_lexique'
 # Variante et rang (plus petit = plus sûr) ; aucun nom d'auteur ne sort vers l'apprenant : l'API ne transmet que la variante.
 SOURCES = {
-    'CAPP':   ('ôrungu (validé)', 0, 'lecons'),
-    'LECONS': ('ôrungu', 1, 'lecons'),
+    'CAPP':   ('orungu (validé)', 0, 'lecons'),
+    'LECONS': ('orungu', 1, 'lecons'),
     'TD1957': ('galwa', 3, 'td'),
     'RW1995': ('mpongwè', 4, 'rw'),
 }
@@ -104,7 +104,7 @@ with open(AUDIT / '6_validations_capp.csv', encoding='utf-8') as fh:
     for r in csv.DictReader(fh):
         f, s = en_v3(propre(r['forme_validee'], 120)), propre(r['sens_valide'])
         if f and s and (f.lower(), s.lower()[:60]) not in vus:
-            entrees.append({'f': f, 's': s, 'v': 'ôrungu (validé)', 'r': 0})
+            entrees.append({'f': f, 's': s, 'v': 'orungu (validé)', 'r': 0})
 
 # Formes refusées par Capp : seules les lignes de mots (pas les phrases relevées par expression régulière).
 rejets = []

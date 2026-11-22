@@ -33,9 +33,9 @@ test('étapes couvertes par une unité', () => {
   const s = etapesCouvertes([{ type: 'cours', image: 'i.png' }, { type: 'dictee' }, { type: 'proverbe' }, { type: 'jouer' }]);
   assert.deepEqual([...s].sort(), ['ecrire', 'jouer', 'proverbe', 'verifier', 'voir']);
 });
-test('variante : celle de l\'apprenant, sinon commune, sinon ôrungu', () => {
+test('variante : celle de l\'apprenant, sinon commune, sinon orungu', () => {
   const l: Exercice[] = [
-    ex({ id: 'a-or', ordre: 1, dialecte: 'ôrungu' }), ex({ id: 'a-mp', ordre: 1, dialecte: 'mpongwe' }),
+    ex({ id: 'a-or', ordre: 1, dialecte: 'orungu' }), ex({ id: 'a-mp', ordre: 1, dialecte: 'mpongwe' }),
     ex({ id: 'b', ordre: 2 }), ex({ id: 'c-or', ordre: 3, dialecte: 'orungu' }), ex({ id: 'c-co', ordre: 3 }),
   ];
   assert.deepEqual(filtrerVariante(l, 'mpongwe').map(e => e.id), ['a-mp', 'b', 'c-co']);

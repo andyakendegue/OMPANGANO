@@ -8,7 +8,7 @@ import { couleurs, stylesDyn } from './theme';
 
 if (Platform.OS === 'android') UIManager.setLayoutAnimationEnabledExperimental?.(true);
 
-const TRIBUS = ['Toutes', 'Ôrungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
+const TRIBUS = ['Toutes', 'Orungu', 'Mpongwè', 'Galoa', 'Nkomi', 'Enenga', 'Adyumba'];
 const nomTribu = (t: string) => (t === 'Toutes' ? 'Toutes les Ethnies' : t);
 interface Retour { rangGagne: number; xpGagne: number; rang: number }
 

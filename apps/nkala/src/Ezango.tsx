@@ -147,7 +147,7 @@ export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void }
           <Pressable onPress={() => choisirTribu('all')}><Text style={s.lien}>Toutes les ethnies</Text></Pressable>
         </View>
       ) : (
-        <Text style={s.discret}>En langue Myènè, les différences orthographiques et tonales concernent uniquement les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu) et non les clans. Sélectionnez une ethnie pour explorer ses expressions et ses particularités linguistiques.</Text>
+        <Text style={s.discret}>En langue Myènè, les différences orthographiques et tonales concernent uniquement les 6 Ethnies (Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu) et non les clans. Sélectionnez une ethnie pour explorer ses expressions et ses particularités linguistiques.</Text>
       )}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>

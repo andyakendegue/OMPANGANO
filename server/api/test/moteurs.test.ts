@@ -62,7 +62,7 @@ test('schémas : chaque collection a un identifiant, des colonnes uniques, des r
   }
 });
 
-test('rangs : huit classes d\'âge ôrungu, paliers 0 à 30000', () => {
+test('rangs : huit classes d\'âge orungu, paliers 0 à 30000', () => {
   assert.equal(RANGS.length, 8);
   assert.equal(rangPourXp(0).rang.nom, 'Ekêï-kêï'); assert.equal(rangPourXp(199).rang.id, 'ekei-kei'); assert.equal(rangPourXp(200).rang.id, 'omwana');
   assert.equal(rangPourXp(30000).rang.id, 'mbolo'); assert.equal(rangPourXp(99999).suivant, null); assert.equal(rangPourXp(99999).progression, 1);

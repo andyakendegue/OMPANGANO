@@ -147,7 +147,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   </div>
                 </div>
                 <p className="text-xs text-[#d4af94] leading-relaxed">
-                  Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 ethnies Myènè (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu</strong>) tout en honorant la mémoire généalogique des clans.
+                  Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 ethnies Myènè (<strong>Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Orungu</strong>) tout en honorant la mémoire généalogique des clans.
                 </p>
               </div>
 
@@ -322,7 +322,7 @@ export const VisualGuideModal: React.FC<VisualGuideModalProps> = ({
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-amber-500/30 flex items-center gap-2">
                     <span>🌍</span>
                     <span>
-                      <strong>Votre Ethnie</strong> {currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}
+                      <strong>Votre Ethnie</strong> {currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu)'}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-[#24130a] border border-emerald-500/30 flex items-center gap-2">

@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { SEEDS } from '../../../packages/noyau/src/contenu/seeds.ts';
 import { controlerAffiche, ecartsExercice, ecartsTitres, lettresV3, sansSignes, type Ecart } from '../../../packages/noyau/src/graphieV3.ts';
 
-const PLAFONDS: Record<Ecart['regle'], number> = { lettre_v2: 0, terme_specialiste: 0, crochets: 0, auteur: 0 };
+const PLAFONDS: Record<Ecart['regle'], number> = { lettre_v2: 0, accent_grave: 0, terme_specialiste: 0, crochets: 0, auteur: 0 };
 
 function tousLesEcarts() {
   const r: (Ecart & { id: string })[] = [];
@@ -29,8 +29,9 @@ test('contrôleur : repère chaque catégorie, laisse passer le v3 et le frança
   assert.equal(controlerAffiche('m', "Wê bel'incango nde ?", true).length, 0);
   assert.equal(controlerAffiche('m', 'Ndjôgu', true)[0]?.regle, 'lettre_v2');
   assert.equal(controlerAffiche('m', 'nghomba', true).length, 0, 'ngh est une lettre v3');
-  assert.equal(controlerAffiche('m', 'vèra', true).length, 0, 'accent grave de l\'impératif sur e');
-  assert.equal(controlerAffiche('m', 'rerè', true)[0]?.regle, 'lettre_v2', 'è hors de la première voyelle : v2');
+  assert.equal(controlerAffiche('m', 'vèra', true)[0]?.regle, 'accent_grave', 'règles v3.6 : plus d\'accent grave (vêra)');
+  assert.equal(controlerAffiche('m', 'vêra', true).length, 0);
+  assert.equal(controlerAffiche('m', 'rerè', true)[0]?.regle, 'accent_grave', 'è : jamais en v3.6');
   assert.equal(controlerAffiche('m', 'Ogholo', true)[0]?.regle, 'lettre_v2');
   assert.equal(controlerAffiche('t', 'Écoute et répète.', false).length, 0, 'é du français admis');
   assert.equal(controlerAffiche('t', 'Le mot « intchango »', false)[0]?.regle, 'lettre_v2', 'tch cité dans un texte français');

@@ -198,7 +198,7 @@ export function Moderation() {
       <TextInput style={s.champ} value={q} onChangeText={setQ} autoCapitalize="none" placeholder="Rechercher par expression française, mot Myènè, sens proposé, locuteur..." placeholderTextColor={couleurs.discret} />
       <View style={s.pile}>
         <Pressable onPress={() => setTribu('all')} style={[s.puce, tribu === 'all' && s.puceActive]}><Text style={[s.puceTexte, tribu === 'all' && s.puceTexteActif]}>Toutes les Ethnies Myènè</Text></Pressable>
-        {['Enenga', 'Mpongwè', 'Galoa', 'Nkomi', 'Ôrungu', 'Adyumba'].map(t => (
+        {['Enenga', 'Mpongwè', 'Galoa', 'Nkomi', 'Orungu', 'Adyumba'].map(t => (
           <Pressable key={t} onPress={() => setTribu(t)} style={[s.puce, tribu === t && s.puceActive]}><Text style={[s.puceTexte, tribu === t && s.puceTexteActif]}>Ethnie {t}</Text></Pressable>
         ))}
         <Pressable onPress={() => setFiltre('all')} style={[s.puce, filtre === 'all' && s.puceActive]}><Text style={[s.puceTexte, filtre === 'all' && s.puceTexteActif]}>Toutes ({total})</Text></Pressable>

@@ -215,7 +215,7 @@
   "parcours_id": "ogendo",
   "titre": "Lire et écrire",
   "titre_myene": "",
-  "description": "L'alphabet de l'ôrungu : les sept voyelles, le chapeau qui change le sens, les lettres simples, c et j, ny et ngh, les lettres qui vont par deux, la musique des mots et les mots venus d'ailleurs.",
+  "description": "L'alphabet de l'orungu : les sept voyelles, le chapeau qui change le sens, les lettres simples, c et j, ny et ngh, les lettres qui vont par deux, la musique des mots et les mots venus d'ailleurs.",
   "ordre": 1,
   "publie": true
  },
@@ -278,7 +278,7 @@
   "parcours_id": "emeno",
   "titre": "Les nouvelles du pays",
   "titre_myene": "",
-  "description": "Lire et comprendre des nouvelles écrites en ôrungu.",
+  "description": "Lire et comprendre des nouvelles écrites en orungu.",
   "ordre": 7,
   "publie": true
  },
@@ -296,7 +296,7 @@
   "parcours_id": "emeno",
   "titre": "Notre histoire",
   "titre_myene": "",
-  "description": "La royauté des Ôrungu, sa devise, et la parole qui ouvre les contes.",
+  "description": "La royauté des Orungu, sa devise, et la parole qui ouvre les contes.",
   "ordre": 9,
   "publie": true
  },
@@ -305,7 +305,7 @@
   "parcours_id": "emeno",
   "titre": "Bien écrire",
   "titre_myene": "",
-  "description": "Écrire l'ôrungu avec les lettres et les signes de l'alphabet, et éviter les erreurs courantes.",
+  "description": "Écrire l'orungu avec les lettres et les signes de l'alphabet, et éviter les erreurs courantes.",
   "ordre": 10,
   "publie": true
  },
@@ -316,7 +316,7 @@
   "titre_myene": "",
   "entree": "adulte_parle",
   "suite_id": "emeno-u10",
-  "description": "Pour l'adulte qui parle ôrungu sans savoir l'écrire : les lettres, les signes, puis des dictées de phrases de tous les jours.",
+  "description": "Pour l'adulte qui parle orungu sans savoir l'écrire : les lettres, les signes, puis des dictées de phrases de tous les jours.",
   "ordre": 2,
   "publie": true
  },

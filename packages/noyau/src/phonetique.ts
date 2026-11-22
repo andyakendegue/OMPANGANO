@@ -1,5 +1,5 @@
 /**
- * Sons et tons de l'ôrungu, décrits dans leur propre système (15 nov. 2026, consigne de Capp : jamais par comparaison au français,
+ * Sons et tons de l'orungu, décrits dans leur propre système (15 nov. 2026, consigne de Capp : jamais par comparaison au français,
  * dont la phonétique est plus pauvre). Chaque son est défini par son articulation et sa notation API, avec sa distribution,
  * et illustré par des mots sourcés donnés avec leur transcription tonale.
  *
@@ -35,7 +35,7 @@ export interface Phoneme {
   exemples: ExempleSon[];
 }
 
-/** Les sept voyelles orales de l'ôrungu (AMB p. 11-12) : aperture et série ; pas de voyelle nasale ; pas de voyelle longue en soi. */
+/** Les sept voyelles orales de l'orungu (AMB p. 11-12) : aperture et série ; pas de voyelle nasale ; pas de voyelle longue en soi. */
 export const VOYELLES: Phoneme[] = [
   { api: 'i', graphie: 'i', geste: 'La bouche presque fermée, les lèvres tirées.', type: 'voyelle', articulation: 'voyelle antérieure fermée (1er degré d\'aperture)', aperture: 1, serie: 'antérieure',
     exemples: [{ phonetique: '[ìncìnì]', sens: 'des mouches', source: 'AMB p. 12' }, { mot: 'kisini', sens: 'la cuisine', source: 'LEC-ÉCR' }] },
@@ -57,7 +57,7 @@ export const VOYELLES: Phoneme[] = [
     exemples: [{ phonetique: '[ìncúnú]', sens: 'des fourmis', source: 'AMB p. 12' }, { mot: 'ekuru', sens: 'le hibou', source: 'LEC-ÉCR' }] },
 ];
 
-/** Consonnes et semi-consonnes de l'ôrungu (AMB p. 12-19), regroupées par particularité. */
+/** Consonnes et semi-consonnes de l'orungu (AMB p. 12-19), regroupées par particularité. */
 export const CONSONNES: Phoneme[] = [
   { api: 'ɓ', graphie: 'b', geste: 'Les lèvres fermées, puis l\'air entre dans la bouche.', type: 'consonne', articulation: 'occlusive bilabiale sonore implosive', lieu: 'lèvres', mode: 'occlusive implosive', air: 'implosif',
     distribution: 'Les occlusives sonores sont implosives partout, sauf après une nasale où elles sont explosives (mb).',
@@ -157,7 +157,7 @@ export const CONSONNES: Phoneme[] = [
 ];
 
 export interface Ton { nom: string; notation: string; marque: string; type: 'ponctuel' | 'modulé'; description: string; exemples: ExempleSon[] }
-/** Tons de l'ôrungu (AMB p. 52-57) : trois ponctuels, deux modulés rares ; le ton montant n'est jamais réalisé. */
+/** Tons de l'orungu (AMB p. 52-57) : trois ponctuels, deux modulés rares ; le ton montant n'est jamais réalisé. */
 export const TONS: Ton[] = [
   { nom: 'haut', notation: 'H', marque: '́', type: 'ponctuel', description: 'Voix haute.', exemples: [{ phonetique: '[mɛ́nɛ́]', sens: 'demain', source: 'AMB p. 53' }, { phonetique: '[òɾámbáká]', sens: 'une racine', source: 'AMB p. 53' }] },
   { nom: 'bas', notation: 'B', marque: '̀', type: 'ponctuel', description: 'Voix basse.', exemples: [{ phonetique: '[òmàmbà]', sens: 'un serpent', source: 'AMB p. 53' }, { phonetique: '[swàkà]', sens: 'un couteau', source: 'AMB p. 53' }] },
@@ -300,7 +300,7 @@ export function apiDepuisGraphie(texte?: string | null): string {
 }
 /** Exemple complet pour l'apprenant : écriture, transcription (tons) et sens ; l'écriture vient de la transcription quand le corpus ne la donne pas. */
 export function exempleComplet(e: { mot?: string | null; phonetique?: string | null; sens: string }): { mot: string; phonetique: string | null; sens: string; ecritureDeduite: boolean } {
-  // Impératif cité seul : accent grave sur la première voyelle, comme dans les cours (règles v3.3 § 3, § 6.5).
+  // Règles v3.6 : plus d'accent grave à l'impératif (accentImperatif rend le mot tel quel).
   const imp = (m: string) => sensImperatif(e.sens) ? accentImperatif(m) : m;
   const mot = (e.mot ?? '').trim().replace(/\s*!$/, '');
   if (mot || !e.phonetique) return { mot: imp(mot), phonetique: e.phonetique ?? null, sens: e.sens, ecritureDeduite: false };

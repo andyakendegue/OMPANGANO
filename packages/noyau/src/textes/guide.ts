@@ -21,7 +21,7 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "p",
-      "texte": "Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 ethnies Myènè (Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Ôrungu) tout en honorant la mémoire généalogique des clans."
+      "texte": "Documenter fidèlement les expressions, l'orthographe et les tons propres aux 6 ethnies Myènè (Mpongwè, Enenga, Galoa, Nkomi, Adyumba, Orungu) tout en honorant la mémoire généalogique des clans."
     },
     {
       "type": "texte",
@@ -137,7 +137,7 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "texte",
-      "texte": "🌍 Votre Ethnie {{currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Ôrungu)'}}"
+      "texte": "🌍 Votre Ethnie {{currentUser?.tribe ? `(${currentUser.tribe})` : '(Mpongwè, Adyumba, Enenga, Nkomi, Galoa, Orungu)'}}"
     },
     {
       "type": "texte",

@@ -403,7 +403,7 @@ export default function App() {
       contact: base.contact || base.email || '',
       birthDate: '',
       birthPlace: '',
-      tribe: 'Ôrungu',
+      tribe: 'Orungu',
       paternalClan: '',
       maternalClan: '',
       villageOfOrigin: '',
@@ -996,7 +996,7 @@ export default function App() {
           setClans(merged);
           cacheClansLocally(merged);
         }
-        // Automatically propagate new official Ôrungu clans to Firebase if missing from existing database
+        // Automatically propagate new official Orungu clans to Firebase if missing from existing database
         const canFixClans = currentUserRef.current?.role === 'admin';
         if (canFixClans && newlyAddedOrUpdated.length > 0) {
           dualBatchSaveRecords(
@@ -1368,7 +1368,7 @@ export default function App() {
     const fullClan: ClanRegistry = {
       id,
       name: clanData.name || 'Nouveau Clan',
-      tribe: clanData.tribe || 'Ôrungu',
+      tribe: clanData.tribe || 'Orungu',
       description: clanData.description,
       historicalMeaning: clanData.historicalMeaning,
       geographicalOrigins: clanData.geographicalOrigins,
@@ -1438,7 +1438,7 @@ export default function App() {
       id,
       name: villageData.name || 'Nouveau Village',
       clan: villageData.clan || 'Non rattaché',
-      tribe: villageData.tribe || 'Ôrungu',
+      tribe: villageData.tribe || 'Orungu',
       region: villageData.region,
       createdAt: villageData.createdAt || new Date().toISOString()
     };
@@ -2313,7 +2313,7 @@ export default function App() {
       await dualDeleteRecord('users', uid);
     }
 
-    // 3. Sauvegarde des clans officiels Ôrungu et des fiches corrigées
+    // 3. Sauvegarde des clans officiels Orungu et des fiches corrigées
     if (audit.clansToSave.length > 0) {
       await dualBatchSaveRecords(
         'clans',

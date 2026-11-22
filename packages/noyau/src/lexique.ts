@@ -8,11 +8,11 @@
  * Sources :
  *  - [LEC] Leçons omyènè (C. Hombouhiry), DONDO/01_sources_myene/03_lecons_omyene
  *  - [RW]  A. Raponda-Walker, Dictionnaire mpongwè-français
- *  - [AMB] O. Ambouroué, thèse sur l'ôrungu (2007)
- *  - [EQ]  validé par l'équipe OMPANGANO (locuteur ôrungu natif)
+ *  - [AMB] O. Ambouroué, thèse sur l'orungu (2007)
+ *  - [EQ]  validé par l'équipe OMPANGANO (locuteur orungu natif)
  *
- * Graphie v3 (Rékanga, règles de référence v3.4, 22 nov. 2026) : Sale, Akewa, Nyeza myê, Ibanga we. Ka mênê !, Onêro… ; impératif à
- * l'accent grave (Yàga). Ces mots entrent aussi dans le prompt de Kak'Igonjo (liste « Mots vérifiés ») : jamais de lettre v2 ici.
+ * Graphie v3 (Rékanga, règles de référence v3.4, 22 nov. 2026) : Sale, Akewa, Nyeza myê, Ibanga we. Ka mênê !, Onêro… ; impératif sans
+ * accent (Yaga ; règles v3.6). Ces mots entrent aussi dans le prompt de Kak'Igonjo (liste « Mots vérifiés ») : jamais de lettre v2 ici.
  */
 
 export interface MotMyene {
@@ -41,7 +41,7 @@ export const MYENE = {
   /** S'il te plaît. */
   KOKOLO: { mot: 'Kôkôlô', sens: "S'il te plaît", source: '[LEC] Formules de politesse' },
   /** Viens ! */
-  YAGA: { mot: 'Yàga', sens: 'Viens !', source: '[LEC] Formules de politesse' },
+  YAGA: { mot: 'Yaga', sens: 'Viens !', source: '[LEC] Formules de politesse' },
   /** Le livre (aussi : l'école, la loi). */
   EZANGO: { mot: 'Ezango', sens: "Le livre (aussi l'école, la loi)", source: '[RW] « Ezango »' },
   /** La voix. */

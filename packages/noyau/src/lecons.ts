@@ -48,8 +48,25 @@ export interface Exercice {
   scene?: string | null;
   /** Type « scene » : éléments à toucher [{ "x": 0-100, "y": 0-100, "mot": "…", "sens": "…", "illustration": "🐘", "audio": "…" }]. */
   zones?: ZoneScene[] | string | null;
+  /** Type « scene » : chemins vers les scènes voisines (lot 11). */
+  liens?: LienScene[] | string | null;
 }
-export interface ZoneScene { x: number; y: number; mot: string; sens: string; illustration?: string | null; audio?: string | null; image?: string | null }
+/**
+ * Élément d'une scène. Lot 11 (22 nov. 2026, scènes riches) : `cache` = élément caché à trouver (derrière un arbre, dans l'eau) ;
+ * `phrase` / `phrase_fr` = phrase courte qui met le mot en action, reprise d'une leçon déjà validée (sinon absente) ;
+ * `plan` = profondeur (0 loin, 1 milieu, 2 devant) : taille et défilement du panorama.
+ */
+export interface ZoneScene { x: number; y: number; mot: string; sens: string; illustration?: string | null; audio?: string | null; image?: string | null; cache?: boolean; phrase?: string | null; phrase_fr?: string | null; plan?: number | null }
+/** Décors dessinés des scènes (colonne `scene`). */
+export const DECORS_SCENE = ['lagune', 'village', 'foret', 'marche', 'maison', 'ciel', 'mer'] as const;
+/** Chemin vers une scène voisine (petite carte à explorer) : on le touche pour y aller, puis on revient. */
+export interface LienScene { x: number; y: number; libelle: string; scene: string; consigne?: string | null; zones: ZoneScene[] }
+export function liensDe(ex: Pick<Exercice, 'liens'>): LienScene[] {
+  let l: unknown = ex.liens;
+  if (typeof l === 'string') { try { l = JSON.parse(l); } catch { l = []; } }
+  return (Array.isArray(l) ? l : []).filter((x): x is LienScene => !!x && typeof x === 'object' && typeof (x as LienScene).scene === 'string' && Array.isArray((x as LienScene).zones))
+    .map(x => ({ ...x, x: Math.min(97, Math.max(3, Number(x.x) || 50)), y: Math.min(95, Math.max(5, Number(x.y) || 80)), zones: zonesDe(x) }));
+}
 /** Zones d'une scène, depuis la colonne JSON (tableau ou texte JSON) ; les entrées incomplètes sont écartées. */
 export function zonesDe(ex: Pick<Exercice, 'zones'>): ZoneScene[] {
   let z: unknown = ex.zones;
@@ -248,7 +265,7 @@ export function etapesCouvertes(exercices: Pick<Exercice, 'type' | 'image'>[]): 
 }
 
 // ------------------------------------------------------------------ variante (dialecte) de l'apprenant
-/** Variante par défaut : ôrungu (audit §8.3). Les autres sont étiquetées. */
+/** Variante par défaut : orungu (audit §8.3). Les autres sont étiquetées. */
 export const VARIANTE_DEFAUT = 'orungu';
 const codeVariante = (d?: string | null) => {
   const c = nfc(d ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
@@ -263,7 +280,7 @@ const codeVariante = (d?: string | null) => {
 };
 /**
  * Garde, pour chaque position (colonne « ordre ») d'une leçon, l'exercice de la variante choisie ; à défaut celui sans dialecte (commun),
- * puis celui en ôrungu, puis le premier. Un auteur peut ainsi donner plusieurs variantes d'un même exercice à la même position.
+ * puis celui en orungu, puis le premier. Un auteur peut ainsi donner plusieurs variantes d'un même exercice à la même position.
  */
 export function filtrerVariante<T extends Pick<Exercice, 'lecon_id' | 'ordre' | 'dialecte'>>(exercices: T[], variante: string = VARIANTE_DEFAUT): T[] {
   const v = codeVariante(variante) || VARIANTE_DEFAUT;
@@ -321,7 +338,7 @@ export function uniteSuivante(uniteId: string, parcours: Parcours[], unites: Uni
  * Départ de l'adulte qui débute (21 nov. 2026) : quand le test le place au tout début (première étape, Ntina, faite pour les moins de 7 ans),
  * on le fait commencer à l'unité marquée `entree = adulte_debutant` si elle existe. Sinon le résultat du test ne change pas.
  */
-/** L'adulte qui parle déjà ôrungu (réponse « oui » à « Parles-tu déjà ôrungu ? ») part de l'entrée « Je parle, j'apprends à écrire ». */
+/** L'adulte qui parle déjà orungu (réponse « oui » à « Parles-tu déjà orungu ? ») part de l'entrée « Je parle, j'apprends à écrire ». */
 export function departLocuteur(res: { parcoursId: string; uniteId: string | null }, unites: Unite[]): { parcoursId: string; uniteId: string | null } {
   const entree = unites.find(u => u.entree === 'adulte_parle');
   return entree ? { parcoursId: entree.parcours_id, uniteId: entree.id } : res;

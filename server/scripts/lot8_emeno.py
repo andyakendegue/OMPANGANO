@@ -2,7 +2,7 @@
 """Lot 8 du cursus v3 (consigne 14_programme_et_jeux/06_CONSIGNE_code_cursus_v3.md ; audit 05, proposition E) : Emênô (13-20 ans),
 10 unités aux titres simples. Exemples : SEULEMENT les règles de référence v3.3 (§ 5 à 11, phrases d'actualité corrigées par Capp),
 le recueil des proverbes v3 et _contexte/IDENTITE_ORUNGU.md (cité tel quel). Aucun terme de spécialiste côté élève.
-La devise des Ôrungu (écrite en ancienne graphie, « à reprendre telle quelle ») attend la décision de Capp : A_VALIDER_Capp_cursus_v3.csv.
+La devise des Orungu (écrite en ancienne graphie, « à reprendre telle quelle ») attend la décision de Capp : A_VALIDER_Capp_cursus_v3.csv.
 Idempotent (identifiants emeno-u*, emeno-l*, em-*)."""
 import csv, json, os
 
@@ -41,7 +41,7 @@ def cours(source, titre, texte, conseil=None):
 # 1. Les familles de mots
 S = R + " § 5.1"
 unite(1, "Les familles de mots", "Chaque mot a sa famille : elle dit comment il se met au pluriel et comment les autres mots s'accordent avec lui.", [
-    cours(S, "Les familles de mots", "Les mots de l'ôrungu vont par familles. Chaque famille a sa façon de dire « un » et « plusieurs » : onghwana, l'enfant / awana, les enfants ; nago, la maison / inago, les maisons ; ezôma, la chose / iyoma, les choses ; owaro, la pirogue / amaro, les pirogues."),
+    cours(S, "Les familles de mots", "Les mots de l'orungu vont par familles. Chaque famille a sa façon de dire « un » et « plusieurs » : onghwana, l'enfant / awana, les enfants ; nago, la maison / inago, les maisons ; ezôma, la chose / iyoma, les choses ; owaro, la pirogue / amaro, les pirogues."),
     *mots(S, [("onghwana", "l'enfant"), ("awana", "les enfants"), ("oga", "le chef"), ("aga", "les chefs"), ("iba", "la mangue"), ("aba", "les mangues"), ("ezôma", "la chose"), ("iyoma", "les choses"), ("owaro", "la pirogue"), ("amaro", "les pirogues"), ("okita", "le commerce"), ("ikita", "les commerces")]),
     choix(S, "Comment dit-on « les enfants » ?", "awana", ["onghwana", "aga"]),
     choix(S, "Comment dit-on « les choses » ?", "iyoma", ["ezôma", "inago"]),
@@ -114,8 +114,8 @@ unite(6, "Celui qui…", "La forme qui dit « celui qui », « ce que », « ceu
 
 # 7. Les nouvelles du pays
 S = R + " § 11 (phrases d'actualité corrigées par Capp)"
-unite(7, "Les nouvelles du pays", "Lire et comprendre des nouvelles écrites en ôrungu.", [
-    cours(S, "Les nouvelles du pays", "Voici des nouvelles écrites en ôrungu. On dit ce qui a été fait, plutôt que qui l'a fait : A pyez'iyoma go carrefour Château, des biens ont été brûlés au carrefour Château.", "On garde les noms de personnes et de lieux tels qu'ils sont, et le mot myènè d'abord : Mandji pour Port-Gentil."),
+unite(7, "Les nouvelles du pays", "Lire et comprendre des nouvelles écrites en orungu.", [
+    cours(S, "Les nouvelles du pays", "Voici des nouvelles écrites en orungu. On dit ce qui a été fait, plutôt que qui l'a fait : A pyez'iyoma go carrefour Château, des biens ont été brûlés au carrefour Château.", "On garde les noms de personnes et de lieux tels qu'ils sont, et le mot myènè d'abord : Mandji pour Port-Gentil."),
     *mots(S, [("Incango s'ince", "les nouvelles du pays"), ("A pyez'iyoma go carrefour Château.", "des biens ont été brûlés au carrefour Château"), ("Ikita, issopu n'inago sa pyeni.", "les commerces, les bars et les maisons ont brûlé"), ("Mênê ozangue ê be dwana byambie go Mandji.", "demain, l'électricité marchera bien à Mandji"), ("Régis Onanga Ndiaye a yano go Mandji.", "Régis Onanga Ndiaye est né à Mandji"), ("Wê bel'incango nde ?", "quelles nouvelles veux-tu ?"), ("Và m'y'incango sa nêno go nce yazo", "donne-moi les nouvelles du jour dans notre pays")]),
     assoc(S, "Ikita, issopu n'inago sa pyeni.", "les commerces, les bars et les maisons ont brûlé", ["des biens ont été brûlés au carrefour Château", "demain, l'électricité marchera bien à Mandji", "les nouvelles du pays"]),
     assoc(S, "Mênê ozangue ê be dwana byambie go Mandji.", "demain, l'électricité marchera bien à Mandji", ["les commerces ont brûlé", "il est né à Mandji", "quelles nouvelles veux-tu ?"]),
@@ -139,10 +139,10 @@ unite(8, "Le sens caché des proverbes", "Ce que disent les proverbes, et ce qu'
 
 # 9. Notre histoire
 S = "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10"
-unite(9, "Notre histoire", "La royauté des Ôrungu, sa devise, et la parole qui ouvre les contes.", [
-    cours(S, "Notre histoire", "La royauté actuelle des Ôrungu s'appelle AMPENDA M'ÔRUNGU, « Royauté Ôrungu ». Sa devise : Egongo – Ôzange – Ivenda, « Solidarité – Vérité – Royauté ». On écrit toujours « Ôrungu », avec un Ô majuscule.",
+unite(9, "Notre histoire", "La royauté des Orungu, sa devise, et la parole qui ouvre les contes.", [
+    cours(S, "Notre histoire", "La royauté actuelle des Orungu s'appelle AMPENDA M'ÔRUNGU, « Royauté Orungu ». Sa devise : Egongo – Ôzange – Ivenda, « Solidarité – Vérité – Royauté ». On écrit toujours « Orungu », avec un Ô majuscule.",
           "Pour ouvrir un conte, l'ancien dit « Wulinya myê » : dis-moi, raconte-moi."),
-    *mots(S, [("Ampenda m'Ôrungu", "la royauté ôrungu"), ("Egongo – Ôzange – Ivenda", "Solidarité – Vérité – Royauté"), ("Egongo", "la solidarité"), ("Ôzange", "la vérité"), ("Ivenda", "la royauté"), ("Wulinya myê", "dis-moi, raconte-moi")]),
+    *mots(S, [("Ampenda m'Orungu", "la royauté orungu"), ("Egongo – Ôzange – Ivenda", "Solidarité – Vérité – Royauté"), ("Egongo", "la solidarité"), ("Ôzange", "la vérité"), ("Ivenda", "la royauté"), ("Wulinya myê", "dis-moi, raconte-moi")]),
     assoc(S, "Ôzange", "la vérité", ["la solidarité", "la royauté", "le peuple"]),
     assoc(S, "Egongo", "la solidarité", ["la vérité", "la royauté", "le voyage"]),
     choix(S, "Quelle est la devise de la royauté ?", "Egongo – Ôzange – Ivenda", ["Ivenda – Egongo – Ôzange"]),
@@ -152,7 +152,7 @@ unite(9, "Notre histoire", "La royauté des Ôrungu, sa devise, et la parole qui
 
 # 10. Bien écrire
 S = R + " § 2-4, § 12"
-unite(10, "Bien écrire", "Écrire l'ôrungu avec les lettres et les signes de l'alphabet, et éviter les erreurs courantes.", [
+unite(10, "Bien écrire", "Écrire l'orungu avec les lettres et les signes de l'alphabet, et éviter les erreurs courantes.", [
     cours(S, "Bien écrire", "Pour bien écrire : les lettres de l'alphabet (ê, ô, c, j, ny, ngh), « go » collé au verbe pour dire « manger, voir » (gonya, gojêna), mais séparé pour un lieu (go Mandji). Et toujours le mot de la question à la fin : Wê bel'incango nde ?"),
     choix(S, "Laquelle est juste ?", "a veni", ["a va"]),
     choix(S, "Laquelle est juste ?", "a yano", ["a jani"]),
@@ -166,7 +166,7 @@ unite(10, "Bien écrire", "Écrire l'ôrungu avec les lettres et les signes de l
     ("dictee", {"consigne": "Écris en myènè : « je ne mange pas ».", "mot_francais": "je ne mange pas", "reponse": "Myê re nya", "source": S}),
 ])
 
-DOUTE = {"forme": "Ôrungu akômbyè ! … Ôrungu'Anyambyè ! (devise des Ôrungu)", "sens": "Ôrungu Peuple uni ! … Ôrungu peuple éternel !",
+DOUTE = {"forme": "Orungu akômbyè ! … Orungu'Anyambyè ! (devise des Orungu)", "sens": "Orungu Peuple uni ! … Orungu peuple éternel !",
          "regle": "IDENTITE_ORUNGU.md (« à reprendre telle quelle ») / règles v3.3 § 2 (plus de è)",
          "raison": "La devise est écrite avec è (ancienne graphie). L'écrire en v3 (akômbyê, Anyambyê…) ou la citer telle quelle ? Pas mise dans Emênô en attendant."}
 

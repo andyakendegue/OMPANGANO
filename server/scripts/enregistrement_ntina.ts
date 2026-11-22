@@ -33,7 +33,10 @@ try {
       if (!essai) {
         await q.query(`INSERT INTO themes (id, data) VALUES ('ntina_mots', $1) ON CONFLICT (id) DO NOTHING`, [JSON.stringify(theme)]);
         await q.query(`INSERT INTO challenges (id, data) VALUES ('defi-mots-ntina', $1) ON CONFLICT (id) DO NOTHING`, [JSON.stringify(defi)]);
+        // Un mot déjà présent (même écriture, sans tenir compte des majuscules) n'est pas recréé, même si son numéro a changé.
+        const deja = new Set((await q.query<any>(`SELECT lower(data->>'myeneText') AS m FROM items WHERE category = 'ntina_mots' AND deleted_at IS NULL`)).map(r => r.m));
         for (const f of fiches) {
+          if (deja.has(String(f.myeneText).toLowerCase())) continue;
           const r = await q.query<any>(`INSERT INTO items (id, source_ref, dialect, category, status, data) VALUES ($1,$1,'orungu','ntina_mots','active',$2)
             ON CONFLICT DO NOTHING RETURNING id`, [f.id, JSON.stringify({ ...f, sourceRef: f.id, leconId: f.sourceRef, createdBy: 'planning_ntina', createdAt: maintenant.toISOString(), recordingsCount: 0, contributionsCount: 0 })]);
           if (r.length) ajoutees++;
