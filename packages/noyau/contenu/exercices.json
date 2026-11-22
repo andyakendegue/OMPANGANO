@@ -117,11 +117,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « Viens ! » ?",
   "options": [
-   "Yaga",
+   "Yàga",
    "Mbolo",
    "Akewa"
   ],
-  "reponse": "Yaga",
+  "reponse": "Yàga",
   "source": "[LEC] Formules de politesse",
   "ordre": 3
  },
@@ -7537,7 +7537,7 @@
   "options": [
    "Nyeza myê",
    "Kôkôlô",
-   "Yaga"
+   "Yàga"
   ],
   "reponse": "Nyeza myê",
   "source": "[LEC] Formules de politesse ; [EQ]",
@@ -7548,7 +7548,7 @@
   "lecon_id": "ntina-l3",
   "type": "associer",
   "consigne": "Que veut dire « Yaga » ?",
-  "mot_myene": "Yaga",
+  "mot_myene": "Yàga",
   "options": [
    "Viens !",
    "S'il te plaît",
@@ -8656,7 +8656,7 @@
   "lecon_id": "ntina-l25",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Yaga gonya",
+  "mot_myene": "Yàga gonya",
   "mot_francais": "Viens manger",
   "illustration": "🍽️",
   "source": "[LEC] Les incontournables",
@@ -8716,8 +8716,8 @@
   "id": "ntina-l25-06",
   "lecon_id": "ntina-l25",
   "type": "associer",
-  "consigne": "Que veut dire « Yaga gonya » ?",
-  "mot_myene": "Yaga gonya",
+  "consigne": "Que veut dire « Yàga gonya » ?",
+  "mot_myene": "Yàga gonya",
   "options": [
    "Viens manger",
    "Bon appétit",
@@ -12573,5 +12573,1019 @@
   "graphie": "ny",
   "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
   "ordre": 13
+ },
+ {
+  "id": "fp-l15-20",
+  "lecon_id": "ogendo-l15",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A bya",
+  "mot_francais": "il est venu",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 20
+ },
+ {
+  "id": "fp-l15-21",
+  "lecon_id": "ogendo-l15",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A byeni",
+  "mot_francais": "il vient d'arriver, il est là",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 21
+ },
+ {
+  "id": "fp-l15-22",
+  "lecon_id": "ogendo-l15",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ma nya",
+  "mot_francais": "j'ai mangé",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 22
+ },
+ {
+  "id": "fp-l15-23",
+  "lecon_id": "ogendo-l15",
+  "type": "associer",
+  "consigne": "Que veut dire « A byeni » ?",
+  "mot_myene": "A byeni",
+  "options": [
+   "il vient d'arriver, il est là",
+   "il était venu",
+   "il est venu",
+   "il n'est pas encore venu"
+  ],
+  "reponse": "il vient d'arriver, il est là",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 23
+ },
+ {
+  "id": "fp-l15-24",
+  "lecon_id": "ogendo-l15",
+  "type": "choix",
+  "consigne": "Comment dit-on « il est venu » ?",
+  "options": [
+   "A bya",
+   "A wyeni",
+   "A byeni"
+  ],
+  "reponse": "A bya",
+  "indice": "A wyeni veut dire « il était venu » : c'est fini, sans lien avec maintenant.",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 24
+ },
+ {
+  "id": "fp-l25-01",
+  "lecon_id": "ogendo-l25",
+  "type": "cours",
+  "consigne": "Dire non",
+  "texte": "Pour dire non, on met « re » devant le verbe : Myê re nya, je ne mange pas. Pour « jamais », le verbe finit en « e » : Ê re bye, il n'est jamais venu. Pour « pas encore », on met « pa » devant le verbe : Ê pa bya, il n'est pas encore venu.",
+  "conseil": "Attention à la place de « pa » : après le verbe, c'est fait ! Myê re nya pa njôgôni : j'ai mangé du poulet.",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l25-02",
+  "lecon_id": "ogendo-l25",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Myê re nya",
+  "mot_francais": "je ne mange pas",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l25-03",
+  "lecon_id": "ogendo-l25",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ê re bye",
+  "mot_francais": "il n'est jamais venu",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l25-04",
+  "lecon_id": "ogendo-l25",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ê pa bya",
+  "mot_francais": "il n'est pas encore venu",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l25-05",
+  "lecon_id": "ogendo-l25",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Myê re nya pa njôgôni",
+  "mot_francais": "j'ai mangé du poulet",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l25-06",
+  "lecon_id": "ogendo-l25",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ezele !",
+  "mot_francais": "non !",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l25-07",
+  "lecon_id": "ogendo-l25",
+  "type": "associer",
+  "consigne": "Que veut dire « Ê pa bya » ?",
+  "mot_myene": "Ê pa bya",
+  "options": [
+   "il n'est pas encore venu",
+   "il n'est jamais venu",
+   "il est venu",
+   "il était venu"
+  ],
+  "reponse": "il n'est pas encore venu",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l25-08",
+  "lecon_id": "ogendo-l25",
+  "type": "associer",
+  "consigne": "Que veut dire « Myê re nya » ?",
+  "mot_myene": "Myê re nya",
+  "options": [
+   "je ne mange pas",
+   "j'ai mangé",
+   "je vais manger",
+   "je mange"
+  ],
+  "reponse": "je ne mange pas",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l25-09",
+  "lecon_id": "ogendo-l25",
+  "type": "choix",
+  "consigne": "Comment dit-on « il n'est jamais venu » ?",
+  "options": [
+   "Ê re bye",
+   "Ê pa bya",
+   "A bya"
+  ],
+  "reponse": "Ê re bye",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l25-10",
+  "lecon_id": "ogendo-l25",
+  "type": "choix",
+  "consigne": "Laquelle veut dire « j'ai mangé du poulet » ?",
+  "options": [
+   "Myê re nya pa njôgôni",
+   "Myê re nya",
+   "Myê be nya"
+  ],
+  "reponse": "Myê re nya pa njôgôni",
+  "indice": "« pa » après le verbe : c'est fait.",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 10
+ },
+ {
+  "id": "fp-l25-11",
+  "lecon_id": "ogendo-l25",
+  "type": "dire",
+  "consigne": "Dis « Ezele ! » à voix haute.",
+  "mot_myene": "Ezele !",
+  "mot_francais": "non !",
+  "source": "Règles de référence v3.3 § 6.3 (Capp, 22 nov. 2026)",
+  "ordre": 11
+ },
+ {
+  "id": "fp-l26-01",
+  "lecon_id": "ogendo-l26",
+  "type": "cours",
+  "consigne": "Le ou un ?",
+  "texte": "Un petit signe ‘ devant le mot veut dire « un », « une » ou « des » : ‘oma, un homme ; oma, l'homme. ‘oga, un roi ; oga, le roi. On ne le met jamais devant un nombre.",
+  "conseil": "Un mot appris seul se dit sans ‘ : oma, l'homme.",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l26-02",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "oma",
+  "mot_francais": "l'homme",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l26-03",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "‘oma",
+  "mot_francais": "un homme",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l26-04",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "oga",
+  "mot_francais": "le roi",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l26-05",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "‘oga",
+  "mot_francais": "un roi",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l26-06",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ezo",
+  "mot_francais": "le mortier",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l26-07",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "‘ezo",
+  "mot_francais": "un mortier",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l26-08",
+  "lecon_id": "ogendo-l26",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "‘epokolw'evolo",
+  "mot_francais": "un grand chapeau",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l26-09",
+  "lecon_id": "ogendo-l26",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un homme » ?",
+  "options": [
+   "‘oma",
+   "oma"
+  ],
+  "reponse": "‘oma",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l26-10",
+  "lecon_id": "ogendo-l26",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le roi » ?",
+  "options": [
+   "oga",
+   "‘oga"
+  ],
+  "reponse": "oga",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 10
+ },
+ {
+  "id": "fp-l26-11",
+  "lecon_id": "ogendo-l26",
+  "type": "associer",
+  "consigne": "Que veut dire « ‘ezo » ?",
+  "mot_myene": "‘ezo",
+  "options": [
+   "un mortier",
+   "le mortier",
+   "les mortiers",
+   "un roi"
+  ],
+  "reponse": "un mortier",
+  "source": "Règles de référence v3.3 § 3 (indéfini ‘) ; paires un / le de la leçon des tons",
+  "ordre": 11
+ },
+ {
+  "id": "fp-l27-01",
+  "lecon_id": "ogendo-l27",
+  "type": "cours",
+  "consigne": "Donner un ordre",
+  "texte": "Pour donner un ordre, la première lettre du verbe s'adoucit et la première voyelle porte un accent qui descend : Và myê aningo, donne-moi de l'eau. Gềnda godêwa !, va dormir. Yàga gonya, viens manger.",
+  "conseil": "L'accent change le sens : ròra, déménage ! ; rora, les épouses.",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l27-02",
+  "lecon_id": "ogendo-l27",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Và myê aningo",
+  "mot_francais": "donne-moi de l'eau",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l27-03",
+  "lecon_id": "ogendo-l27",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Gềnda godêwa !",
+  "mot_francais": "va dormir !",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l27-04",
+  "lecon_id": "ogendo-l27",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Yàga gonya",
+  "mot_francais": "viens manger",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l27-05",
+  "lecon_id": "ogendo-l27",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Lwàna bäru !",
+  "mot_francais": "assieds-toi !",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l27-06",
+  "lecon_id": "ogendo-l27",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ròra",
+  "mot_francais": "déménage !",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l27-07",
+  "lecon_id": "ogendo-l27",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "rora",
+  "mot_francais": "les épouses",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l27-08",
+  "lecon_id": "ogendo-l27",
+  "type": "choix",
+  "consigne": "Lequel est un ordre : « déménage ! » ?",
+  "options": [
+   "ròra",
+   "rora"
+  ],
+  "reponse": "ròra",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l27-09",
+  "lecon_id": "ogendo-l27",
+  "type": "associer",
+  "consigne": "Que veut dire « Và myê aningo » ?",
+  "mot_myene": "Và myê aningo",
+  "options": [
+   "donne-moi de l'eau",
+   "viens manger",
+   "va dormir",
+   "assieds-toi"
+  ],
+  "reponse": "donne-moi de l'eau",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l27-10",
+  "lecon_id": "ogendo-l27",
+  "type": "choix",
+  "consigne": "Comment dit-on « va dormir ! » ?",
+  "options": [
+   "Gềnda godêwa !",
+   "Yàga gonya",
+   "Lwàna bäru !"
+  ],
+  "reponse": "Gềnda godêwa !",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 10
+ },
+ {
+  "id": "fp-l27-11",
+  "lecon_id": "ogendo-l27",
+  "type": "dire",
+  "consigne": "Dis « Yàga gonya » à voix haute.",
+  "mot_myene": "Yàga gonya",
+  "mot_francais": "viens manger",
+  "source": "Règles de référence v3.3 § 3 et § 6.5 (impératif, accent grave)",
+  "ordre": 11
+ },
+ {
+  "id": "fp-l28-01",
+  "lecon_id": "ogendo-l28",
+  "type": "cours",
+  "consigne": "Un ou plusieurs, petit ou grand",
+  "texte": "Quand deux mots se suivent, la dernière voyelle du premier peut tomber ou se changer. Pour une seule chose ou une petite chose, elle tombe : ogol'omôri, un pied ; epokol'inyango, le petit chapeau. Pour plusieurs choses ou une grande chose, i devient y' et o devient w' : agolw'ambani, deux pieds ; epokolw'evolo, le grand chapeau.",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l28-02",
+  "lecon_id": "ogendo-l28",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ogol'omôri",
+  "mot_francais": "un pied",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l28-03",
+  "lecon_id": "ogendo-l28",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "agolw'ambani",
+  "mot_francais": "deux pieds",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l28-04",
+  "lecon_id": "ogendo-l28",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "epokol'inyango",
+  "mot_francais": "le petit chapeau",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l28-05",
+  "lecon_id": "ogendo-l28",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "epokolw'evolo",
+  "mot_francais": "le grand chapeau",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l28-06",
+  "lecon_id": "ogendo-l28",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ntyugw'araro",
+  "mot_francais": "trois jours",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l28-07",
+  "lecon_id": "ogendo-l28",
+  "type": "choix",
+  "consigne": "Lequel veut dire « deux pieds » ?",
+  "options": [
+   "agolw'ambani",
+   "ogol'omôri"
+  ],
+  "reponse": "agolw'ambani",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l28-08",
+  "lecon_id": "ogendo-l28",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le grand chapeau » ?",
+  "options": [
+   "epokolw'evolo",
+   "epokol'inyango"
+  ],
+  "reponse": "epokolw'evolo",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l28-09",
+  "lecon_id": "ogendo-l28",
+  "type": "associer",
+  "consigne": "Que veut dire « ntyugw'araro » ?",
+  "mot_myene": "ntyugw'araro",
+  "options": [
+   "trois jours",
+   "deux pieds",
+   "un pied",
+   "le grand chapeau"
+  ],
+  "reponse": "trois jours",
+  "source": "Règles de référence v3.3 § 3 (élision ou semi-voyelle)",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l29-01",
+  "lecon_id": "ogendo-l29",
+  "type": "cours",
+  "consigne": "Compter les choses",
+  "texte": "De un à cinq, le nombre suit le mot et s'accorde : nago ncaro, trois maisons ; inagw'incaro, les trois maisons. Pour dix : Igomi ny'imboni, dix chèvres. Pour vingt : igomi ny'itondo ambani, vingt paniers. Avec des unités, on dit le nombre en entier : igomi ni ncaro y'inago, treize maisons.",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l29-02",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "nago ncaro",
+  "mot_francais": "trois maisons",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l29-03",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "inagw'incaro",
+  "mot_francais": "les trois maisons",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l29-04",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "alosy'araro",
+  "mot_francais": "trois citrons",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l29-05",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "awan'awani",
+  "mot_francais": "les deux enfants",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l29-06",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Igomi ny'imboni",
+  "mot_francais": "dix chèvres",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l29-07",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "igomi ny'itondo ambani",
+  "mot_francais": "vingt paniers",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l29-08",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "igomi ni ncaro y'inago",
+  "mot_francais": "treize maisons",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l29-09",
+  "lecon_id": "ogendo-l29",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "agom'awani n'otani y'itondo",
+  "mot_francais": "vingt-cinq paniers",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l29-10",
+  "lecon_id": "ogendo-l29",
+  "type": "choix",
+  "consigne": "Comment dit-on « vingt paniers » ?",
+  "options": [
+   "igomi ny'itondo ambani",
+   "nago ncaro",
+   "agom'awani n'otani y'itondo"
+  ],
+  "reponse": "igomi ny'itondo ambani",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 10
+ },
+ {
+  "id": "fp-l29-11",
+  "lecon_id": "ogendo-l29",
+  "type": "associer",
+  "consigne": "Que veut dire « igomi ni ncaro y'inago » ?",
+  "mot_myene": "igomi ni ncaro y'inago",
+  "options": [
+   "treize maisons",
+   "trois maisons",
+   "dix chèvres",
+   "vingt paniers"
+  ],
+  "reponse": "treize maisons",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 11
+ },
+ {
+  "id": "fp-l29-12",
+  "lecon_id": "ogendo-l29",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les trois maisons » ?",
+  "options": [
+   "inagw'incaro",
+   "nago ncaro"
+  ],
+  "reponse": "inagw'incaro",
+  "source": "Règles de référence v3.3 § 7.2 (Capp, 22 nov. 2026)",
+  "ordre": 12
+ },
+ {
+  "id": "fp-l30-01",
+  "lecon_id": "ogendo-l30",
+  "type": "cours",
+  "consigne": "C'est à moi",
+  "texte": "Pour dire « ton » ou « ta », le petit mot se colle au nom : epokolozô, ton chapeau ; nagiyô, ta maison ; Reriyô, ton papa. Nce iyazo : le pays est à nous ; Nce yazo : chez nous. ïwami : le mien.",
+  "conseil": "Après une apostrophe, la première voyelle du petit mot tombe souvent : onghwant'wami, ma femme.",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l30-02",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "epokolozô",
+  "mot_francais": "ton chapeau",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l30-03",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "nagiyô",
+  "mot_francais": "ta maison",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l30-04",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Reriyô",
+  "mot_francais": "ton papa",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l30-05",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "akemô",
+  "mot_francais": "tes œufs",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l30-06",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Nce iyazo",
+  "mot_francais": "le pays est à nous",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l30-07",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Nce yazo",
+  "mot_francais": "chez nous",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l30-08",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ïwami",
+  "mot_francais": "le mien",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l30-09",
+  "lecon_id": "ogendo-l30",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "onghwant'wami",
+  "mot_francais": "ma femme",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l30-10",
+  "lecon_id": "ogendo-l30",
+  "type": "choix",
+  "consigne": "Comment dit-on « ta maison » ?",
+  "options": [
+   "nagiyô",
+   "epokolozô",
+   "akemô"
+  ],
+  "reponse": "nagiyô",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 10
+ },
+ {
+  "id": "fp-l30-11",
+  "lecon_id": "ogendo-l30",
+  "type": "associer",
+  "consigne": "Que veut dire « Nce yazo » ?",
+  "mot_myene": "Nce yazo",
+  "options": [
+   "chez nous",
+   "le pays est à nous",
+   "ta maison",
+   "le mien"
+  ],
+  "reponse": "chez nous",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 11
+ },
+ {
+  "id": "fp-l30-12",
+  "lecon_id": "ogendo-l30",
+  "type": "choix",
+  "consigne": "Comment dit-on « ma femme » ?",
+  "options": [
+   "onghwant'wami",
+   "onghwant'iwami"
+  ],
+  "reponse": "onghwant'wami",
+  "source": "Règles de référence v3.3 § 5.3 (possessifs ; Capp, 22 nov. 2026)",
+  "ordre": 12
+ },
+ {
+  "id": "fp-l31-01",
+  "lecon_id": "ogendo-l31",
+  "type": "cours",
+  "consigne": "Les mots au pluriel",
+  "texte": "Pour dire plusieurs, on ajoute i devant le mot : nago, la maison ; inago, les maisons. nkala, le village ; inkala, les villages. Ncango si nkala : des nouvelles du village ; Incango s'inkala : les nouvelles du village ; Ncango sa gunu : les nouvelles d'ici.",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l31-02",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "nago",
+  "mot_francais": "la maison",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l31-03",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "inago",
+  "mot_francais": "les maisons",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l31-04",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "nkala",
+  "mot_francais": "le village",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l31-05",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "inkala",
+  "mot_francais": "les villages",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l31-06",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ncango si nkala",
+  "mot_francais": "des nouvelles du village",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l31-07",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Incango s'inkala",
+  "mot_francais": "les nouvelles du village",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l31-08",
+  "lecon_id": "ogendo-l31",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ncango sa gunu",
+  "mot_francais": "les nouvelles d'ici",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 8
+ },
+ {
+  "id": "fp-l31-09",
+  "lecon_id": "ogendo-l31",
+  "type": "choix",
+  "consigne": "Comment dit-on « les villages » ?",
+  "options": [
+   "inkala",
+   "nkala"
+  ],
+  "reponse": "inkala",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 9
+ },
+ {
+  "id": "fp-l31-10",
+  "lecon_id": "ogendo-l31",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les nouvelles du village » ?",
+  "options": [
+   "Incango s'inkala",
+   "Ncango si nkala",
+   "Ncango sa gunu"
+  ],
+  "reponse": "Incango s'inkala",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 10
+ },
+ {
+  "id": "fp-l31-11",
+  "lecon_id": "ogendo-l31",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « les maisons ».",
+  "mot_francais": "les maisons",
+  "reponse": "inago",
+  "source": "Règles de référence v3.3 § 5.1-5.2",
+  "ordre": 11
+ },
+ {
+  "id": "fp-l32-01",
+  "lecon_id": "ogendo-l32",
+  "type": "cours",
+  "consigne": "Celui qui…, ce que…",
+  "texte": "Pour dire « que » ou « qui », le verbe finit souvent en « o » et porte deux petits points sur sa première voyelle : aningo mïjôngo wê, l'eau que tu bois ; ayê n'äsuga myê, c'est lui qui m'a taquiné.",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 1
+ },
+ {
+  "id": "fp-l32-02",
+  "lecon_id": "ogendo-l32",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ntogolo ya gelo, nö yïtôndo yê",
+  "mot_francais": "c'est le piment rouge qu'il aime",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 2
+ },
+ {
+  "id": "fp-l32-03",
+  "lecon_id": "ogendo-l32",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "aningo mïjôngo wê",
+  "mot_francais": "l'eau que tu bois",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 3
+ },
+ {
+  "id": "fp-l32-04",
+  "lecon_id": "ogendo-l32",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "pêlê yäjovuno myê",
+  "mot_francais": "les assiettes que j'ai lavées",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 4
+ },
+ {
+  "id": "fp-l32-05",
+  "lecon_id": "ogendo-l32",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ayê n'äsuga myê",
+  "mot_francais": "c'est lui qui m'a taquiné",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 5
+ },
+ {
+  "id": "fp-l32-06",
+  "lecon_id": "ogendo-l32",
+  "type": "associer",
+  "consigne": "Que veut dire « aningo mïjôngo wê » ?",
+  "mot_myene": "aningo mïjôngo wê",
+  "options": [
+   "l'eau que tu bois",
+   "donne-moi de l'eau",
+   "les assiettes que j'ai lavées",
+   "c'est lui qui m'a taquiné"
+  ],
+  "reponse": "l'eau que tu bois",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 6
+ },
+ {
+  "id": "fp-l32-07",
+  "lecon_id": "ogendo-l32",
+  "type": "choix",
+  "consigne": "Lequel veut dire « c'est lui qui m'a taquiné » ?",
+  "options": [
+   "ayê n'äsuga myê",
+   "pêlê yäjovuno myê",
+   "aningo mïjôngo wê"
+  ],
+  "reponse": "ayê n'äsuga myê",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 7
+ },
+ {
+  "id": "fp-l32-08",
+  "lecon_id": "ogendo-l32",
+  "type": "associer",
+  "consigne": "Que veut dire « pêlê yäjovuno myê » ?",
+  "mot_myene": "pêlê yäjovuno myê",
+  "options": [
+   "les assiettes que j'ai lavées",
+   "l'eau que tu bois",
+   "c'est le piment rouge qu'il aime",
+   "c'est lui qui m'a taquiné"
+  ],
+  "reponse": "les assiettes que j'ai lavées",
+  "source": "Règles de référence v3.3 § 3 et § 6.6 (forme relative, tréma sur la première syllabe)",
+  "ordre": 8
  }
 ]

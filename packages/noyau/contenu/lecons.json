@@ -526,7 +526,7 @@
  {
   "id": "ogendo-l15",
   "unite_id": "ogendo-u6",
-  "titre": "Hier : le passé",
+  "titre": "Hier : les trois passés",
   "duree_min": 8,
   "xp": 20,
   "mode": "tous",
@@ -542,7 +542,7 @@
   "xp": 20,
   "mode": "tous",
   "niveau_acces": "libre",
-  "ordre": 4,
+  "ordre": 5,
   "publie": true
  },
  {
@@ -553,7 +553,7 @@
   "xp": 20,
   "mode": "tous",
   "niveau_acces": "libre",
-  "ordre": 5,
+  "ordre": 6,
   "publie": true
  },
  {
@@ -664,6 +664,94 @@
   "mode": "tous",
   "niveau_acces": "libre",
   "ordre": 9,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l25",
+  "unite_id": "ogendo-u6",
+  "titre": "Dire non",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 4,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l26",
+  "unite_id": "ogendo-u6",
+  "titre": "Le ou un ?",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 7,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l27",
+  "unite_id": "ogendo-u6",
+  "titre": "Donner un ordre",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 8,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l28",
+  "unite_id": "ogendo-u6",
+  "titre": "Un ou plusieurs, petit ou grand",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 9,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l29",
+  "unite_id": "ogendo-u6",
+  "titre": "Compter les choses",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 10,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l30",
+  "unite_id": "ogendo-u6",
+  "titre": "C'est à moi",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 11,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l31",
+  "unite_id": "ogendo-u6",
+  "titre": "Les mots au pluriel",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 12,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l32",
+  "unite_id": "ogendo-u6",
+  "titre": "Celui qui…",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 13,
   "publie": true
  }
 ]
