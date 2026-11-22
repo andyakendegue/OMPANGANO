@@ -96,7 +96,7 @@ export function registerServices(ctx: Ctx) {
   // Réponse différée possible (`asynchrone: true`, travauxIa.ts) : le worker serverless du modèle peut mettre plusieurs minutes à se réveiller.
   app.post('/v1/ia/message', differable(app, acteur, async (req, reply) => {
     const a = await acteur(req);
-    const { message, conversationId, historique, asynchrone } = (req.body || {}) as { message?: string; conversationId?: string; historique?: { role: string; content: string }[]; asynchrone?: boolean };
+    const { message, conversationId, historique, asynchrone, enMyene } = (req.body || {}) as { message?: string; conversationId?: string; historique?: { role: string; content: string }[]; asynchrone?: boolean; enMyene?: boolean };
     if (!str(message) || !message.trim() || message.length > 2000) return fail(400, 'Message vide ou trop long (2000 caractères au plus).');
     const { fonctions } = await modulesActuels(db, env);
     if (!fonctions.assistantIA) return fail(503, 'Kak\'Igonjo n\'est pas encore là.');
@@ -110,7 +110,7 @@ export function registerServices(ctx: Ctx) {
     const quota: QuotaJetons = { parJour: Math.floor(base.parJour * f), parMois: Math.floor(base.parMois * f), parConversation: Math.floor(base.parConversation * f) };
     const conv = str(conversationId) && /^[A-Za-z0-9_-]{6,60}$/.test(conversationId) ? conversationId : 'c_' + randomBytes(6).toString('hex');
     const msgs = [...(Array.isArray(historique) ? historique : []).filter(m => (m.role === 'user' || m.role === 'assistant') && str(m.content)).slice(-8).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 1500) })), { role: 'user' as const, content: message.trim() }];
-    const { systeme, cfg, socle } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant', delaiRagMs: asynchrone ? 120_000 : 8000 });
+    const { systeme, cfg, socle } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant', enMyene: enMyene === true, delaiRagMs: asynchrone ? 120_000 : 8000 });
     const estimation = Math.max(0, estimerJetons(systeme + msgs.map(m => m.content).join('')) - socle) + cfg.maxTokens;
     const verdict = verifierQuota(quota, await consommation(db, a.auth.uid, conv), estimation);
     if (!verdict.ok) return fail(429, verdict.limite === 'conversation' ? 'Cette conversation est trop longue : commence-en une nouvelle.' : verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');

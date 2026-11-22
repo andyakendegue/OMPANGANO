@@ -208,7 +208,8 @@ test('recherche web : demandée par le modèle, faite par notre moteur, jamais s
   const { repondreAvecRecherche, demandeRecherche, rechercherWeb, CONSIGNE_RECHERCHE } = await import('../src/rechercheWeb.ts');
   assert.equal(demandeRecherche('[[recherche: président du Gabon 2026]]'), 'président du Gabon 2026');
   assert.equal(demandeRecherche('Mbolo !'), null);
-  assert.match(CONSIGNE_RECHERCHE, /Jamais pour le myènè/);
+  assert.match(CONSIGNE_RECHERCHE, /Jamais pour expliquer la langue myènè/);
+  assert.match(CONSIGNE_RECHERCHE, /Une question posée en myènè peut, elle aussi, demander une information/);
   const vues: string[] = [];
   const moteur = createServer((req, res) => { vues.push(req.url ?? ''); res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ results: [{ title: 'Port-Gentil', url: 'https://fr.wikipedia.org/wiki/Port-Gentil', content: 'Ville du Gabon, chef-lieu de l\'Ogooué-Maritime.' }] })); });
@@ -274,4 +275,20 @@ test('myènè parlé : sons reconnus → écriture v3 ; accès du traducteur et 
   assert.equal((await call('POST', '/v1/voix/reconnaitre', ADMIN, { audio_base64: 'abc' })).status, 400, 'enregistrement trop court');
   const t = await call('POST', '/v1/voix/reconnaitre', ADMIN, { audio_base64: audio, traduire: true });
   assert.equal(t.status, 200); assert.ok(t.body.traduction, 'traduction demandée : renvoyée');
+});
+
+test('bouton « Réponses en myènè » et recherche en myènè : consigne en fin de prompt, résultats traduits avec liens', async () => {
+  const { construireSysteme } = await import('../src/ia.ts');
+  const { blocResultats } = await import('../src/rechercheWeb.ts');
+  const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
+  const force = (await construireSysteme(db, embed, { message: 'Quelles sont les nouvelles du Gabon ?', enfant: false, enMyene: true })).systeme;
+  assert.match(force, /### LE MESSAGE EST EN MYÈNÈ\nRéponds UNIQUEMENT en myènè/);
+  const bloc = blocResultats('Gabon actualité', [{ titre: 'Gabon', url: 'https://fr.wikipedia.org/wiki/Gabon', extrait: 'Pays.' }]);
+  assert.match(bloc, /https:\/\/fr\.wikipedia\.org\/wiki\/Gabon/);
+  assert.match(bloc, /Pour aller plus loin/);
+  assert.match(bloc, /si l'on te parle en myènè[^\n]*réponds en myènè en traduisant/);
+  // Route du chat : l'option est acceptée
+  const u = tok('boutonmyene', 'bm@x.com'); await call('GET', '/v1/me', u); await call('PATCH', '/v1/me', u, { displayName: 'B', birthDate: '1990-01-01' });
+  const id = (await call('POST', '/v1/ia/chats', u, {})).body.chat.id;
+  assert.equal((await call('POST', `/v1/ia/chats/${id}/messages`, u, { message: 'Comment vas-tu ?', enMyene: true })).status, 200);
 });

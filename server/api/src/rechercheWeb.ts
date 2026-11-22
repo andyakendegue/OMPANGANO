@@ -19,7 +19,8 @@ export const CONSIGNE_RECHERCHE = `
 ### Recherche sur Internet
 - Si la question demande une information récente ou un fait que ni ta connaissance ni le contexte ne donnent (actualité, date, personne, lieu, chiffre…), réponds UNIQUEMENT par : [[recherche: quelques mots-clés]] — rien d'autre. On te redonnera la question avec les résultats.
 - Pour ces questions-là, ne réponds jamais « je ne sais pas » sans avoir d'abord demandé une recherche.
-- Jamais pour le myènè (mot, grammaire, traduction, phonétique) : là, seuls ta connaissance du myènè, le lexique et le contexte comptent.`;
+- Une question posée en myènè peut, elle aussi, demander une information ou une recherche : demande-la avec des mots-clés en français ou en anglais (les résultats viennent de toutes les langues).
+- Jamais pour expliquer la langue myènè elle-même (mot, grammaire, traduction, phonétique) : là, seuls ta connaissance du myènè, le lexique et le contexte comptent.`;
 
 const RE_DEMANDE = /\[\[\s*recherche\s*:\s*([^\]\n]{2,200})\]\]/i;
 /**
@@ -41,7 +42,8 @@ export const demandeRecherche = (texte: string): string | null => texte.match(RE
 export async function rechercherWeb(requete: string, n = 5, env = process.env): Promise<ResultatWeb[]> {
   const base = (env.SEARXNG_URL || '').replace(/\/+$/, '');
   if (!base) return [];
-  const url = `${base}/search?${new URLSearchParams({ q: requete.slice(0, 200), format: 'json', language: 'fr', safesearch: '2' })}`;
+  // Toutes les langues : Kak'Igonjo traduit ensuite (en français ou en myènè).
+  const url = `${base}/search?${new URLSearchParams({ q: requete.slice(0, 200), format: 'json', language: 'all', safesearch: '2' })}`;
   try {
     const r = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) });
     if (!r.ok) return [];
@@ -55,8 +57,10 @@ export async function rechercherWeb(requete: string, n = 5, env = process.env): 
 
 export const blocResultats = (requete: string, res: ResultatWeb[]) => `
 
-### Résultats de recherche sur Internet (pour : « ${requete} ») — informations non vérifiées : présente-les comme telles, cite le site si utile ; n'en tire jamais un mot ni une règle de myènè. Ne demande plus de recherche.
-${res.length ? res.map((x, i) => `[W${i + 1}] ${x.titre} (${new URL(x.url).hostname}) : ${x.extrait}`).join('\n') : 'Aucun résultat : dis simplement que tu n\'as pas trouvé.'}`;
+### Résultats de recherche sur Internet (pour : « ${requete} ») — informations non vérifiées : présente-les comme telles ; n'en tire jamais un mot ni une règle de myènè. Ne demande plus de recherche.
+- Réponds dans la langue de la conversation : si l'on te parle en myènè (ou si l'on t'a demandé de répondre en myènè), réponds en myènè en traduisant ces informations (mots attestés ; nom propre, chiffre ou notion sans mot myènè : en français) ; sinon en français.
+- Termine par « Pour aller plus loin : » puis 2 ou 3 liens complets tirés des résultats ci-dessous (adresse https://… telle quelle).
+${res.length ? res.map((x, i) => `[W${i + 1}] ${x.titre} — ${x.url} : ${x.extrait}`).join('\n') : 'Aucun résultat : dis simplement que tu n\'as pas trouvé.'}`;
 
 /**
  * Réponse du modèle avec recherche web éventuelle. `actif` : réglage + moteur disponible + pas un enfant.

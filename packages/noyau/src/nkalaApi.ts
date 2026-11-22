@@ -89,8 +89,9 @@ export const renommerChat = (id: string, titre: string) => api('PATCH', `/v1/ia/
 export const supprimerChat = (id: string) => api('DELETE', `/v1/ia/chats/${id}`);
 /** `etat` : ce que seul le téléphone connaît (réglages, Mes mots, écran ouvert), pour la fiche de Kak'Igonjo. */
 export interface EtatLocalChat { prefs?: Record<string, unknown>; mesMots?: { total: number; derniers: string[] }; ecran?: string }
-export const envoyerAuChat = (id: string, message: string, accepteFrais = false, etat?: EtatLocalChat, surAttente?: (secondes: number) => void) =>
-  attendreReponseIa<ReponseChat>(api('POST', `/v1/ia/chats/${id}/messages`, { message, accepteFrais, etat, asynchrone: true }), surAttente);
+/** `enMyene` : bouton du chat qui demande à Kak'Igonjo de répondre en myènè seulement (22 nov. 2026). */
+export const envoyerAuChat = (id: string, message: string, accepteFrais = false, etat?: EtatLocalChat, surAttente?: (secondes: number) => void, enMyene = false) =>
+  attendreReponseIa<ReponseChat>(api('POST', `/v1/ia/chats/${id}/messages`, { message, accepteFrais, etat, asynchrone: true, ...(enMyene ? { enMyene: true } : {}) }), surAttente);
 export interface CoutsIa {
   regles: ReglesContexte; tarif: TarifIa; enExces: number;
   jour: TotauxIa; mois: TotauxIa; total: TotauxIa;

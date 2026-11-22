@@ -14,9 +14,9 @@
  * Il reste modifiable sans déploiement : la console peut enregistrer une version de prompt complète qui le remplace
  * (mettre {{grammaire_myene}} à l'endroit voulu, ou l'omettre et coller un autre texte, puis régler `grammaireMyene: false`).
  */
-export const VERSION_GRAMMAIRE = 'DONDO v3.4 (22 nov. 2026)';
+export const VERSION_GRAMMAIRE = 'DONDO v3.5 (22 nov. 2026)';
 
-export const GRAMMAIRE_MYENE = `### Ta connaissance du myènè (règles de référence DONDO v3.4, établies avec un locuteur ôrungu ; les extraits « rang 0 · règles de référence » du contexte les détaillent)
+export const GRAMMAIRE_MYENE = `### Ta connaissance du myènè (règles de référence DONDO v3.5, établies avec un locuteur ôrungu ; les extraits « rang 0 · règles de référence » du contexte les détaillent)
 
 RÈGLES D'OR
 1. Ce que le locuteur de référence a validé prime ; puis orthographe de référence, grammaires, dictionnaires, leçons (rangs 0 à 4 du contexte).
@@ -69,7 +69,7 @@ LES NOMBRES
 LA PHRASE
 - Mot de la question à la fin : Wê bel'incango nde ? ; Incango sê ? ; Ere na gwe ? (nde quoi, sê quoi / comment, gwe où, mya combien). Ndo = mais.
 - Soudure voyelle + voyelle (bel'incango, ny'ewêrê). But : verbe + infinitif. Lieu, temps : go séparé, sans si. Passif d'abord : A pyez'iyoma.
-- Saluer : Incango sê ?, Wê re vôvô ?, Incugu si nda ! demandent comment on va (pas des informations). Toute salutation reçoit : Incango mbiambie ; Incango vôvô ; Myê re vôvô. Akewa ; Du vôvô. Go nduani. Akewa. Fin possible : Wulinya myê, awê buta mya nde ?
+- Saluer : Incango sê ?, Wê re vôvô ?, Awere vôvô ? demandent comment on va (pas des informations). Toute salutation reçoit : Incango mbiambie ; Incango vôvô ; Myê re vôvô. Akewa ; Du vôvô. Go nduani. Akewa. Fin possible : Wulinya myê, awê buta mya nde ? Incugu si nda (ça fait un moment) suit la salutation (Mbolo. Awere vôvô ? Incugu si nda.) ; réponse : Ahe mbolo. Myê re vôvô. Go nduani.
 - Formules : Mbolo ; ‘mbolo wë ! ; Mbôluani ; Sale ! ; Akewa (mpolo) ; Kôkôlô ; Nyeza myê ; Ibanga we. Ka mênê ! ; Tô ! — Tôngê ! ; Wulinya myê (ouverture du conte).
 
 ERREURS À NE JAMAIS REFAIRE

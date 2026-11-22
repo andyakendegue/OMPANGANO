@@ -98,7 +98,7 @@ export function registerChats(ctx: Ctx) {
   // Réponse différée possible (`asynchrone: true`, travauxIa.ts) : le worker serverless du modèle peut mettre plusieurs minutes à se réveiller.
   app.post('/v1/ia/chats/:id/messages', differable(app, acteur, async (req, reply) => {
     const a = await acteur(req);
-    const { message, accepteFrais, etat, asynchrone } = (req.body || {}) as { message?: string; accepteFrais?: boolean; etat?: unknown; asynchrone?: boolean };
+    const { message, accepteFrais, etat, asynchrone, enMyene } = (req.body || {}) as { message?: string; accepteFrais?: boolean; etat?: unknown; asynchrone?: boolean; enMyene?: boolean };
     if (!str(message) || !message.trim() || message.length > 2000) return fail(400, 'Message vide ou trop long (2000 caractères au plus).');
     const { fonctions, modules } = await modulesActuels(db, env);
     if (!fonctions.assistantIA) return fail(503, 'Kak\'Igonjo n\'est pas encore là.');
@@ -125,7 +125,7 @@ export function registerChats(ctx: Ctx) {
     const modeEnfant = !!etat && typeof etat === 'object' && (etat as any).prefs?.mode === 'enfant';
     const cadre = { enfant: age === 'enfant' || modeEnfant, modules };
     const { systeme, contexte: sources, cfg, socle } = await construireSysteme(db, ctx.embed, {
-      message: texte, enfant: age === 'enfant', prenom: moi?.nom,
+      message: texte, enfant: age === 'enfant', prenom: moi?.nom, enMyene: enMyene === true,
       fiche: await ficheUtilisateur(db, a.auth.uid, etat), actions: consigneActions(cadre), delaiRagMs: asynchrone ? 120_000 : 8000,
     });
     // Contexte de cet envoi : la mesure du dernier appel si elle existe, sinon l'estimation ; on garde la plus prudente.

@@ -9,8 +9,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePathname, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextStyle } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Keyboard, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Ellipse, Path, Pattern, Rect } from 'react-native-svg';
 import { ApiError, ECRANS_IA, chargerContenu, creerChat, envoyerAuChat, fonctionActive, lireChat, listerChats, moduleActif, supprimerChat, validerAction, type ActionIa, type EtatLocalChat, type FicheChat, type ModuleId, type NiveauContexte, type RefusChat } from '@nkala/noyau';
@@ -22,7 +22,11 @@ import { degrades, marque, ombres, polices, rayons } from './theme';
 
 // ------------------------------------------------------------------ ouverture depuis un autre écran
 const ecouteurs = new Set<() => void>();
+/** Choix « Réponses en myènè » du chat de Kak'Igonjo, gardé sur le téléphone. */
+const CLE_REPONSES_MYENE = 'nkala_kakigonjo_reponses_myene';
+
 /** Ouvre le chat flottant depuis n'importe quel écran (carte « Parler à Kak'Igonjo » d'Onênji, par exemple). */
+
 export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 
 // Le dessin du vieux sage est dans KakIgonjo.tsx (partagé avec la mascotte du kit).
@@ -100,9 +104,22 @@ export function useAccueilKakIgonjo(): string {
 const accueil = (): Bulle => ({ role: 'assistant', content: '', accueil: true });
 
 /** Les mots myènè arrivent entre astérisques (*mbolo*) : ils s'affichent en italique, sans les astérisques. */
+/** Liens des réponses (recherche sur Internet, « Pour aller plus loin ») : [titre](https://…) ou adresse nue, ouverts dans le navigateur. */
+const RE_LIEN = /\[([^\]\n]{1,120})\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)>\]]+[^\s)>\].,;:!?»])/g;
 function TexteBulle({ texte, couleur }: { texte: string; couleur: string }) {
-  const morceaux = texte.split(/\*([^*\n]+)\*/g);
-  return <T v="corps" couleur={couleur}>{morceaux.map((m, i) => (i % 2 ? <Text key={i} style={{ fontFamily: polices.italique, fontStyle: 'italic' }}>{m}</Text> : m))}</T>;
+  const { c } = useTheme();
+  const italiques = (t: string, cle: string) => t.split(/\*([^*\n]+)\*/g).map((m, i) => (i % 2 ? <Text key={`${cle}-${i}`} style={{ fontFamily: polices.italique, fontStyle: 'italic' }}>{m}</Text> : m));
+  const sortie: React.ReactNode[] = [];
+  let dernier = 0, k = 0;
+  for (const m of texte.matchAll(RE_LIEN)) {
+    const debut = m.index ?? 0;
+    if (debut > dernier) sortie.push(...italiques(texte.slice(dernier, debut), `t${k}`));
+    const url = m[2] ?? m[3], libelle = m[1] ?? url.replace(/^https?:\/\/(www\.)?/, '');
+    sortie.push(<Text key={`l${k}`} accessibilityRole="link" onPress={() => { Linking.openURL(url).catch(() => {}); }} style={{ color: c.accent, textDecorationLine: 'underline' }}>{libelle}</Text>);
+    dernier = debut + m[0].length; k++;
+  }
+  if (dernier < texte.length) sortie.push(...italiques(texte.slice(dernier), `t${k}`));
+  return <T v="corps" couleur={couleur}>{sortie}</T>;
 }
 const S = 108, REPOS = 64, MARGE = 16;
 const nb = (n: number) => Math.round(n).toLocaleString('fr-FR');
@@ -152,6 +169,10 @@ export function AssistantFlottant() {
   const [langueMicro, setLangueMicro] = useState<'fr' | 'myene'>('fr');
   const parole = useParoleMyene(r => setTexte(r.ecrit));
   const microActif = langueMicro === 'fr' ? dictee.ecoute : parole.etat === 'ecoute';
+  // Bouton « Réponses en myènè » : Kak'Igonjo répond seulement en myènè (choix gardé sur le téléphone).
+  const [reponsesMyene, setReponsesMyene] = useState(false);
+  useEffect(() => { AsyncStorage.getItem(CLE_REPONSES_MYENE).then(v => setReponsesMyene(v === '1')).catch(() => {}); }, []);
+  const basculerReponsesMyene = () => setReponsesMyene(v => { AsyncStorage.setItem(CLE_REPONSES_MYENE, v ? '0' : '1').catch(() => {}); return !v; });
   const [occupe, setOccupe] = useState(false);
   const [attente, setAttente] = useState<number | null>(null);
   /** Envoi refusé par le serveur (contexte en excès ou plein), avec le message en attente. */
@@ -230,7 +251,7 @@ export function AssistantFlottant() {
     try {
       let id = chat?.id;
       if (!id) { const n = await creerChat(); id = n.chat.id; setChat(n.chat); }
-      const r = await envoyerAuChat(id, m, repris?.accepteFrais, await etatLocal(), setAttente);
+      const r = await envoyerAuChat(id, m, repris?.accepteFrais, await etatLocal(), setAttente, reponsesMyene);
       setChat(r.chat); setQuota(r.quota); setBulles(b => [...b, { role: 'assistant', content: r.reponse, actions: r.actions?.length ? r.actions : undefined }]);
       void rafraichir();
     } catch (e) {
@@ -384,6 +405,11 @@ export function AssistantFlottant() {
             </ScrollView>
           )}
 
+          <Pressable accessibilityRole="switch" accessibilityState={{ checked: reponsesMyene }} accessibilityLabel="Kak'Igonjo répond en myènè" onPress={basculerReponsesMyene}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', marginLeft: retrait, marginTop: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, borderWidth: 1, borderColor: reponsesMyene ? c.accent : c.bord, backgroundColor: reponsesMyene ? c.accent : 'transparent' }}>
+            <Ic nom={reponsesMyene ? 'checkmark-circle' : 'ellipse-outline'} taille={15} couleur={reponsesMyene ? c.surAccent : c.discret} />
+            <Text style={{ fontFamily: polices.corps, fontSize: 12, color: reponsesMyene ? c.surAccent : c.texte }}>Réponses en myènè</Text>
+          </Pressable>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: retrait, paddingRight: 10, paddingVertical: 10, borderTopWidth: 1, borderTopColor: c.bord }}>
             <TextInput accessibilityLabel="Ta question à Kak'Igonjo" value={texte} onChangeText={setTexte} editable={utilisable && vue === 'chat'} placeholder="Ta question…" placeholderTextColor={c.discret} autoCapitalize="sentences" maxLength={2000} onSubmitEditing={() => envoyer()} returnKeyType="send"
               style={[{ flex: 1, minWidth: 0, height: 44, borderRadius: 22, paddingHorizontal: 14, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, fontFamily: polices.corps, fontSize: 15, color: c.fort }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null]} />

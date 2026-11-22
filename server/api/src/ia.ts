@@ -340,7 +340,7 @@ export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : tu es un grand-pè
 
 /** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG. */
 /** `delaiRagMs` : attente maximale de l'embedding de la question (8 s par défaut ; 2 min en réponse différée, le temps qu'un worker serverless se réveille). */
-export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; prenom?: string | null; fiche?: string; actions?: string; delaiRagMs?: number }) {
+export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; enMyene?: boolean; prenom?: string | null; fiche?: string; actions?: string; delaiRagMs?: number }) {
   const cfg = await configIa(q);
   const actif = (await q.query<any>(`SELECT contenu FROM ia_prompts WHERE actif`))[0]?.contenu ?? PROMPT_DEFAUT;
   let systeme = actif.replace(/\{\{\s*lexique\s*\}\}/g, LEXIQUE());
@@ -389,7 +389,8 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   }
   // Règle 5 (v3.3) : question en myènè → réponse en myènè seulement. Rappel placé à la fin, là où le modèle y est le plus attentif
   // (essai du 22 nov. 2026 : « Mbolo ! Incango sê ? » recevait une réponse surtout en français).
-  if (messageEnMyene(o.message)) systeme += `\n\n### LE MESSAGE EST EN MYÈNÈ\nRéponds UNIQUEMENT en myènè, en graphie v3, même court : aucune phrase en français, pas de traduction, pas de mot à mot. Mots attestés seulement ; formules de politesse bienvenues (Mbolo, Akewa…).`;
+  // Bouton « réponds en myènè » du chat (o.enMyene) ou message écrit en myènè.
+  if (o.enMyene || messageEnMyene(o.message)) systeme += `\n\n### LE MESSAGE EST EN MYÈNÈ\nRéponds UNIQUEMENT en myènè, en graphie v3, même court : aucune phrase en français, pas de traduction, pas de mot à mot. Mots attestés seulement ; formules de politesse bienvenues (Mbolo, Akewa…).`;
   return { systeme, contexte, cfg, socle };
 }
 
