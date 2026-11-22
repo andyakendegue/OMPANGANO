@@ -9796,7 +9796,7 @@
   "lecon_id": "ogendo-l13",
   "type": "cours",
   "consigne": "Regarde et écoute avant de jouer.",
-  "texte": "Pour dire qui fait l'action, on met un petit mot devant le verbe : mi (je), wê (tu), e (il, elle), zê (nous), né (vous), wê (ils, elles). Le verbe perd son « go » : go nya (manger) → mi nya (je mange).",
+  "texte": "Pour dire qui fait l'action, on met un petit mot devant le verbe : myê (je), wê (tu), ê (il, elle), zê (nous), nwê (vous), wê ou wi (ils, elles). Ex. Myê nya, je mange.",
   "illustration": "🗣️",
   "source": "[LEC] Les pronoms et la conjugaison ; [LEC] Je mange ; RÈGLES v2.1, § 6.1",
   "ordre": 1
@@ -9858,7 +9858,7 @@
   "consigne": "Bon à savoir",
   "mot_myene": "Myê nya · Mi nya",
   "mot_francais": "je mange",
-  "texte": "On entend aussi « Myê nya » pour « je mange ». Les deux se disent.",
+  "texte": "On entend aussi « Mi nya » pour « je mange » : c'est la façon nkomi. Les deux se disent.",
   "source": "[LEC] Je mange (Myé nya) ; [LEC] Les pronoms et la conjugaison ; Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2) (Mi nya)",
   "ordre": 7
  },
@@ -9916,11 +9916,11 @@
   "mot_myene": "___ nya",
   "mot_francais": "tu manges",
   "options": [
-   "We",
-   "Mi",
-   "Ze"
+   "Wê",
+   "Myê",
+   "Zê"
   ],
-  "reponse": "We",
+  "reponse": "Wê",
   "source": "[LEC] Je mange",
   "ordre": 11
  },
@@ -10114,7 +10114,7 @@
   "lecon_id": "ogendo-l15",
   "type": "cours",
   "consigne": "Regarde et écoute avant de jouer.",
-  "texte": "Pour une action finie, on met « a » après le sujet et le verbe se termine en « -i » : mi nya → ma nyeni (j'ai mangé). Attention : certains verbes changent davantage. « Aller » donne « a gendi », « venir » donne « a wyeni », « naître » donne « a yano ».",
+  "texte": "Pour le passé, on choisit d'abord le moment. Il est venu : A bya. Il vient d'arriver, il est là : A byeni. Il était venu (c'est fini, sans lien avec maintenant) : A wyeni. Ma nya : j'ai mangé ; Ma nyeni : je viens de manger.",
   "illustration": "⏮️",
   "source": "Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2) ; claude/CONJUGAISON_MYENE_2026-11-21.md, § 3.3-3.4",
   "ordre": 1
@@ -10125,7 +10125,7 @@
   "type": "ecouter",
   "consigne": "Écoute et répète.",
   "mot_myene": "Ma nyeni",
-  "mot_francais": "j'ai mangé",
+  "mot_francais": "je viens de manger",
   "source": "Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2)",
   "ordre": 2
  },
@@ -10135,7 +10135,7 @@
   "type": "ecouter",
   "consigne": "Écoute et répète.",
   "mot_myene": "A gendi",
-  "mot_francais": "il est allé",
+  "mot_francais": "il était allé",
   "source": "Capp, 21 nov. 2026 (CONJUGAISON § 3.3)",
   "ordre": 3
  },
@@ -10145,7 +10145,7 @@
   "type": "ecouter",
   "consigne": "Écoute et répète.",
   "mot_myene": "A wyeni",
-  "mot_francais": "il est venu",
+  "mot_francais": "il était venu",
   "source": "Capp, 21 nov. 2026 (CONJUGAISON § 3.3)",
   "ordre": 4
  },
@@ -10155,7 +10155,7 @@
   "type": "ecouter",
   "consigne": "Écoute et répète.",
   "mot_myene": "A woli myê",
-  "mot_francais": "elle m'a tapé",
+  "mot_francais": "elle m'avait tapé",
   "source": "[LEC] Les pronoms et la conjugaison (go bola)",
   "ordre": 5
  },
@@ -10187,12 +10187,12 @@
   "consigne": "Que veut dire « Ma nyeni » ?",
   "mot_myene": "Ma nyeni",
   "options": [
-   "j'ai mangé",
+   "je viens de manger",
    "je mange",
    "je vais manger",
    "j'étais en train de manger"
   ],
-  "reponse": "j'ai mangé",
+  "reponse": "je viens de manger",
   "source": "Capp, 21 nov. 2026 (claude/CONJUGAISON_MYENE_2026-11-21.md, § 2)",
   "ordre": 8
  },
@@ -10203,12 +10203,12 @@
   "consigne": "Que veut dire « A wyeni » ?",
   "mot_myene": "A wyeni",
   "options": [
-   "il est venu",
-   "il est allé",
-   "elle m'a tapé",
+   "il était venu",
+   "il était allé",
+   "elle m'avait tapé",
    "il danse"
   ],
-  "reponse": "il est venu",
+  "reponse": "il était venu",
   "source": "Capp, 21 nov. 2026 (CONJUGAISON § 3.3)",
   "ordre": 9
  },
@@ -10216,7 +10216,7 @@
   "id": "ogendo-l15-10",
   "lecon_id": "ogendo-l15",
   "type": "choix",
-  "consigne": "Comment dit-on « il est allé » ?",
+  "consigne": "Comment dit-on « il était allé » ?",
   "options": [
    "A gendi",
    "A wyeni",
