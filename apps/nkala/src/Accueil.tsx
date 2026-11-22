@@ -92,7 +92,7 @@ export function ProfilEcran({ suite }: { suite: React.ReactNode }) {
   const { profil } = useAuth();
   const { donnees, xp, rang } = useProgres();
   const total = Object.keys(donnees.leconsTerminees ?? {}).length;
-  const anneaux = [['Onenji', c.modules.onenji, Math.min(1, total / 10), `${total}`], ['Azeva', c.modules.azeva, Math.min(1, (donnees.parties ?? 0) / 20), `${donnees.parties ?? 0}`], ['Ompangano', c.modules.ompangano, Math.min(1, (donnees.contributions ?? 0) / 10), `${donnees.contributions ?? 0}`]] as const;
+  const anneaux = [['Onênji', c.modules.onenji, Math.min(1, total / 10), `${total}`], ['Azeva', c.modules.azeva, Math.min(1, (donnees.parties ?? 0) / 20), `${donnees.parties ?? 0}`], ['Ompangano', c.modules.ompangano, Math.min(1, (donnees.contributions ?? 0) / 10), `${donnees.contributions ?? 0}`]] as const;
   return (
     <Ecran bas={100}>
       <Entete titre="Mon profil" retour={() => routeur.back()} droite={<BoutonIcone nom="reglages" label="Réglages" onPress={() => routeur.push('/reglages' as never)} />} />
@@ -151,7 +151,7 @@ export function ReglagesEcran() {
       <LierTelephone />
       <Bouton label="Hors ligne et synchronisation" icone="reseau" variante="fantome" onPress={() => emettre('horsligne')} />
       <Bouton label={profil ? 'Me déconnecter' : 'Créer un compte ou me connecter'} variante="fantome" onPress={() => (profil ? confirmer({ titre: 'Te déconnecter ?', texte: 'Tes contenus en attente d\'envoi restent sur ce téléphone. Tu pourras te reconnecter avec ton numéro.', action: 'Me déconnecter', onOk: deconnexion }) : deconnexion())} />{dialogue}
-      <T v="petit" style={{ textAlign: 'center' }}>Nkala · Essaka Engineering</T>
+      <T v="petit" style={{ textAlign: 'center' }}>Nkala</T>
     </Ecran>
   );
 }

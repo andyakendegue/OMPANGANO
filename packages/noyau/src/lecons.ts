@@ -1,9 +1,10 @@
 /**
- * Moteur de leçons d'Onenji : une leçon est une suite d'exercices ; chaque réponse est jugée ici.
+ * Moteur de leçons d'Onênji : une leçon est une suite d'exercices ; chaque réponse est jugée ici.
  * Fin de leçon : XP et justesse. Fin d'unité : 4 bonnes réponses sur 5 pour valider.
  */
 import { melanger, type Hasard } from './azeva';
 import { nfc } from './encodage';
+import { sansSignes } from './graphieV3';
 import type { NiveauAcces } from './acces';
 
 /**
@@ -27,6 +28,8 @@ export const TYPES_EXERCICE: readonly TypeExercice[] = ['ecouter', 'associer', '
 export interface Exercice {
   id: string; lecon_id: string; type: TypeExercice; consigne?: string | null; mot_myene?: string | null; mot_francais?: string | null;
   options?: string[]; reponse?: string | null; indice?: string | null; image?: string | null; audio?: string | null; dialecte?: string | null; source?: string | null; ordre?: number | null;
+  /** Dictée : exiger les signes de Rékanga (‘, tréma, accent grave). Faux par défaut : l'élève apprend d'abord les lettres ; les leçons d'Ogêndo qui enseignent un signe l'exigent. */
+  exiger_signes?: boolean | null;
   /** Texte long : dialogue (« A : … » une réplique par ligne), explication du cours, sens et usage du proverbe, note culturelle. */
   texte?: string | null;
   /** Conseil culturel montré en bulle pendant l'exercice (ex. « c'est la personne visitée qui salue la première »). */
@@ -58,7 +61,7 @@ export interface Lecon { id: string; unite_id: string; titre: string; titre_myen
 /**
  * Unité. `palier` et `palier_titre` regroupent les unités d'une étape (Ntina : trois paliers comme à la maternelle, 21 nov. 2026) ;
  * `entree` = « adulte_debutant » marque l'unité où commence l'adulte qui débute ; `suite_id` donne l'unité proposée ensuite
- * quand ce n'est pas la suivante dans l'ordre (l'entrée adulte d'Ikôkô renvoie aux unités d'Ogèndo).
+ * quand ce n'est pas la suivante dans l'ordre (l'entrée adulte d'Ikôkô renvoie aux unités d'Ogêndo).
  */
 export interface Unite { id: string; parcours_id: string; titre: string; titre_myene?: string | null; description?: string | null; ordre?: number | null; palier?: number | null; palier_titre?: string | null; entree?: string | null; suite_id?: string | null }
 export interface Parcours { id: string; titre: string; titre_myene?: string | null; etape_vie?: string | null; cycle?: number | null; description?: string | null; couleur?: string | null; image?: string | null; ordre?: number | null }
@@ -93,7 +96,11 @@ export function jugerReponse(ex: Exercice, reponse: string | string[]): boolean 
   const attendu = ex.reponse ?? '';
   const donne = Array.isArray(reponse) ? reponse.join(' ') : reponse;
   // Réponse écrite (contrôle 5, dictée) : plusieurs formes acceptées, séparées par « / » dans la colonne « reponse » (variantes dialectales).
-  if (ex.type === 'saisie' || ex.type === 'dictee') return attendu.split('/').some(a => sansPonctuation(a) === sansPonctuation(donne) && sansPonctuation(a) !== '');
+  // Signes de Rékanga (‘, tréma, accent grave) tolérés tant que la leçon ne les enseigne pas (consigne du cursus v3, lot 2) ; les lettres restent exigées.
+  if (ex.type === 'saisie' || ex.type === 'dictee') {
+    const norm = (t: string) => sansPonctuation(ex.exiger_signes ? t : sansSignes(t));
+    return attendu.split('/').some(a => norm(a) === norm(donne) && norm(a) !== '');
+  }
   return cle(donne) === cle(attendu);
 }
 
@@ -195,13 +202,13 @@ export function placementTest(questions: QuestionTest[], reponses: boolean[], pa
   return { parcoursId: cible.id, uniteId: premiereUnite(cible.id) };
 }
 
-/** Mode enfant : l'étape vient de l'âge (Ntina 3-7, Ogèndo 7-13, Emeno 13-21, Ikôkô 21+). */
+/** Mode enfant : l'étape vient de l'âge (Ntina 3-7, Ogêndo 7-13, Emênô 13-21, Ikôkô 21+). */
 export function etapeParAge(age: number): 'ntina' | 'ogendo' | 'emeno' | 'ikoko' {
   return age < 7 ? 'ntina' : age < 13 ? 'ogendo' : age < 21 ? 'emeno' : 'ikoko';
 }
 
 /**
- * Accès d'une leçon : les cours d'Onenji sont gratuits (décision de Capp, 15 nov. 2026 ; voir formules.ts). La colonne
+ * Accès d'une leçon : les cours d'Onênji sont gratuits (décision de Capp, 15 nov. 2026 ; voir formules.ts). La colonne
  * « niveau_acces » n'ouvre plus de cadenas payant ; seul « reserve » (leçon gardée pour le personnel) reste respecté.
  * Les paramètres `unite` et `unitesDuParcours` sont gardés pour les appels existants.
  */
@@ -357,15 +364,15 @@ export const parcoursTermine = (parcoursId: string, unites: Pick<Unite, 'id' | '
   return u.length > 0 && u.every(x => validees.includes(x.id));
 };
 
-// ------------------------------------------------------------------ Igolani : vidéos en streaming seulement (décision de Capp, 15 nov. 2026)
+// ------------------------------------------------------------------ Igôlani : vidéos en streaming seulement (décision de Capp, 15 nov. 2026)
 export interface CoursVideo { id: string; niveau_acces?: string | null; categorie?: string | null; artisan?: string | null; duree_min?: number | string | null }
 export interface ChapitreVideo { id: string; ordre?: number | string | null; debut_s?: number | string | null; niveau_acces?: string | null }
 /** Une vidéo ne se vend plus à l'unité : « achat », « location » ou « essai » saisis sur une vidéo valent « abonnement ». */
 const enStreaming = (n: string): NiveauAcces => (n === 'achat' || n === 'location' || n === 'essai' ? 'abonnement' : n) as NiveauAcces;
 /**
- * Accès d'un chapitre d'une vidéo de la vidéothèque (Igolani, cours d'artisans) — vidéos en streaming seulement :
+ * Accès d'un chapitre d'une vidéo de la vidéothèque (Igôlani, cours d'artisans) — vidéos en streaming seulement :
  * - colonne « niveau_acces » du chapitre si remplie, sinon celle de la vidéo (« achat » et « location » valent « abonnement ») ;
- * - sinon, règle par défaut : premier chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igolani.
+ * - sinon, règle par défaut : premier chapitre gratuit avec publicité, la suite avec une formule qui ouvre Igôlani.
  * Une vidéo sans chapitre se traite comme un seul chapitre (donc gratuit avec publicité par défaut).
  */
 export function accesChapitreVideo(cours: CoursVideo, chapitres: ChapitreVideo[], index: number): NiveauAcces {

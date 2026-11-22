@@ -1,9 +1,9 @@
 /**
  * Ce qui est gratuit et ce qui demande un forfait (décision de Capp, 15 nov. 2026) :
- * - les cours d'Onenji (Inenga : leçons, contrôles, test de niveau) sont gratuits ;
+ * - les cours d'Onênji (Inenga : leçons, contrôles, test de niveau) sont gratuits ;
  * - la bibliothèque est gratuite ;
- * - Igolani (la vidéothèque) et les cours d'artisans : en streaming seulement (15 nov. 2026), jamais à l'unité ; le premier
- *   chapitre est gratuit avec publicité, la suite s'ouvre avec une formule qui inclut Igolani (Premium les inclut tous) ;
+ * - Igôlani (la vidéothèque) et les cours d'artisans : en streaming seulement (15 nov. 2026), jamais à l'unité ; le premier
+ *   chapitre est gratuit avec publicité, la suite s'ouvre avec une formule qui inclut Igôlani (Premium les inclut tous) ;
  * - seuls les cours avec un professeur (masterclass) se paient à la séance ;
  * - l'IA (Kak'Igonjo et tout ce qui appelle le modèle) demande un forfait ; sans forfait, quelques questions gratuites
  *   chaque semaine pour la découvrir.
@@ -26,7 +26,7 @@ export const regleSansFormule = (x: { rang_min?: unknown } | null | undefined): 
 
 /**
  * Avantages réglables formule par formule dans la console (colonne « avantages » des formules), en plus de l'accès à l'IA
- * (colonne « ia »), des vidéos d'Igolani (« igolani ») et des parties sans publicité (« sans_pub »). Décision de Capp du
+ * (colonne « ia »), des vidéos d'Igôlani (« igolani ») et des parties sans publicité (« sans_pub »). Décision de Capp du
  * 15 nov. 2026 : formules Oma, Inina, Anyambiè. Premium (« tout ») donne tous les avantages.
  */
 export const AVANTAGES = [
@@ -80,8 +80,8 @@ export const messageForfaitIa = (gratuites: number) =>
   `Tu as posé tes ${gratuites} question${gratuites > 1 ? 's' : ''} de la semaine. Pour aller plus loin, choisis une formule qui inclut Kak'Igonjo ; tes questions reviennent lundi.`;
 
 /**
- * Peut-on regarder une partie de vidéo d'Igolani ? Streaming seulement : « libre » et « gratuit_avec_pub » pour tous ;
- * « abonnement » avec une formule qui ouvre Igolani (`droits.igolani`) ; « reserve » pour le personnel. Aucun achat à l'unité.
+ * Peut-on regarder une partie de vidéo d'Igôlani ? Streaming seulement : « libre » et « gratuit_avec_pub » pour tous ;
+ * « abonnement » avec une formule qui ouvre Igôlani (`droits.igolani`) ; « reserve » pour le personnel. Aucun achat à l'unité.
  */
 export function peutRegarderVideo(niveau: string, droits: { igolani?: boolean; role?: string } | null | undefined, personnel = false): Decision {
   if (personnel) return { ok: true, avecPub: false };
@@ -99,7 +99,7 @@ export interface ReglagesFormule {
 }
 /**
  * Formules par défaut : chaque palier reprend le précédent. Oma : IA limitée, sans publicité (musique et annonces comprises) ;
- * Inina : + cours vidéo (Igolani), musique hors ligne, photos 360° ; Anyambiè : tout, assistant IA complet, traducteur
+ * Inina : + cours vidéo (Igôlani), musique hors ligne, photos 360° ; Anyambiè : tout, assistant IA complet, traducteur
  * automatique, synthèse audio, replay de la télévision et de la radio. Prix mensuels de départ : 5 000, 10 000, 20 000 F CFA.
  */
 export const FORMULES_PAR_DEFAUT: { plan: ReglagesFormule; prix_fcfa: number }[] = [
@@ -117,7 +117,7 @@ export function avantagesFormule(p: Partial<ReglagesFormule> | null | undefined)
   const sp = Array.isArray(p.sans_pub) ? p.sans_pub : [];
   if (p.tout || sp.includes('tout') || (sp as unknown) === 'oui') r.push('Aucune publicité : application, musique, annonces');
   else if (sp.length) r.push(`Sans publicité : ${sp.join(', ')}`);
-  if (p.tout || p.igolani) r.push('Tous les cours vidéo d\'Igolani, en streaming');
+  if (p.tout || p.igolani) r.push('Tous les cours vidéo d\'Igôlani, en streaming');
   const av = p.tout ? AVANTAGES.map(a => a.id) : (p.avantages ?? []);
   for (const a of AVANTAGES) if (av.includes(a.id)) r.push(a.libelle);
   return r;

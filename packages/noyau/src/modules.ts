@@ -7,9 +7,9 @@ export type ModuleId = 'ompangano' | 'onenji' | 'azeva' | 'ontci' | 'nkala' | 't
 
 export const MODULES: Record<ModuleId, { label: string; actif: boolean }> = {
   ompangano: { label: 'Ompangano (collecte)', actif: true },
-  onenji: { label: 'Onenji (apprendre)', actif: true },
+  onenji: { label: 'Onênji (apprendre)', actif: true },
   azeva: { label: 'Azeva (salle de jeux)', actif: true },
-  ontci: { label: 'Ontci (écoute)', actif: true }, // onglet « bientôt » visible, comme avant
+  ontci: { label: 'Onci (écoute)', actif: true }, // onglet « bientôt » visible, comme avant
   nkala: { label: 'Nkala (village : annuaire, annonces, services)', actif: true },
   traducteur: { label: 'Traducteur', actif: false },
 };
@@ -18,7 +18,7 @@ export const MODULES: Record<ModuleId, { label: string; actif: boolean }> = {
 export const FONCTIONS_DEFAUT = {
   publicite: false,        // régie publicitaire (EmplacementPub)
   achats: false,           // achats intégrés et abonnements (Verrou)
-  assistantIA: false,      // assistant IA d'Onenji (passerelle à jetons)
+  assistantIA: false,      // assistant IA d'Onênji (passerelle à jetons)
   salleParis: false,       // salle des paris d'Azeva : reste false tant que le dossier juridique n'est pas réuni
 } as const;
 export type FonctionId = keyof typeof FONCTIONS_DEFAUT;

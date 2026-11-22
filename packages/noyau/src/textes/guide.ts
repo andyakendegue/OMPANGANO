@@ -9,7 +9,7 @@ export const TEXTES_GUIDE: Record<string, BlocTexte[]> = {
     },
     {
       "type": "p",
-      "texte": "Conçu par Essaka Engineering, Nkala est le programme participatif de référence dédié à la sauvegarde, la documentation et la transmission vivante de la langue Omyènè au Gabon."
+      "texte": "Nkala est le programme participatif de référence dédié à la sauvegarde, la documentation et la transmission vivante de la langue Omyènè au Gabon."
     },
     {
       "type": "texte",

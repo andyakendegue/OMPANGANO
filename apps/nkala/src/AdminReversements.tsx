@@ -212,7 +212,7 @@ function Minutes({ trimestre }: { trimestre: string }) {
   useEffect(() => { if (/^\d{4}-T[1-4]$/.test(trimestre)) adminMinutesRegardees(trimestre).then(setLignes).catch(() => setLignes([])); }, [trimestre]);
   return (
     <View style={{ gap: 6 }}>
-      <T v="petit">Minutes regardées par des abonnés (formules qui ouvrent Igolani), par vidéo. Le calcul ne garde que les N passages les plus longs par abonné et par vidéo.</T>
+      <T v="petit">Minutes regardées par des abonnés (formules qui ouvrent Igôlani), par vidéo. Le calcul ne garde que les N passages les plus longs par abonné et par vidéo.</T>
       {lignes.map(l => <T key={l.cours_id} v="petit">{l.titre ?? l.cours_id} · {l.minutes} min · {l.abonnes} abonné(s) · {l.passages} passage(s){l.createur_id ? '' : ' · sans créateur'}</T>)}
       {!lignes.length && <T v="petit">Aucune minute mesurée pour {trimestre}.</T>}
     </View>

@@ -156,9 +156,9 @@ export function IaAdmin() {
       <Bouton label="Tester le prompt et le RAG" petit large={false} charge={occupe} desactive={!msg.trim()} onPress={async () => { setOccupe(true); try { setEssai(await adminIaTester(msg)); } catch (e) { ko(e); } finally { setOccupe(false); } }} />
       {essai && <Carte plat><View style={{ padding: 12, gap: 6 }}><T v="corps">{essai.reponse}</T><T v="petit">{essai.modele} · {essai.usage.entree} jetons entrée, {essai.usage.sortie} sortie · {essai.contexte.length} morceau(x) de contexte{essai.simule ? ' · simulation' : ''}</T></View></Carte>}
 
-      <SectionTitre titre="Bibliothèque d'Onenji (livres déposés)" />
+      <SectionTitre titre="Bibliothèque d'Onênji (livres déposés)" />
       {!biblio ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>
-        <T v="corps">{biblio.dossier} : {biblio.presents} fichier(s) déposé(s), {biblio.importes} livre(s) publié(s). Chaque nuit à 3 h 30, les nouveaux livres sont découpés en chapitres et publiés dans Onenji ; ils alimentent aussi l'assistant.</T>
+        <T v="corps">{biblio.dossier} : {biblio.presents} fichier(s) déposé(s), {biblio.importes} livre(s) publié(s). Chaque nuit à 3 h 30, les nouveaux livres sont découpés en chapitres et publiés dans Onênji ; ils alimentent aussi l'assistant.</T>
         <T v="petit">{biblio.enCours ? 'Import en cours…' : biblio.fin ? `Dernier import : ${new Date(biblio.fin).toLocaleString('fr-FR')} · ${biblio.ajoutes} ajouté(s), ${biblio.modifies} modifié(s), ${biblio.inchanges} inchangé(s) · ${biblio.chapitres} chapitres` : 'Aucun import encore.'}</T>
         {biblio.erreurs.slice(0, 5).map((e, i) => <T key={i} v="petit" couleur={c.erreur}>{e.fichier} : {e.message}</T>)}
         <Bouton label={biblio.enCours ? 'En cours…' : 'Importer maintenant'} petit large={false} desactive={biblio.enCours} onPress={() => adminBibliothequeImporter().then(() => { toast('Import lancé.', 'succes'); setTimeout(charger, 5000); setTimeout(charger, 30000); }).catch(ko)} />
@@ -168,7 +168,7 @@ export function IaAdmin() {
       {!radio ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>
         <T v="corps">{radio.simule ? 'Mode simulation : AZURACAST_URL n\'est pas renseigné.' : `${radio.url} : ${radio.ok ? `${radio.stations} station(s) joignable(s)` : 'injoignable'}`}</T>
         {!!radio.erreur && <T v="petit" couleur={c.erreur}>{radio.erreur}</T>}
-        <Bouton label="Importer les stations dans Ontci" petit large={false} desactive={radio.simule} onPress={() => adminRadioSynchroniser().then(r => { toast(`${r.crees} créée(s), ${r.maj} mise(s) à jour.`, 'succes'); charger(); }).catch(ko)} />
+        <Bouton label="Importer les stations dans Onci" petit large={false} desactive={radio.simule} onPress={() => adminRadioSynchroniser().then(r => { toast(`${r.crees} créée(s), ${r.maj} mise(s) à jour.`, 'succes'); charger(); }).catch(ko)} />
       </View></Carte>}
 
       <SectionTitre titre="RunPod" />

@@ -1,5 +1,5 @@
 /**
- * État local d'Onenji : résultat du test de niveau et exercices à revoir (erreurs).
+ * État local d'Onênji : résultat du test de niveau et exercices à revoir (erreurs).
  * Gardés sur l'appareil (AsyncStorage) ; le serveur n'en a pas besoin pour ouvrir les leçons.
  */
 import { useEffect, useState } from 'react';

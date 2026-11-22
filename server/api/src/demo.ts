@@ -34,7 +34,9 @@ const exemples = join(racine, 'contenu', 'exemples');
 for (const f of readdirSync(exemples).filter(x => x.endsWith('.json'))) {
   const collection = f.replace('.json', '');
   if ((await db.query<any>(`SELECT 1 FROM contenus WHERE collection = $1 LIMIT 1`, [collection])).length) continue;
-  for (const l of JSON.parse(readFileSync(join(exemples, f), 'utf8')) as Record<string, any>[])
+  const lignes = JSON.parse(readFileSync(join(exemples, f), 'utf8'));
+  if (!Array.isArray(lignes)) continue; // catalogues (objets) : pas des lignes de contenu
+  for (const l of lignes as Record<string, any>[])
     await db.query(`INSERT INTO contenus (collection, id, data, publie, statut) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING`, [collection, l.id, JSON.stringify(l), l.publie !== false, l.publie === false ? 'brouillon' : 'publie']);
 }
 const sem = async (collection: string, id: string, data: Record<string, unknown>) => db.query(`INSERT INTO contenus (collection, id, data, publie, statut) VALUES ($1,$2,$3,true,'publie') ON CONFLICT DO NOTHING`, [collection, id, JSON.stringify({ id, publie: true, ...data })]);

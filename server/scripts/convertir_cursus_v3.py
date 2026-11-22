@@ -63,7 +63,11 @@ TYPES_SONS = {"son", "quel_son", "tracer"}
 TYPES_OPTIONS_MYENE = {"choix", "trou", "ordre", "comprendre"}
 
 
-FRANCAIS_COURS = {"mandji", "myènè", "myènès", "épaule", "épic", "porc-épic", "né", "née", "salé", "télé", "tapé", "zélé", "ré", "été", "dé"}
+FRANCAIS_COURS = {"mandji", "myènè", "myènès", "épaule", "épic", "porc-épic"}
+# Homographes français : protégés seulement dans les textes français (dans un champ myènè, « ré », « salé » sont du myènè).
+HOMOGRAPHES_FR = {"né", "née", "salé", "télé", "tapé", "zélé", "ré", "été", "dé"}
+# Mots myènè qui sont aussi des formes françaises (« géra ») : toujours convertis dans un champ myènè.
+MYENE_COURS = {"géra"}
 
 
 class ConvCours(v3.Convertisseur):
@@ -79,6 +83,11 @@ class ConvCours(v3.Convertisseur):
         low = tok.lower()
         if low in FRANCAIS_COURS or low in v3.INTOUCHABLES:
             return tok
+        if self.mode_fr and low in HOMOGRAPHES_FR:
+            return tok
+        if not self.mode_fr and low in MYENE_COURS:
+            out = lettres_seules(tok); self.changes[(tok, out)] += 1
+            return out
         if self.mode_fr:
             if low in NGHW_VALIDES or (low in LEXIQUE_CAPP and low not in ("né", "ne", "mye")):
                 r = NGHW_VALIDES.get(low) or LEXIQUE_CAPP[low]

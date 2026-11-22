@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { fetch as fetchFlux } from 'expo/fetch';
-import { ecouterModifications } from '@nkala/noyau';
+import { chargerModules, ecouterModifications } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { donneesChangees } from './donnees';
 import { rejouerFile } from './fileAttente';
@@ -29,7 +29,8 @@ export function TempsReel() {
     const arreter = ecouterModifications(
       fetchFlux as never,
       (collection) => {
-        if (collection === 'items') lancerSynchro();
+        if (collection === 'modules') void chargerModules(); // interrupteurs changés dans la console : onglets mis à jour aussitôt
+        else if (collection === 'items') lancerSynchro();
         else if (collection === 'users' || collection === 'contributions') recharger().then(donneesChangees);
         else donneesChangees(); // thèmes, clans, villages, défis, badges
       },

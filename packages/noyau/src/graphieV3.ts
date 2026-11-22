@@ -12,9 +12,9 @@
 export const VERSION_REGLES_V3 = 'DONDO v3.3 (22 nov. 2026)';
 
 /** Lettres et suites qui n'existent plus en v3 (règles § 2.2 : è, é, tch, ts, ȼ, dj, dy, ñ, ṽ, v̂, gh, gn ; h seul). */
-export const LETTRES_V2 = /è|é|tch|dj|dy|ṽ|v̂|ñ|ȼ|(?<!n)gh|gn|ts/i;
+export const LETTRES_V2 = /è|é|tch|dj|dy|ṽ|v̂|ñ|ȼ|(?<!n)gh|gn|(?<!\p{L})n?ts/iu;
 /** Suites de consonnes v2 rares en français : contrôlées aussi dans les textes français qui citent des mots myènè. */
-export const SUITES_V2 = /tch|dj|dy|ṽ|ñ|ȼ|(?<!n)gh/i;
+export const SUITES_V2 = /tch|(?<!a)dj|dy|ṽ|ñ|ȼ|(?<!n)gh/i; // « adjectif » est du français
 
 /** Noms d'auteurs : jamais visibles par l'apprenant (complément § 6 ; règles § 1.1, point 5). */
 export const AUTEURS = /R[ée]kanga|Ambouroue|Raponda|Walker|Teisser[èe]s|Dubois|Hombouhiry|Gautier|Le Berre|Bushnell|\bWilson\b/i;
@@ -69,6 +69,28 @@ export function sansSignes(texte?: string | null): string {
 
 export type Ecart = { champ: string; regle: 'lettre_v2' | 'auteur' | 'terme_specialiste' | 'crochets'; extrait: string };
 
+/**
+ * L'accent grave de l'impératif (règles § 3, § 6.5) peut tomber sur un e (è) : c'est un signe v3, pas la lettre v2.
+ * Il est admis quand il est sur la première voyelle du mot et seul de son espèce (vèra !, wènda !).
+ */
+export function graveImperatifOte(mot: string): string {
+  const voyelle = mot.search(/[aeiouêôàèìòùềồâ]/i);
+  return voyelle >= 0 && mot[voyelle].toLowerCase() === 'è' && (mot.match(/è/gi) ?? []).length === 1 ? mot.slice(0, voyelle) + 'e' + mot.slice(voyelle + 1) : mot;
+}
+
+const GRAVES: Record<string, string> = { a: 'à', e: 'è', i: 'ì', o: 'ò', u: 'ù', ê: 'ề', ô: 'ồ' };
+/** Sens français d'un impératif (« râpe ! », « essuie ! ») ; les formules (« Au revoir ! », « Bienvenue ! ») n'en sont pas. */
+export const sensImperatif = (sens?: string | null) => /!\s*$/.test(sens ?? '') && !/^(au revoir|bienvenue|merci|bonjour|bonsoir|salut)/i.test((sens ?? '').trim());
+/** Accent grave de l'impératif sur la première voyelle d'un verbe cité seul (règles § 3, § 6.5) ; rien s'il est déjà posé. */
+export function accentImperatif(mot: string): string {
+  if (/[àèìòùềồ]/.test(mot) || /\s/.test(mot.trim())) return mot;
+  const i = [...mot].findIndex(ch => ch.toLowerCase() in GRAVES);
+  if (i < 0) return mot;
+  const l = [...mot], ch = l[i], g = GRAVES[ch.toLowerCase()];
+  l[i] = ch === ch.toUpperCase() ? g.toUpperCase() : g;
+  return NFC(l.join(''));
+}
+
 /** Mots d'un texte (lettres et diacritiques), pour ignorer les mots français admis. */
 const mots = (s: string) => s.match(/[\p{L}\p{M}'’‘-]+/gu) ?? [];
 
@@ -84,7 +106,7 @@ export function controlerAffiche(champ: string, texte: string | null | undefined
   const s = t.match(RX_TERMES); if (s) res.push({ champ, regle: 'terme_specialiste', extrait: s[1] });
   const c = t.match(CROCHETS); if (c) res.push({ champ, regle: 'crochets', extrait: c[0] });
   const rx = myene ? LETTRES_V2 : SUITES_V2;
-  const fautif = mots(t).find(m => rx.test(m) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr')) && !(m.length === 1 && !myene));
+  const fautif = mots(t).find(m => rx.test(graveImperatifOte(m)) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr')) && !(m.length === 1 && !myene));
   if (fautif) res.push({ champ, regle: 'lettre_v2', extrait: fautif });
   return res;
 }
@@ -98,7 +120,7 @@ export function ecartsExercice(e: Record<string, any>): Ecart[] {
   r.push(...controlerAffiche('mot_myene', e.mot_myene, true));
   r.push(...controlerAffiche('graphie', e.graphie, true));
   for (const o of Array.isArray(e.options) ? e.options : []) {
-    if (e.type === 'son') { const [mot, sens] = String(o).split('=').map(x => x.trim()); r.push(...controlerAffiche('options', mot, true), ...controlerAffiche('options', sens, false)); }
+    if (e.type === 'son' || (e.type === 'ton' && String(o).includes('='))) { const [mot, sens] = String(o).split('=').map(x => x.trim()); r.push(...controlerAffiche('options', mot, true), ...controlerAffiche('options', sens, false)); }
     else r.push(...controlerAffiche('options', o, optionsMyene));
   }
   const reponseMyene = optionsMyene || e.type === 'dictee';
@@ -137,7 +159,7 @@ export const ERREURS_A_EVITER: { faux: RegExp; juste: string }[] = [
 export function controlerMyene(texte: string): { ok: boolean; ecarts: string[] } {
   const t = NFC(texte ?? '');
   const ecarts: string[] = [];
-  for (const m of mots(t)) if (LETTRES_V2.test(m) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr'))) ecarts.push(`lettre v2 : ${m}`);
+  for (const m of mots(t)) if (LETTRES_V2.test(graveImperatifOte(m)) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr'))) ecarts.push(`lettre v2 : ${m}`);
   for (const e of ERREURS_A_EVITER) if (e.faux.test(t)) ecarts.push(`forme refusée (juste : ${e.juste})`);
   return { ok: !ecarts.length, ecarts };
 }

@@ -1,4 +1,4 @@
-/** Ontci (Écouter) : à la une, albums, recherche, ma musique, radio en direct, télévision. Catalogue lu dans les fichiers importés. */
+/** Onci (Écouter) : à la une, albums, recherche, ma musique, radio en direct, télévision. Catalogue lu dans les fichiers importés. */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';

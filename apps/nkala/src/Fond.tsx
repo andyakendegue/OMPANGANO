@@ -37,13 +37,13 @@ export function Logo({ taille = 40 }: { taille?: number }) {
 export const Marque = ({ taille = 40 }: { taille?: number }) => (
   <View style={s.marque}>
     <Logo taille={taille} />
-    <Text style={s.nom}>Nkala</Text><Text style={s.essaka}> ESSAKA </Text>
+    <Text style={s.nom}>Nkala</Text>
   </View>
 );
 
 const s = stylesDyn(() => ({
-  cadre: { backgroundColor: '#fff', padding: 3, borderWidth: 2, borderColor: couleurs.ambre, overflow: 'hidden' },
+  // Logo posé sur le fond, sans cadre blanc, comme sur l'écran de lancement (demande de Capp, 22 nov. 2026)
+  cadre: { backgroundColor: 'transparent', overflow: 'hidden' },
   marque: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nom: { color: couleurs.texteClair, fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-  essaka: { color: '#fff', backgroundColor: couleurs.terre, fontSize: 10, fontWeight: '800', overflow: 'hidden', borderRadius: 4 },
 }));

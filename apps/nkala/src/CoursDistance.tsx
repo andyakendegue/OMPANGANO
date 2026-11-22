@@ -1,5 +1,5 @@
 /**
- * Cours à distance d'Onenji (écran 45) : salle de 4 personnes au plus, code à partager, image et son de pair à pair (WebRTC, maillage).
+ * Cours à distance d'Onênji (écran 45) : salle de 4 personnes au plus, code à partager, image et son de pair à pair (WebRTC, maillage).
  * Le serveur ne fait que la signalisation (offres, réponses, candidats ICE, relevés toutes les secondes) et donne les serveurs STUN/TURN
  * (coturn, identifiants valables une heure). Le flux est chiffré par WebRTC (DTLS-SRTP) d'un appareil à l'autre : le serveur ne le voit pas,
  * même quand il passe par le relais TURN.

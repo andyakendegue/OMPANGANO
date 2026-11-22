@@ -22,7 +22,7 @@ export interface DroitsUtilisateur {
   essais?: Record<string, number>;
   /** Locations en cours : contenu → date de fin (ms). */
   locations?: Record<string, number>;
-  /** Une formule active ouvre les vidéos d'Igolani (formule « igolani » ou Premium « tout ») : streaming seulement. */
+  /** Une formule active ouvre les vidéos d'Igôlani (formule « igolani » ou Premium « tout ») : streaming seulement. */
   igolani?: boolean;
   /** Avantages des formules actives (formules.ts, AVANTAGES) : traducteur, synthese_audio, musique_hors_ligne, replay, photos_360. */
   avantages?: string[];

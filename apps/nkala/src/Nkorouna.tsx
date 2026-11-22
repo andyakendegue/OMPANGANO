@@ -1,5 +1,5 @@
 /**
- * Portefeuille Nkorouna (NKR) affiché en tête de la boutique : solde, historique, transparence du registre.
+ * Portefeuille Nkoruna (NKR) affiché en tête de la boutique : solde, historique, transparence du registre.
  * Les NKR s'achètent en FCFA (packs de la collection « produits », type « nkorouna ») et se dépensent sur les produits qui ont un prix_nkr.
  */
 import { useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ import { useTheme } from './Prefs';
 export const formatNkr = (n: number) => `${n.toLocaleString('fr-FR')} NKR`;
 
 const LIBELLES: Record<MouvementNkr['nature'], string> = {
-  achat: 'Achat de Nkorouna', depense: 'Dépense', transfert: 'Envoi', bonus: 'Cadeau', correction: 'Correction', annulation: 'Annulation',
+  achat: 'Achat de Nkoruna', depense: 'Dépense', transfert: 'Envoi', bonus: 'Cadeau', correction: 'Correction', annulation: 'Annulation',
 };
 const libelle = (m: MouvementNkr) => {
   const nom = typeof m.meta?.titre === 'string' && m.meta.titre ? m.meta.titre : m.meta?.produit;
@@ -33,12 +33,12 @@ export function PortefeuilleNkorouna({ portefeuille, erreur }: { portefeuille: P
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Ic nom="piece" taille={26} couleur={c.accent} />
         <View style={{ flex: 1 }}>
-          <T v="petit">Mes Nkorouna</T>
+          <T v="petit">Mes Nkoruna</T>
           {erreur ? <T v="corps">Solde indisponible (réseau).</T> : !portefeuille ? <Chargement lignes={1} /> : <T v="titre" couleur={c.accent}>{formatNkr(portefeuille.solde)}</T>}
         </View>
         {portefeuille?.gele && <Pastille label="Compte gelé" couleur={c.erreur} fond={c.carte} />}
       </View>
-      <T v="petit">Achète des Nkorouna en FCFA (Mobile Money), puis paie ton forfait et les vidéos d'Igolani en un toucher.</T>
+      <T v="petit">Achète des Nkoruna en FCFA (Mobile Money), puis paie ton forfait et les vidéos d'Igôlani en un toucher.</T>
 
       {portefeuille && (
         <Pressable onPress={() => setOuvert(o => !o)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -79,7 +79,7 @@ export function CarteNkorounaProfil() {
   return (
     <Carte><View style={{ padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <Ic nom="piece" taille={26} couleur={c.accent} />
-      <View style={{ flex: 1 }}><T v="petit">Mes Nkorouna</T><T v="carte" couleur={c.accent}>{solde === null ? '…' : formatNkr(solde)}</T></View>
+      <View style={{ flex: 1 }}><T v="petit">Mes Nkoruna</T><T v="carte" couleur={c.accent}>{solde === null ? '…' : formatNkr(solde)}</T></View>
       <Bouton label="Boutique" petit large={false} variante="ambre" onPress={ouvrirBoutique} />
     </View></Carte>
   );

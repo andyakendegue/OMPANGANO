@@ -1,5 +1,5 @@
 /**
- * Bibliothèque virtuelle d'Onenji : étagère par rayons, fiche de livre, lecteur de chapitres où chaque mot se touche (glossaire, « Mes mots »,
+ * Bibliothèque virtuelle d'Onênji : étagère par rayons, fiche de livre, lecteur de chapitres où chaque mot se touche (glossaire, « Mes mots »,
  * explication par Kak'Igonjo), mini-quiz « complète le texte » en fin de chapitre, XP la première fois, série quotidienne et succès.
  * Les livres viennent des collections « bibliotheque » et « livre_chapitres » (import de /opt/bibliotheque ou fichiers CSV/JSON).
  */

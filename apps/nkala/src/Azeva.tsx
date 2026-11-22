@@ -54,7 +54,7 @@ export function Azeva() {
   const [dialecte, setDialecte] = useState('orungu');
   const jeux = (res.jeux ?? []).filter(j => prefs.mode !== 'enfant' || j.mode_enfant === true || j.mode_enfant === 'oui');
   const D = { salles: (res.salles ?? []).filter(s => jeux.some(j => j.salle_id === s.id)), jeux };
-  // Lien depuis une leçon d'Onenji (étape « jouer ») : /azeva?jeu=<id> ouvre directement les niveaux de ce jeu.
+  // Lien depuis une leçon d'Onênji (étape « jouer ») : /azeva?jeu=<id> ouvre directement les niveaux de ce jeu.
   const { jeu: jeuDemande } = useLocalSearchParams<{ jeu?: string }>();
   useEffect(() => {
     if (!jeuDemande || chargement) return;

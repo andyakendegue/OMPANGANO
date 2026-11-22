@@ -53,10 +53,10 @@ export function BoutiqueFeuille() {
     setOccupe('nkr:' + enNkr.produit.id);
     try {
       const r = await depenserNkr(enNkr.produit.id, enNkr.cle);
-      oublierDroits(); toast(`Payé en Nkorouna. Il te reste ${formatNkr(r.solde)}.`, 'succes'); setEnNkr(null); charger();
+      oublierDroits(); toast(`Payé en Nkoruna. Il te reste ${formatNkr(r.solde)}.`, 'succes'); setEnNkr(null); charger();
     } catch (e) { toast((e as Error).message, 'erreur'); } finally { setOccupe(null); }
   };
-  const ouvrirNkr = (p: Produit) => { if (!profil) { toast('Connecte-toi pour payer en Nkorouna.', 'info'); return; } setFlux(null); setEnNkr({ produit: p, cle: cleNkr() }); };
+  const ouvrirNkr = (p: Produit) => { if (!profil) { toast('Connecte-toi pour payer en Nkoruna.', 'info'); return; } setFlux(null); setEnNkr({ produit: p, cle: cleNkr() }); };
   const packs = (offres?.produits ?? []).filter(p => p.type === 'nkorouna').sort((a, b) => (a.nkorouna ?? 0) - (b.nkorouna ?? 0));
   // Formules (Oma, Inina, Anyambiè…) : rangées selon leur ordre ; ce qu'elles donnent vient de leurs réglages (console › Formules).
   const plans = ((plansRes.plans ?? []) as unknown as ReglagesFormule[]);
@@ -64,11 +64,11 @@ export function BoutiqueFeuille() {
   const autres = (offres?.produits ?? []).filter(p => p.type !== 'nkorouna').sort((a, b) => (planDe(a)?.ordre ?? 99) - (planDe(b)?.ordre ?? 99) || (a.prix_fcfa ?? 0) - (b.prix_fcfa ?? 0));
   const acheter = (p: Produit) => { if (offres?.mode === 'simulation' && !p.prix_fcfa) { toast('Prix à venir.', 'info'); return; } ouvrirPaiement(p); };
   return (
-    <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkorouna">
+    <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkoruna">
       {droits?.abonne && <Carte plat><View style={{ padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}><Ic nom="couronne" taille={22} couleur={c.accent} /><T v="carte">Abonnement actif{droits.abonneJusque ? ` jusqu'au ${new Date(droits.abonneJusque).toLocaleDateString('fr-FR')}` : ''} · plus de publicité</T></View></Carte>}
       {profil && <PortefeuilleNkorouna portefeuille={portefeuille} erreur={erreurNkr} />}
       {packs.length > 0 && <>
-        <T v="sousTitre">Acheter des Nkorouna</T>
+        <T v="sousTitre">Acheter des Nkoruna</T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {packs.map(p => (
             <Carte key={p.id} style={{ flexGrow: 1, flexBasis: 140 }}><View style={{ padding: 14, gap: 6, alignItems: 'center' }}>
@@ -97,7 +97,7 @@ export function BoutiqueFeuille() {
         })}
       {enNkr && (
         <Carte accent={c.accent}><View style={{ padding: 16, gap: 10 }}>
-          <T v="carte">Payer « {enNkr.produit.titre} » en Nkorouna</T>
+          <T v="carte">Payer « {enNkr.produit.titre} » en Nkoruna</T>
           <T v="corps">Prix : {formatNkr(enNkr.produit.prix_nkr ?? 0)}{portefeuille ? ` · ton solde : ${formatNkr(portefeuille.solde)}` : ''}</T>
           {portefeuille && portefeuille.solde < (enNkr.produit.prix_nkr ?? 0) ? <>
             <T v="corps" couleur={c.erreur}>Il te manque {formatNkr((enNkr.produit.prix_nkr ?? 0) - portefeuille.solde)}.</T>

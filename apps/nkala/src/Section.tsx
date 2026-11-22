@@ -46,7 +46,6 @@ export const Bientot = ({ texte }: { texte: string }) => (
 const s = StyleSheet.create({
   marque: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12 },
   marqueNom: { color: couleurs.texteClair, fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-  marqueEssaka: { color: '#fff', backgroundColor: couleurs.terre, fontSize: 10, fontWeight: '800', overflow: 'hidden', borderRadius: 4 },
   baseline: { color: couleurs.ambre, fontSize: 11, paddingHorizontal: 16 },
   titre: { color: couleurs.texteClair, fontSize: 20, fontWeight: '800', padding: 16, paddingBottom: 8 },
   bande: { height: 52, flexShrink: 0, flexGrow: 0 },

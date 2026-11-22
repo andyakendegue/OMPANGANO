@@ -1,5 +1,5 @@
 /**
- * Formats immersifs des cours d'Onenji (15 nov. 2026) : illustrations animées, sons décrits dans leur propre système (API, articulation,
+ * Formats immersifs des cours d'Onênji (15 nov. 2026) : illustrations animées, sons décrits dans leur propre système (API, articulation,
  * schéma de la bouche, flux d'air), mélodie des tons, écriture au doigt et scènes à explorer. Aucune comparaison au français :
  * le myènè a une phonétique plus riche (implosives, aspirées, labio-palatale, tons…) — consigne de Capp. Données : noyau/phonetique.ts.
  */
@@ -130,7 +130,11 @@ export function MelodieTonale({ transcription, largeur = 300 }: { transcription:
 }
 
 // ------------------------------------------------------------------ cartes
-/** Carte d'un son : API géant, graphie DONDO, articulation, schéma animé (bouche ou lieu d'articulation), distribution et exemples. */
+/**
+ * Carte d'un son : la lettre en graphie v3, le geste dit simplement, le schéma animé (bouche ou lieu) et des exemples.
+ * Aucun symbole phonétique, aucun terme de spécialiste, aucune transcription entre crochets (complément du 22 nov. 2026, § 6) :
+ * la transcription ne sert qu'à dessiner la ligne de la mélodie.
+ */
 export function CarteSon({ ex, enfant, onSuite, Son }: { ex: Exercice; enfant: boolean; onSuite: () => void; Son: React.ComponentType<{ audio?: string | null; lent?: boolean; auto?: boolean; grand?: boolean }> }) {
   const { c } = useTheme();
   const p = phonemeDe(ex.graphie);
@@ -145,15 +149,12 @@ export function CarteSon({ ex, enfant, onSuite, Son }: { ex: Exercice; enfant: b
     <View style={{ gap: 14, alignItems: 'center' }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
         <View style={{ width: 120, height: 120, borderRadius: 30, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-          <T style={{ fontSize: 54, lineHeight: 64, color: c.surAccent }} accessibilityLabel={`Son ${p?.api ?? ex.graphie}`}>{p?.api ?? ex.graphie}</T>
+          <T style={{ fontSize: p && p.graphie.length > 4 ? 26 : 54, lineHeight: p && p.graphie.length > 4 ? 32 : 64, color: c.surAccent, textAlign: 'center' }} accessibilityLabel={`Lettre ${p?.graphie ?? ex.graphie}`}>{p?.graphie ?? ex.graphie}</T>
         </View>
         {!!ex.audio && <Son audio={ex.audio} lent grand />}
       </View>
-      {p && <T v="sousTitre" style={{ textAlign: 'center' }}>Graphie : <T v="sousTitre" style={{ fontStyle: 'italic' }} couleur={c.accent}>{p.graphie}</T></T>}
-      {p && !enfant && <T v="corps" style={{ textAlign: 'center' }}>{p.articulation}</T>}
+      {!!p?.geste && <T v="corps" style={{ textAlign: 'center' }}>{p.geste}</T>}
       {p?.type === 'voyelle' ? <Bouche aperture={p.aperture} serie={p.serie} /> : p ? <SchemaArticulation p={p} /> : null}
-      {p?.air && <T v="petit" couleur={c.accent}>{p.air === 'implosif' ? 'Implosive : l\'air entre dans la bouche au relâchement.' : 'Aspirée : un souffle suit l\'occlusion.'}</T>}
-      {!!p?.distribution && !enfant && <Carte plat style={{ alignSelf: 'stretch' }}><View style={{ padding: 12 }}><T v="petit">{p.distribution}</T></View></Carte>}
       {!!ex.texte && <T v="corps" style={{ textAlign: 'center' }}>{ex.texte}</T>}
       <View style={{ alignSelf: 'stretch', gap: 8 }}>
         {liste.map((e, i) => (
@@ -161,7 +162,6 @@ export function CarteSon({ ex, enfant, onSuite, Son }: { ex: Exercice; enfant: b
             {!!e.illustration && <T style={{ fontSize: 34 }}>{e.illustration}</T>}
             <View style={{ flex: 1 }}>
               {!!e.mot && <T v="carte" style={{ fontStyle: 'italic' }}>{e.mot}</T>}
-              {!!e.phonetique && <T v="corps" couleur={c.accent}>{e.phonetique}</T>}
               <T v="petit">« {e.sens} »</T>
             </View>
           </View></Carte>
@@ -180,12 +180,12 @@ export function CarteTon({ ex, onSuite }: { ex: Exercice; onSuite: () => void })
   return (
     <View style={{ gap: 14 }} onLayout={(e: LayoutChangeEvent) => setW(Math.min(420, e.nativeEvent.layout.width))}>
       {!!(ex.mot_myene || ex.phonetique) && <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene || graphieDondo(ex.phonetique)}</T>}
-      {!!ex.phonetique && <><T v="sousTitre" style={{ textAlign: 'center' }} couleur={c.accent}>{ex.phonetique}</T><View style={{ alignItems: 'center' }}><MelodieTonale transcription={ex.phonetique} largeur={w} /></View></>}
+      {!!ex.phonetique && <View style={{ alignItems: 'center' }}><MelodieTonale transcription={ex.phonetique} largeur={w} /></View>}
       {!!ex.mot_francais && <T v="corps" style={{ textAlign: 'center' }}>« {ex.mot_francais} »</T>}
       {!!ex.texte && <Carte plat><View style={{ padding: 12 }}><T v="corps">{ex.texte}</T></View></Carte>}
       {paires.map((p, i) => (
         <Carte key={i} plat><View style={{ padding: 12, gap: 4 }}>
-          <T v="carte" style={{ fontStyle: 'italic' }}>{p.mot || graphieDondo(p.phonetique)}</T>{!!p.phonetique && <T v="corps" couleur={c.accent}>{p.phonetique}</T>}<T v="petit">« {p.sens} »</T>
+          <T v="carte" style={{ fontStyle: 'italic' }}>{p.mot || graphieDondo(p.phonetique)}</T><T v="petit">« {p.sens} »</T>
           {!!p.phonetique && <MelodieTonale transcription={p.phonetique} largeur={Math.min(w - 24, 280)} />}
         </View></Carte>
       ))}
@@ -336,7 +336,7 @@ export function QuelSon({ ex, onRepondre, Son, opts }: { ex: Exercice; onRepondr
     <View style={{ gap: 14, alignItems: 'center' }}>
       <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={130} />
       {!!(ex.mot_myene || ex.phonetique) && <T v="titre" style={{ fontStyle: 'italic', textAlign: 'center' }}>{ex.mot_myene || graphieDondo(ex.phonetique)}</T>}
-      {!!ex.phonetique && <T v="sousTitre" couleur={c.accent}>{ex.phonetique}</T>}
+      {/* Transcription jamais affichée (complément du 22 nov. 2026, § 6) : elle sert à la voix et à la mélodie. */}
       {!!ex.mot_francais && <T v="petit">« {ex.mot_francais} »</T>}
       {!!ex.audio && <Son audio={ex.audio} auto lent />}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>

@@ -23,15 +23,19 @@ test('inventaire complet des consonnes d\'Ambouroue (p. 12) : chaque son a sa ca
     assert.ok(p!.articulation.length > 5 && p!.exemples.every(e => e.source && (e.mot || e.phonetique)), api);
   }
   const SEEDS_EX = SEEDS.exercices as Record<string, any>[];
-  const cartes = new Set(SEEDS_EX.filter(e => e.type === 'son' && String(e.lecon_id).startsWith('ntina-')).map(e => e.graphie));
-  for (const api of ambouroue) assert.ok(cartes.has(api), `pas de carte de son dans Ntina pour ${api}`);
+  const cartes = new Set(SEEDS_EX.filter(e => e.type === 'son' && e.publie !== false && String(e.lecon_id).startsWith('ntina-')).map(e => e.graphie));
+  // v3 : β et v ne font qu'un son, écrit v (Capp, 22 nov. 2026) : une seule carte
+  for (const api of ambouroue.filter(a => a !== 'β')) assert.ok(cartes.has(api), `pas de carte de son dans Ntina pour ${api}`);
+  assert.equal(phonemeDe('β')!.graphie, phonemeDe('v')!.graphie);
   for (const e of SEEDS_EX.filter(e => e.type === 'son')) assert.ok(phonemeDe(e.graphie), `carte sans son connu : ${e.id}`);
 });
 
 test('consonnes propres : implosives, aspirées, labio-palatale ; recherche par API ou graphie', () => {
   assert.equal(phonemeDe('ɓ')!.air, 'implosif');
   assert.equal(phonemeDe('pʰ')!.air, 'aspiré');
-  assert.equal(phonemeDe('ṽ')!.api, 'β');
+  assert.equal(phonemeDe('β')!.graphie, 'v', 'v3 : un seul son, écrit v');
+  assert.equal(phonemeDe('dʒ')!.graphie, 'j'); assert.equal(phonemeDe('dʲ')!.graphie, 'j', 'une seule carte j');
+  for (const p of [...VOYELLES, ...CONSONNES]) assert.ok(p.geste && !/implosi|aspir|palat|alvéol|nasale|fricativ|occlusi/i.test(p.geste), `${p.api} : description pour l'élève sans terme de spécialiste`);
   assert.equal(phonemeDe('ɥ')!.type, 'semi-consonne');
   assert.equal(phonemeDe('inconnu'), null);
 });
@@ -70,10 +74,10 @@ test('le contenu d\'exemple des sons et des tons passe le schéma et cite ses so
   assert.ok(neufs.every(l => typeof l.source === 'string' && l.source.length > 5), 'chaque exercice cite sa source');
 });
 
-test('graphie DONDO tirée de la transcription : mêmes graphies que les leçons, sans tons', () => {
-  const attendu: [string, string][] = [['[àkɔ̀ndɔ̀]', 'akôndô'], ['[ìβàβá]', 'iṽaṽa'], ['[àwáná]', 'awana'], ['[èɾéɾé]', 'éréré'], ['[m̀bɛ́ɾɛ́]', 'mbèrè'],
-    ['[èpóko̍lò]', 'épokolo'], ['[èɓándá]', 'ébanda'], ['[ɗènà]', 'déna'], ['[nyàmà]', 'nyama'], ['[ìncózó]', 'intchozo'], ['[ìnjìnà]', 'indjina'],
-    ['[ŋòmbá]', 'ñomba'], ['[ìŋkàmbí]', 'inkambi'], ['[òŋwántò]', 'onwanto'], ['[àwánà wínya̍̀]', 'awana winya']];
+test('graphie v3 tirée de la transcription : mêmes graphies que les leçons, sans tons', () => {
+  const attendu: [string, string][] = [['[àkɔ̀ndɔ̀]', 'akôndô'], ['[ìβàβá]', 'ivava'], ['[àwáná]', 'awana'], ['[èɾéɾé]', 'erere'], ['[m̀bɛ́ɾɛ́]', 'mbêrê'],
+    ['[èpóko̍lò]', 'epokolo'], ['[èɓándá]', 'ebanda'], ['[ɗènà]', 'dena'], ['[nyàmà]', 'nyama'], ['[ìncózó]', 'incozo'], ['[ìnjìnà]', 'injina'],
+    ['[ŋòmbá]', 'nghomba'], ['[ìŋkàmbí]', 'inkambi'], ['[òŋwántò]', 'onghwanto'], ['[àwánà wínya̍̀]', 'awana winya']];
   for (const [t, g] of attendu) assert.equal(graphieDondo(t), g, t);
   assert.deepEqual(exempleComplet({ phonetique: '[òɣá]', sens: 'un roi' }), { mot: 'oga', phonetique: '[òɣá]', sens: 'un roi', ecritureDeduite: true });
   assert.equal(exempleComplet({ mot: 'kisini', sens: 'la cuisine' }).ecritureDeduite, false);
@@ -101,7 +105,7 @@ test('objets du quotidien, espace, temps, nombres : unités du programme, mots s
   assert.ok(mots.length >= 150);
   for (const e of mots) { assert.ok(e.mot_myene && e.mot_francais && e.source, e.id); if (e.phonetique) assert.equal(graphieDondo(e.phonetique).replace(/é/g, 'e'), e.mot_myene.toLowerCase().replace(/é/g, 'e').replace(/[’']/g, ''), e.id); }
   const nb = Object.fromEntries(mots.filter(e => e.lecon_id === 'ntina-l15' || e.lecon_id === 'ntina-l16').map(e => [e.mot_francais, e.mot_myene]));
-  assert.deepEqual([nb.trois, nb.sept, nb.huit], ['ntcharo', 'orwagénomo', 'énanayi'], 'formes corrigées (Leçon 13, corrections du 31 oct. 2026)');
+  assert.deepEqual([nb.trois, nb.sept, nb.huit], ['ncaro', 'orwagenomo', 'enanayi'], 'formes corrigées (Leçon 13, corrections du 31 oct. 2026), en graphie v3');
   assert.ok(!JSON.stringify(mots).includes('mbongo'), 'mot écarté par Capp');
 });
 

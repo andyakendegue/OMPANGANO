@@ -1,5 +1,5 @@
 /**
- * Certificats d'Onenji (audit Apprendre §8.9) : numérotés par le serveur (NKL-AAAA-000123), vérifiables par un lien public,
+ * Certificats d'Onênji (audit Apprendre §8.9) : numérotés par le serveur (NKL-AAAA-000123), vérifiables par un lien public,
  * partageables et téléchargeables (page HTML imprimable). Sans compte : certificat sur l'appareil, sans numéro.
  */
 import { useEffect, useState } from 'react';
@@ -21,7 +21,7 @@ export function htmlCertificat(c: { nom: string; titre: string; le?: string; num
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Certificat · ${echapper(c.titre)}</title>
 <style>@page{size:A4 landscape;margin:12mm}body{margin:0;font-family:Georgia,serif;background:#FDFAF7;color:#170D08}main{box-sizing:border-box;max-width:1000px;margin:24px auto;padding:48px;border:6px double #B84A28;border-radius:24px;text-align:center}
 h1{font-size:30px;letter-spacing:.08em;text-transform:uppercase;color:#B84A28;margin:0 0 24px}.nom{font-size:40px;margin:12px 0}.parcours{font-size:28px;color:#B84A28;font-style:italic;margin:12px 0}p{font-size:18px;margin:8px 0}.num{font-family:monospace;font-size:18px;margin-top:28px}.petit{font-size:12px;color:#6B4B3A;word-break:break-all}</style></head>
-<body><main><h1>Certificat de réussite</h1><p>Onenji · Nkala</p><p class="nom">${echapper(c.nom || 'Apprenant·e Nkala')}</p><p>a terminé le parcours</p><p class="parcours">${echapper(c.titre)}</p><p>le ${dateFr(c.le)}</p>${num}</main></body></html>`;
+<body><main><h1>Certificat de réussite</h1><p>Onênji · Nkala</p><p class="nom">${echapper(c.nom || 'Apprenant·e Nkala')}</p><p>a terminé le parcours</p><p class="parcours">${echapper(c.titre)}</p><p>le ${dateFr(c.le)}</p>${num}</main></body></html>`;
 }
 
 async function telechargerCertificat(c: { nom: string; titre: string; le?: string; numero?: string | null }) {
@@ -60,13 +60,13 @@ export function Certificat({ parcours, onFermer }: { parcours: Parcours; onFerme
         <T v="titre" style={{ textAlign: 'center' }}>{donnees.nom || 'Apprenant·e Nkala'}</T>
         <T v="corps" style={{ textAlign: 'center' }}>a terminé le parcours</T>
         <T v="sousTitre" couleur={c.accent} style={{ textAlign: 'center' }}>{donnees.titre}</T>
-        <T v="petit">{dateFr(donnees.le)} · Onenji, Nkala</T>
+        <T v="petit">{dateFr(donnees.le)} · Onênji, Nkala</T>
         {donnees.numero ? <T v="carte" style={{ fontVariant: ['tabular-nums'] }}>N° {donnees.numero}</T>
           : <T v="petit" style={{ textAlign: 'center' }}>{profil ? 'Numéro indisponible hors ligne : rouvre le certificat avec du réseau.' : 'Connecte-toi pour obtenir un certificat numéroté et vérifiable.'}</T>}
       </Carte>
       <Bouton label="Partager" icone="partage" onPress={async () => {
         const lien = donnees.numero ? ` Vérifier : ${lienVerification(donnees.numero)}` : '';
-        try { await Share.share({ message: `J'ai terminé le parcours « ${donnees.titre} » sur Nkala (Onenji) le ${dateFr(donnees.le)}.${donnees.numero ? ` Certificat n° ${donnees.numero}.` : ''}${lien}` }); } catch { toast('Partage impossible.', 'erreur'); }
+        try { await Share.share({ message: `J'ai terminé le parcours « ${donnees.titre} » sur Nkala (Onênji) le ${dateFr(donnees.le)}.${donnees.numero ? ` Certificat n° ${donnees.numero}.` : ''}${lien}` }); } catch { toast('Partage impossible.', 'erreur'); }
       }} />
       <Bouton label="Télécharger (à imprimer)" icone="telecharger" variante="fantome" onPress={() => telechargerCertificat(donnees).catch(() => toast('Téléchargement impossible.', 'erreur'))} />
       <Bouton label="Fermer" variante="fantome" onPress={onFermer} />

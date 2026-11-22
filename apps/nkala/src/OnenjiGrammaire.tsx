@@ -1,5 +1,5 @@
 /**
- * Fiches de grammaire d'Onenji (audit Apprendre §8.2) : collection « grammaire » importée dans la console ; chaque exemple porte sa source.
+ * Fiches de grammaire d'Onênji (audit Apprendre §8.2) : collection « grammaire » importée dans la console ; chaque exemple porte sa source.
  * Rubriques, fiche avec paragraphes, petit tableau (lignes « a | b »), exemples à écouter, explication par Kak'Igonjo.
  */
 import { useMemo, useState } from 'react';

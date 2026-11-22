@@ -1,6 +1,6 @@
 /**
  * Achat d'une annonce au-delà de la gratuite du mois (500 FCFA par défaut, produit « annonce-supplementaire ») :
- * en Nkorouna si un prix en jetons est réglé, ou par Mobile Money (parcours existant de la boutique).
+ * en Nkoruna si un prix en jetons est réglé, ou par Mobile Money (parcours existant de la boutique).
  */
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -30,7 +30,7 @@ export function PaiementAnnonce({ quota, visible, onClose, onPaye }: { quota: Qu
   const prix = quota.prix_fcfa ?? 500;
   const enNkr = async () => {
     setOccupe(true);
-    try { await depenserNkr(quota.produit, cleNkr()); toast('Payé en Nkorouna : votre annonce part maintenant.', 'succes'); onPaye(); }
+    try { await depenserNkr(quota.produit, cleNkr()); toast('Payé en Nkoruna : votre annonce part maintenant.', 'succes'); onPaye(); }
     catch (e) { toast((e as Error).message, 'erreur'); } finally { setOccupe(false); }
   };
   const mobile = async () => {
@@ -42,7 +42,7 @@ export function PaiementAnnonce({ quota, visible, onClose, onPaye }: { quota: Qu
   return (
     <Feuille visible={visible} onClose={onClose} titre="Annonce supplémentaire">
       <T v="corps">Votre annonce gratuite du mois ({quota.utilisees} / {quota.gratuites_mois}) est utilisée. Une annonce supplémentaire coûte <T v="corps" fort>{formaterPrix(prix)}</T>.</T>
-      {!!quota.prix_nkr && <Bouton label={`Payer ${quota.prix_nkr} Nkorouna`} icone="jeton" charge={occupe} onPress={enNkr} />}
+      {!!quota.prix_nkr && <Bouton label={`Payer ${quota.prix_nkr} Nkoruna`} icone="jeton" charge={occupe} onPress={enNkr} />}
       {!pay ? (!modes ? <Chargement lignes={1} /> : modes.operateurs.length === 0 ? <T v="petit">Le paiement Mobile Money n'est pas encore ouvert.</T> : <>
         <T v="libelle">Mobile Money</T>
         <Rangee>{modes.operateurs.map(o => <Puce key={o.id} label={o.nom} actif={op === o.id} onPress={() => setOp(o.id)} />)}</Rangee>

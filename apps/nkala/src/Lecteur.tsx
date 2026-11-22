@@ -1,5 +1,5 @@
 /**
- * Lecteur d'Ontci (principes à la Spotify, NKALA_AUDIT_COMPLET.md §5.6) : file d'attente, lecteur flottant partout, préchargement
+ * Lecteur d'Onci (principes à la Spotify, NKALA_AUDIT_COMPLET.md §5.6) : file d'attente, lecteur flottant partout, préchargement
  * de l'adresse du titre suivant, mesure du délai « toucher → premier son », arrière-plan, protection contre l'enregistrement d'écran
  * pour les contenus protégés. Le chiffrement des segments (niveaux 1 et 2) se branche sur `licence` à la connexion des services.
  */

@@ -1,7 +1,7 @@
 /**
  * Mesure du temps passé par module (décision de Capp du 15 nov. 2026 : répartition des abonnements et fonds des créateurs).
  * Un battement par minute pour l'onglet affiché, l'application au premier plan ; le serveur compte et plafonne.
- * Un écran ouvert par-dessus un onglet (vidéothèque Igolani, Kak'Igonjo, Contribuer) remplace son module le temps qu'il est ouvert :
+ * Un écran ouvert par-dessus un onglet (vidéothèque Igôlani, Kak'Igonjo, Contribuer) remplace son module le temps qu'il est ouvert :
  * une minute n'est jamais comptée deux fois. Aucune donnée n'est envoyée sans compte.
  */
 import { useCallback, useEffect } from 'react';

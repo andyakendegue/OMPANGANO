@@ -87,7 +87,8 @@ export const SCHEMAS: SchemaContenu[] = [
     { nom: 'phonetique', type: 'texte', aide: 'Transcription phonétique avec les tons, notation d\'Ambouroue entre crochets : aigu = haut, grave = bas, trait vertical = haut-abaissé, circonflexe = descendant.', exemple: '[àwáná]' },
     { nom: 'scene', type: 'choix', choix: ['lagune', 'village'], aide: 'Type scene : paysage animé intégré.', exemple: 'lagune' },
     { nom: 'zones', type: 'json', aide: 'Type scene : éléments à toucher, positions en % : [{"x":30,"y":60,"mot":"nguwu","sens":"hippopotame","illustration":"🦛"}].' },
-    { nom: 'dialecte', type: 'texte', aide: 'Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes).' }, source, ordre] },
+    { nom: 'dialecte', type: 'texte', aide: 'Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes).' },
+    { nom: 'exiger_signes', type: 'booleen', aide: 'Dictée : oui = les signes (‘, tréma, accent grave) sont exigés ; non (défaut) = tolérés tant que la leçon ne les enseigne pas.' }, source, ordre] },
   { id: 'cours_artisans', module: 'onenji', titre: 'Vidéothèque (Igolani)', description: 'Tous les cours vidéo d\'Onenji, rangés par catégorie ; les cours d\'artisans sont une catégorie (nom de collection gardé pour les données déjà importées).', champs: [
     id, { nom: 'titre', type: 'texte', requis: true, aide: 'Titre du cours.' }, { nom: 'categorie', type: 'texte', aide: 'Catégorie de la vidéothèque (Artisans, Langue, Culture, Histoire…). Vide : « Artisans » si un artisan est indiqué.', exemple: 'Artisans' }, { nom: 'artisan', type: 'texte', aide: 'Nom de l\'artisan ou de l\'intervenant.' },
     { nom: 'metier', type: 'texte', aide: 'Métier (vin de palme, hors-bord, cuisine…).' }, { nom: 'description', type: 'long', aide: 'Description.' },

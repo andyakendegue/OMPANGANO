@@ -9,12 +9,16 @@
  * - [RÈGLES] `_contexte/REGLES_ECRITURE_LECTURE_MYENE.md` v2.0 (graphie DONDO normalisée, décisions de Capp).
  * La graphie DONDO n'écrit pas les tons (RÈGLES § 3.7) : ils s'apprennent par la transcription phonétique ([AMB]).
  */
+import { accentImperatif, sensImperatif } from './graphieV3';
+
 export interface ExempleSon { mot?: string; phonetique?: string; sens: string; source: string }
 export interface Phoneme {
   /** Notation API (phonème ou réalisation). */
   api: string;
-  /** Graphie DONDO normalisée correspondante (RÈGLES § 2-3). */
+  /** Lettre(s) en graphie v3 (alphabet de Rékanga, règles de référence v3.3 § 2), seule écriture montrée à l'élève. */
   graphie: string;
+  /** Comment faire le son, dit simplement pour l'élève (complément du 22 nov. § 6 : aucun terme de spécialiste, jamais « comme en français »). */
+  geste?: string;
   type: 'voyelle' | 'consonne' | 'semi-consonne';
   /** Définition articulatoire (AMB). */
   articulation: string;
@@ -33,123 +37,123 @@ export interface Phoneme {
 
 /** Les sept voyelles orales de l'ôrungu (AMB p. 11-12) : aperture et série ; pas de voyelle nasale ; pas de voyelle longue en soi. */
 export const VOYELLES: Phoneme[] = [
-  { api: 'i', graphie: 'i', type: 'voyelle', articulation: 'voyelle antérieure fermée (1er degré d\'aperture)', aperture: 1, serie: 'antérieure',
+  { api: 'i', graphie: 'i', geste: 'La bouche presque fermée, les lèvres tirées.', type: 'voyelle', articulation: 'voyelle antérieure fermée (1er degré d\'aperture)', aperture: 1, serie: 'antérieure',
     exemples: [{ phonetique: '[ìncìnì]', sens: 'des mouches', source: 'AMB p. 12' }, { mot: 'kisini', sens: 'la cuisine', source: 'LEC-ÉCR' }] },
-  { api: 'e', graphie: 'é (e)', type: 'voyelle', articulation: 'voyelle antérieure mi-fermée (2e degré)', aperture: 2, serie: 'antérieure',
+  { api: 'e', graphie: 'e', geste: 'La bouche un peu ouverte, les lèvres tirées.', type: 'voyelle', articulation: 'voyelle antérieure mi-fermée (2e degré)', aperture: 2, serie: 'antérieure',
     distribution: 'Jamais muette.',
-    exemples: [{ mot: 'éréré', phonetique: '[èréré]', sens: 'un arbre', source: 'AMB p. 12 ; LEC-ÉCR' }] },
-  { api: 'ɛ', graphie: 'è', type: 'voyelle', articulation: 'voyelle antérieure mi-ouverte (3e degré)', aperture: 3, serie: 'antérieure',
+    exemples: [{ mot: 'erere', phonetique: '[èréré]', sens: 'un arbre', source: 'AMB p. 12 ; LEC-ÉCR' }] },
+  { api: 'ɛ', graphie: 'ê', geste: 'Le e avec un chapeau : la bouche plus ouverte que pour e.', type: 'voyelle', articulation: 'voyelle antérieure mi-ouverte (3e degré)', aperture: 3, serie: 'antérieure',
     distribution: 'N\'apparaît jamais en début de mot.',
-    exemples: [{ phonetique: '[òŋɥɛ́ŋgɛ́]', sens: 'un brochet', source: 'AMB p. 12' }, { mot: 'mbèrè', phonetique: '[m̀bɛ́rɛ́]', sens: 'une sardine', source: 'AMB p. 53 ; LEC-ÉCR' }] },
-  { api: 'a', graphie: 'a', type: 'voyelle', articulation: 'voyelle centrale ouverte (4e degré)', aperture: 4, serie: 'centrale',
+    exemples: [{ phonetique: '[òŋɥɛ́ŋgɛ́]', sens: 'un brochet', source: 'AMB p. 12' }, { mot: 'mbêrê', phonetique: '[m̀bɛ́rɛ́]', sens: 'une sardine', source: 'AMB p. 53 ; LEC-ÉCR' }] },
+  { api: 'a', graphie: 'a', geste: 'La bouche grande ouverte.', type: 'voyelle', articulation: 'voyelle centrale ouverte (4e degré)', aperture: 4, serie: 'centrale',
     exemples: [{ mot: 'awana', phonetique: '[àwáná]', sens: 'des enfants', source: 'AMB p. 12 ; LEC-ÉCR' }] },
-  { api: 'ɔ', graphie: 'ô', type: 'voyelle', articulation: 'voyelle postérieure mi-ouverte (3e degré), lèvres arrondies', aperture: 3, serie: 'postérieure',
+  { api: 'ɔ', graphie: 'ô', geste: 'Le o avec un chapeau : la bouche bien ouverte, les lèvres arrondies.', type: 'voyelle', articulation: 'voyelle postérieure mi-ouverte (3e degré), lèvres arrondies', aperture: 3, serie: 'postérieure',
     distribution: 'N\'apparaît jamais en début de mot.',
     exemples: [{ mot: 'akôndô', phonetique: '[àkɔ̀ndɔ̀]', sens: 'des bananes plantains', source: 'AMB p. 12 ; LEC-ÉCR' }] },
-  { api: 'o', graphie: 'o', type: 'voyelle', articulation: 'voyelle postérieure mi-fermée (2e degré), lèvres arrondies', aperture: 2, serie: 'postérieure',
-    exemples: [{ phonetique: '[òɣòló]', sens: 'un pied', source: 'AMB p. 12' }, { mot: 'épokolo', sens: 'le chapeau', source: 'LEC-ÉCR' }] },
-  { api: 'u', graphie: 'u', type: 'voyelle', articulation: 'voyelle postérieure fermée (1er degré), lèvres arrondies', aperture: 1, serie: 'postérieure',
+  { api: 'o', graphie: 'o', geste: 'Les lèvres arrondies, la bouche un peu ouverte.', type: 'voyelle', articulation: 'voyelle postérieure mi-fermée (2e degré), lèvres arrondies', aperture: 2, serie: 'postérieure',
+    exemples: [{ phonetique: '[òɣòló]', sens: 'un pied', source: 'AMB p. 12' }, { mot: 'epokolo', sens: 'le chapeau', source: 'LEC-ÉCR' }] },
+  { api: 'u', graphie: 'u', geste: 'Les lèvres très arrondies et en avant, la bouche presque fermée.', type: 'voyelle', articulation: 'voyelle postérieure fermée (1er degré), lèvres arrondies', aperture: 1, serie: 'postérieure',
     distribution: 'N\'apparaît jamais en début de mot. Devant /u/, p et t sont aspirés.',
-    exemples: [{ phonetique: '[ìncúnú]', sens: 'des fourmis', source: 'AMB p. 12' }, { mot: 'ékuru', sens: 'le hibou', source: 'LEC-ÉCR' }] },
+    exemples: [{ phonetique: '[ìncúnú]', sens: 'des fourmis', source: 'AMB p. 12' }, { mot: 'ekuru', sens: 'le hibou', source: 'LEC-ÉCR' }] },
 ];
 
 /** Consonnes et semi-consonnes de l'ôrungu (AMB p. 12-19), regroupées par particularité. */
 export const CONSONNES: Phoneme[] = [
-  { api: 'ɓ', graphie: 'b', type: 'consonne', articulation: 'occlusive bilabiale sonore implosive', lieu: 'lèvres', mode: 'occlusive implosive', air: 'implosif',
+  { api: 'ɓ', graphie: 'b', geste: 'Les lèvres fermées, puis l\'air entre dans la bouche.', type: 'consonne', articulation: 'occlusive bilabiale sonore implosive', lieu: 'lèvres', mode: 'occlusive implosive', air: 'implosif',
     distribution: 'Les occlusives sonores sont implosives partout, sauf après une nasale où elles sont explosives (mb).',
-    exemples: [{ mot: 'ébanda', phonetique: '[èɓándá]', sens: 'une peau', source: 'AMB p. 13 ; LEC-ÉCR' }] },
-  { api: 'ɗ', graphie: 'd', type: 'consonne', articulation: 'occlusive apico-alvéolaire sonore implosive', lieu: 'alvéoles', mode: 'occlusive implosive', air: 'implosif',
+    exemples: [{ mot: 'ebanda', phonetique: '[èɓándá]', sens: 'une peau', source: 'AMB p. 13 ; LEC-ÉCR' }] },
+  { api: 'ɗ', graphie: 'd', geste: 'La pointe de la langue derrière les dents du haut, puis l\'air entre dans la bouche.', type: 'consonne', articulation: 'occlusive apico-alvéolaire sonore implosive', lieu: 'alvéoles', mode: 'occlusive implosive', air: 'implosif',
     distribution: 'Implosive partout sauf après une nasale (nd).',
     exemples: [{ phonetique: '[ɗènà]', sens: 'pleurer', source: 'AMB p. 14' }] },
-  { api: 'pʰ', graphie: 'p', type: 'consonne', articulation: 'occlusive bilabiale sourde aspirée', lieu: 'lèvres', mode: 'occlusive aspirée', air: 'aspiré',
+  { api: 'pʰ', graphie: 'p', geste: 'Devant u, le p sort avec un petit souffle.', type: 'consonne', articulation: 'occlusive bilabiale sourde aspirée', lieu: 'lèvres', mode: 'occlusive aspirée', air: 'aspiré',
     distribution: 'Aspirée devant /u/, non aspirée ailleurs.',
     exemples: [{ phonetique: '[pʰúpʰú]', sens: 'blanc', source: 'AMB p. 13' }] },
-  { api: 'tʰ', graphie: 't', type: 'consonne', articulation: 'occlusive apico-alvéolaire sourde aspirée', lieu: 'alvéoles', mode: 'occlusive aspirée', air: 'aspiré',
+  { api: 'tʰ', graphie: 't', geste: 'Devant u, le t sort avec un petit souffle.', type: 'consonne', articulation: 'occlusive apico-alvéolaire sourde aspirée', lieu: 'alvéoles', mode: 'occlusive aspirée', air: 'aspiré',
     distribution: 'Aspirée devant /u/.',
     exemples: [{ phonetique: '[ìtʰútʰú]', sens: 'du vin de palme', source: 'AMB p. 14' }] },
-  { api: 'β', graphie: 'ṽ', type: 'consonne', articulation: 'fricative bilabiale sonore : les deux lèvres se rapprochent sans se fermer', lieu: 'lèvres', mode: 'fricative',
+  { api: 'β', graphie: 'v', geste: 'Un seul son, entre v et w.', type: 'consonne', articulation: 'fricative bilabiale sonore : les deux lèvres se rapprochent sans se fermer', lieu: 'lèvres', mode: 'fricative',
     distribution: 'Réalisée [v] par certains jeunes citadins ; la communauté admet [β].',
-    exemples: [{ mot: 'iṽaṽa', phonetique: '[ìβàβá]', sens: 'une aile', source: 'AMB p. 13 ; LEC-ÉCR (« ivava ») ; graphie RÈGLES § 2.2' }] },
-  { api: 'ɣ', graphie: 'g', type: 'consonne', articulation: 'fricative dorso-vélaire sonore ; réalisée occlusive [g] après une nasale', lieu: 'voile', mode: 'fricative',
+    exemples: [{ mot: 'ivava', phonetique: '[ìβàβá]', sens: 'une aile', source: 'AMB p. 13 ; LEC-ÉCR (« ivava ») ; graphie RÈGLES § 2.2' }] },
+  { api: 'ɣ', graphie: 'g', geste: 'Le g se dit doux entre deux voyelles, et dur après n.', type: 'consonne', articulation: 'fricative dorso-vélaire sonore ; réalisée occlusive [g] après une nasale', lieu: 'voile', mode: 'fricative',
     distribution: '[g] et [ɣ] sont deux réalisations du même phonème /g/ : [g] après une nasale, [ɣ] partout ailleurs.',
     exemples: [{ phonetique: '[òɣèɥé]', sens: 'un banquet', source: 'AMB p. 14' }, { mot: 'go', sens: 'là-bas', source: 'LEC-ÉCR' }] },
-  { api: 'ɾ', graphie: 'r', type: 'consonne', articulation: 'battue apico-alvéolaire : la pointe de la langue frappe une fois les alvéoles', lieu: 'alvéoles', mode: 'battue',
+  { api: 'ɾ', graphie: 'r', geste: 'La langue tape une seule fois derrière les dents du haut.', type: 'consonne', articulation: 'battue apico-alvéolaire : la pointe de la langue frappe une fois les alvéoles', lieu: 'alvéoles', mode: 'battue',
     exemples: [{ phonetique: '[ɾéré]', sens: 'des arbres', source: 'AMB p. 14' }] },
-  { api: 'ŋ', graphie: 'ñ', type: 'consonne', articulation: 'nasale dorso-vélaire', lieu: 'voile', mode: 'nasale',
+  { api: 'ŋ', graphie: 'ngh', geste: 'Le son se fait au fond de la bouche, l\'air passe par le nez.', type: 'consonne', articulation: 'nasale dorso-vélaire', lieu: 'voile', mode: 'nasale',
     distribution: 'Phonème à part entière : aussi à l\'initiale et devant voyelle.',
     exemples: [{ phonetique: '[ŋòmbá]', sens: 'un porc-épic', source: 'AMB p. 14' }] },
-  { api: 'ɲ', graphie: 'ny', type: 'consonne', articulation: 'nasale dorso-palatale, réalisation de la suite n + y', lieu: 'palais', mode: 'nasale',
+  { api: 'ɲ', graphie: 'ny', geste: 'Un seul son : la langue contre le haut de la bouche, l\'air passe par le nez.', type: 'consonne', articulation: 'nasale dorso-palatale, réalisation de la suite n + y', lieu: 'palais', mode: 'nasale',
     distribution: 'Graphie ny.',
-    exemples: [{ mot: 'nyama', phonetique: '[nyàmà]', sens: 'un animal', source: 'AMB p. 17' }, { mot: 'nyéza myè', sens: 'excuse-moi', source: 'LEC-ÉCR' }] },
-  { api: 'c', graphie: 'tch', type: 'consonne', articulation: 'affriquée dorso-palatale sourde', lieu: 'palais', mode: 'affriquée',
-    exemples: [{ phonetique: '[cwàná]', sens: 'une marmite', source: 'AMB p. 14' }, { mot: 'intchango', sens: 'les nouvelles', source: 'LEC-ÉCR' }] },
-  { api: 'ⁿc', graphie: 'ntch', type: 'consonne', articulation: 'affriquée dorso-palatale sourde mi-nasale', lieu: 'palais', mode: 'affriquée mi-nasale',
+    exemples: [{ mot: 'nyama', phonetique: '[nyàmà]', sens: 'un animal', source: 'AMB p. 17' }, { mot: 'nyeza myê', sens: 'excuse-moi', source: 'LEC-ÉCR' }] },
+  { api: 'c', graphie: 'c', geste: 'Le c se dit « tch » : la langue contre le haut de la bouche.', type: 'consonne', articulation: 'affriquée dorso-palatale sourde', lieu: 'palais', mode: 'affriquée',
+    exemples: [{ phonetique: '[cwàná]', sens: 'une marmite', source: 'AMB p. 14' }, { mot: 'incango', sens: 'les nouvelles', source: 'LEC-ÉCR' }] },
+  { api: 'ⁿc', graphie: 'nc', geste: 'n et c d\'un seul coup.', type: 'consonne', articulation: 'affriquée dorso-palatale sourde mi-nasale', lieu: 'palais', mode: 'affriquée mi-nasale',
     exemples: [{ phonetique: '[ìncózó]', sens: 'des chaussures', source: 'AMB p. 14' }] },
-  { api: 'ⁿɟ', graphie: 'ndj', type: 'consonne', articulation: 'affriquée dorso-palatale sonore mi-nasale', lieu: 'palais', mode: 'affriquée mi-nasale',
+  { api: 'ⁿɟ', graphie: 'nj', geste: 'n et j d\'un seul coup.', type: 'consonne', articulation: 'affriquée dorso-palatale sonore mi-nasale', lieu: 'palais', mode: 'affriquée mi-nasale',
     exemples: [{ phonetique: '[ìnjìnà]', sens: 'des gorilles', source: 'AMB p. 14' }] },
   // ---- inventaire complet d'Ambouroue (p. 12-14) : occlusives non implosives, nasales, fricatives, latérale, mi-nasales une à une
-  { api: 'p', graphie: 'p', type: 'consonne', articulation: 'occlusive bilabiale sourde, sans aspiration', lieu: 'lèvres', mode: 'occlusive',
+  { api: 'p', graphie: 'p', geste: 'Les lèvres fermées, puis elles s\'ouvrent.', type: 'consonne', articulation: 'occlusive bilabiale sourde, sans aspiration', lieu: 'lèvres', mode: 'occlusive',
     distribution: 'Non aspirée partout, sauf devant /u/ où elle devient [pʰ].',
-    exemples: [{ mot: 'épokolo', sens: 'le chapeau', source: 'LEC-ÉCR' }] },
-  { api: 't', graphie: 't', type: 'consonne', articulation: 'occlusive apico-alvéolaire sourde, sans aspiration', lieu: 'alvéoles', mode: 'occlusive',
+    exemples: [{ mot: 'epokolo', sens: 'le chapeau', source: 'LEC-ÉCR' }] },
+  { api: 't', graphie: 't', geste: 'La pointe de la langue derrière les dents du haut, puis elle se décolle.', type: 'consonne', articulation: 'occlusive apico-alvéolaire sourde, sans aspiration', lieu: 'alvéoles', mode: 'occlusive',
     distribution: 'Non aspirée partout, sauf devant /u/ où elle devient [tʰ]. Consonne forte : sa forme faible est r (tènda → e ga rènde).',
     exemples: [{ phonetique: '[ìtòtò]', sens: 'une banane douce', source: 'AMB p. 14' }] },
-  { api: 'k', graphie: 'k', type: 'consonne', articulation: 'occlusive dorso-vélaire sourde', lieu: 'voile', mode: 'occlusive',
+  { api: 'k', graphie: 'k', geste: 'Le fond de la langue contre le fond de la bouche.', type: 'consonne', articulation: 'occlusive dorso-vélaire sourde', lieu: 'voile', mode: 'occlusive',
     distribution: 'Il n\'existe pas d\'implosive dorso-vélaire. Consonne forte : sa forme faible est g (kènda → gènda !, ogèndo).',
-    exemples: [{ phonetique: '[kàŋgà]', sens: 'frire', source: 'AMB p. 14' }, { mot: 'go koula', sens: 'puiser', source: 'LEC-ÉCR' }] },
-  { api: 'm', graphie: 'm', type: 'consonne', articulation: 'nasale bilabiale : les lèvres fermées, l\'air passe par le nez', lieu: 'lèvres', mode: 'nasale',
+    exemples: [{ phonetique: '[kàŋgà]', sens: 'frire', source: 'AMB p. 14' }] },
+  { api: 'm', graphie: 'm', geste: 'Les lèvres fermées, l\'air passe par le nez.', type: 'consonne', articulation: 'nasale bilabiale : les lèvres fermées, l\'air passe par le nez', lieu: 'lèvres', mode: 'nasale',
     exemples: [{ phonetique: '[àmání]', sens: 'des mauvaises herbes', source: 'AMB p. 13' }, { mot: 'maniza !', sens: 'termine !', source: 'LEC-ÉCR' }] },
-  { api: 'n', graphie: 'n', type: 'consonne', articulation: 'nasale apico-alvéolaire : la pointe de la langue aux alvéoles, l\'air passe par le nez', lieu: 'alvéoles', mode: 'nasale',
+  { api: 'n', graphie: 'n', geste: 'La pointe de la langue derrière les dents du haut, l\'air passe par le nez.', type: 'consonne', articulation: 'nasale apico-alvéolaire : la pointe de la langue aux alvéoles, l\'air passe par le nez', lieu: 'alvéoles', mode: 'nasale',
     distribution: 'n + y se réalise [ɲ] (graphie ny).',
     exemples: [{ phonetique: '[ònɛ́mɛ́]', sens: 'une langue', source: 'AMB p. 14' }] },
-  { api: 'f', graphie: 'f', type: 'consonne', articulation: 'fricative labio-dentale sourde : la lèvre inférieure contre les dents du haut', lieu: 'lèvres-dents', mode: 'fricative',
+  { api: 'f', graphie: 'f', geste: 'La lèvre du bas contre les dents du haut, on souffle.', type: 'consonne', articulation: 'fricative labio-dentale sourde : la lèvre inférieure contre les dents du haut', lieu: 'lèvres-dents', mode: 'fricative',
     distribution: 'Consonne forte : à l\'impératif, au passé éloigné et au subjonctif, elle passe à w ou v (fanga « craindre » → wanga ! ou vanga ! « crains »).',
     exemples: [{ phonetique: '[èfú]', sens: 'une couverture', source: 'AMB p. 13 ; LEC-ÉCR (« éfu »)' }] },
-  { api: 'v', graphie: 'v', type: 'consonne', articulation: 'fricative labio-dentale sonore : la lèvre inférieure contre les dents du haut, avec la voix', lieu: 'lèvres-dents', mode: 'fricative',
+  { api: 'v', graphie: 'v', geste: 'Un seul son, entre v et w.', type: 'consonne', articulation: 'fricative labio-dentale sonore : la lèvre inférieure contre les dents du haut, avec la voix', lieu: 'lèvres-dents', mode: 'fricative',
     distribution: 'Phonème distinct de /β/ (ṽ) et de /w/ : il distingue l\'impératif des verbes en f de celui des verbes en ɓ : [vàlá] « laisse » (de [fàlà]) / [wàlá] « rends visite » (de [ɓàlà]). Prononcer [v] à la place de [β] (ìvúvà pour ìβúβà, « le genou ») est une variante de jeunes citadins que la communauté n\'admet pas.',
     exemples: [{ phonetique: '[vàlá]', sens: 'laisse', source: 'AMB p. 16' }, { phonetique: '[vèmá]', sens: 'trompe-toi', source: 'AMB p. 15' }] },
-  { api: 's', graphie: 's', type: 'consonne', articulation: 'fricative apico-alvéolaire sourde ; elle reste sourde entre deux voyelles', lieu: 'alvéoles', mode: 'fricative',
+  { api: 's', graphie: 's', geste: 'Le s reste dur, même entre deux voyelles.', type: 'consonne', articulation: 'fricative apico-alvéolaire sourde ; elle reste sourde entre deux voyelles', lieu: 'alvéoles', mode: 'fricative',
     distribution: 'Toujours sourde, même entre deux voyelles. Consonne forte : sa forme faible est z (sumina → a zumini).',
     exemples: [{ phonetique: '[èβèlèsè]', sens: 'un foulard', source: 'AMB p. 14' }, { mot: 'sônô', sens: 'la semaine', source: 'LEC-ÉCR' }] },
-  { api: 'z', graphie: 'z', type: 'consonne', articulation: 'fricative apico-alvéolaire sonore', lieu: 'alvéoles', mode: 'fricative',
+  { api: 'z', graphie: 'z', geste: 'Comme s, mais avec la voix.', type: 'consonne', articulation: 'fricative apico-alvéolaire sonore', lieu: 'alvéoles', mode: 'fricative',
     exemples: [{ phonetique: '[òzózí]', sens: 'un pilon', source: 'AMB p. 14' }] },
-  { api: 'l', graphie: 'l', type: 'consonne', articulation: 'latérale apico-alvéolaire : la pointe de la langue aux alvéoles, l\'air passe sur les côtés', lieu: 'alvéoles', mode: 'latérale',
+  { api: 'l', graphie: 'l', geste: 'La pointe de la langue derrière les dents du haut, l\'air passe sur les côtés.', type: 'consonne', articulation: 'latérale apico-alvéolaire : la pointe de la langue aux alvéoles, l\'air passe sur les côtés', lieu: 'alvéoles', mode: 'latérale',
     distribution: 'Forme faible de d (déna → za lénigi ; dimbina → limbine).',
     exemples: [{ phonetique: '[òlóló]', sens: 'une papaye', source: 'AMB p. 14' }] },
-  { api: 'ᵐp', graphie: 'mp', type: 'consonne', articulation: 'mi-nasale bilabiale sourde : m et p ne forment qu\'une consonne', lieu: 'lèvres', mode: 'mi-nasale',
+  { api: 'ᵐp', graphie: 'mp', geste: 'm et p d\'un seul coup.', type: 'consonne', articulation: 'mi-nasale bilabiale sourde : m et p ne forment qu\'une consonne', lieu: 'lèvres', mode: 'mi-nasale',
     distribution: 'On ne coupe jamais la syllabe entre la nasale et la consonne : mpè-mba.',
     exemples: [{ phonetique: '[àmpázá]', sens: 'des jumeaux', source: 'AMB p. 13' }, { mot: 'ompuna', sens: 'l\'odeur', source: 'LEC-ÉCR' }] },
-  { api: 'ᵐb', graphie: 'mb', type: 'consonne', articulation: 'mi-nasale bilabiale sonore : après la nasale, le b est explosif (non implosif)', lieu: 'lèvres', mode: 'mi-nasale',
+  { api: 'ᵐb', graphie: 'mb', geste: 'm et b d\'un seul coup : après m, le b sort de la bouche.', type: 'consonne', articulation: 'mi-nasale bilabiale sonore : après la nasale, le b est explosif (non implosif)', lieu: 'lèvres', mode: 'mi-nasale',
     distribution: 'Seule place où b n\'est pas implosif : après une nasale.',
     exemples: [{ phonetique: '[ìmbòmí]', sens: 'des calebasses', source: 'AMB p. 13' }, { mot: 'mbina', sens: 'le pou', source: 'LEC-ÉCR' }] },
-  { api: 'ᵐf', graphie: 'mf', type: 'consonne', articulation: 'mi-nasale labio-dentale sourde', lieu: 'lèvres-dents', mode: 'mi-nasale',
+  { api: 'ᵐf', graphie: 'mf', geste: 'm et f d\'un seul coup.', type: 'consonne', articulation: 'mi-nasale labio-dentale sourde', lieu: 'lèvres-dents', mode: 'mi-nasale',
     exemples: [{ phonetique: '[ìmfèlíní]', sens: 'des manières de mettre', source: 'AMB p. 13 ; LEC-ÉCR (« imfélini »)' }] },
-  { api: 'ⁿt', graphie: 'nt', type: 'consonne', articulation: 'mi-nasale apico-alvéolaire sourde', lieu: 'alvéoles', mode: 'mi-nasale',
+  { api: 'ⁿt', graphie: 'nt', geste: 'n et t d\'un seul coup.', type: 'consonne', articulation: 'mi-nasale apico-alvéolaire sourde', lieu: 'alvéoles', mode: 'mi-nasale',
     exemples: [{ phonetique: '[ìntímbé]', sens: 'des planches', source: 'AMB p. 14' }] },
-  { api: 'ⁿd', graphie: 'nd', type: 'consonne', articulation: 'mi-nasale apico-alvéolaire sonore : après la nasale, le d est explosif (non implosif)', lieu: 'alvéoles', mode: 'mi-nasale',
+  { api: 'ⁿd', graphie: 'nd', geste: 'n et d d\'un seul coup : après n, le d sort de la bouche.', type: 'consonne', articulation: 'mi-nasale apico-alvéolaire sonore : après la nasale, le d est explosif (non implosif)', lieu: 'alvéoles', mode: 'mi-nasale',
     exemples: [{ phonetique: '[ìndèndéndè]', sens: 'des libellules', source: 'AMB p. 14' }] },
-  { api: 'ᵑk', graphie: 'nk', type: 'consonne', articulation: 'mi-nasale dorso-vélaire sourde', lieu: 'voile', mode: 'mi-nasale',
+  { api: 'ᵑk', graphie: 'nk', geste: 'n et k d\'un seul coup.', type: 'consonne', articulation: 'mi-nasale dorso-vélaire sourde', lieu: 'voile', mode: 'mi-nasale',
     exemples: [{ phonetique: '[ìŋkàmbí]', sens: 'des antilopes', source: 'AMB p. 14' }, { mot: 'nkôla', sens: 'la montre ; la coquille', source: 'LEC-ÉCR' }] },
-  { api: 'ᵑg', graphie: 'ng', type: 'consonne', articulation: 'mi-nasale dorso-vélaire sonore : seule place où g est occlusif', lieu: 'voile', mode: 'mi-nasale',
+  { api: 'ᵑg', graphie: 'ng', geste: 'n et g d\'un seul coup : après n, le g est dur.', type: 'consonne', articulation: 'mi-nasale dorso-vélaire sonore : seule place où g est occlusif', lieu: 'voile', mode: 'mi-nasale',
     distribution: '[g] n\'apparaît qu\'après une nasale ; partout ailleurs, /g/ se réalise [ɣ].',
     exemples: [{ phonetique: '[ìŋgóŋgó]', sens: 'une boîte', source: 'AMB p. 14' }, { mot: 'ngôma', sens: 'le tam-tam', source: 'LEC-ÉCR' }] },
-  { api: 'dʒ', graphie: 'dj', type: 'consonne', articulation: 'affriquée palatale sonore', lieu: 'palais', mode: 'affriquée',
+  { api: 'dʒ', graphie: 'j', geste: 'Le j se dit « dy » ou « dj », d\'un seul coup.', type: 'consonne', articulation: 'affriquée palatale sonore', lieu: 'palais', mode: 'affriquée',
     distribution: 'Graphie dj.',
-    exemples: [{ mot: 'djôgôni', sens: 'la poule', source: 'LEC-ÉCR' }] },
-  { api: 'dʲ', graphie: 'dy', type: 'consonne', articulation: 'occlusive sonore palatalisée : d et y en un seul son', lieu: 'palais', mode: 'occlusive palatalisée',
+    exemples: [{ mot: 'njôgôni', sens: 'la poule', source: 'LEC-ÉCR' }] },
+  { api: 'dʲ', graphie: 'j', geste: 'Le j se dit « dy » ou « dj », d\'un seul coup.', type: 'consonne', articulation: 'occlusive sonore palatalisée : d et y en un seul son', lieu: 'palais', mode: 'occlusive palatalisée',
     distribution: 'Graphie dy. Consonne forte : sa forme faible est y (jola → yola !).',
-    exemples: [{ mot: 'go dyèna', sens: 'voir', source: 'LEC-ÉCR' }] },
-  { api: 'ᵐp · ᵐb · ᵐf · ⁿt · ⁿd · ᵑk · ᵑg', graphie: 'mp · mb · mf · nt · nd · nk · ng', type: 'consonne', articulation: 'famille des mi-nasales : nasale et occlusive forment une seule consonne, au même lieu d\'articulation', mode: 'mi-nasale',
+    exemples: [{ mot: 'gojêna', sens: 'voir', source: 'LEC-ÉCR' }] },
+  { api: 'ᵐp · ᵐb · ᵐf · ⁿt · ⁿd · ᵑk · ᵑg', graphie: 'mp · mb · mf · nt · nd · nk · ng', geste: 'm ou n et la lettre qui suit se disent d\'un seul coup : on ne les sépare jamais.', type: 'consonne', articulation: 'famille des mi-nasales : nasale et occlusive forment une seule consonne, au même lieu d\'articulation', mode: 'mi-nasale',
     distribution: 'On ne coupe jamais une syllabe entre la nasale et la consonne : mpè-mba, ô-nwa-ntô.',
     exemples: [{ phonetique: '[àmpázá]', sens: 'des jumeaux', source: 'AMB p. 13' }, { phonetique: '[ìmbòmí]', sens: 'des calebasses', source: 'AMB p. 13' }, { phonetique: '[ìŋkàmbí]', sens: 'des antilopes', source: 'AMB p. 14' }, { mot: 'ngôma', sens: 'le tam-tam', source: 'LEC-ÉCR' }] },
-  { api: 'ɥ', graphie: 'w (devant i, e, ɛ, y)', type: 'semi-consonne', articulation: 'semi-consonne labio-palatale : réalisation de /w/ devant une voyelle antérieure ou /y/', lieu: 'lèvres-palais', mode: 'continue',
+  { api: 'ɥ', graphie: 'w', geste: 'Devant i, e, ê ou y, le w se dit la langue en avant.', type: 'semi-consonne', articulation: 'semi-consonne labio-palatale : réalisation de /w/ devant une voyelle antérieure ou /y/', lieu: 'lèvres-palais', mode: 'continue',
     exemples: [{ phonetique: '[òyɥé]', sens: 'un cheveu blanc', source: 'AMB p. 14' }, { phonetique: '[òrɥé]', sens: 'un cheveu', source: 'AMB p. 18' }] },
-  { api: 'w', graphie: 'w', type: 'semi-consonne', articulation: 'semi-consonne labio-vélaire ; aussi réalisation de /u/, /o/, /ɔ/ devant une voyelle', lieu: 'lèvres-voile', mode: 'continue',
+  { api: 'w', graphie: 'w', geste: 'Les lèvres arrondies, puis la voyelle.', type: 'semi-consonne', articulation: 'semi-consonne labio-vélaire ; aussi réalisation de /u/, /o/, /ɔ/ devant une voyelle', lieu: 'lèvres-voile', mode: 'continue',
     exemples: [{ phonetique: '[wáwó]', sens: 'eux', source: 'AMB p. 14' }] },
-  { api: 'y', graphie: 'y', type: 'semi-consonne', articulation: 'semi-consonne dorso-palatale ; aussi réalisation de /i/ devant une voyelle', lieu: 'palais', mode: 'continue',
+  { api: 'y', graphie: 'y', geste: 'La langue contre le haut de la bouche, puis la voyelle.', type: 'semi-consonne', articulation: 'semi-consonne dorso-palatale ; aussi réalisation de /i/ devant une voyelle', lieu: 'palais', mode: 'continue',
     exemples: [{ phonetique: '[òyàβí]', sens: 'une feuille', source: 'AMB p. 14' }] },
-  { api: 'h', graphie: 'h', type: 'consonne', articulation: 'souffle, la langue collée au palais', lieu: 'palais', mode: 'fricative',
-    exemples: [{ mot: 'handi', sens: 'la jalousie', source: 'LEC-ÉCR' }] },
+  { api: 'h', graphie: 'ngh', geste: 'Le son se fait au fond de la bouche, l\'air passe par le nez.', type: 'consonne', articulation: 'souffle, la langue collée au palais', lieu: 'palais', mode: 'fricative',
+    exemples: [{ mot: 'nghandi', sens: 'la jalousie', source: 'LEC-ÉCR' }] },
 ];
 
 export interface Ton { nom: string; notation: string; marque: string; type: 'ponctuel' | 'modulé'; description: string; exemples: ExempleSon[] }
@@ -256,45 +260,51 @@ export function melodie(transcription: string): { syllabe: string; ton: Hauteur 
 export function exemplesSon(options?: string[] | null): { mot: string; sens: string; phonetique: string | null; illustration: string | null }[] {
   return (options ?? []).map(o => o.split('=').map(x => x.trim())).filter(p => p[0]).map(([mot, sens, ph, ill]) => ({ mot, sens: sens ?? '', phonetique: ph || null, illustration: ill || null }));
 }
-// ------------------------------------------------------------------ graphie DONDO tirée d'une transcription
+// ------------------------------------------------------------------ graphie v3 tirée d'une transcription
 /**
- * Graphie DONDO normalisée d'un mot dont le corpus ne donne que la transcription d'Ambouroue (RÈGLES § 2.1-2.2) :
- * les tons ne s'écrivent pas ; ɛ → è, ɔ → ô, e → é ; ɓ → b, ɗ → d, pʰ → p, tʰ → t, β → ṽ, ɣ → g, ɾ → r, ŋg → ng,
- * ŋk → nk, ŋw → nw (ô-nwa-ntô, RÈGLES § 2.2), ŋ → ñ, ɲ → ny, c → tch (n + c → ntch), j → dj (n + j → ndj), ɥ → w. Ce n'est pas un mot inventé :
- * c'est le même mot, écrit avec l'alphabet de tous les jours. Exemples : [àkɔ̀ndɔ̀] → akôndô, [ìβàβá] → iṽaṽa.
+ * Écriture en graphie v3 (alphabet de Rékanga, règles de référence v3.3 § 2) d'un mot dont le corpus ne donne que la transcription :
+ * les tons ne s'écrivent pas ; ɛ → ê, ɔ → ô, e → e ; ɓ → b, ɗ → d, pʰ → p, tʰ → t, β → v, ɣ → g, ɾ → r, ɥ → w, ɟ → j ;
+ * ŋg → ng, ŋk → nk, ŋw → nghw (onghwana), ŋ seul → ngh, ɲ → ny ; c et j restent c et j (n + c → nc, n + j → nj).
+ * Ce n'est pas un mot inventé : c'est le même mot, écrit avec l'alphabet de tous les jours. Ex. [àkɔ̀ndɔ̀] → akôndô, [ìβàβá] → ivava.
  */
 const TONS_DIACRITIQUES = /[̀́̂̌̍̄]/g;
 export function graphieDondo(transcription?: string | null): string {
   let t = (transcription ?? '').replace(/^\s*\[|\]\s*$/g, '').normalize('NFD').replace(TONS_DIACRITIQUES, '');
   t = t.replace(/pʰ/g, 'p').replace(/tʰ/g, 't').replace(/ʰ/g, '')
-    .replace(/ŋg/g, 'ng').replace(/ŋk/g, 'nk').replace(/ŋw/g, 'nw').replace(/ŋ/g, 'ñ').replace(/ɲ/g, 'ny')
-    .replace(/ɓ/g, 'b').replace(/ɗ/g, 'd').replace(/β/g, 'ṽ').replace(/ɣ/g, 'g').replace(/ɾ/g, 'r').replace(/ɥ/g, 'w')
-    .replace(/c/g, 'tch').replace(/j/g, 'dj')
-    .replace(/ɛ/g, 'è').replace(/ɔ/g, 'ô').replace(/e(?!̀)/g, 'é');
+    .replace(/ŋg/g, 'ng').replace(/ŋk/g, 'nk').replace(/ŋw/g, 'nghw').replace(/ŋ/g, 'ngh').replace(/ɲ/g, 'ny')
+    .replace(/ɓ/g, 'b').replace(/ɗ/g, 'd').replace(/β/g, 'v').replace(/ɣ/g, 'g').replace(/ɾ/g, 'r').replace(/ɥ/g, 'w').replace(/ɟ/g, 'j')
+    .replace(/ɛ/g, 'ê').replace(/ɔ/g, 'ô');
   return t.normalize('NFC');
 }
+/** Graphie v3 : nom actuel de la fonction (graphieDondo reste pour les appels existants). */
+export const graphieV3DepuisTranscription = graphieDondo;
 /**
- * Sens inverse : transcription phonétique (API) d'un texte écrit en graphie DONDO, SANS les tons (la graphie ne les note pas).
- * Sert à la synthèse vocale quand le corpus ne donne pas la transcription tonale d'un mot ou d'une phrase.
- * Réalisations décrites plus haut : b, d implosives sauf après une nasale ; p, t aspirées devant u ; g → ɣ sauf après une nasale ;
- * tch → tʃ ; dj → dʒ ; dy → dʲ ; ny → ɲ ; ñ → ŋ ; ṽ → β ; r → ɾ ; y → j ; é/e → e ; è → ɛ ; ô → ɔ ; l'apostrophe d'élision lie les mots.
- * Ex. « Mbolo » → [mbolo] ; « Nyéza myè » → [ɲeza mjɛ] ; « owana w'inkala » → [owana winkala].
+ * Sens inverse : transcription phonétique (API) d'un texte écrit en graphie v3, pour la synthèse vocale (règles v3.3 ; plan du 22 nov. :
+ * la fonction qui prépare la prononciation passe en v3). Les tons ne s'écrivent pas, sauf l'accent grave de l'impératif, rendu
+ * comme ton bas. Lettres : c → tʃ, nc → ntʃ, j → dʒ, nj → ndʒ, ngh → ŋ, ny → ɲ, sh → ʃ, jh → ʒ, ê → ɛ, ô → ɔ, v → β (un seul son),
+ * r → ɾ, y → j ; b, d implosives sauf après une nasale ; g → ɣ sauf après une nasale ; p, t avec un souffle devant u.
+ * Signes : ‘ (indéfini) et tréma ignorés ; â des termes de parenté → a ; l'apostrophe d'élision lie les mots.
+ * Ex. « Mbolo » → [mbolo] ; « Nyeza myê » → [ɲeza mjɛ] ; « onghwana w'inkala » → [oŋwana wiŋkala] ; « Gềnda ! » → [ɣɛ̀nda].
  */
 export function apiDepuisGraphie(texte?: string | null): string {
-  let t = ` ${(texte ?? '').normalize('NFC').toLocaleLowerCase('fr')} `.replace(/[’']/g, '').replace(/[«»"“”()]/g, ' ');
-  t = t.replace(/ntch/g, 'ntʃ').replace(/tch/g, 'tʃ').replace(/ndj/g, 'ndʒ').replace(/dj/g, 'dʒ').replace(/dy/g, 'dʲ').replace(/ny/g, 'ɲ')
-    .replace(/ñ/g, 'ŋ').replace(/ṉ/g, 'ɲ').replace(/ṽ/g, 'β').replace(/n(?=[gk])/g, 'ŋ')
-    .replace(/(?<![mŋn])b/g, 'ɓ').replace(/(?<![mŋn])d(?![ʒʲ])/g, 'ɗ').replace(/(?<![ŋ])g/g, 'ɣ').replace(/g/g, 'ɡ')
+  let t = ` ${(texte ?? '').normalize('NFC').toLocaleLowerCase('fr')} `.replace(/[‘’']/g, '').replace(/[«»"“”()!?.,;:]/g, ' ');
+  // accent grave (ton bas de l'impératif) mis à part, puis lettres
+  t = t.normalize('NFD').replace(/[\u0308]/g, '').replace(/\u0300/g, '\uE000').normalize('NFC');
+  t = t.replace(/ngh/g, 'ŋ').replace(/nc/g, 'ntʃ').replace(/c/g, 'tʃ').replace(/jh/g, 'ʒ').replace(/sh/g, 'ʃ').replace(/nj/g, 'ndʒ').replace(/j/g, 'dʒ')
+    .replace(/ny/g, 'ɲ').replace(/n(?=[gk])/g, 'ŋ').replace(/v/g, 'β')
+    .replace(/(?<![mŋn])b/g, 'ɓ').replace(/(?<![mŋn])d(?!ʒ)/g, 'ɗ').replace(/(?<![ŋ])g/g, 'ɣ').replace(/g/g, 'ɡ')
     .replace(/p(?=u)/g, 'pʰ').replace(/t(?=u)/g, 'tʰ')
-    .replace(/r/g, 'ɾ').replace(/y/g, 'j').replace(/[éeêë]/g, 'e').replace(/è/g, 'ɛ').replace(/ô/g, 'ɔ').replace(/[óò]/g, 'o')
-    .replace(/[àâá]/g, 'a').replace(/[ìíî]/g, 'i').replace(/[ùúû]/g, 'u');
+    .replace(/r/g, 'ɾ').replace(/y/g, 'j').replace(/ê/g, 'ɛ').replace(/ô/g, 'ɔ').replace(/â/g, 'a');
+  t = t.replace(/\uE000/g, '\u0300').normalize('NFC');
   return `[${t.replace(/\s+/g, ' ').trim()}]`;
 }
 /** Exemple complet pour l'apprenant : écriture, transcription (tons) et sens ; l'écriture vient de la transcription quand le corpus ne la donne pas. */
 export function exempleComplet(e: { mot?: string | null; phonetique?: string | null; sens: string }): { mot: string; phonetique: string | null; sens: string; ecritureDeduite: boolean } {
-  const mot = (e.mot ?? '').trim();
-  if (mot || !e.phonetique) return { mot, phonetique: e.phonetique ?? null, sens: e.sens, ecritureDeduite: false };
-  return { mot: graphieDondo(e.phonetique), phonetique: e.phonetique, sens: e.sens, ecritureDeduite: true };
+  // Impératif cité seul : accent grave sur la première voyelle, comme dans les cours (règles v3.3 § 3, § 6.5).
+  const imp = (m: string) => sensImperatif(e.sens) ? accentImperatif(m) : m;
+  const mot = (e.mot ?? '').trim().replace(/\s*!$/, '');
+  if (mot || !e.phonetique) return { mot: imp(mot), phonetique: e.phonetique ?? null, sens: e.sens, ecritureDeduite: false };
+  return { mot: imp(graphieDondo(e.phonetique)), phonetique: e.phonetique, sens: e.sens, ecritureDeduite: true };
 }
 
 /** Position de la première occurrence d'une graphie dans un mot (sans tenir compte des majuscules) ; -1 si absente. */

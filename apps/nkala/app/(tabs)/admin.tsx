@@ -31,7 +31,7 @@ export default function Administration() {
       { id: 'cours', label: 'Cours à distance', contenu: <CoursDistanceAdmin /> },
       { id: 'formules', label: 'Formules', contenu: <FormulesAdmin /> },
       { id: 'reversements', label: 'Reversements', contenu: <ReversementsAdmin /> },
-      { id: 'nkorouna', label: 'Nkorouna', contenu: <NkorounaAdmin /> },
+      { id: 'nkorouna', label: 'Nkoruna', contenu: <NkorounaAdmin /> },
       { id: 'droits', label: 'Abonnements', contenu: <DroitsAdmin /> },
       { id: 'pilotage', label: 'Pilotage', contenu: <GroupePilotage /> },
       { id: 'moderation', label: 'Modération', contenu: <GroupeModeration /> },

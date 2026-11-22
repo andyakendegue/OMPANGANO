@@ -1,5 +1,5 @@
 /**
- * Kak'Igonjo pendant un cours d'Onenji : il explique une erreur, répond aux questions sur l'exercice en cours,
+ * Kak'Igonjo pendant un cours d'Onênji : il explique une erreur, répond aux questions sur l'exercice en cours,
  * et fait pratiquer les mots de la leçon dans une petite conversation à la fin. Même passerelle et mêmes quotas que le chat.
  * Pas d'IA en mode enfant (limites à fixer, NKALA_AUDIT_COMPLET.md §3.4).
  */
@@ -88,11 +88,11 @@ export function KakIgonjoFeuille({ visible, onClose, titre, consigne, affiche }:
 /** Consignes envoyées au modèle (le serveur ajoute la personnalité de Kak'Igonjo et le corpus). */
 export const consignes = {
   expliquer: (lecon: string, ex: Exercice, donnee?: string | null) =>
-    `Je suis dans la leçon « ${lecon} » d'Onenji et je me suis trompé. Explique-moi simplement pourquoi, en deux ou trois phrases, puis donne-moi un moyen de m'en souvenir. N'utilise que les mots ci-dessous et dis d'où ils viennent.\n${decrireExercice(ex, donnee)}`,
+    `Je suis dans la leçon « ${lecon} » d'Onênji et je me suis trompé. Explique-moi simplement pourquoi, en deux ou trois phrases, puis donne-moi un moyen de m'en souvenir. N'utilise que les mots ci-dessous et dis d'où ils viennent.\n${decrireExercice(ex, donnee)}`,
   question: (lecon: string, ex: Exercice) =>
-    `Je suis dans la leçon « ${lecon} » d'Onenji, sur cet exercice. Aide-moi à le comprendre sans me donner la réponse tout de suite : pose-moi une question pour me mettre sur la voie. Ne cite ni auteur, ni ouvrage, ni page.\n${decrireExercice(ex)}`,
+    `Je suis dans la leçon « ${lecon} » d'Onênji, sur cet exercice. Aide-moi à le comprendre sans me donner la réponse tout de suite : pose-moi une question pour me mettre sur la voie. Ne cite ni auteur, ni ouvrage, ni page.\n${decrireExercice(ex)}`,
   pratiquer: (lecon: string, exercices: Exercice[]) => {
     const mots = exercices.filter(e => e.mot_myene).slice(0, 12).map(e => `- ${e.mot_myene}${e.mot_francais ? ` = ${e.mot_francais}` : ''}`).join('\n');
-    return `Je viens de terminer la leçon « ${lecon} » d'Onenji. Fais-moi pratiquer ces mots dans une petite scène de la vie au village : pose une seule question à la fois, attends ma réponse, corrige-moi avec bienveillance, trois échanges au plus, puis dis-moi ce que je dois retenir. Ne cite ni auteur, ni ouvrage, ni page. N'utilise que ces mots myènè :\n${mots}`;
+    return `Je viens de terminer la leçon « ${lecon} » d'Onênji. Fais-moi pratiquer ces mots dans une petite scène de la vie au village : pose une seule question à la fois, attends ma réponse, corrige-moi avec bienveillance, trois échanges au plus, puis dis-moi ce que je dois retenir. Ne cite ni auteur, ni ouvrage, ni page. N'utilise que ces mots myènè :\n${mots}`;
   },
 };

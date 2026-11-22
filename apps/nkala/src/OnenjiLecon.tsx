@@ -1,5 +1,5 @@
 /**
- * Onenji : leçon interactive en 9 étapes (écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier), fin de leçon,
+ * Onênji : leçon interactive en 9 étapes (écouter, voir, dire, écrire, comprendre, proverbe, culture, jouer, vérifier), fin de leçon,
  * contrôle d'unité (4 sur 5), certificat numéroté. Dialecte affiché sous l'exercice (jamais la source : décision de Capp, 15 nov. 2026), écoute lente à 0,7×.
  */
 import { useEffect, useMemo, useState } from 'react';
@@ -79,7 +79,7 @@ function CarteLecture({ ex, enfant, libelle, onSuite, bouton = 'Continuer' }: { 
       <T v="libelle" couleur={c.accent}>{libelle}</T>
       {(!!ex.image || !!ex.illustration) && <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={enfant ? 220 : 170} />}
       {!!ex.mot_myene && <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>}
-      {!!ex.phonetique && <T v="sousTitre" couleur={c.accent} style={{ textAlign: 'center' }}>{ex.phonetique}</T>}
+      {/* Transcription jamais affichée (complément du 22 nov. 2026, § 6) : elle sert à la voix et à la mélodie. */}
       {!!ex.mot_francais && <T v="corps" style={{ textAlign: 'center' }}>{ex.mot_francais}</T>}
       {!!ex.audio && <Son audio={ex.audio} auto lent grand={ex.type === 'cours'} />}
       {!!ex.texte && <Carte plat style={{ alignSelf: 'stretch' }}><View style={{ padding: 14, gap: 8 }}>{ex.texte.split(/\n{2,}/).map((p, i) => <T key={i} v="corps">{p}</T>)}</View></Carte>}
@@ -135,8 +135,8 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
       {/* Sans image : la mélodie des tons du mot plutôt qu'une case vide. */}
       {ex.image || ex.illustration ? <Illustration image={ex.image} illustration={ex.illustration} credit={ex.credit_image} taille={enfant ? 220 : 180} /> : ex.phonetique ? <MelodieTonale transcription={ex.phonetique} largeur={280} /> : <Image2 src={ex.image} taille={enfant ? 220 : 180} rayon={28} />}
       <T v="titre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>
-      {!!ex.phonetique && <T v="sousTitre" couleur={c.accent}>{ex.phonetique}</T>}
-      {/* Écriture, transcription et sens toujours ensemble : c'est ainsi qu'on mémorise le mot (demande de Capp, 15 nov. 2026). */}
+      {/* Transcription jamais affichée (complément du 22 nov. 2026, § 6) : elle sert à la voix et à la mélodie. */}
+      {/* Écriture et sens toujours ensemble : c'est ainsi qu'on mémorise le mot (demande de Capp, 15 nov. 2026). */}
       {!!ex.mot_francais && <T v="corps">« {ex.mot_francais} »</T>}
       <Son audio={ex.audio} auto grand lent={!enfant} />
       <Bouton label={enfant ? 'Suivant' : 'J\'ai répété'} onPress={() => onRepondre(true)} />

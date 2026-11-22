@@ -1,6 +1,6 @@
 /**
  * Console : formules d'abonnement (décision de Capp du 15 nov. 2026 : Oma, Inina, Anyambiè). Chaque option se règle ici :
- * accès à l'IA (aucune, limitée avec N questions par semaine, complète), vidéos d'Igolani, parties sans publicité, avantages
+ * accès à l'IA (aucune, limitée avec N questions par semaine, complète), vidéos d'Igôlani, parties sans publicité, avantages
  * (traducteur, synthèse audio, musique hors ligne, replay, photos 360°), « tout » (Premium), prix mensuel, ordre, publication.
  * La description de la boutique se déduit de ces réglages.
  */
@@ -70,7 +70,7 @@ function CarteFormule({ plan, produit, onEnregistre }: { plan: Formule; produit:
         {(['aucune', 'limitee', 'complete'] as ModeIa[]).map(m => <Puce key={m} label={m === 'aucune' ? 'Aucune' : m === 'limitee' ? 'Limitée' : 'Complète'} actif={(f.ia ?? 'aucune') === m} onPress={() => setF({ ...f, ia: m })} />)}
       </View>
       {f.ia === 'limitee' && <Champ valeur={String(f.ia_questions_semaine ?? '')} onChange={t => setF({ ...f, ia_questions_semaine: Number(t.replace(/\D/g, '')) || 0 })} clavier="number-pad" label="Questions par semaine" />}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Switch value={!!f.igolani} onValueChange={v => setF({ ...f, igolani: v })} /><T v="corps">Cours vidéo d'Igolani (streaming)</T></View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Switch value={!!f.igolani} onValueChange={v => setF({ ...f, igolani: v })} /><T v="corps">Cours vidéo d'Igôlani (streaming)</T></View>
       <T v="petit" fort>Sans publicité</T>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{MODULES_PUB.map(m => <Puce key={m} label={m === 'tout' ? 'Partout' : m} actif={sansPub.includes(m)} onPress={() => basculePub(m)} />)}</View>
       <T v="petit" fort>Avantages</T>

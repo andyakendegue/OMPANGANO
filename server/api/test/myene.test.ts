@@ -50,13 +50,17 @@ before(async () => {
 });
 after(async () => { await app?.close(); tts?.close(); delete process.env.TTS_URL; delete process.env.LEXIQUE_MYENE_FICHIER; });
 
-test('graphie DONDO → API sans tons : réalisations propres au myènè', () => {
-  assert.equal(apiDepuisGraphie('Nyéza myè'), '[ɲeza mjɛ]');
-  assert.equal(apiDepuisGraphie("owana w'inkala"), '[owana wiŋkala]');
+test('graphie v3 → API sans tons : réalisations propres au myènè, accent grave = ton bas', () => {
+  assert.equal(apiDepuisGraphie('Nyeza myê'), '[ɲeza mjɛ]');
+  assert.equal(apiDepuisGraphie("onghwana w'inkala"), '[oŋwana wiŋkala]', 'ngh = ŋ');
   assert.equal(apiDepuisGraphie('Anaga wi kamba'), '[anaɣa wi kamba]', 'g entre voyelles = ɣ ; mb explosive');
-  assert.equal(apiDepuisGraphie('ébanda'), '[eɓanda]', 'b implosive hors nasale');
-  assert.equal(apiDepuisGraphie('itutu'), '[itʰutʰu]', 't aspirée devant u');
-  assert.equal(apiDepuisGraphie('Intchango ṽa ngwè'), '[intʃaŋɡo βa ŋɡwɛ]');
+  assert.equal(apiDepuisGraphie('ebanda'), '[eɓanda]', 'b implosive hors nasale');
+  assert.equal(apiDepuisGraphie('itutu'), '[itʰutʰu]', 't avec un souffle devant u');
+  assert.equal(apiDepuisGraphie('Incango sê ?'), '[intʃaŋɡo sɛ]', 'c = tʃ ; nc ; ê = ɛ');
+  assert.equal(apiDepuisGraphie('Njôgu jêna'), '[ndʒɔɣu dʒɛna]', 'j et nj');
+  assert.equal(apiDepuisGraphie('ivava'), '[iβaβa]', 'v : un seul son');
+  assert.equal(apiDepuisGraphie('‘oma yïtôndo mâma'), '[oma jitɔndo mama]', '‘, tréma et â ignorés');
+  assert.equal(apiDepuisGraphie('Gềnda !'), '[ɣɛ̀nda]', 'accent grave de l\'impératif = ton bas');
 });
 
 test('prompt : grammaire myènè, lexique trouvé, formes refusées, aucune référence aux sources', async () => {
@@ -159,10 +163,10 @@ test('synthèse audio : réservée à l\'avantage synthese_audio, API prioritair
   const r = await call('POST', '/v1/audio/synthese', ADMIN, { api: '[m̩bólò]' });
   assert.equal(r.status, 200); assert.equal(r.headers['content-type'], 'audio/wav'); assert.equal(r.raw.toString(), 'RIFF....WAVE');
   assert.equal(recus.at(-1).corps.api, '[m̩bólò]');
-  await call('POST', '/v1/audio/synthese', ADMIN, { texte: 'Nyéza myè' });
+  await call('POST', '/v1/audio/synthese', ADMIN, { texte: 'Nyeza myê' });
   assert.equal(recus.at(-1).corps.api, '[ɲeza mjɛ]');
   const n = recus.length;
-  await call('POST', '/v1/audio/synthese', ADMIN, { texte: 'Nyéza myè' });
+  await call('POST', '/v1/audio/synthese', ADMIN, { texte: 'Nyeza myê' });
   assert.equal(recus.length, n, 'deuxième demande servie par le cache');
   assert.equal((await call('POST', '/v1/audio/synthese', ADMIN, {})).status, 400);
   assert.equal((await call('POST', '/v1/audio/synthese', ADMIN, { api: 'a'.repeat(700) })).status, 400);

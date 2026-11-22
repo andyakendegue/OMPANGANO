@@ -34,14 +34,14 @@ test('chaque unité publiée a au moins cinq questions de contrôle (4 sur 5)', 
   for (const u of U) { const n = exDe(u.id).filter(e => (TYPES_NOTES as readonly string[]).includes(e.type)).length; assert.ok(n >= 5, `${u.id} : ${n}`); }
 });
 
-test('la phonétique passe dans Ogèndo, sans perte ; la colonne grammaticale suit', () => {
+test('la phonétique passe dans Ogêndo, sans perte ; la colonne grammaticale suit', () => {
   const og = ord(U.filter(u => u.parcours_id === 'ogendo')).map(u => u.id);
   assert.deepEqual(og.slice(0, 3), ['ntina-u3', 'ntina-u4', 'ogendo-u6']);
   for (const l of ['ntina-l4', 'ntina-l6', 'ntina-l7', 'ntina-l8', 'ogendo-l1', 'ogendo-l2']) assert.equal(L.find(x => x.id === l)?.unite_id, 'ntina-u3', l);
   assert.ok(E.filter(e => /^ntina-l(9|1[0-4])$/.test(e.lecon_id)).length >= 250, '« Dire juste » garde ses exercices');
   const gram = exDe('ogendo-u6');
-  for (const forme of ['Mi nya', 'Ma nyéni', 'Mi bé nya', "Wé bel'intchango ndé ?"]) assert.ok(gram.some(e => e.mot_myene === forme || e.reponse === forme), forme);
-  assert.ok(!gram.some(e => e.reponse === 'a dyani' || e.mot_myene === 'a dyani'), 'forme rejetée par Capp : seulement comme mauvaise réponse');
+  for (const forme of ['Myê nya', 'Ma nyeni', 'Myê be nya', "Wê bel'incango nde ?"]) // graphie v3 (22 nov. 2026) assert.ok(gram.some(e => e.mot_myene === forme || e.reponse === forme), forme);
+  assert.ok(!gram.some(e => e.reponse === 'a jani' || e.mot_myene === 'a jani'), 'forme rejetée par Capp : seulement comme mauvaise réponse');
 });
 
 test('l\'adulte qui débute commence à Ikôkô puis rejoint Ogèndo, sans repasser par Ntina', () => {

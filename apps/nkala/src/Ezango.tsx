@@ -22,7 +22,7 @@ const LEGACY: Record<string, string> = {
 };
 
 /** « Mémoire & Vocabulaire Myènè » : mêmes filtres (tribu, thème, favoris), mêmes textes et même pagination que le site web. */
-/** Ikamba (ex-Ezango) : parcourir les fiches de la partie contributeur. Le nom « Ezango » est réservé à la bibliothèque d'Onenji. */
+/** Ikamba (ex-Ezango) : parcourir les fiches de la partie contributeur. Le nom « Ezango » est réservé à la bibliothèque d'Onênji. */
 export function Ezango({ onContribuer }: { onContribuer?: (id: string) => void } = {}) {
   const { profil, favori } = useAuth();
   const routeur = useRouter();

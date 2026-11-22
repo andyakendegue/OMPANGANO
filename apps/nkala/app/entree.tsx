@@ -7,7 +7,7 @@ import { usePrefs, useTheme, type ModeUsage } from '../src/Prefs';
 
 const PAGES = [
   { icone: 'village', titre: 'Chez toi, où que tu sois', texte: 'Nkala, c\'est le village dans ta poche : apprendre la langue, jouer, écouter et retrouver les tiens.' },
-  { icone: 'jouer', titre: 'Quatre portes, un seul compte', texte: 'Apprendre avec Onenji, jouer avec Azeva, écouter avec Ontci, vivre au village avec Nkala. Ton XP te suit partout.' },
+  { icone: 'jouer', titre: 'Quatre portes, un seul compte', texte: 'Apprendre avec Onênji, jouer avec Azeva, écouter avec Onci, vivre au village avec Nkala. Ton XP te suit partout.' },
   { icone: 'micro', titre: 'Ta voix compte', texte: 'Chaque mot que tu enregistres aide à garder la langue vivante pour les générations qui viennent.' },
 ];
 

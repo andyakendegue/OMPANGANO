@@ -1,6 +1,6 @@
 /**
- * Onenji (Apprendre), organisé en trois onglets sous la recherche (décision de Capp, 13 nov. 2026) :
- * Inenga (cours par étapes de la vie, test de niveau, révision, cours à distance à 4), Igolani (vidéothèque : tous les cours vidéo,
+ * Onênji (Apprendre), organisé en trois onglets sous la recherche (décision de Capp, 13 nov. 2026) :
+ * Inenga (cours par étapes de la vie, test de niveau, révision, cours à distance à 4), Igôlani (vidéothèque : tous les cours vidéo,
  * les artisans sont une catégorie) et Ezango (bibliothèque et dictionnaire). Kak'Igonjo accompagne les leçons. Contenus importés (JSON/CSV).
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -105,7 +105,7 @@ export function Onenji() {
       );
     }
     case 'certificat': return <Certificat parcours={e.parcours} onFermer={pile.retour} />;
-    case 'artisans': return <Videotheque D={D} pile={pile} entete={<Entete titre="Igolani" sous="La vidéothèque" retour={pile.retour} />} />;
+    case 'artisans': return <Videotheque D={D} pile={pile} entete={<Entete titre="Igôlani" sous="La vidéothèque" retour={pile.retour} />} />;
     case 'cours': return <FicheCours id={e.id} D={D} pile={pile} />;
     case 'video': return <LecteurVideo id={e.id} debut={e.debut} D={D} pile={pile} />;
     case 'kakigonjo': return <KakIgonjoChat retour={pile.retour} />;
@@ -121,7 +121,7 @@ type Pile = ReturnType<typeof usePile<E>>;
 type SousOnglet = 'inenga' | 'igolani' | 'ezango';
 const SOUS_ONGLETS: { id: SousOnglet; label: string; sous: string; icone: string }[] = [
   { id: 'inenga', label: 'Inenga', sous: 'Cours', icone: 'apprendre' },
-  { id: 'igolani', label: 'Igolani', sous: 'Vidéothèque', icone: 'video' },
+  { id: 'igolani', label: 'Igôlani', sous: 'Vidéothèque', icone: 'video' },
   { id: 'ezango', label: 'Ezango', sous: 'Bibliothèque', icone: 'livre' },
 ];
 /** Dernier onglet ouvert, gardé tant que l'application tourne. */
@@ -407,7 +407,7 @@ function ControleFlux({ unite, exercices, pile, parcoursId }: { unite: Unite; ex
   const { validerUnite } = useProgres();
   return <ControleUnite unite={unite} exercices={exercices} onQuitter={pile.retour} onFin={async (b, s) => { const r = await validerUnite(unite.id, b, s); pile.remplacer({ t: 'finUnite', unite, bonnes: b, sur: s, valide: r.valide, parcoursId }); }} />;
 }
-// ------------------------------------------------------------------ Igolani : la vidéothèque (41-43)
+// ------------------------------------------------------------------ Igôlani : la vidéothèque (41-43)
 /** Tous les cours vidéo (collection « cours_artisans ») rangés par catégorie ; les artisans ne sont qu'une catégorie. */
 function Videotheque({ D, pile, entete }: { D: Donnees; pile: Pile; entete: React.ReactNode }) {
   useSurchargeModule('igolani');
@@ -432,13 +432,13 @@ function Videotheque({ D, pile, entete }: { D: Donnees; pile: Pile; entete: Reac
   );
 }
 
-/** Fin de la partie gratuite d'une vidéo : la suite s'ouvre avec une formule qui inclut Igolani (aucune vente à l'unité). */
+/** Fin de la partie gratuite d'une vidéo : la suite s'ouvre avec une formule qui inclut Igôlani (aucune vente à l'unité). */
 function OffreIgolani() {
   const { c } = useTheme();
   const { ouvrirBoutique } = useGlobale();
   return (
     <Carte plat><View style={{ padding: 14, gap: 10 }}>
-      <T v="carte">La suite est dans les formules qui ouvrent Igolani</T>
+      <T v="carte">La suite est dans les formules qui ouvrent Igôlani</T>
       <T v="petit" couleur={c.discret}>Les vidéos se regardent en streaming avec une formule ; la formule Premium ouvre tous les cours.</T>
       <Bouton label="Voir les formules" icone="couronne" variante="ambre" onPress={ouvrirBoutique} />
     </View></Carte>
@@ -450,7 +450,7 @@ const mmss = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).
 
 /**
  * Fiche d'une vidéo — streaming seulement (décision du 15 nov. 2026) : 1er chapitre gratuit avec publicité, la suite avec une formule
- * qui ouvre Igolani (Premium les ouvre toutes). Aucune vidéo ne se vend à l'unité.
+ * qui ouvre Igôlani (Premium les ouvre toutes). Aucune vidéo ne se vend à l'unité.
  */
 function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
   useSurchargeModule('igolani');
@@ -469,8 +469,8 @@ function FicheCours({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) {
       <Entete titre={k.titre} sous={k.artisan} retour={pile.retour} />
       <Visuel uri={k.image} hauteur={180} largeur="100%" icone="video" />
       <T v="corps">{k.description}</T>
-      {!toutOuvert && gratuitJusque !== 0 && <T v="petit" couleur={c.accent}>{gratuitJusque === null ? 'Gratuit, avec publicité.' : 'Le début est gratuit (avec publicité) ; la suite s\'ouvre avec une formule qui inclut Igolani.'}</T>}
-      {!profil && dispo && <EtatVide icone="verrou" titre="Un compte est nécessaire" texte="Connecte-toi pour regarder les vidéos d'Igolani (le début reste gratuit)." />}
+      {!toutOuvert && gratuitJusque !== 0 && <T v="petit" couleur={c.accent}>{gratuitJusque === null ? 'Gratuit, avec publicité.' : 'Le début est gratuit (avec publicité) ; la suite s\'ouvre avec une formule qui inclut Igôlani.'}</T>}
+      {!profil && dispo && <EtatVide icone="verrou" titre="Un compte est nécessaire" texte="Connecte-toi pour regarder les vidéos d'Igôlani (le début reste gratuit)." />}
       {!!profil && (toutOuvert || gratuitJusque !== 0) && <Bouton label={dispo ? (toutOuvert ? 'Regarder le cours' : 'Regarder le début gratuit') : 'Vidéo bientôt disponible'} icone="lecture" desactive={!dispo} onPress={() => pile.pousser({ t: 'video', id })} />}
       {chapitres.length > 0 && <><SectionTitre titre="Chapitres" />{chapitres.map((ch, i) => {
         const a = accesChapitreVideo(k as any, chapitres as any, i);
@@ -544,7 +544,7 @@ function LecteurVideo({ id, debut, D, pile }: { id: string; debut?: number; D: D
     const sub = player.addListener('timeUpdate', ({ currentTime }: { currentTime: number }) => { if (currentTime >= limite) { try { player.pause(); player.currentTime = Math.max(0, limite - 0.5); } catch { /* */ } setFinGratuite(true); } });
     return () => sub.remove();
   }, [player, limite, source]);
-  const motifs: Record<string, string> = { reserve: 'Ce cours s\'ouvre avec une formule qui inclut Igolani.', compte: 'Connecte-toi pour regarder ce cours.', indisponible: 'La vidéo est indisponible pour le moment.' };
+  const motifs: Record<string, string> = { reserve: 'Ce cours s\'ouvre avec une formule qui inclut Igôlani.', compte: 'Connecte-toi pour regarder ce cours.', indisponible: 'La vidéo est indisponible pour le moment.' };
   return (
     <Ecran bas={30}>
       <Entete titre={k.titre} sous={k.artisan} retour={pile.retour} />

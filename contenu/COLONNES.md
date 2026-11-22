@@ -85,6 +85,7 @@ Collection privée (décision de Capp, 14 nov. 2026) : l'application ne reçoit 
 | `scene` | choix (lagune / village) |  | Type scene : paysage animé intégré. |
 | `zones` | json |  | Type scene : éléments à toucher, positions en % : [{"x":30,"y":60,"mot":"nguwu","sens":"hippopotame","illustration":"🦛"}]. |
 | `dialecte` | texte |  | Dialecte (orungu, mpongwe, galwa, nkomi, adyumba, enenga ; vide = commun à toutes les variantes). |
+| `exiger_signes` | booleen |  | Dictée : oui = les signes (‘, tréma, accent grave) sont exigés ; non (défaut) = tolérés tant que la leçon ne les enseigne pas. |
 | `source` | texte |  | Source du contenu (document et page) : obligatoire pour tout mot myènè. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 

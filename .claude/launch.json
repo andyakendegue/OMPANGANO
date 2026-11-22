@@ -92,6 +92,26 @@
         "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3021 npx expo start --web --port 5193"
       ],
       "port": 5193
+    },
+    {
+      "name": "cursus-api",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd server && PORT=3031 DEMO_CORS=http://localhost:5203 DEMO_DATA=.demo-data-cursus npm run demo"
+      ],
+      "port": 3031,
+      "autoPort": false
+    },
+    {
+      "name": "cursus-web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/nkala && EXPO_PUBLIC_API_URL=http://localhost:3031 npx expo start --web --port 5203"
+      ],
+      "port": 5203,
+      "autoPort": false
     }
   ]
 }

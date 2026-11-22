@@ -19,7 +19,7 @@ export function useDroits(): DroitsUtilisateur & { abonne: boolean } {
     if (cache && cache.uid === profil.id && Date.now() - cache.t < 60_000) { setD(cache.d); return; }
     chargerDroits().then(r => { cache = { uid: profil.id, d: r, t: Date.now() }; setD(r); }).catch(() => {});
   }, [profil?.id, n]); // eslint-disable-line react-hooks/exhaustive-deps
-  // « igolani » : une formule active ouvre les vidéos d'Igolani (streaming, 15 nov. 2026).
+  // « igolani » : une formule active ouvre les vidéos d'Igôlani (streaming, 15 nov. 2026).
   const droits: DroitsUtilisateur = { role: profil?.role, abonneJusque: d?.abonneJusque ?? null, achats: d?.achats ?? [], igolani: !!d?.igolani, avantages: d?.avantages ?? [], ia: d?.ia ?? 'aucune' };
   return { ...droits, abonne: abonne(droits) };
 }

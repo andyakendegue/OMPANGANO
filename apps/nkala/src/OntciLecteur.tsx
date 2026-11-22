@@ -1,4 +1,4 @@
-/** Lecteur plein écran d'Ontci (63 à 65, 70) : pochette, onde, gestes, paroles qui défilent, file d'attente avec préchargement visible. */
+/** Lecteur plein écran d'Onci (63 à 65, 70) : pochette, onde, gestes, paroles qui défilent, file d'attente avec préchargement visible. */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, PanResponder, Pressable, ScrollView, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';

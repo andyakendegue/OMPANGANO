@@ -22,7 +22,7 @@ import { degrades, marque, ombres, polices, rayons } from './theme';
 
 // ------------------------------------------------------------------ ouverture depuis un autre écran
 const ecouteurs = new Set<() => void>();
-/** Ouvre le chat flottant depuis n'importe quel écran (carte « Parler à Kak'Igonjo » d'Onenji, par exemple). */
+/** Ouvre le chat flottant depuis n'importe quel écran (carte « Parler à Kak'Igonjo » d'Onênji, par exemple). */
 export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 
 // Le dessin du vieux sage est dans KakIgonjo.tsx (partagé avec la mascotte du kit).

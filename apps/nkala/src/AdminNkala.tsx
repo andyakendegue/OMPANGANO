@@ -224,7 +224,7 @@ export function InterrupteursAdmin() {
       <T v="petit">Ces interrupteurs s'appliquent tout de suite sur cet appareil, et sur les autres à leur prochain retour dans l'application, sans nouvelle version.</T>
       <SectionTitre titre="Modules" />
       <T v="petit">« Admins » : l'onglet reste caché au public mais s'affiche, marqué ADMIN, pour les administrateurs connectés, le temps de tester.</T>
-      {[['ompangano', 'Ompangano (contribuer)'], ['onenji', 'Onenji (apprendre)'], ['azeva', 'Azeva (jouer)'], ['ontci', 'Ontci (écouter)'], ['nkala', 'Nkala (village)']].map(([id, l]) => <LigneModule key={id} id={id} label={l} />)}
+      {[['ompangano', 'Ompangano (contribuer)'], ['onenji', 'Onênji (apprendre)'], ['azeva', 'Azeva (jouer)'], ['ontci', 'Onci (écouter)'], ['nkala', 'Nkala (village)']].map(([id, l]) => <LigneModule key={id} id={id} label={l} />)}
       <SectionTitre titre="Fonctions" />
       {[['publicite', 'Publicité'], ['achats', 'Achats et abonnements'], ['assistantIA', "Assistant Kak'Igonjo"]].map(([id, l]) => <Ligne key={id} cle="fonctions" id={id} label={l} />)}
       <Ligne cle="fonctions" id="salleParis" label="Salle des paris" fige="Fermée : le dossier juridique de cinq pièces n'est pas réuni." />
@@ -331,7 +331,7 @@ export function PaiementsAdmin() {
   );
 }
 
-// ------------------------------------------------------------------ Nkorouna (NKR)
+// ------------------------------------------------------------------ Nkoruna (NKR)
 export function NkorounaAdmin() {
   const { c } = useTheme();
   const toast = useToast();
@@ -347,7 +347,7 @@ export function NkorounaAdmin() {
   };
   return (
     <Sombre>
-      <T v="petit">Registre du Nkorouna : chaque mouvement est scellé au précédent ; la vérification relit tout le registre (chaîne, soldes, somme nulle, sceaux). Une erreur se corrige par une annulation, jamais en base.</T>
+      <T v="petit">Registre du Nkoruna : chaque mouvement est scellé au précédent ; la vérification relit tout le registre (chaîne, soldes, somme nulle, sceaux). Une erreur se corrige par une annulation, jamais en base.</T>
       {!d ? <Chargement /> : <>
         <Carte plat><View style={{ padding: 12, gap: 6 }}>
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
@@ -358,7 +358,7 @@ export function NkorounaAdmin() {
           <Bouton label="Sceller les nouveaux mouvements (racine de Merkle)" petit onPress={() => adminAncrerNkr().then(r => { toast(r.rien ? 'Rien de nouveau à sceller.' : `Sceau ${r.de}–${r.jusqua} : ${r.racine?.slice(0, 16)}… (${r.reseau})`, 'succes'); charger(); }).catch(err)} />
         </View></Carte>
         <Carte plat><View style={{ padding: 12, gap: 8 }}>
-          <T v="carte">Offrir ou retirer des Nkorouna</T>
+          <T v="carte">Offrir ou retirer des Nkoruna</T>
           <Champ valeur={uid} onChange={setUid} placeholder="Identifiant de l'utilisateur" />
           <Champ valeur={montant} onChange={setMontant} placeholder="Montant (ex. 100, ou -50 pour retirer)" clavier="numbers-and-punctuation" />
           <Champ valeur={motif} onChange={setMotif} placeholder="Motif (inscrit au journal)" />

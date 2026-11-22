@@ -16,7 +16,7 @@ export function ConnexionClassique() {
       <ScrollView contentContainerStyle={[s.page, large && s.pageLarge]}>
         <View style={[s.colonne, large && s.colonneLarge]}>
         <View style={{ alignItems: 'center', marginTop: 24 }}><Logo taille={84} /></View>
-        <Text style={s.marque}>Nkala <Text style={s.essaka}> ESSAKA </Text></Text>
+        <Text style={s.marque}>Nkala</Text>
         <Text style={s.sous}>Crowdsourcing & Sauvegarde de la Langue Myènè</Text>
         <View style={s.pile}><Text style={s.badge}>Mode Avion Prêt</Text><Text style={s.badge}>Accès Sécurisé Réservé</Text><Text style={s.badge}>Authentification Obligatoire</Text></View>
         <Text style={s.h1}>Gardons Vivante la Parole de nos Aïeux</Text>
@@ -53,7 +53,6 @@ const s = stylesDyn(() => ({
   colonne: { gap: 12 },
   colonneLarge: { flex: 1 },
   marque: { color: couleurs.texteClair, fontSize: 32, fontWeight: '900', textAlign: 'center', marginTop: 4 },
-  essaka: { fontSize: 11, backgroundColor: couleurs.terre, color: '#fff' },
   sous: { color: couleurs.ambre, textAlign: 'center', fontSize: 13 },
   pile: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
   badge: { color: couleurs.ambre, fontSize: 11, fontWeight: '700', borderColor: '#92400e', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
