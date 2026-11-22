@@ -95,6 +95,17 @@ function CarteLecture({ ex, enfant, libelle, onSuite, bouton = 'Continuer' }: { 
  * d'Ompangano (lot 7 du cursus v3) et un modérateur juge la prononciation. La note indicative de la machine viendra quand la
  * reconnaissance des sons sera prête : jamais d'échec sur la seule note de la machine (plan de développement, 22 nov. 2026).
  */
+/**
+ * La voix ne part chez un correcteur que si : conditions et usage des données acceptés, usage de la voix autorisé, et, pour un mineur,
+ * un parent ou représentant légal renseigné (plan de développement du 22 nov. 2026 : accord des parents pour les voix des mineurs).
+ */
+function voixPeutPartir(p: NonNullable<ReturnType<typeof useAuth>['profil']>): boolean {
+  if (!consentementDonne(p) || (p as { consentVoiceUsage?: boolean }).consentVoiceUsage === false) return false;
+  const naissance = p.birthDate ? Date.parse(p.birthDate) : NaN;
+  const mineur = !Number.isFinite(naissance) || (Date.now() - naissance) / (365.25 * 24 * 3600 * 1000) < 18;
+  return !mineur || !!((p as { legalGuardianName?: string }).legalGuardianName ?? '').trim();
+}
+
 function Dire({ modele, onFini, ex }: { modele?: string | null; onFini: () => void; ex?: Exercice }) {
   const { c } = useTheme();
   const { profil } = useAuth();
@@ -114,7 +125,7 @@ function Dire({ modele, onFini, ex }: { modele?: string | null; onFini: () => vo
   const arreter = async () => { try { await rec.stop(); setUri(rec.uri); await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }); } catch { /* */ } setEtat('fait'); };
   // Envoi au modérateur (une fois l'enregistrement accepté par l'élève) : contribution sans fiche, avec le mot attendu.
   const envoyerAuModerateur = async () => {
-    if (!uri || !ex?.mot_myene || !profil || !consentementDonne(profil) || envoye !== 'non') return;
+    if (!uri || !ex?.mot_myene || !profil || !voixPeutPartir(profil) || envoye !== 'non') return;
     try {
       const fiche = { id: `onenji-dire-${ex.id}`, myeneText: ex.mot_myene, frenchText: ex.mot_francais ?? '', dialect: 'orungu' } as unknown as QuestionnaireItem;
       const contribution = construireContribution(profil, fiche, { orthographeCorrecte: true, sensFrancaisExact: true, commentaire: `Exercice « dire » d'Onênji (${ex.id}) : prononciation à juger.`, dureeAudio: 0, mimeAudio: 'audio/mp4' });
@@ -134,7 +145,7 @@ function Dire({ modele, onFini, ex }: { modele?: string | null; onFini: () => vo
       {etat === 'enreg' && <Bouton label="Arrêter" icone="pause" variante="ambre" onPress={arreter} />}
       {etat === 'fait' && <>
         <Pressable onPress={() => { lecteur.seekTo(0); lecteur.play(); }} accessibilityRole="button" style={{ flexDirection: 'row', gap: 8, alignItems: 'center', padding: 10 }}><Ic nom="lecture" taille={20} couleur={c.accent} /><T v="corps" couleur={c.accent}>Réécouter ma voix</T></Pressable>
-        {!!profil && consentementDonne(profil) && <T v="petit" style={{ textAlign: 'center' }}>{envoye === 'non' ? 'En continuant, ta voix part chez un correcteur, qui te dira si c\'est juste.' : envoye === 'envoye' ? 'Ta voix est chez un correcteur.' : 'Ta voix partira chez un correcteur dès que le réseau revient.'}</T>}
+        {!!profil && voixPeutPartir(profil) && <T v="petit" style={{ textAlign: 'center' }}>{envoye === 'non' ? 'En continuant, ta voix part chez un correcteur, qui te dira si c\'est juste.' : envoye === 'envoye' ? 'Ta voix est chez un correcteur.' : 'Ta voix partira chez un correcteur dès que le réseau revient.'}</T>}
         <Bouton label="Continuer" onPress={() => { void envoyerAuModerateur(); onFini(); }} />
         <Pressable onPress={() => setEtat('attente')} accessibilityRole="button"><T v="petit" style={{ textDecorationLine: 'underline' }}>Recommencer</T></Pressable>
       </>}
