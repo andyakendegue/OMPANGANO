@@ -1,89 +1,213 @@
 [
- {
-  "id": "ntina-u1",
-  "parcours_id": "ntina",
-  "titre": "Saluer",
-  "titre_myene": "",
-  "description": "Dire bonjour, merci et au revoir.",
-  "ordre": 1,
-  "publie": true
- },
- {
-  "id": "ntina-u2",
-  "parcours_id": "ntina",
-  "titre": "Être poli",
-  "description": "S'il te plaît, excuse-moi, viens.",
-  "ordre": 2,
-  "publie": true
- },
- {
-  "id": "ntina-u3",
-  "parcours_id": "ntina",
-  "titre": "Les sons de la langue",
-  "description": "Les sept voyelles de l'ôrungu, leurs gestes et leurs mots ; une lagune à explorer.",
-  "ordre": 3,
-  "publie": true
- },
- {
-  "id": "ogendo-u1",
-  "parcours_id": "ogendo",
-  "titre": "Lire et prononcer",
-  "description": "Les consonnes propres à l'ôrungu (implosives, aspirées, β, ɣ, ɾ, ŋ, ɲ, ɥ, mi-nasales) et les tons.",
-  "ordre": 1,
-  "publie": true
- },
- {
-  "id": "ntina-u4",
-  "parcours_id": "ntina",
-  "titre": "Dire juste",
-  "titre_myene": "",
-  "description": "Répéter beaucoup de mots pour bien prononcer : les voyelles, les consonnes, les tons qui changent le sens et le phrasé.",
-  "ordre": 4,
-  "publie": true
- },
- {
-  "id": "ntina-u5",
-  "parcours_id": "ntina",
-  "titre": "Compter",
-  "titre_myene": "",
-  "description": "Les nombres de 1 à 10, et compter des choses en accordant le nombre avec le nom.",
-  "ordre": 5,
-  "publie": true
- },
- {
-  "id": "ogendo-u2",
-  "parcours_id": "ogendo",
-  "titre": "La maison et ses objets",
-  "titre_myene": "",
-  "description": "Les pièces de la maison, les meubles, la cuisine, le repas, les habits et les affaires de tous les jours.",
-  "ordre": 2,
-  "publie": true
- },
- {
-  "id": "ogendo-u3",
-  "parcours_id": "ogendo",
-  "titre": "L'espace : où ?",
-  "titre_myene": "",
-  "description": "Les lieux, les positions et les directions : dire où sont les choses et où l'on va.",
-  "ordre": 3,
-  "publie": true
- },
- {
-  "id": "ogendo-u4",
-  "parcours_id": "ogendo",
-  "titre": "Le temps",
-  "titre_myene": "",
-  "description": "Le jour et la nuit, les moments de la journée, hier, aujourd'hui, demain, la semaine, le mois, l'année et les saisons.",
-  "ordre": 4,
-  "publie": true
- },
- {
-  "id": "ogendo-u5",
-  "parcours_id": "ogendo",
-  "titre": "Compter plus loin",
-  "titre_myene": "",
-  "description": "De 11 à 1000 : les dizaines, les centaines et les milliers.",
-  "ordre": 5,
-  "publie": true
- }
+  {
+    "id": "ntina-u1",
+    "parcours_id": "ntina",
+    "titre": "Saluer",
+    "titre_myene": "",
+    "description": "Dire bonjour, merci et au revoir.",
+    "ordre": 1,
+    "publie": true,
+    "palier": 1,
+    "palier_titre": "Palier 1 · Écouter et montrer (3-4 ans)"
+  },
+  {
+    "id": "ntina-u2",
+    "parcours_id": "ntina",
+    "titre": "Être poli",
+    "description": "S'il te plaît, excuse-moi, viens.",
+    "ordre": 2,
+    "publie": true,
+    "palier": 1,
+    "palier_titre": "Palier 1 · Écouter et montrer (3-4 ans)"
+  },
+  {
+    "id": "ntina-u3",
+    "parcours_id": "ogendo",
+    "titre": "Lire et écrire les sons",
+    "description": "Les sept voyelles et toutes les consonnes, puis les tons : lire et écrire.",
+    "ordre": 1,
+    "publie": true
+  },
+  {
+    "id": "ogendo-u1",
+    "parcours_id": "ogendo",
+    "titre": "Lire et prononcer",
+    "description": "Fusionnée dans « Lire et écrire les sons » (21 nov. 2026) ; gardée en brouillon.",
+    "ordre": 1,
+    "publie": false
+  },
+  {
+    "id": "ntina-u4",
+    "parcours_id": "ogendo",
+    "titre": "Dire juste",
+    "titre_myene": "",
+    "description": "Répéter beaucoup de mots pour bien prononcer : les voyelles, les consonnes, les tons qui changent le sens et le phrasé.",
+    "ordre": 2,
+    "publie": true
+  },
+  {
+    "id": "ntina-u5",
+    "parcours_id": "ntina",
+    "titre": "Compter jusqu'à cinq",
+    "titre_myene": "",
+    "description": "De un à cinq, avec un proverbe pour compter.",
+    "ordre": 9,
+    "publie": true,
+    "palier": 2,
+    "palier_titre": "Palier 2 · Nommer et dire (4-5 ans)"
+  },
+  {
+    "id": "ogendo-u2",
+    "parcours_id": "ogendo",
+    "titre": "La maison et ses objets",
+    "titre_myene": "",
+    "description": "Les pièces de la maison, les meubles, la cuisine, le repas, les habits et les affaires de tous les jours.",
+    "ordre": 4,
+    "publie": true
+  },
+  {
+    "id": "ogendo-u3",
+    "parcours_id": "ogendo",
+    "titre": "L'espace : où ?",
+    "titre_myene": "",
+    "description": "Les lieux, les positions et les directions : dire où sont les choses et où l'on va.",
+    "ordre": 5,
+    "publie": true
+  },
+  {
+    "id": "ogendo-u4",
+    "parcours_id": "ogendo",
+    "titre": "Le temps",
+    "titre_myene": "",
+    "description": "Le jour et la nuit, les moments de la journée, hier, aujourd'hui, demain, la semaine, le mois, l'année et les saisons.",
+    "ordre": 6,
+    "publie": true
+  },
+  {
+    "id": "ogendo-u5",
+    "parcours_id": "ogendo",
+    "titre": "Compter plus loin",
+    "titre_myene": "",
+    "description": "De 11 à 1000 : les dizaines, les centaines et les milliers.",
+    "ordre": 7,
+    "publie": true
+  },
+  {
+    "id": "ntina-u6",
+    "parcours_id": "ntina",
+    "titre": "Mon corps",
+    "description": "Montrer et nommer la tête, le visage, les bras et les jambes.",
+    "ordre": 3,
+    "publie": true,
+    "palier": 1,
+    "palier_titre": "Palier 1 · Écouter et montrer (3-4 ans)"
+  },
+  {
+    "id": "ntina-u7",
+    "parcours_id": "ntina",
+    "titre": "Ma famille",
+    "description": "Papa, maman, les enfants, les grands-parents, l'oncle maternel.",
+    "ordre": 4,
+    "publie": true,
+    "palier": 1,
+    "palier_titre": "Palier 1 · Écouter et montrer (3-4 ans)"
+  },
+  {
+    "id": "ntina-u8",
+    "parcours_id": "ntina",
+    "titre": "Les animaux",
+    "description": "Les animaux de la maison, de la forêt et de la lagune.",
+    "ordre": 5,
+    "publie": true,
+    "palier": 2,
+    "palier_titre": "Palier 2 · Nommer et dire (4-5 ans)"
+  },
+  {
+    "id": "ntina-u9",
+    "parcours_id": "ntina",
+    "titre": "Manger",
+    "description": "Le marché et les mots du repas.",
+    "ordre": 6,
+    "publie": true,
+    "palier": 2,
+    "palier_titre": "Palier 2 · Nommer et dire (4-5 ans)"
+  },
+  {
+    "id": "ntina-u10",
+    "parcours_id": "ntina",
+    "titre": "Ma maison",
+    "description": "La maison, les habits, l'heure d'aller dormir.",
+    "ordre": 7,
+    "publie": true,
+    "palier": 2,
+    "palier_titre": "Palier 2 · Nommer et dire (4-5 ans)"
+  },
+  {
+    "id": "ntina-u11",
+    "parcours_id": "ntina",
+    "titre": "Le ciel et la veillée",
+    "description": "Le soleil, la lune, la pluie ; écouter un conte au coin du feu.",
+    "ordre": 8,
+    "publie": true,
+    "palier": 2,
+    "palier_titre": "Palier 2 · Nommer et dire (4-5 ans)"
+  },
+  {
+    "id": "ntina-u12",
+    "parcours_id": "ntina",
+    "titre": "Les sons en jeux",
+    "description": "Taper les syllabes, entendre les voyelles et la musique des mots.",
+    "ordre": 10,
+    "publie": true,
+    "palier": 3,
+    "palier_titre": "Palier 3 · Jouer avec les sons (5-7 ans)"
+  },
+  {
+    "id": "ntina-u13",
+    "parcours_id": "ntina",
+    "titre": "Compter jusqu'à dix",
+    "description": "De six à dix, et compter les choses.",
+    "ordre": 11,
+    "publie": true,
+    "palier": 3,
+    "palier_titre": "Palier 3 · Jouer avec les sons (5-7 ans)"
+  },
+  {
+    "id": "ntina-u14",
+    "parcours_id": "ntina",
+    "titre": "J'écris",
+    "description": "Tracer les lettres et écrire ses premiers mots.",
+    "ordre": 12,
+    "publie": true,
+    "palier": 3,
+    "palier_titre": "Palier 3 · Jouer avec les sons (5-7 ans)"
+  },
+  {
+    "id": "ntina-u15",
+    "parcours_id": "ntina",
+    "titre": "Devinettes",
+    "description": "La devinette traditionnelle « Tô, tôngè » et des devinettes avec les mots appris.",
+    "ordre": 13,
+    "publie": true,
+    "palier": 3,
+    "palier_titre": "Palier 3 · Jouer avec les sons (5-7 ans)"
+  },
+  {
+    "id": "ogendo-u6",
+    "parcours_id": "ogendo",
+    "titre": "Faire des phrases",
+    "description": "Qui parle, maintenant, hier, demain, et poser une question (formes validées par Capp).",
+    "ordre": 3,
+    "publie": true
+  },
+  {
+    "id": "ikoko-u1",
+    "parcours_id": "ikoko",
+    "titre": "Premiers échanges",
+    "description": "Pour l'adulte qui débute : saluer, se présenter, la politesse de tous les jours. Ensuite : les unités d'Ogèndo.",
+    "ordre": 1,
+    "publie": true,
+    "entree": "adulte_debutant",
+    "suite_id": "ntina-u3"
+  }
 ]

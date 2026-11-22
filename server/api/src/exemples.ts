@@ -18,6 +18,7 @@ export async function importerExemples(q: Queryable, dossier = dossierExemples()
   for (const f of readdirSync(dossier).filter(x => x.endsWith('.json')).sort()) {
     const collection = f.replace(/\.json$/, '');
     const rows = JSON.parse(readFileSync(join(dossier, f), 'utf8')) as Record<string, any>[];
+    if (!Array.isArray(rows)) continue; // catalogues (objets) livrés à côté des collections : pas des lignes de contenu
     let n = 0;
     for (const l of rows) {
       const publie = l.publie !== false;

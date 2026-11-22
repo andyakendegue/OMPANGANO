@@ -96,7 +96,7 @@ test('chaque mot appris porte son écriture, sa transcription et son sens ; plus
 test('objets du quotidien, espace, temps, nombres : unités du programme, mots sourcés, nombres corrigés par Capp', () => {
   const U = SEEDS.unites as Record<string, any>[], L = SEEDS.lecons as Record<string, any>[], E = SEEDS.exercices as Record<string, any>[];
   for (const id of ['ntina-u5', 'ogendo-u2', 'ogendo-u3', 'ogendo-u4', 'ogendo-u5']) assert.ok(U.some(u => u.id === id), id);
-  const nouvelles = new Set(L.filter(l => ['ntina-u5', 'ogendo-u2', 'ogendo-u3', 'ogendo-u4', 'ogendo-u5'].includes(l.unite_id)).map(l => l.id));
+  const nouvelles = new Set(L.filter(l => ['ntina-u5', 'ntina-u13', 'ogendo-u2', 'ogendo-u3', 'ogendo-u4', 'ogendo-u5'].includes(l.unite_id)).map(l => l.id)); // 6-10 et « compter les choses » : palier 3 (21 nov. 2026)
   const mots = E.filter(e => nouvelles.has(e.lecon_id) && e.type === 'ecouter');
   assert.ok(mots.length >= 150);
   for (const e of mots) { assert.ok(e.mot_myene && e.mot_francais && e.source, e.id); if (e.phonetique) assert.equal(graphieDondo(e.phonetique).replace(/é/g, 'e'), e.mot_myene.toLowerCase().replace(/é/g, 'e').replace(/[’']/g, ''), e.id); }

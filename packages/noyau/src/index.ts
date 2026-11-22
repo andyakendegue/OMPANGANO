@@ -37,6 +37,7 @@ export * from './moteurs2';
 export * from './difficulte';
 export * from './lecons';
 export * from './phonetique';
+export * from './graphieV3';
 export * from './formules';
 export * from './reversements';
 export * from './coursDistance';

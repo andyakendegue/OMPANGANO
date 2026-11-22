@@ -8,7 +8,7 @@ import { Linking, Platform, Pressable, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ScreenCapture from 'expo-screen-capture';
 import {
-  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, peutRegarderVideo, battementLecture, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, etapesCouvertes, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
+  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, peutRegarderVideo, battementLecture, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, departAdulte, etapesCouvertes, grouperParPalier, ordreDepuis, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
   progressionUnite, resoudreMedia, uniteSuivante, VARIANTES_TRIBALES, type EtatLecon, type Exercice, type Lecon, type Ligne, type NiveauAcces, type Parcours, type Unite,
 } from '@nkala/noyau';
 import { texteAccueil, useAccueilKakIgonjo } from './Assistant';
@@ -169,8 +169,8 @@ function Inenga({ D, pile, entete }: { D: Donnees; pile: Pile; entete: React.Rea
   const { ids: erreurs } = useErreurs();
   const enfant = prefs.mode === 'enfant';
   // Dans l'ordre du cursus : étape, puis unité, puis leçon (la colonne « ordre » des leçons ne vaut qu'à l'intérieur d'une unité).
-  const rangUnite = new Map<string, number>(); let r = 0;
-  for (const p of D.parcours) for (const u of D.unites.filter(x => x.parcours_id === p.id)) rangUnite.set(u.id, r++);
+  // Depuis l'unité de départ donnée par le test (21 nov. 2026) : l'adulte qui débute ne revient pas aux leçons de Ntina.
+  const rangUnite = new Map<string, number>(ordreDepuis(test.resultat?.uniteId, D.parcours, D.unites).map((id, i) => [id, i]));
   const ouvertes = D.lecons.filter(l => !donnees.leconsTerminees[l.id] && rangUnite.has(l.unite_id)).sort((a, b) => (rangUnite.get(a.unite_id)! - rangUnite.get(b.unite_id)!) || (num(a.ordre) - num(b.ordre)));
   const prochaine = ouvertes.find(l => leconOuverte(D.lecons.filter(x => x.unite_id === l.unite_id), l.id, donnees));
   const uniteDe = (l: Lecon) => D.unites.find(u => u.id === l.unite_id);
@@ -265,8 +265,13 @@ function ChoixVariante({ visible, onClose }: { visible: boolean; onClose: () => 
 
 function TestFlux({ D, pile }: { D: Donnees; pile: Pile }) {
   const { enregistrer } = useTestNiveau();
+  const { prefs } = usePrefs();
   return <TestNiveau parcours={D.parcours} unites={D.unites} lecons={D.lecons} exercices={D.exercices} onQuitter={pile.retour}
-    onFini={async r => { await enregistrer({ ...r, le: Date.now() }); pile.remplacer({ t: 'resultatTest' }); }} />;
+    onFini={async r => {
+      // L'adulte placé au tout début commence à l'entrée « adulte qui débute » (Ikôkô), pas dans Ntina.
+      const res = prefs.mode !== 'enfant' && !r.parAge ? { ...r, ...departAdulte(r, D.parcours, D.unites) } : r;
+      await enregistrer({ ...res, le: Date.now() }); pile.remplacer({ t: 'resultatTest' });
+    }} />;
 }
 function ResultatTest({ D, pile }: { D: Donnees; pile: Pile }) {
   const { resultat } = useTestNiveau();
@@ -304,7 +309,7 @@ function ParcoursEcran({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) 
     <Ecran bas={40}>
       <Entete titre={p.titre} sous={p.description ?? undefined} retour={pile.retour} />
       {unites.length === 0 && <EtatVide mascotte titre="Parcours en préparation" texte="Les unités arrivent bientôt." />}
-      {unites.map(u => {
+      {grouperParPalier(unites).map((g, gi) => <View key={g.titre ?? `g${gi}`} style={{ gap: 12 }}>{g.titre && <SectionTitre titre={g.titre} />}{g.unites.map(u => {
         const lecons = D.lecons.filter(l => l.unite_id === u.id);
         const toutes = lecons.length > 0 && lecons.every(l => donnees.leconsTerminees[l.id]);
         const valide = donnees.unitesValidees.includes(u.id);
@@ -331,7 +336,7 @@ function ParcoursEcran({ id, D, pile }: { id: string; D: Donnees; pile: Pile }) 
             </View>
           </View>
         );
-      })}
+      })}</View>)}
       {toutesValidees && <Bouton label="Mon certificat" icone="diplome" variante="ambre" onPress={() => pile.pousser({ t: 'certificat', parcours: p })} />}
     </Ecran>
   );

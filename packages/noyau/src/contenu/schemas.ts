@@ -58,7 +58,11 @@ export const SCHEMAS: SchemaContenu[] = [
   { id: 'unites', module: 'onenji', titre: 'Unités', description: 'Une unité regroupe des leçons ; la fin d\'unité se valide à 4 réponses justes sur 5.', champs: [
     id, { nom: 'parcours_id', type: 'texte', requis: true, ref: 'parcours', aide: 'Parcours parent.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'titre_myene', type: 'texte', aide: 'Titre en myènè.' },
-    { nom: 'description', type: 'long', aide: 'Description.' }, ordre, publie, rangMin, plans] },
+    { nom: 'description', type: 'long', aide: 'Description.' },
+    { nom: 'palier', type: 'entier', aide: 'Palier dans l\'étape (Ntina : 1 écouter et montrer, 2 nommer et dire, 3 jouer avec les sons).', exemple: '1' },
+    { nom: 'palier_titre', type: 'texte', aide: 'Titre du palier, affiché au-dessus de ses unités.', exemple: 'Palier 1 · Écouter et montrer (3-4 ans)' },
+    { nom: 'entree', type: 'choix', choix: ['adulte_debutant'], aide: 'adulte_debutant : l\'adulte qui débute commence ici après le test de niveau.' },
+    { nom: 'suite_id', type: 'texte', ref: 'unites', aide: 'Unité proposée ensuite, si ce n\'est pas la suivante dans l\'ordre.' }, ordre, publie, rangMin, plans] },
   { id: 'lecons', module: 'onenji', titre: 'Leçons', description: 'Une leçon = une suite d\'exercices courts. Les cours sont gratuits (15 nov. 2026) : « niveau_acces » et « plans » ne ferment plus une leçon ; seuls « reserve » (personnel) et « rang_min » la retiennent.', champs: [
     id, { nom: 'unite_id', type: 'texte', requis: true, ref: 'unites', aide: 'Unité parente.' },
     { nom: 'titre', type: 'texte', requis: true, aide: 'Titre.' }, { nom: 'titre_myene', type: 'texte', aide: 'Titre en myènè.' },

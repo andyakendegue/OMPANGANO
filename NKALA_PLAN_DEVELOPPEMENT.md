@@ -163,3 +163,34 @@ Décision de Capp : plus de travail par étapes ; tout est codé, les services e
 | Console | Supervision, Contenus, Interrupteurs, Annonces et signalements, Abonnements, Journal |
 
 **Vérifié** : `tsc` sans erreur (application et serveur) ; 94 tests de l'API et du noyau réussis ; application web lancée (entrée, accueil, Apprendre avec une leçon, Jouer avec le pendu, Écouter, Village, réglages, thème clair). **Non vérifié** : iOS et Android, sons, micro, caméra, flux réels, déploiement sur le VPS (migration `006_nkala.sql`).
+
+## Décision du 15 novembre 2026 : vidéos en streaming, masterclass (ajout)
+
+Plus de vente des vidéos à l'unité : Igolani et les cours d'artisans en streaming par abonnement (Premium ouvre tout) ; seuls les cours avec les professeurs sont payants (masterclass) ; fonds des créateurs au prorata des minutes regardées ; moteur de calcul des reversements (contributeur spécial, créateurs, professeurs, associations), taux en base et définition confidentielle hors dépôt (`DONDO/15_modele_economique/05_calcul_des_reversements.md`). **Tâche détaillée, prête à lancer dans une autre session : `NKALA_AUDIT_APPRENDRE_2026-11-12.md` §18.**
+
+## Décisions du 22 novembre 2026 : cursus v3, voix, reconnaissance des sons, accord des parents, gratuité (ajout)
+
+Source : audit `../14_programme_et_jeux/05_audit_cursus_v3_Rekanga.md`, règles `../_contexte/REGLES_V3_complement_2026-11-22.md`, consigne de travail `../14_programme_et_jeux/06_CONSIGNE_code_cursus_v3.md`.
+
+**Cursus Onênji** : conversion en graphie v3 (Rékanga) et enrichissement selon les lots de la consigne ; import des cours en production à la fin de chaque lot, pour que Capp teste et critique (accord de Capp du 22 nov.).
+
+**Reconnaissance des sons (correction des audios des enfants)** — validé par Capp :
+1. Relancer la tâche ZIPA interrompue (Capp), insérer ses résultats dans le corpus et l'évaluer sur des audios ôrungu.
+2. Phase 1 : la machine compare la prononciation de l'élève à la prononciation attendue du mot et donne une note **indicative** ; un **modérateur** décide. Jamais d'échec sur la seule note de la machine.
+3. Phase 2 : chaque audio corrigé par le modérateur devient une donnée d'entraînement ; affinage du modèle sur l'ôrungu et les voix d'enfants dès que le volume suffit (à mesurer).
+4. Une partie des exercices « Dire juste » devient « dire » (l'élève s'enregistre), corrigée par un modérateur.
+
+**Phrases du corpus** : mettre à jour les 50 125 phrases en v3 (décisions du 22 nov.) ; classer les phrases selon les sons qu'elles contiennent pour **prioriser** leur correction et leur enregistrement dans Ompangano (sons rares ou difficiles d'abord : *ngh*, *c*, *j*, *ê*, *ô*, *b* et *d* « avalés », tons) ; affiner ensuite avec la collecte Ompangano.
+
+**Voix** — validé par Capp :
+- Des voix d'adultes guident les enfants.
+- Les mots de Ntina (≈ 400) sont enregistrés par une vraie voix. **Planning** : liste des mots et des sons à enregistrer, enregistrement, **vérification que tout y est** (chaque mot, chaque son), puis ajout dans l'application.
+- Kokoro-82M (en production) dit le reste ; la fonction qui prépare la prononciation (`apiDepuisGraphie`) passe en graphie v3.
+- Entraînement d'une voix ôrungu : constituer un **jeu de phrases et de textes** couvrant tous les sons, assez long pour atteindre les heures d'enregistrement requises, enregistré par une seule voix.
+
+**Accord des parents** : un formulaire d'accord existe à l'inscription. Vérifier qu'il couvre la conservation des voix des mineurs et leur usage pour entraîner les modèles, avec l'accord d'un parent ; l'ajuster si besoin.
+
+**Gratuit et payant** — validé par Capp :
+- Gratuit : tout Ntina, l'alphabet et la lecture, tous les cours d'Ogêndo, d'Emênô et d'Ikôkô, la contribution, une correction de prononciation de base.
+- Payant : cours avec professeur (masterclass, cours à distance, ateliers ; 80 % au professeur) ; Igôlani (vidéos, par abonnement) ; Kak'Igonjo au-delà d'un quota gratuit et examen avec un locuteur ; attestation officielle de niveau ; licences pour écoles et associations ; services aux entreprises de la grille tarifaire.
+- Mode enfant : pas de publicité, aucun achat sans contrôle parental. Abonnements : Mobile Money sur la version web.

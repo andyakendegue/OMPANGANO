@@ -55,7 +55,12 @@ export function zonesDe(ex: Pick<Exercice, 'zones'>): ZoneScene[] {
     .map(x => ({ ...x, x: Math.min(95, Math.max(5, Number(x.x))), y: Math.min(92, Math.max(8, Number(x.y))) }));
 }
 export interface Lecon { id: string; unite_id: string; titre: string; titre_myene?: string | null; duree_min?: number | null; xp?: number | null; mode?: string | null; niveau_acces?: string | null; ordre?: number | null }
-export interface Unite { id: string; parcours_id: string; titre: string; titre_myene?: string | null; description?: string | null; ordre?: number | null }
+/**
+ * Unité. `palier` et `palier_titre` regroupent les unités d'une étape (Ntina : trois paliers comme à la maternelle, 21 nov. 2026) ;
+ * `entree` = « adulte_debutant » marque l'unité où commence l'adulte qui débute ; `suite_id` donne l'unité proposée ensuite
+ * quand ce n'est pas la suivante dans l'ordre (l'entrée adulte d'Ikôkô renvoie aux unités d'Ogèndo).
+ */
+export interface Unite { id: string; parcours_id: string; titre: string; titre_myene?: string | null; description?: string | null; ordre?: number | null; palier?: number | null; palier_titre?: string | null; entree?: string | null; suite_id?: string | null }
 export interface Parcours { id: string; titre: string; titre_myene?: string | null; etape_vie?: string | null; cycle?: number | null; description?: string | null; couleur?: string | null; image?: string | null; ordre?: number | null }
 
 const cle = (t: string) => nfc(t).toLowerCase().replace(/\s+/g, ' ').trim();
@@ -300,7 +305,46 @@ export function uniteSuivante(uniteId: string, parcours: Parcours[], unites: Uni
   const liste: { unite: Unite; parcours: Parcours }[] = [];
   for (const p of ord(parcours)) for (const u of ord(unites.filter(x => x.parcours_id === p.id))) liste.push({ unite: u, parcours: p });
   const i = liste.findIndex(x => x.unite.id === uniteId);
+  const suite = i >= 0 ? liste[i].unite.suite_id : null;
+  if (suite) { const s = liste.find(x => x.unite.id === suite); if (s) return s; }
   return i >= 0 && i + 1 < liste.length ? liste[i + 1] : null;
+}
+
+/**
+ * Départ de l'adulte qui débute (21 nov. 2026) : quand le test le place au tout début (première étape, Ntina, faite pour les moins de 7 ans),
+ * on le fait commencer à l'unité marquée `entree = adulte_debutant` si elle existe. Sinon le résultat du test ne change pas.
+ */
+export function departAdulte(res: { parcoursId: string; uniteId: string | null }, parcours: Parcours[], unites: Unite[]): { parcoursId: string; uniteId: string | null } {
+  const premier = [...parcours].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0))[0];
+  const entree = unites.find(u => u.entree === 'adulte_debutant' && parcours.some(p => p.id === u.parcours_id));
+  if (!premier || !entree || res.parcoursId !== premier.id) return res;
+  return { parcoursId: entree.parcours_id, uniteId: entree.id };
+}
+
+/**
+ * Ordre des unités pour un apprenant, à partir de son unité de départ : on suit l'unité suivante (et `suite_id`) jusqu'au bout,
+ * puis viennent les unités restantes dans l'ordre du cursus. Sans départ connu : l'ordre du cursus.
+ */
+export function ordreDepuis(departUniteId: string | null | undefined, parcours: Parcours[], unites: Unite[]): string[] {
+  const ord = <X extends { ordre?: number | null }>(l: X[]) => [...l].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0));
+  const naturel: string[] = [];
+  for (const p of ord(parcours)) for (const u of ord(unites.filter(x => x.parcours_id === p.id))) naturel.push(u.id);
+  if (!departUniteId || !naturel.includes(departUniteId)) return naturel;
+  const vus = new Set<string>(), chaine: string[] = [];
+  for (let id: string | null = departUniteId; id && !vus.has(id); id = uniteSuivante(id, parcours, unites)?.unite.id ?? null) { vus.add(id); chaine.push(id); }
+  return [...chaine, ...naturel.filter(id => !vus.has(id))];
+}
+
+/** Paliers d'une étape, dans l'ordre des unités : [titre du palier, unités]. Une unité sans palier forme son propre groupe sans titre. */
+export function grouperParPalier<T extends Pick<Unite, 'palier' | 'palier_titre'>>(unites: T[]): { titre: string | null; unites: T[] }[] {
+  const groupes: { titre: string | null; cle: string; unites: T[] }[] = [];
+  for (const u of unites) {
+    const cle = u.palier ? `p${u.palier}` : '';
+    const dernier = groupes[groupes.length - 1];
+    if (dernier && dernier.cle === cle) dernier.unites.push(u);
+    else groupes.push({ titre: u.palier ? (u.palier_titre || `Palier ${u.palier}`) : null, cle, unites: [u] });
+  }
+  return groupes.map(({ titre, unites }) => ({ titre, unites }));
 }
 
 // ------------------------------------------------------------------ certificat numéroté

@@ -1,0 +1,1285 @@
+{
+ "version": 1,
+ "note": "Catégories d'annonces (hors logement, qui a son propre catalogue equipements_logement.json). type : choix (une option), multi (plusieurs), nombre, texte, bool, annee. filtre : proposé dans les filtres de la liste. obligatoire : exigé à la publication. icon = nom Ionicons.",
+ "categories": [
+  {
+   "id": "auto",
+   "label": "Automobile",
+   "icon": "car",
+   "transactions": [
+    {
+     "id": "vente",
+     "label": "Vente"
+    },
+    {
+     "id": "location",
+     "label": "Location"
+    },
+    {
+     "id": "achat",
+     "label": "Recherche / achat"
+    }
+   ],
+   "sousCategories": [
+    {
+     "id": "voiture",
+     "label": "Voiture"
+    },
+    {
+     "id": "moto",
+     "label": "Moto / scooter"
+    },
+    {
+     "id": "utilitaire",
+     "label": "Utilitaire / camion"
+    },
+    {
+     "id": "bateau",
+     "label": "Bateau / hors-bord"
+    },
+    {
+     "id": "pieces",
+     "label": "Pièces détachées"
+    },
+    {
+     "id": "equipement",
+     "label": "Équipements et accessoires"
+    },
+    {
+     "id": "pneus",
+     "label": "Pneus et jantes"
+    }
+   ],
+   "medias": {
+    "photo": 20,
+    "video": 3,
+    "pano360": 3
+   },
+   "champs": [
+    {
+     "id": "marque",
+     "label": "Marque",
+     "type": "choix",
+     "options": [
+      {
+       "id": "toyota",
+       "label": "Toyota"
+      },
+      {
+       "id": "nissan",
+       "label": "Nissan"
+      },
+      {
+       "id": "hyundai",
+       "label": "Hyundai"
+      },
+      {
+       "id": "kia",
+       "label": "Kia"
+      },
+      {
+       "id": "mitsubishi",
+       "label": "Mitsubishi"
+      },
+      {
+       "id": "suzuki",
+       "label": "Suzuki"
+      },
+      {
+       "id": "mercedes_benz",
+       "label": "Mercedes-Benz"
+      },
+      {
+       "id": "peugeot",
+       "label": "Peugeot"
+      },
+      {
+       "id": "renault",
+       "label": "Renault"
+      },
+      {
+       "id": "ford",
+       "label": "Ford"
+      },
+      {
+       "id": "honda",
+       "label": "Honda"
+      },
+      {
+       "id": "mazda",
+       "label": "Mazda"
+      },
+      {
+       "id": "isuzu",
+       "label": "Isuzu"
+      },
+      {
+       "id": "volkswagen",
+       "label": "Volkswagen"
+      },
+      {
+       "id": "bmw",
+       "label": "BMW"
+      },
+      {
+       "id": "land_rover",
+       "label": "Land Rover"
+      },
+      {
+       "id": "chevrolet",
+       "label": "Chevrolet"
+      },
+      {
+       "id": "jeep",
+       "label": "Jeep"
+      },
+      {
+       "id": "lexus",
+       "label": "Lexus"
+      },
+      {
+       "id": "yamaha",
+       "label": "Yamaha"
+      },
+      {
+       "id": "bajaj",
+       "label": "Bajaj"
+      },
+      {
+       "id": "tvs",
+       "label": "TVS"
+      },
+      {
+       "id": "haojue",
+       "label": "Haojue"
+      },
+      {
+       "id": "autre",
+       "label": "Autre"
+      }
+     ],
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire",
+      "bateau",
+      "pieces",
+      "pneus"
+     ]
+    },
+    {
+     "id": "modele",
+     "label": "Modèle",
+     "type": "texte",
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire",
+      "bateau",
+      "pieces"
+     ]
+    },
+    {
+     "id": "annee",
+     "label": "Année",
+     "type": "annee",
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire",
+      "bateau"
+     ]
+    },
+    {
+     "id": "kilometrage",
+     "label": "Kilométrage",
+     "type": "nombre",
+     "unite": "km",
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "carburant",
+     "label": "Carburant",
+     "type": "choix",
+     "options": [
+      {
+       "id": "essence",
+       "label": "Essence"
+      },
+      {
+       "id": "diesel",
+       "label": "Diesel"
+      },
+      {
+       "id": "hybride",
+       "label": "Hybride"
+      },
+      {
+       "id": "electrique",
+       "label": "Électrique"
+      }
+     ],
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire",
+      "bateau"
+     ]
+    },
+    {
+     "id": "boite",
+     "label": "Boîte de vitesses",
+     "type": "choix",
+     "options": [
+      {
+       "id": "manuelle",
+       "label": "Manuelle"
+      },
+      {
+       "id": "automatique",
+       "label": "Automatique"
+      }
+     ],
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "places",
+     "label": "Places",
+     "type": "nombre",
+     "pour": [
+      "voiture",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "portes",
+     "label": "Portes",
+     "type": "nombre",
+     "pour": [
+      "voiture"
+     ]
+    },
+    {
+     "id": "couleur",
+     "label": "Couleur",
+     "type": "texte",
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "traction",
+     "label": "Transmission",
+     "type": "choix",
+     "options": [
+      {
+       "id": "2x4",
+       "label": "2 roues motrices"
+      },
+      {
+       "id": "4x4",
+       "label": "4x4"
+      }
+     ],
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "dedouane",
+     "label": "Dédouané",
+     "type": "bool",
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire",
+      "bateau"
+     ]
+    },
+    {
+     "id": "carte_grise",
+     "label": "Carte grise à jour",
+     "type": "bool",
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "options",
+     "label": "Options",
+     "type": "multi",
+     "options": [
+      {
+       "id": "clim",
+       "label": "Climatisation"
+      },
+      {
+       "id": "gps",
+       "label": "GPS"
+      },
+      {
+       "id": "camera",
+       "label": "Caméra de recul"
+      },
+      {
+       "id": "radar",
+       "label": "Radar de recul"
+      },
+      {
+       "id": "bluetooth",
+       "label": "Bluetooth"
+      },
+      {
+       "id": "cuir",
+       "label": "Sièges cuir"
+      },
+      {
+       "id": "toit",
+       "label": "Toit ouvrant"
+      },
+      {
+       "id": "jantes",
+       "label": "Jantes alliage"
+      }
+     ],
+     "pour": [
+      "voiture",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "puissance",
+     "label": "Puissance",
+     "type": "nombre",
+     "unite": "ch",
+     "pour": [
+      "bateau",
+      "moto"
+     ]
+    },
+    {
+     "id": "compatible",
+     "label": "Compatible avec",
+     "type": "texte",
+     "pour": [
+      "pieces",
+      "equipement",
+      "pneus"
+     ]
+    },
+    {
+     "id": "reference",
+     "label": "Référence de la pièce",
+     "type": "texte",
+     "pour": [
+      "pieces"
+     ]
+    },
+    {
+     "id": "dimension",
+     "label": "Dimension",
+     "type": "texte",
+     "pour": [
+      "pneus"
+     ]
+    },
+    {
+     "id": "chauffeur",
+     "label": "Avec chauffeur",
+     "type": "bool",
+     "pour": [
+      "voiture",
+      "utilitaire"
+     ]
+    },
+    {
+     "id": "etat",
+     "label": "État",
+     "type": "choix",
+     "options": [
+      {
+       "id": "neuf",
+       "label": "Neuf"
+      },
+      {
+       "id": "comme_neuf",
+       "label": "Comme neuf"
+      },
+      {
+       "id": "bon",
+       "label": "Bon état"
+      },
+      {
+       "id": "usage",
+       "label": "Usagé"
+      },
+      {
+       "id": "pieces",
+       "label": "Pour pièces"
+      }
+     ],
+     "filtre": true,
+     "pour": [
+      "voiture",
+      "moto",
+      "utilitaire",
+      "bateau",
+      "pieces",
+      "equipement",
+      "pneus"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "equipement",
+   "label": "Équipement et petites annonces",
+   "icon": "tv",
+   "transactions": [
+    {
+     "id": "vente",
+     "label": "Vente"
+    },
+    {
+     "id": "location",
+     "label": "Location"
+    },
+    {
+     "id": "don",
+     "label": "Don"
+    },
+    {
+     "id": "achat",
+     "label": "Recherche / achat"
+    },
+    {
+     "id": "echange",
+     "label": "Échange"
+    }
+   ],
+   "sousCategories": [
+    {
+     "id": "telephones",
+     "label": "Téléphones et tablettes"
+    },
+    {
+     "id": "informatique",
+     "label": "Informatique"
+    },
+    {
+     "id": "tv_hifi",
+     "label": "TV, hi-fi et son"
+    },
+    {
+     "id": "electromenager",
+     "label": "Électroménager"
+    },
+    {
+     "id": "meubles",
+     "label": "Meubles et décoration"
+    },
+    {
+     "id": "mode",
+     "label": "Vêtements, chaussures, pagnes"
+    },
+    {
+     "id": "beaute",
+     "label": "Beauté et bien-être"
+    },
+    {
+     "id": "bebe",
+     "label": "Bébé et enfants"
+    },
+    {
+     "id": "sport",
+     "label": "Sport et loisirs"
+    },
+    {
+     "id": "outils",
+     "label": "Outils et bricolage"
+    },
+    {
+     "id": "materiaux",
+     "label": "Matériaux de construction"
+    },
+    {
+     "id": "energie",
+     "label": "Groupes électrogènes et solaire"
+    },
+    {
+     "id": "jeux",
+     "label": "Consoles et jeux vidéo"
+    },
+    {
+     "id": "livres",
+     "label": "Livres et scolaire"
+    },
+    {
+     "id": "agriculture",
+     "label": "Agriculture et pêche"
+    },
+    {
+     "id": "pro",
+     "label": "Matériel professionnel"
+    },
+    {
+     "id": "autre",
+     "label": "Autre"
+    }
+   ],
+   "medias": {
+    "photo": 12,
+    "video": 2,
+    "pano360": 0
+   },
+   "champs": [
+    {
+     "id": "marque",
+     "label": "Marque",
+     "type": "texte",
+     "filtre": true
+    },
+    {
+     "id": "modele",
+     "label": "Modèle",
+     "type": "texte"
+    },
+    {
+     "id": "etat",
+     "label": "État",
+     "type": "choix",
+     "options": [
+      {
+       "id": "neuf",
+       "label": "Neuf"
+      },
+      {
+       "id": "comme_neuf",
+       "label": "Comme neuf"
+      },
+      {
+       "id": "bon",
+       "label": "Bon état"
+      },
+      {
+       "id": "usage",
+       "label": "Usagé"
+      },
+      {
+       "id": "pieces",
+       "label": "Pour pièces"
+      }
+     ],
+     "filtre": true,
+     "obligatoire": true
+    },
+    {
+     "id": "garantie",
+     "label": "Garantie",
+     "type": "choix",
+     "options": [
+      {
+       "id": "aucune",
+       "label": "Aucune"
+      },
+      {
+       "id": "3m",
+       "label": "3 mois"
+      },
+      {
+       "id": "6m",
+       "label": "6 mois"
+      },
+      {
+       "id": "1a",
+       "label": "1 an"
+      },
+      {
+       "id": "plus",
+       "label": "Plus d'un an"
+      }
+     ]
+    },
+    {
+     "id": "stockage",
+     "label": "Stockage",
+     "type": "choix",
+     "options": [
+      {
+       "id": "16",
+       "label": "16 Go"
+      },
+      {
+       "id": "32",
+       "label": "32 Go"
+      },
+      {
+       "id": "64",
+       "label": "64 Go"
+      },
+      {
+       "id": "128",
+       "label": "128 Go"
+      },
+      {
+       "id": "256",
+       "label": "256 Go"
+      },
+      {
+       "id": "512",
+       "label": "512 Go et plus"
+      }
+     ],
+     "filtre": true,
+     "pour": [
+      "telephones",
+      "informatique"
+     ]
+    },
+    {
+     "id": "taille",
+     "label": "Taille / pointure",
+     "type": "texte",
+     "pour": [
+      "mode",
+      "bebe"
+     ]
+    },
+    {
+     "id": "puissance",
+     "label": "Puissance",
+     "type": "nombre",
+     "unite": "kVA",
+     "pour": [
+      "energie"
+     ]
+    },
+    {
+     "id": "quantite",
+     "label": "Quantité disponible",
+     "type": "nombre"
+    },
+    {
+     "id": "livraison",
+     "label": "Livraison possible",
+     "type": "bool",
+     "filtre": true
+    },
+    {
+     "id": "prix_lot",
+     "label": "Vendu en lot",
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "id": "emploi",
+   "label": "Emploi",
+   "icon": "briefcase",
+   "transactions": [
+    {
+     "id": "offre",
+     "label": "Offre d'emploi"
+    },
+    {
+     "id": "demande",
+     "label": "Demande d'emploi"
+    },
+    {
+     "id": "stage",
+     "label": "Stage"
+    },
+    {
+     "id": "mission",
+     "label": "Mission ponctuelle"
+    }
+   ],
+   "sousCategories": [
+    {
+     "id": "commerce",
+     "label": "Commerce et vente"
+    },
+    {
+     "id": "btp",
+     "label": "BTP et construction"
+    },
+    {
+     "id": "transport",
+     "label": "Transport et logistique"
+    },
+    {
+     "id": "hotellerie",
+     "label": "Hôtellerie et restauration"
+    },
+    {
+     "id": "sante",
+     "label": "Santé"
+    },
+    {
+     "id": "education",
+     "label": "Éducation et formation"
+    },
+    {
+     "id": "informatique",
+     "label": "Informatique et numérique"
+    },
+    {
+     "id": "administration",
+     "label": "Administration et secrétariat"
+    },
+    {
+     "id": "menage",
+     "label": "Maison et ménage"
+    },
+    {
+     "id": "securite",
+     "label": "Sécurité et gardiennage"
+    },
+    {
+     "id": "agriculture",
+     "label": "Agriculture, pêche, forêt"
+    },
+    {
+     "id": "industrie",
+     "label": "Industrie, mines, pétrole"
+    },
+    {
+     "id": "artisanat",
+     "label": "Artisanat"
+    },
+    {
+     "id": "autre",
+     "label": "Autre"
+    }
+   ],
+   "medias": {
+    "photo": 3,
+    "video": 1,
+    "pano360": 0
+   },
+   "photoFacultative": true,
+   "prixLabel": "Salaire",
+   "champs": [
+    {
+     "id": "contrat",
+     "label": "Type de contrat",
+     "type": "choix",
+     "options": [
+      {
+       "id": "cdi",
+       "label": "CDI"
+      },
+      {
+       "id": "cdd",
+       "label": "CDD"
+      },
+      {
+       "id": "journalier",
+       "label": "Journalier"
+      },
+      {
+       "id": "temps_partiel",
+       "label": "Temps partiel"
+      },
+      {
+       "id": "freelance",
+       "label": "Indépendant"
+      },
+      {
+       "id": "stage",
+       "label": "Stage"
+      }
+     ],
+     "filtre": true,
+     "obligatoire": true
+    },
+    {
+     "id": "experience",
+     "label": "Expérience",
+     "type": "choix",
+     "options": [
+      {
+       "id": "aucune",
+       "label": "Débutant accepté"
+      },
+      {
+       "id": "1",
+       "label": "1 an"
+      },
+      {
+       "id": "2_5",
+       "label": "2 à 5 ans"
+      },
+      {
+       "id": "5",
+       "label": "Plus de 5 ans"
+      }
+     ],
+     "filtre": true
+    },
+    {
+     "id": "diplome",
+     "label": "Niveau d'études",
+     "type": "choix",
+     "options": [
+      {
+       "id": "aucun",
+       "label": "Aucun"
+      },
+      {
+       "id": "cep",
+       "label": "CEP"
+      },
+      {
+       "id": "bepc",
+       "label": "BEPC"
+      },
+      {
+       "id": "bac",
+       "label": "Bac"
+      },
+      {
+       "id": "bts",
+       "label": "BTS / DUT"
+      },
+      {
+       "id": "licence",
+       "label": "Licence"
+      },
+      {
+       "id": "master",
+       "label": "Master et plus"
+      }
+     ]
+    },
+    {
+     "id": "entreprise",
+     "label": "Entreprise",
+     "type": "texte"
+    },
+    {
+     "id": "teletravail",
+     "label": "Télétravail possible",
+     "type": "bool",
+     "filtre": true
+    },
+    {
+     "id": "periode_salaire",
+     "label": "Salaire par",
+     "type": "choix",
+     "options": [
+      {
+       "id": "mois",
+       "label": "Mois"
+      },
+      {
+       "id": "jour",
+       "label": "Jour"
+      },
+      {
+       "id": "heure",
+       "label": "Heure"
+      },
+      {
+       "id": "mission",
+       "label": "Mission"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "services",
+   "label": "Services à domicile",
+   "icon": "construct",
+   "transactions": [
+    {
+     "id": "offre",
+     "label": "Je propose"
+    },
+    {
+     "id": "demande",
+     "label": "Je cherche"
+    }
+   ],
+   "sousCategories": [
+    {
+     "id": "courses",
+     "label": "Courses et livraison"
+    },
+    {
+     "id": "baby_sitting",
+     "label": "Baby-sitting et garde d'enfants"
+    },
+    {
+     "id": "menage",
+     "label": "Ménage et repassage"
+    },
+    {
+     "id": "plomberie",
+     "label": "Plomberie"
+    },
+    {
+     "id": "electricite",
+     "label": "Électricité"
+    },
+    {
+     "id": "climatisation",
+     "label": "Climatisation et froid"
+    },
+    {
+     "id": "sante",
+     "label": "Santé à domicile (infirmier, kiné)"
+    },
+    {
+     "id": "cours",
+     "label": "Cours particuliers"
+    },
+    {
+     "id": "cuisine",
+     "label": "Cuisine et traiteur"
+    },
+    {
+     "id": "jardinage",
+     "label": "Jardinage"
+    },
+    {
+     "id": "demenagement",
+     "label": "Déménagement"
+    },
+    {
+     "id": "reparation",
+     "label": "Réparation et dépannage"
+    },
+    {
+     "id": "beaute",
+     "label": "Coiffure et beauté à domicile"
+    },
+    {
+     "id": "chauffeur",
+     "label": "Chauffeur"
+    },
+    {
+     "id": "gardiennage",
+     "label": "Gardiennage"
+    },
+    {
+     "id": "informatique",
+     "label": "Dépannage informatique"
+    },
+    {
+     "id": "autre",
+     "label": "Autre"
+    }
+   ],
+   "medias": {
+    "photo": 8,
+    "video": 2,
+    "pano360": 0
+   },
+   "photoFacultative": true,
+   "prixLabel": "Tarif",
+   "champs": [
+    {
+     "id": "tarif_par",
+     "label": "Tarif par",
+     "type": "choix",
+     "options": [
+      {
+       "id": "heure",
+       "label": "Heure"
+      },
+      {
+       "id": "jour",
+       "label": "Jour"
+      },
+      {
+       "id": "prestation",
+       "label": "Prestation"
+      },
+      {
+       "id": "devis",
+       "label": "Sur devis"
+      }
+     ],
+     "obligatoire": true
+    },
+    {
+     "id": "zone_km",
+     "label": "Zone d'intervention",
+     "type": "nombre",
+     "unite": "km",
+     "filtre": true
+    },
+    {
+     "id": "jours",
+     "label": "Jours de disponibilité",
+     "type": "multi",
+     "options": [
+      {
+       "id": "lun",
+       "label": "Lundi"
+      },
+      {
+       "id": "mar",
+       "label": "Mardi"
+      },
+      {
+       "id": "mer",
+       "label": "Mercredi"
+      },
+      {
+       "id": "jeu",
+       "label": "Jeudi"
+      },
+      {
+       "id": "ven",
+       "label": "Vendredi"
+      },
+      {
+       "id": "sam",
+       "label": "Samedi"
+      },
+      {
+       "id": "dim",
+       "label": "Dimanche"
+      }
+     ]
+    },
+    {
+     "id": "urgence",
+     "label": "Interventions en urgence",
+     "type": "bool",
+     "filtre": true
+    },
+    {
+     "id": "materiel",
+     "label": "Matériel fourni",
+     "type": "bool"
+    },
+    {
+     "id": "experience",
+     "label": "Années d'expérience",
+     "type": "nombre"
+    },
+    {
+     "id": "diplome",
+     "label": "Diplômé / certifié",
+     "type": "bool",
+     "filtre": true
+    }
+   ]
+  },
+  {
+   "id": "animaux",
+   "label": "Animaux",
+   "icon": "paw",
+   "transactions": [
+    {
+     "id": "vente",
+     "label": "Vente"
+    },
+    {
+     "id": "don",
+     "label": "Don"
+    },
+    {
+     "id": "perdu",
+     "label": "Perdu"
+    },
+    {
+     "id": "trouve",
+     "label": "Trouvé"
+    },
+    {
+     "id": "achat",
+     "label": "Recherche"
+    }
+   ],
+   "sousCategories": [
+    {
+     "id": "chiens",
+     "label": "Chiens"
+    },
+    {
+     "id": "chats",
+     "label": "Chats"
+    },
+    {
+     "id": "volaille",
+     "label": "Volaille"
+    },
+    {
+     "id": "betail",
+     "label": "Bétail (chèvres, moutons, porcs)"
+    },
+    {
+     "id": "poissons",
+     "label": "Poissons"
+    },
+    {
+     "id": "accessoires",
+     "label": "Accessoires et nourriture"
+    },
+    {
+     "id": "autre",
+     "label": "Autre"
+    }
+   ],
+   "medias": {
+    "photo": 8,
+    "video": 2,
+    "pano360": 0
+   },
+   "champs": [
+    {
+     "id": "race",
+     "label": "Race",
+     "type": "texte",
+     "filtre": true
+    },
+    {
+     "id": "age_mois",
+     "label": "Âge",
+     "type": "nombre",
+     "unite": "mois"
+    },
+    {
+     "id": "sexe",
+     "label": "Sexe",
+     "type": "choix",
+     "options": [
+      {
+       "id": "m",
+       "label": "Mâle"
+      },
+      {
+       "id": "f",
+       "label": "Femelle"
+      }
+     ]
+    },
+    {
+     "id": "vaccine",
+     "label": "Vacciné",
+     "type": "bool",
+     "filtre": true
+    },
+    {
+     "id": "quantite",
+     "label": "Nombre",
+     "type": "nombre"
+    }
+   ]
+  },
+  {
+   "id": "divers",
+   "label": "Divers",
+   "icon": "pricetag",
+   "transactions": [
+    {
+     "id": "vente",
+     "label": "Vente"
+    },
+    {
+     "id": "don",
+     "label": "Don"
+    },
+    {
+     "id": "achat",
+     "label": "Recherche"
+    },
+    {
+     "id": "echange",
+     "label": "Échange"
+    },
+    {
+     "id": "perdu",
+     "label": "Objet perdu"
+    },
+    {
+     "id": "trouve",
+     "label": "Objet trouvé"
+    }
+   ],
+   "sousCategories": [
+    {
+     "id": "evenements",
+     "label": "Événements et billets"
+    },
+    {
+     "id": "collection",
+     "label": "Collection et art"
+    },
+    {
+     "id": "alimentation",
+     "label": "Alimentation"
+    },
+    {
+     "id": "autre",
+     "label": "Autre"
+    }
+   ],
+   "medias": {
+    "photo": 8,
+    "video": 2,
+    "pano360": 0
+   },
+   "champs": [
+    {
+     "id": "etat",
+     "label": "État",
+     "type": "choix",
+     "options": [
+      {
+       "id": "neuf",
+       "label": "Neuf"
+      },
+      {
+       "id": "comme_neuf",
+       "label": "Comme neuf"
+      },
+      {
+       "id": "bon",
+       "label": "Bon état"
+      },
+      {
+       "id": "usage",
+       "label": "Usagé"
+      },
+      {
+       "id": "pieces",
+       "label": "Pour pièces"
+      }
+     ],
+     "filtre": true
+    },
+    {
+     "id": "livraison",
+     "label": "Livraison possible",
+     "type": "bool",
+     "filtre": true
+    }
+   ]
+  }
+ ]
+}

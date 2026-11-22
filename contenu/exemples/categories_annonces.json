@@ -18,12 +18,21 @@
   "publie": true
  },
  {
+  "id": "equipement",
+  "titre": "Équipement",
+  "icone": "tv",
+  "couleur": "#7C3AED",
+  "quota_gratuit": 1,
+  "ordre": 3,
+  "publie": true
+ },
+ {
   "id": "emploi",
   "titre": "Emploi",
   "icone": "mallette",
   "couleur": "#0D9488",
   "quota_gratuit": 3,
-  "ordre": 3,
+  "ordre": 4,
   "publie": true
  },
  {
@@ -32,7 +41,7 @@
   "icone": "etiquette",
   "couleur": "#D9693F",
   "quota_gratuit": 3,
-  "ordre": 4,
+  "ordre": 5,
   "publie": true
  },
  {
@@ -41,7 +50,7 @@
   "icone": "outil",
   "couleur": "#FDE047",
   "quota_gratuit": 3,
-  "ordre": 5,
+  "ordre": 6,
   "publie": true
  },
  {
@@ -50,7 +59,7 @@
   "icone": "patte",
   "couleur": "#B45309",
   "quota_gratuit": 3,
-  "ordre": 6,
+  "ordre": 7,
   "publie": true
  }
 ]

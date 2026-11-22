@@ -32,6 +32,10 @@ Une unité regroupe des leçons ; la fin d'unité se valide à 4 réponses juste
 | `titre` | texte | oui | Titre. |
 | `titre_myene` | texte |  | Titre en myènè. |
 | `description` | long |  | Description. |
+| `palier` | entier |  | Palier dans l'étape (Ntina : 1 écouter et montrer, 2 nommer et dire, 3 jouer avec les sons). |
+| `palier_titre` | texte |  | Titre du palier, affiché au-dessus de ses unités. |
+| `entree` | choix (adulte_debutant) |  | adulte_debutant : l'adulte qui débute commence ici après le test de niveau. |
+| `suite_id` | texte → `unites` |  | Unité proposée ensuite, si ce n'est pas la suivante dans l'ordre. |
 | `ordre` | entier |  | Position dans la liste (1, 2, 3…). |
 | `publie` | booleen |  | oui/non : visible dans l'application (non par défaut = brouillon). |
 | `rang_min` | entier |  | Rang minimal pour y accéder (1 = tous, jusqu'à 8 : voir la collection « rangs »). |
@@ -632,7 +636,8 @@ Abonnements, achats intégrés et packs de Nkorouna (aucun prix n'est fixé dans
 |---|---|---|---|
 | `id` | texte | oui | Identifiant unique, sans espace (lettres, chiffres, tiret, souligné). |
 | `titre` | texte | oui | Titre. |
-| `type` | choix (abonnement / achat / consommable / nkorouna) | oui | Type ; « nkorouna » = pack de jetons payé en FCFA. |
+| `type` | choix (abonnement / achat / consommable / nkorouna / credit_annonce) | oui | Type ; « nkorouna » = pack de jetons payé en FCFA ; « credit_annonce » = annonces au-delà du quota gratuit (colonne quantite). |
+| `quantite` | nombre |  | Crédit d'annonces : nombre d'annonces données par l'achat (1 par défaut). |
 | `prix_fcfa` | entier |  | Prix en FCFA. |
 | `periode` | choix (mois / an / unique) |  | Période. |
 | `donne_acces` | liste |  | Contenus débloqués par un achat, séparés par \| ; « tout » = toute l'application. |

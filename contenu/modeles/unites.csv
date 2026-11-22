@@ -1,2 +1,2 @@
-﻿id,parcours_id,titre,titre_myene,description,ordre,publie,rang_min,plans
-ntina-01,,,,,1,oui,1,
+﻿id,parcours_id,titre,titre_myene,description,palier,palier_titre,entree,suite_id,ordre,publie,rang_min,plans
+ntina-01,,,,,1,Palier 1 · Écouter et montrer (3-4 ans),,,1,oui,1,
