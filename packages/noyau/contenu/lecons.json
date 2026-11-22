@@ -54,22 +54,22 @@
  },
  {
   "id": "ogendo-l1",
-  "unite_id": "ntina-u3",
+  "unite_id": "ogendo-u7",
   "titre": "Révision : les consonnes de l'ôrungu",
   "duree_min": 12,
   "xp": 25,
   "mode": "tous",
-  "ordre": 5,
+  "ordre": 7,
   "publie": true
  },
  {
   "id": "ogendo-l2",
-  "unite_id": "ntina-u3",
-  "titre": "Les tons",
+  "unite_id": "ogendo-u7",
+  "titre": "La musique des mots",
   "duree_min": 10,
   "xp": 25,
   "mode": "tous",
-  "ordre": 6,
+  "ordre": 8,
   "publie": true
  },
  {
@@ -587,6 +587,83 @@
   "mode": "adulte",
   "niveau_acces": "libre",
   "ordre": 3,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l18",
+  "unite_id": "ogendo-u7",
+  "titre": "Les sept voyelles",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l19",
+  "unite_id": "ogendo-u7",
+  "titre": "Le chapeau change le sens",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 2,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l20",
+  "unite_id": "ogendo-u7",
+  "titre": "Les lettres simples",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 3,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l21",
+  "unite_id": "ogendo-u7",
+  "titre": "c et j",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 4,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l22",
+  "unite_id": "ogendo-u7",
+  "titre": "ny, sh, jh, ngh",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 5,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l23",
+  "unite_id": "ogendo-u7",
+  "titre": "Les lettres qui vont par deux",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 6,
+  "publie": true
+ },
+ {
+  "id": "ogendo-l24",
+  "unite_id": "ogendo-u7",
+  "titre": "Les mots venus d'ailleurs",
+  "duree_min": 8,
+  "xp": 20,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 9,
   "publie": true
  }
 ]

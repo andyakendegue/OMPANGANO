@@ -23,9 +23,9 @@
  {
   "id": "ntina-u3",
   "parcours_id": "ogendo",
-  "titre": "Lire et écrire les sons",
-  "description": "Les sept voyelles et toutes les consonnes, puis les tons : lire et écrire.",
-  "ordre": 1,
+  "titre": "Les sons en détail",
+  "description": "Pour aller plus loin : chaque voyelle et chaque consonne, comment la bouche les fait, avec beaucoup d'exemples.",
+  "ordre": 2,
   "publie": true
  },
  {
@@ -42,7 +42,7 @@
   "titre": "Dire juste",
   "titre_myene": "",
   "description": "Répéter beaucoup de mots pour bien prononcer : les voyelles, les consonnes, les tons qui changent le sens et le phrasé.",
-  "ordre": 2,
+  "ordre": 3,
   "publie": true
  },
  {
@@ -62,7 +62,7 @@
   "titre": "La maison et ses objets",
   "titre_myene": "",
   "description": "Les pièces de la maison, les meubles, la cuisine, le repas, les habits et les affaires de tous les jours.",
-  "ordre": 4,
+  "ordre": 5,
   "publie": true
  },
  {
@@ -71,7 +71,7 @@
   "titre": "L'espace : où ?",
   "titre_myene": "",
   "description": "Les lieux, les positions et les directions : dire où sont les choses et où l'on va.",
-  "ordre": 5,
+  "ordre": 6,
   "publie": true
  },
  {
@@ -80,7 +80,7 @@
   "titre": "Le temps",
   "titre_myene": "",
   "description": "Le jour et la nuit, les moments de la journée, hier, aujourd'hui, demain, la semaine, le mois, l'année et les saisons.",
-  "ordre": 6,
+  "ordre": 7,
   "publie": true
  },
  {
@@ -89,7 +89,7 @@
   "titre": "Compter plus loin",
   "titre_myene": "",
   "description": "De 11 à 1000 : les dizaines, les centaines et les milliers.",
-  "ordre": 7,
+  "ordre": 8,
   "publie": true
  },
  {
@@ -197,7 +197,7 @@
   "parcours_id": "ogendo",
   "titre": "Faire des phrases",
   "description": "Qui parle, maintenant, hier, demain, et poser une question (formes validées par Capp).",
-  "ordre": 3,
+  "ordre": 4,
   "publie": true
  },
  {
@@ -208,6 +208,15 @@
   "ordre": 1,
   "publie": true,
   "entree": "adulte_debutant",
-  "suite_id": "ntina-u3"
+  "suite_id": "ogendo-u7"
+ },
+ {
+  "id": "ogendo-u7",
+  "parcours_id": "ogendo",
+  "titre": "Lire et écrire",
+  "titre_myene": "",
+  "description": "L'alphabet de l'ôrungu : les sept voyelles, le chapeau qui change le sens, les lettres simples, c et j, ny et ngh, les lettres qui vont par deux, la musique des mots et les mots venus d'ailleurs.",
+  "ordre": 1,
+  "publie": true
  }
 ]

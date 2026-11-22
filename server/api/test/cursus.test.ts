@@ -36,21 +36,26 @@ test('chaque unité publiée a au moins cinq questions de contrôle (4 sur 5)', 
 
 test('la phonétique passe dans Ogêndo, sans perte ; la colonne grammaticale suit', () => {
   const og = ord(U.filter(u => u.parcours_id === 'ogendo')).map(u => u.id);
-  assert.deepEqual(og.slice(0, 3), ['ntina-u3', 'ntina-u4', 'ogendo-u6']);
-  for (const l of ['ntina-l4', 'ntina-l6', 'ntina-l7', 'ntina-l8', 'ogendo-l1', 'ogendo-l2']) assert.equal(L.find(x => x.id === l)?.unite_id, 'ntina-u3', l);
+  // Lot 3 du cursus v3 : « Lire et écrire » (alphabet de Rékanga) en tête ; les leçons de sons restent en aide (« Les sons en détail »).
+  assert.deepEqual(og.slice(0, 4), ['ogendo-u7', 'ntina-u3', 'ntina-u4', 'ogendo-u6']);
+  for (const l of ['ntina-l4', 'ntina-l6', 'ntina-l7', 'ntina-l8']) assert.equal(L.find(x => x.id === l)?.unite_id, 'ntina-u3', l);
+  for (const l of ['ogendo-l18', 'ogendo-l19', 'ogendo-l20', 'ogendo-l21', 'ogendo-l22', 'ogendo-l23', 'ogendo-l1', 'ogendo-l2', 'ogendo-l24']) assert.equal(L.find(x => x.id === l)?.unite_id, 'ogendo-u7', l);
+  const paires = exDe('ogendo-u7').filter(e => e.lecon_id === 'ogendo-l19' && e.type === 'ecouter').map(e => e.mot_myene);
+  for (const m of ['mpono', 'mpônô', 'nkondo', 'nkôndô', 'rerê', 'rere']) assert.ok(paires.includes(m), `paire validée par Capp : ${m}`);
   assert.ok(E.filter(e => /^ntina-l(9|1[0-4])$/.test(e.lecon_id)).length >= 250, '« Dire juste » garde ses exercices');
   const gram = exDe('ogendo-u6');
-  for (const forme of ['Myê nya', 'Ma nyeni', 'Myê be nya', "Wê bel'incango nde ?"]) // graphie v3 (22 nov. 2026) assert.ok(gram.some(e => e.mot_myene === forme || e.reponse === forme), forme);
+  // graphie v3 (22 nov. 2026)
+  for (const forme of ['Myê nya', 'Ma nyeni', 'Myê be nya', "Wê bel'incango nde ?"]) assert.ok(gram.some(e => e.mot_myene === forme || e.reponse === forme), forme);
   assert.ok(!gram.some(e => e.reponse === 'a jani' || e.mot_myene === 'a jani'), 'forme rejetée par Capp : seulement comme mauvaise réponse');
 });
 
-test('l\'adulte qui débute commence à Ikôkô puis rejoint Ogèndo, sans repasser par Ntina', () => {
+test('l\'adulte qui débute commence à Ikôkô puis rejoint Ogêndo, sans repasser par Ntina', () => {
   const placeAuDebut = { parcoursId: 'ntina', uniteId: 'ntina-u1' };
   assert.deepEqual(departAdulte(placeAuDebut, P, U), { parcoursId: 'ikoko', uniteId: 'ikoko-u1' });
   assert.deepEqual(departAdulte({ parcoursId: 'ogendo', uniteId: 'ntina-u3' }, P, U), { parcoursId: 'ogendo', uniteId: 'ntina-u3' }, 'placé plus loin : inchangé');
-  assert.equal(uniteSuivante('ikoko-u1', P, U)?.unite.id, 'ntina-u3');
+  assert.equal(uniteSuivante('ikoko-u1', P, U)?.unite.id, 'ogendo-u7', 'après « Premiers échanges » : lire et écrire');
   const chemin = ordreDepuis('ikoko-u1', P, U);
-  assert.deepEqual(chemin.slice(0, 3), ['ikoko-u1', 'ntina-u3', 'ntina-u4']);
+  assert.deepEqual(chemin.slice(0, 3), ['ikoko-u1', 'ogendo-u7', 'ntina-u3']);
   assert.ok(chemin.indexOf('ogendo-u5') < chemin.indexOf('ntina-u1'), 'Ntina n\'arrive qu\'après tout le reste');
   assert.deepEqual(ordreDepuis(null, P, U).slice(0, 2), ['ntina-u1', 'ntina-u2']);
 });

@@ -202,7 +202,7 @@
   "type": "dictee",
   "consigne": "Écris en myènè : « S'il te plaît ».",
   "mot_francais": "S'il te plaît",
-  "reponse": "Kôkôlô/Kokolo",
+  "reponse": "Kôkôlô",
   "source": "[LEC] Formules de politesse",
   "ordre": 5
  },
@@ -11584,5 +11584,994 @@
   ],
   "source": "Mots de la leçon (exercices gl9-mot-01, gl9-mot-02, gl9-mot-04, gl9-mot-05, gl9-mot-07, gl9-mot-08, gl9-mot-09)",
   "ordre": 20
+ },
+ {
+  "id": "le-l18-01",
+  "lecon_id": "ogendo-l18",
+  "type": "cours",
+  "consigne": "Les sept voyelles",
+  "texte": "L'ôrungu a sept voyelles : a, e, ê, i, o, ô, u. Deux portent un chapeau : ê et ô. Le e se dit la bouche un peu ouverte ; le ê, la bouche plus ouverte. Le o se dit les lèvres arrondies ; le ô, la bouche bien ouverte.",
+  "conseil": "Chaque lettre se dit toujours : le e n'est jamais muet.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l18-02",
+  "lecon_id": "ogendo-l18",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "akewa",
+  "mot_francais": "merci",
+  "illustration": "🙏",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l18-03",
+  "lecon_id": "ogendo-l18",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "kisini",
+  "mot_francais": "la cuisine",
+  "illustration": "🍳",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l18-04",
+  "lecon_id": "ogendo-l18",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "epokolo",
+  "mot_francais": "le chapeau",
+  "illustration": "👒",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l18-05",
+  "lecon_id": "ogendo-l18",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ekuru",
+  "mot_francais": "le hibou",
+  "illustration": "🦉",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "le-l18-06",
+  "lecon_id": "ogendo-l18",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mbêrê",
+  "mot_francais": "la sardine",
+  "illustration": "🐟",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 6
+ },
+ {
+  "id": "le-l18-07",
+  "lecon_id": "ogendo-l18",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "akôndô",
+  "mot_francais": "les bananes plantains",
+  "illustration": "🍌",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 7
+ },
+ {
+  "id": "le-l18-08",
+  "lecon_id": "ogendo-l18",
+  "type": "quel_son",
+  "consigne": "Quelle voyelle avec un chapeau entends-tu dans « akôndô » ?",
+  "mot_myene": "akôndô",
+  "mot_francais": "les bananes plantains",
+  "illustration": "🍌",
+  "options": [
+   "o",
+   "ô",
+   "u"
+  ],
+  "reponse": "ô",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 8
+ },
+ {
+  "id": "le-l18-09",
+  "lecon_id": "ogendo-l18",
+  "type": "quel_son",
+  "consigne": "Quelle voyelle se répète dans « mbêrê » ?",
+  "mot_myene": "mbêrê",
+  "mot_francais": "la sardine",
+  "illustration": "🐟",
+  "options": [
+   "e",
+   "ê",
+   "i"
+  ],
+  "reponse": "ê",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 9
+ },
+ {
+  "id": "le-l18-10",
+  "lecon_id": "ogendo-l18",
+  "type": "quel_son",
+  "consigne": "Par quelle voyelle commence « ekuru » ?",
+  "mot_myene": "ekuru",
+  "mot_francais": "le hibou",
+  "illustration": "🦉",
+  "options": [
+   "e",
+   "ê",
+   "a"
+  ],
+  "reponse": "e",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 10
+ },
+ {
+  "id": "le-l18-11",
+  "lecon_id": "ogendo-l18",
+  "type": "tracer",
+  "consigne": "Écris la voyelle avec un chapeau.",
+  "graphie": "ê",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "le-l18-12",
+  "lecon_id": "ogendo-l18",
+  "type": "tracer",
+  "consigne": "Écris la voyelle avec un chapeau.",
+  "graphie": "ô",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 12
+ },
+ {
+  "id": "le-l18-13",
+  "lecon_id": "ogendo-l18",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « merci ».",
+  "mot_francais": "merci",
+  "reponse": "Akewa",
+  "indice": "Il commence par « Ak… ».",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 13
+ },
+ {
+  "id": "le-l18-14",
+  "lecon_id": "ogendo-l18",
+  "type": "dire",
+  "consigne": "Dis « akôndô » à voix haute.",
+  "mot_myene": "akôndô",
+  "mot_francais": "les bananes plantains",
+  "illustration": "🍌",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 14
+ },
+ {
+  "id": "le-l19-01",
+  "lecon_id": "ogendo-l19",
+  "type": "cours",
+  "consigne": "Le chapeau change le sens",
+  "texte": "Un petit chapeau sur le e ou sur le o, et le mot change : mpono, le couvercle ; mpônô, le chemin. nkondo, la carpe ; nkôndô, la troupe. rerê, papa ; rere, les arbres.",
+  "conseil": "Écoute bien : avec le chapeau, la bouche s'ouvre davantage.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l19-02",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mpono",
+  "mot_francais": "le couvercle",
+  "illustration": "🫙",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l19-03",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mpônô",
+  "mot_francais": "le chemin",
+  "illustration": "🛤️",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l19-04",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkondo",
+  "mot_francais": "la carpe",
+  "illustration": "🐟",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l19-05",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkôndô",
+  "mot_francais": "la troupe",
+  "illustration": "👥",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "le-l19-06",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "rerê",
+  "mot_francais": "papa",
+  "illustration": "👨",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 6
+ },
+ {
+  "id": "le-l19-07",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "rere",
+  "mot_francais": "les arbres",
+  "illustration": "🌳",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 7
+ },
+ {
+  "id": "le-l19-08",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igôla",
+  "mot_francais": "les montres",
+  "illustration": "⌚",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 8
+ },
+ {
+  "id": "le-l19-09",
+  "lecon_id": "ogendo-l19",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "igola",
+  "mot_francais": "les vers",
+  "illustration": "🪱",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 9
+ },
+ {
+  "id": "le-l19-10",
+  "lecon_id": "ogendo-l19",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le chemin » ?",
+  "options": [
+   "mpônô",
+   "mpono"
+  ],
+  "reponse": "mpônô",
+  "illustration": "🛤️",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 10
+ },
+ {
+  "id": "le-l19-11",
+  "lecon_id": "ogendo-l19",
+  "type": "choix",
+  "consigne": "Lequel veut dire « papa » ?",
+  "options": [
+   "rere",
+   "rerê"
+  ],
+  "reponse": "rerê",
+  "illustration": "👨",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "le-l19-12",
+  "lecon_id": "ogendo-l19",
+  "type": "choix",
+  "consigne": "Lequel veut dire « la carpe » ?",
+  "options": [
+   "nkôndô",
+   "nkondo"
+  ],
+  "reponse": "nkondo",
+  "illustration": "🐟",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 12
+ },
+ {
+  "id": "le-l19-13",
+  "lecon_id": "ogendo-l19",
+  "type": "choix",
+  "consigne": "Lequel veut dire « les montres » ?",
+  "options": [
+   "igola",
+   "igôla"
+  ],
+  "reponse": "igôla",
+  "illustration": "⌚",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 13
+ },
+ {
+  "id": "le-l19-14",
+  "lecon_id": "ogendo-l19",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le chemin ».",
+  "mot_francais": "le chemin",
+  "reponse": "mpônô",
+  "indice": "N'oublie pas les chapeaux.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 14
+ },
+ {
+  "id": "le-l20-01",
+  "lecon_id": "ogendo-l20",
+  "type": "cours",
+  "consigne": "Les lettres simples",
+  "texte": "b, d, f, g, k, l, m, n, p, r, s, t, v, w, y, z. Le g est toujours dur ; entre deux voyelles, il se dit plus doux. Le s reste dur. Le r se dit en tapant une seule fois la langue. Le v est un seul son, entre v et w.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l20-02",
+  "lecon_id": "ogendo-l20",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ebanda",
+  "mot_francais": "la peau",
+  "illustration": "🤚",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l20-03",
+  "lecon_id": "ogendo-l20",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ogolo",
+  "mot_francais": "le pied",
+  "illustration": "🦶",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l20-04",
+  "lecon_id": "ogendo-l20",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ivava",
+  "mot_francais": "l'aile",
+  "illustration": "🪽",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l20-05",
+  "lecon_id": "ogendo-l20",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "swaka",
+  "mot_francais": "le couteau",
+  "illustration": "🔪",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "le-l20-06",
+  "lecon_id": "ogendo-l20",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nago",
+  "mot_francais": "la maison",
+  "illustration": "🏠",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 6
+ },
+ {
+  "id": "le-l20-07",
+  "lecon_id": "ogendo-l20",
+  "type": "quel_son",
+  "consigne": "Quelle lettre entends-tu deux fois dans « ivava » ?",
+  "mot_myene": "ivava",
+  "mot_francais": "l'aile",
+  "illustration": "🪽",
+  "options": [
+   "v",
+   "w",
+   "b"
+  ],
+  "reponse": "v",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 7
+ },
+ {
+  "id": "le-l20-08",
+  "lecon_id": "ogendo-l20",
+  "type": "quel_son",
+  "consigne": "Quelle lettre commence « swaka » ?",
+  "mot_myene": "swaka",
+  "mot_francais": "le couteau",
+  "illustration": "🔪",
+  "options": [
+   "s",
+   "z",
+   "c"
+  ],
+  "reponse": "s",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 8
+ },
+ {
+  "id": "le-l20-09",
+  "lecon_id": "ogendo-l20",
+  "type": "choix",
+  "consigne": "Comment dit-on « le pied » ?",
+  "options": [
+   "ogolo",
+   "nago",
+   "swaka"
+  ],
+  "reponse": "ogolo",
+  "illustration": "🦶",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 9
+ },
+ {
+  "id": "le-l20-10",
+  "lecon_id": "ogendo-l20",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « la maison ».",
+  "mot_francais": "la maison",
+  "reponse": "nago",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 10
+ },
+ {
+  "id": "le-l20-11",
+  "lecon_id": "ogendo-l20",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le pied ».",
+  "mot_francais": "le pied",
+  "reponse": "ogolo",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "le-l20-12",
+  "lecon_id": "ogendo-l20",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "v",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 12
+ },
+ {
+  "id": "le-l21-01",
+  "lecon_id": "ogendo-l21",
+  "type": "cours",
+  "consigne": "c et j",
+  "texte": "Le c se dit « tch » : incango, les nouvelles ; ncaro, trois. Le j se dit « dy » ou « dj » : jêna, voir ; njôgu, l'éléphant. On les retrouve dans Onênji, le nom du module où tu apprends.",
+  "conseil": "Après n, ils ne font qu'un son avec le n : nc, nj.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l21-02",
+  "lecon_id": "ogendo-l21",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "incango",
+  "mot_francais": "les nouvelles",
+  "illustration": "📰",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l21-03",
+  "lecon_id": "ogendo-l21",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "ncaro",
+  "mot_francais": "trois",
+  "illustration": "3️⃣",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l21-04",
+  "lecon_id": "ogendo-l21",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "jêna",
+  "mot_francais": "voir",
+  "illustration": "👀",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l21-05",
+  "lecon_id": "ogendo-l21",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "njôgu",
+  "mot_francais": "l'éléphant",
+  "illustration": "🐘",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "le-l21-06",
+  "lecon_id": "ogendo-l21",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "njina",
+  "mot_francais": "le gorille",
+  "illustration": "🦍",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 6
+ },
+ {
+  "id": "le-l21-07",
+  "lecon_id": "ogendo-l21",
+  "type": "quel_son",
+  "consigne": "Quelle lettre entends-tu au début de « jêna » ?",
+  "mot_myene": "jêna",
+  "mot_francais": "voir",
+  "illustration": "👀",
+  "options": [
+   "j",
+   "c",
+   "y"
+  ],
+  "reponse": "j",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 7
+ },
+ {
+  "id": "le-l21-08",
+  "lecon_id": "ogendo-l21",
+  "type": "quel_son",
+  "consigne": "Quelles lettres entends-tu au début de « ncaro » ?",
+  "mot_myene": "ncaro",
+  "mot_francais": "trois",
+  "illustration": "3️⃣",
+  "options": [
+   "nc",
+   "nj",
+   "c"
+  ],
+  "reponse": "nc",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 8
+ },
+ {
+  "id": "le-l21-09",
+  "lecon_id": "ogendo-l21",
+  "type": "choix",
+  "consigne": "Comment dit-on « l'éléphant » ?",
+  "options": [
+   "njôgu",
+   "njina",
+   "incango"
+  ],
+  "reponse": "njôgu",
+  "illustration": "🐘",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 9
+ },
+ {
+  "id": "le-l21-10",
+  "lecon_id": "ogendo-l21",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « trois ».",
+  "mot_francais": "trois",
+  "reponse": "ncaro",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 10
+ },
+ {
+  "id": "le-l21-11",
+  "lecon_id": "ogendo-l21",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « les nouvelles ».",
+  "mot_francais": "les nouvelles",
+  "reponse": "incango",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "le-l21-12",
+  "lecon_id": "ogendo-l21",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "c",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 12
+ },
+ {
+  "id": "le-l21-13",
+  "lecon_id": "ogendo-l21",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "j",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 13
+ },
+ {
+  "id": "le-l21-14",
+  "lecon_id": "ogendo-l21",
+  "type": "dire",
+  "consigne": "Dis « njôgu » à voix haute.",
+  "mot_myene": "njôgu",
+  "mot_francais": "l'éléphant",
+  "illustration": "🐘",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 14
+ },
+ {
+  "id": "le-l22-01",
+  "lecon_id": "ogendo-l22",
+  "type": "cours",
+  "consigne": "ny, sh, jh, ngh",
+  "texte": "Certains sons s'écrivent avec plusieurs lettres. ny : nyama, la viande. ngh se fait au fond de la bouche : nghomba, le porc-épic ; nghango, le médicament ; nghandi, la jalousie. sh et jh sont rares.",
+  "conseil": "Ces lettres ne se séparent jamais : ny, ngh, sh, jh font chacune un seul son.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l22-02",
+  "lecon_id": "ogendo-l22",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nyama",
+  "mot_francais": "la viande",
+  "illustration": "🍖",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l22-03",
+  "lecon_id": "ogendo-l22",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nghomba",
+  "mot_francais": "le porc-épic",
+  "illustration": "🦔",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l22-04",
+  "lecon_id": "ogendo-l22",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nghango",
+  "mot_francais": "le médicament",
+  "illustration": "💊",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l22-05",
+  "lecon_id": "ogendo-l22",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nghandi",
+  "mot_francais": "la jalousie",
+  "illustration": "😒",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "le-l22-06",
+  "lecon_id": "ogendo-l22",
+  "type": "quel_son",
+  "consigne": "Par quelles lettres commence « nghomba » ?",
+  "mot_myene": "nghomba",
+  "mot_francais": "le porc-épic",
+  "illustration": "🦔",
+  "options": [
+   "ngh",
+   "ng",
+   "ny"
+  ],
+  "reponse": "ngh",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 6
+ },
+ {
+  "id": "le-l22-07",
+  "lecon_id": "ogendo-l22",
+  "type": "quel_son",
+  "consigne": "Par quelles lettres commence « nyama » ?",
+  "mot_myene": "nyama",
+  "mot_francais": "la viande",
+  "illustration": "🍖",
+  "options": [
+   "ny",
+   "n",
+   "ngh"
+  ],
+  "reponse": "ny",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 7
+ },
+ {
+  "id": "le-l22-08",
+  "lecon_id": "ogendo-l22",
+  "type": "choix",
+  "consigne": "Comment dit-on « le médicament » ?",
+  "options": [
+   "nghango",
+   "nghandi",
+   "nyama"
+  ],
+  "reponse": "nghango",
+  "illustration": "💊",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 8
+ },
+ {
+  "id": "le-l22-09",
+  "lecon_id": "ogendo-l22",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le porc-épic ».",
+  "mot_francais": "le porc-épic",
+  "reponse": "nghomba",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 9
+ },
+ {
+  "id": "le-l22-10",
+  "lecon_id": "ogendo-l22",
+  "type": "tracer",
+  "consigne": "Écris les lettres.",
+  "graphie": "ny",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 10
+ },
+ {
+  "id": "le-l22-11",
+  "lecon_id": "ogendo-l22",
+  "type": "tracer",
+  "consigne": "Écris les lettres.",
+  "graphie": "ngh",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "le-l22-12",
+  "lecon_id": "ogendo-l22",
+  "type": "dire",
+  "consigne": "Dis « nghomba » à voix haute.",
+  "mot_myene": "nghomba",
+  "mot_francais": "le porc-épic",
+  "illustration": "🦔",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 12
+ },
+ {
+  "id": "le-l23-01",
+  "lecon_id": "ogendo-l23",
+  "type": "cours",
+  "consigne": "Les lettres qui vont par deux",
+  "texte": "m ou n devant une autre lettre se disent d'un seul coup : mb, mp, mf, nd, nt, nc, nj, ng, nk. On ne les sépare jamais quand on coupe un mot : na-go, a-wa-na, mbwa, i-ka-ka, kê-ma, e-wo-njo.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l23-02",
+  "lecon_id": "ogendo-l23",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mbwa",
+  "mot_francais": "le chien",
+  "illustration": "🐕",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l23-03",
+  "lecon_id": "ogendo-l23",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "mpêmba",
+  "mot_francais": "le pain",
+  "illustration": "🍞",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l23-04",
+  "lecon_id": "ogendo-l23",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "nkambi",
+  "mot_francais": "l'antilope",
+  "illustration": "🦌",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l23-05",
+  "lecon_id": "ogendo-l23",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "njina",
+  "mot_francais": "le gorille",
+  "illustration": "🦍",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "le-l23-06",
+  "lecon_id": "ogendo-l23",
+  "type": "choix",
+  "consigne": "Comment coupe-t-on « ewonjo » (la tête) ?",
+  "options": [
+   "e-wo-njo",
+   "e-won-jo"
+  ],
+  "reponse": "e-wo-njo",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 6
+ },
+ {
+  "id": "le-l23-07",
+  "lecon_id": "ogendo-l23",
+  "type": "choix",
+  "consigne": "Comment coupe-t-on « awana » (les enfants) ?",
+  "options": [
+   "a-wa-na",
+   "aw-a-na"
+  ],
+  "reponse": "a-wa-na",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 7
+ },
+ {
+  "id": "le-l23-08",
+  "lecon_id": "ogendo-l23",
+  "type": "choix",
+  "consigne": "Comment coupe-t-on « kêma » (le singe) ?",
+  "options": [
+   "kê-ma",
+   "kêm-a"
+  ],
+  "reponse": "kê-ma",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 8
+ },
+ {
+  "id": "le-l23-09",
+  "lecon_id": "ogendo-l23",
+  "type": "choix",
+  "consigne": "Comment dit-on « l'antilope » ?",
+  "options": [
+   "nkambi",
+   "mbwa",
+   "mpêmba"
+  ],
+  "reponse": "nkambi",
+  "illustration": "🦌",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 9
+ },
+ {
+  "id": "le-l23-10",
+  "lecon_id": "ogendo-l23",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « le chien ».",
+  "mot_francais": "le chien",
+  "reponse": "mbwa",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 10
+ },
+ {
+  "id": "le-l23-11",
+  "lecon_id": "ogendo-l23",
+  "type": "tracer",
+  "consigne": "Écris les lettres qui vont ensemble.",
+  "graphie": "nd",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "le-l24-01",
+  "lecon_id": "ogendo-l24",
+  "type": "cours",
+  "consigne": "Les mots venus d'ailleurs",
+  "texte": "Dans les mots de l'ôrungu, an, en, on se lisent a-n, e-n, o-n. Les mots venus d'autres langues peuvent garder leur son par le nez : on l'écrit avec n ou m après la voyelle, comme dans kômpita, l'ordinateur.",
+  "conseil": "Quand un mot n'existe pas en myènè, on garde le mot français tel quel.",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 1
+ },
+ {
+  "id": "le-l24-02",
+  "lecon_id": "ogendo-l24",
+  "type": "ecouter",
+  "consigne": "Lis, écoute et répète.",
+  "mot_myene": "kômpita",
+  "mot_francais": "l'ordinateur",
+  "illustration": "💻",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 2
+ },
+ {
+  "id": "le-l24-03",
+  "lecon_id": "ogendo-l24",
+  "type": "choix",
+  "consigne": "Comment dit-on « l'ordinateur » ?",
+  "options": [
+   "kômpita",
+   "kisini",
+   "nago"
+  ],
+  "reponse": "kômpita",
+  "illustration": "💻",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 3
+ },
+ {
+  "id": "le-l24-04",
+  "lecon_id": "ogendo-l24",
+  "type": "dictee",
+  "consigne": "Écris en myènè le mot qui veut dire « l'ordinateur ».",
+  "mot_francais": "l'ordinateur",
+  "reponse": "kômpita",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 4
+ },
+ {
+  "id": "le-l24-05",
+  "lecon_id": "ogendo-l24",
+  "type": "dire",
+  "consigne": "Dis « kômpita » à voix haute.",
+  "mot_myene": "kômpita",
+  "mot_francais": "l'ordinateur",
+  "illustration": "💻",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 5
+ },
+ {
+  "id": "ntina-l33-tr-c",
+  "lecon_id": "ntina-l33",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "c",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 11
+ },
+ {
+  "id": "ntina-l33-tr-j",
+  "lecon_id": "ntina-l33",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "j",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 12
+ },
+ {
+  "id": "ntina-l33-tr-ny",
+  "lecon_id": "ntina-l33",
+  "type": "tracer",
+  "consigne": "Écris la lettre.",
+  "graphie": "ny",
+  "source": "Règles de référence v3.3 (§ 2 lettres, § 9 mots décidés par Capp) ; alphabet de Rékanga",
+  "ordre": 13
  }
 ]

@@ -106,7 +106,8 @@ export function controlerAffiche(champ: string, texte: string | null | undefined
   const s = t.match(RX_TERMES); if (s) res.push({ champ, regle: 'terme_specialiste', extrait: s[1] });
   const c = t.match(CROCHETS); if (c) res.push({ champ, regle: 'crochets', extrait: c[0] });
   const rx = myene ? LETTRES_V2 : SUITES_V2;
-  const fautif = mots(t).find(m => rx.test(graveImperatifOte(m)) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr')) && !(m.length === 1 && !myene));
+  // Dans un texte français, « tch », « dy », « dj » seuls disent comment se prononce c ou j (règles § 2.2) : admis.
+  const fautif = mots(t).find(m => rx.test(graveImperatifOte(m)) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr')) && !(m.length === 1 && !myene) && !(!myene && /^(tch|dy|dj)$/i.test(m)));
   if (fautif) res.push({ champ, regle: 'lettre_v2', extrait: fautif });
   return res;
 }
