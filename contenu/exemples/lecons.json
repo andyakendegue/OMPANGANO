@@ -753,5 +753,115 @@
   "niveau_acces": "libre",
   "ordre": 13,
   "publie": true
+ },
+ {
+  "id": "emeno-l1",
+  "unite_id": "emeno-u1",
+  "titre": "Les familles de mots",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l2",
+  "unite_id": "emeno-u2",
+  "titre": "Dire « de »",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l3",
+  "unite_id": "emeno-u3",
+  "titre": "Quand le mot change de son",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l4",
+  "unite_id": "emeno-u4",
+  "titre": "Un verbe en donne d'autres",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l5",
+  "unite_id": "emeno-u5",
+  "titre": "Raconter",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l6",
+  "unite_id": "emeno-u6",
+  "titre": "Celui qui…",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l7",
+  "unite_id": "emeno-u7",
+  "titre": "Les nouvelles du pays",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l8",
+  "unite_id": "emeno-u8",
+  "titre": "Le sens caché des proverbes",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l9",
+  "unite_id": "emeno-u9",
+  "titre": "Notre histoire",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
+ },
+ {
+  "id": "emeno-l10",
+  "unite_id": "emeno-u10",
+  "titre": "Bien écrire",
+  "duree_min": 10,
+  "xp": 25,
+  "mode": "tous",
+  "niveau_acces": "libre",
+  "ordre": 1,
+  "publie": true
  }
 ]

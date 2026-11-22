@@ -14095,5 +14095,1629 @@
   "reponse": "🔥",
   "source": "[LEC] La Nature",
   "ordre": 10
+ },
+ {
+  "id": "em-01-01",
+  "lecon_id": "emeno-l1",
+  "type": "cours",
+  "consigne": "Les familles de mots",
+  "texte": "Les mots de l'ôrungu vont par familles. Chaque famille a sa façon de dire « un » et « plusieurs » : onghwana, l'enfant / awana, les enfants ; nago, la maison / inago, les maisons ; ezôma, la chose / iyoma, les choses ; owaro, la pirogue / amaro, les pirogues.",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 1
+ },
+ {
+  "id": "em-01-02",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "onghwana",
+  "mot_francais": "l'enfant",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 2
+ },
+ {
+  "id": "em-01-03",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "awana",
+  "mot_francais": "les enfants",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 3
+ },
+ {
+  "id": "em-01-04",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "oga",
+  "mot_francais": "le chef",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 4
+ },
+ {
+  "id": "em-01-05",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "aga",
+  "mot_francais": "les chefs",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 5
+ },
+ {
+  "id": "em-01-06",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "iba",
+  "mot_francais": "la mangue",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 6
+ },
+ {
+  "id": "em-01-07",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "aba",
+  "mot_francais": "les mangues",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 7
+ },
+ {
+  "id": "em-01-08",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ezôma",
+  "mot_francais": "la chose",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 8
+ },
+ {
+  "id": "em-01-09",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "iyoma",
+  "mot_francais": "les choses",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 9
+ },
+ {
+  "id": "em-01-10",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "owaro",
+  "mot_francais": "la pirogue",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 10
+ },
+ {
+  "id": "em-01-11",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "amaro",
+  "mot_francais": "les pirogues",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 11
+ },
+ {
+  "id": "em-01-12",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "okita",
+  "mot_francais": "le commerce",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 12
+ },
+ {
+  "id": "em-01-13",
+  "lecon_id": "emeno-l1",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ikita",
+  "mot_francais": "les commerces",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 13
+ },
+ {
+  "id": "em-01-14",
+  "lecon_id": "emeno-l1",
+  "type": "choix",
+  "consigne": "Comment dit-on « les enfants » ?",
+  "options": [
+   "awana",
+   "onghwana",
+   "aga"
+  ],
+  "reponse": "awana",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 14
+ },
+ {
+  "id": "em-01-15",
+  "lecon_id": "emeno-l1",
+  "type": "choix",
+  "consigne": "Comment dit-on « les choses » ?",
+  "options": [
+   "iyoma",
+   "ezôma",
+   "inago"
+  ],
+  "reponse": "iyoma",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 15
+ },
+ {
+  "id": "em-01-16",
+  "lecon_id": "emeno-l1",
+  "type": "choix",
+  "consigne": "Comment dit-on « les pirogues » ?",
+  "options": [
+   "amaro",
+   "owaro",
+   "aba"
+  ],
+  "reponse": "amaro",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 16
+ },
+ {
+  "id": "em-01-17",
+  "lecon_id": "emeno-l1",
+  "type": "associer",
+  "consigne": "Que veut dire « ikita » ?",
+  "mot_myene": "ikita",
+  "options": [
+   "les commerces",
+   "le commerce",
+   "les mangues",
+   "les chefs"
+  ],
+  "reponse": "les commerces",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 17
+ },
+ {
+  "id": "em-01-18",
+  "lecon_id": "emeno-l1",
+  "type": "associer",
+  "consigne": "Que veut dire « aga » ?",
+  "mot_myene": "aga",
+  "options": [
+   "les chefs",
+   "le chef",
+   "les enfants",
+   "les choses"
+  ],
+  "reponse": "les chefs",
+  "source": "Règles de référence v3.3 § 5.1",
+  "ordre": 18
+ },
+ {
+  "id": "em-02-01",
+  "lecon_id": "emeno-l2",
+  "type": "cours",
+  "consigne": "Dire « de »",
+  "texte": "Pour dire « de », on prend un petit mot qui s'accorde avec le mot d'avant ; sa voyelle tombe devant le mot suivant : onghwana w'inkala, un enfant du village ; incango s'ince, les nouvelles du pays ; Oga wi nce, le chef de l'État.",
+  "conseil": "Devant une couleur, le petit mot reste entier : onamba wa pupu, le pagne blanc.",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 1
+ },
+ {
+  "id": "em-02-02",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "onghwana w'inkala",
+  "mot_francais": "un enfant du village",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 2
+ },
+ {
+  "id": "em-02-03",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "incango s'ince",
+  "mot_francais": "les nouvelles du pays",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 3
+ },
+ {
+  "id": "em-02-04",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Oga wi nce",
+  "mot_francais": "le chef de l'État",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 4
+ },
+ {
+  "id": "em-02-05",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ampanga mi nce",
+  "mot_francais": "le gouvernement",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 5
+ },
+ {
+  "id": "em-02-06",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ampenda m'Ewilo",
+  "mot_francais": "le ministère du Travail",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 6
+ },
+ {
+  "id": "em-02-07",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Président wi Gabon",
+  "mot_francais": "le président du Gabon",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 7
+ },
+ {
+  "id": "em-02-08",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ncango si nkala",
+  "mot_francais": "des nouvelles du village",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 8
+ },
+ {
+  "id": "em-02-09",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ncango sa gunu",
+  "mot_francais": "les nouvelles d'ici",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 9
+ },
+ {
+  "id": "em-02-10",
+  "lecon_id": "emeno-l2",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "onamba wa pupu",
+  "mot_francais": "le pagne blanc",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 10
+ },
+ {
+  "id": "em-02-11",
+  "lecon_id": "emeno-l2",
+  "type": "associer",
+  "consigne": "Que veut dire « Ampanga mi nce » ?",
+  "mot_myene": "Ampanga mi nce",
+  "options": [
+   "le gouvernement",
+   "le chef de l'État",
+   "les nouvelles du pays",
+   "le ministère du Travail"
+  ],
+  "reponse": "le gouvernement",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 11
+ },
+ {
+  "id": "em-02-12",
+  "lecon_id": "emeno-l2",
+  "type": "choix",
+  "consigne": "Comment dit-on « le chef de l'État » ?",
+  "options": [
+   "Oga wi nce",
+   "Ampanga mi nce",
+   "Incango s'ince"
+  ],
+  "reponse": "Oga wi nce",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 12
+ },
+ {
+  "id": "em-02-13",
+  "lecon_id": "emeno-l2",
+  "type": "choix",
+  "consigne": "Laquelle est juste ?",
+  "options": [
+   "Président wi Gabon",
+   "Président w'si Gabon"
+  ],
+  "reponse": "Président wi Gabon",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 13
+ },
+ {
+  "id": "em-02-14",
+  "lecon_id": "emeno-l2",
+  "type": "associer",
+  "consigne": "Que veut dire « Ncango sa gunu » ?",
+  "mot_myene": "Ncango sa gunu",
+  "options": [
+   "les nouvelles d'ici",
+   "des nouvelles du village",
+   "les nouvelles du pays",
+   "le pagne blanc"
+  ],
+  "reponse": "les nouvelles d'ici",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 14
+ },
+ {
+  "id": "em-02-15",
+  "lecon_id": "emeno-l2",
+  "type": "choix",
+  "consigne": "Comment dit-on « les nouvelles du pays » ?",
+  "options": [
+   "incango s'ince",
+   "onghwana w'inkala",
+   "Ncango si nkala"
+  ],
+  "reponse": "incango s'ince",
+  "source": "Règles de référence v3.3 § 5.2 (Capp)",
+  "ordre": 15
+ },
+ {
+  "id": "em-03-01",
+  "lecon_id": "emeno-l3",
+  "type": "cours",
+  "consigne": "Quand le mot change de son",
+  "texte": "La première lettre d'un verbe a deux formes : une forte, une douce. kênda (aller) devient gềnda ! (va !), ogêndo (le voyage), a gendi (il était allé). bya (venir) devient a wyeni (il était venu). bola (taper) devient a woli myê (elle m'avait tapé).",
+  "conseil": "b devient w ou v ; d devient l ; k devient g ; p devient v ; s devient z ; t devient r.",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 1
+ },
+ {
+  "id": "em-03-02",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Gềnda godêwa !",
+  "mot_francais": "va dormir !",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 2
+ },
+ {
+  "id": "em-03-03",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ogêndo",
+  "mot_francais": "le voyage",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 3
+ },
+ {
+  "id": "em-03-04",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "a gendi",
+  "mot_francais": "il était allé",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 4
+ },
+ {
+  "id": "em-03-05",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "a wyeni",
+  "mot_francais": "il était venu",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 5
+ },
+ {
+  "id": "em-03-06",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "a woli myê",
+  "mot_francais": "elle m'avait tapé",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 6
+ },
+ {
+  "id": "em-03-07",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "wònga !",
+  "mot_francais": "prends !",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 7
+ },
+ {
+  "id": "em-03-08",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "za lenigi",
+  "mot_francais": "nous pleurions",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 8
+ },
+ {
+  "id": "em-03-09",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "avila",
+  "mot_francais": "depuis",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 9
+ },
+ {
+  "id": "em-03-10",
+  "lecon_id": "emeno-l3",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ê ga rênde",
+  "mot_francais": "qu'il écrive",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 10
+ },
+ {
+  "id": "em-03-11",
+  "lecon_id": "emeno-l3",
+  "type": "associer",
+  "consigne": "Que veut dire « ogêndo » ?",
+  "mot_myene": "ogêndo",
+  "options": [
+   "le voyage",
+   "va !",
+   "il était allé",
+   "depuis"
+  ],
+  "reponse": "le voyage",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 11
+ },
+ {
+  "id": "em-03-12",
+  "lecon_id": "emeno-l3",
+  "type": "associer",
+  "consigne": "Que veut dire « a woli myê » ?",
+  "mot_myene": "a woli myê",
+  "options": [
+   "elle m'avait tapé",
+   "prends !",
+   "nous pleurions",
+   "il était venu"
+  ],
+  "reponse": "elle m'avait tapé",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 12
+ },
+ {
+  "id": "em-03-13",
+  "lecon_id": "emeno-l3",
+  "type": "choix",
+  "consigne": "Comment dit-on « il était allé » ?",
+  "options": [
+   "a gendi",
+   "a wyeni",
+   "ogêndo"
+  ],
+  "reponse": "a gendi",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 13
+ },
+ {
+  "id": "em-03-14",
+  "lecon_id": "emeno-l3",
+  "type": "choix",
+  "consigne": "Comment dit-on « prends ! » ?",
+  "options": [
+   "wònga !",
+   "za lenigi",
+   "avila"
+  ],
+  "reponse": "wònga !",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 14
+ },
+ {
+  "id": "em-03-15",
+  "lecon_id": "emeno-l3",
+  "type": "associer",
+  "consigne": "Que veut dire « ê ga rênde » ?",
+  "mot_myene": "ê ga rênde",
+  "options": [
+   "qu'il écrive",
+   "va dormir !",
+   "depuis",
+   "le voyage"
+  ],
+  "reponse": "qu'il écrive",
+  "source": "Règles de référence v3.3 § 6.4-6.5",
+  "ordre": 15
+ },
+ {
+  "id": "em-04-01",
+  "lecon_id": "emeno-l4",
+  "type": "cours",
+  "consigne": "Un verbe en donne d'autres",
+  "texte": "Un verbe peut en donner d'autres : kola, acheter → koliza, vendre ; nya, manger → nyeza, faire manger, pardonner (Nyeza myê, pardon) ; bulya, dire → bulinya, dire à quelqu'un ; teviza, montrer, et tevuna, conseiller, sont de la même famille.",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 1
+ },
+ {
+  "id": "em-04-02",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "kola",
+  "mot_francais": "acheter",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 2
+ },
+ {
+  "id": "em-04-03",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "koliza",
+  "mot_francais": "vendre",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 3
+ },
+ {
+  "id": "em-04-04",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "nyeza",
+  "mot_francais": "faire manger, pardonner",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 4
+ },
+ {
+  "id": "em-04-05",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Nyeza myê",
+  "mot_francais": "pardon",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 5
+ },
+ {
+  "id": "em-04-06",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "bulya",
+  "mot_francais": "dire",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 6
+ },
+ {
+  "id": "em-04-07",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "bulinya",
+  "mot_francais": "dire à quelqu'un",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 7
+ },
+ {
+  "id": "em-04-08",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "teviza",
+  "mot_francais": "montrer",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 8
+ },
+ {
+  "id": "em-04-09",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "tevuna",
+  "mot_francais": "conseiller",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 9
+ },
+ {
+  "id": "em-04-10",
+  "lecon_id": "emeno-l4",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "tôndya",
+  "mot_francais": "faire plaisir",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 10
+ },
+ {
+  "id": "em-04-11",
+  "lecon_id": "emeno-l4",
+  "type": "associer",
+  "consigne": "Que veut dire « koliza » ?",
+  "mot_myene": "koliza",
+  "options": [
+   "vendre",
+   "acheter",
+   "montrer",
+   "conseiller"
+  ],
+  "reponse": "vendre",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 11
+ },
+ {
+  "id": "em-04-12",
+  "lecon_id": "emeno-l4",
+  "type": "associer",
+  "consigne": "Que veut dire « bulinya » ?",
+  "mot_myene": "bulinya",
+  "options": [
+   "dire à quelqu'un",
+   "dire",
+   "faire plaisir",
+   "pardonner"
+  ],
+  "reponse": "dire à quelqu'un",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 12
+ },
+ {
+  "id": "em-04-13",
+  "lecon_id": "emeno-l4",
+  "type": "choix",
+  "consigne": "Comment dit-on « conseiller » ?",
+  "options": [
+   "tevuna",
+   "teviza",
+   "kola"
+  ],
+  "reponse": "tevuna",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 13
+ },
+ {
+  "id": "em-04-14",
+  "lecon_id": "emeno-l4",
+  "type": "choix",
+  "consigne": "Comment dit-on « pardon » ?",
+  "options": [
+   "Nyeza myê",
+   "Myê nya",
+   "Myê be nya"
+  ],
+  "reponse": "Nyeza myê",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 14
+ },
+ {
+  "id": "em-04-15",
+  "lecon_id": "emeno-l4",
+  "type": "associer",
+  "consigne": "Que veut dire « teviza » ?",
+  "mot_myene": "teviza",
+  "options": [
+   "montrer",
+   "conseiller",
+   "vendre",
+   "dire"
+  ],
+  "reponse": "montrer",
+  "source": "Règles de référence v3.3 § 6.7",
+  "ordre": 15
+ },
+ {
+  "id": "em-05-01",
+  "lecon_id": "emeno-l5",
+  "type": "cours",
+  "consigne": "Raconter",
+  "texte": "Pour raconter, on choisit d'abord le moment : A bya, il est venu ; A byeni, il vient d'arriver, il est là ; A wyeni, il était venu, c'est fini. Ma luwo me nya : j'étais en train de manger. Za lenigi : nous pleurions (souvent, autrefois). Ere ko pandaga : il ne fait que monter.",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 1
+ },
+ {
+  "id": "em-05-02",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A bya",
+  "mot_francais": "il est venu",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 2
+ },
+ {
+  "id": "em-05-03",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A byeni",
+  "mot_francais": "il vient d'arriver, il est là",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 3
+ },
+ {
+  "id": "em-05-04",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A wyeni",
+  "mot_francais": "il était venu",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 4
+ },
+ {
+  "id": "em-05-05",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ma luwo me nya",
+  "mot_francais": "j'étais en train de manger",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 5
+ },
+ {
+  "id": "em-05-06",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Za lenigi",
+  "mot_francais": "nous pleurions",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 6
+ },
+ {
+  "id": "em-05-07",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ere ko pandaga",
+  "mot_francais": "il ne fait que monter",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 7
+ },
+ {
+  "id": "em-05-08",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Myê be nya",
+  "mot_francais": "je vais manger",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 8
+ },
+ {
+  "id": "em-05-09",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Mênê midi, mi be nya",
+  "mot_francais": "demain à midi, je serai en train de manger",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 9
+ },
+ {
+  "id": "em-05-10",
+  "lecon_id": "emeno-l5",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Wêre ni ntyugw'araro",
+  "mot_francais": "ils ont trois jours",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 10
+ },
+ {
+  "id": "em-05-11",
+  "lecon_id": "emeno-l5",
+  "type": "associer",
+  "consigne": "Que veut dire « Ere ko pandaga » ?",
+  "mot_myene": "Ere ko pandaga",
+  "options": [
+   "il ne fait que monter",
+   "il est venu",
+   "nous pleurions",
+   "je vais manger"
+  ],
+  "reponse": "il ne fait que monter",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 11
+ },
+ {
+  "id": "em-05-12",
+  "lecon_id": "emeno-l5",
+  "type": "choix",
+  "consigne": "Comment dit-on « j'étais en train de manger » ?",
+  "options": [
+   "Ma luwo me nya",
+   "Myê be nya",
+   "Ma nya"
+  ],
+  "reponse": "Ma luwo me nya",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 12
+ },
+ {
+  "id": "em-05-13",
+  "lecon_id": "emeno-l5",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « demain à midi, je serai en train de manger » ?",
+  "options": [
+   "Mênê midi, mi be nya",
+   "Mi be luwo me nya"
+  ],
+  "reponse": "Mênê midi, mi be nya",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 13
+ },
+ {
+  "id": "em-05-14",
+  "lecon_id": "emeno-l5",
+  "type": "associer",
+  "consigne": "Que veut dire « A byeni » ?",
+  "mot_myene": "A byeni",
+  "options": [
+   "il vient d'arriver, il est là",
+   "il était venu",
+   "il est venu",
+   "il n'est pas encore venu"
+  ],
+  "reponse": "il vient d'arriver, il est là",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 14
+ },
+ {
+  "id": "em-05-15",
+  "lecon_id": "emeno-l5",
+  "type": "associer",
+  "consigne": "Que veut dire « Wêre ni ntyugw'araro » ?",
+  "mot_myene": "Wêre ni ntyugw'araro",
+  "options": [
+   "ils ont trois jours",
+   "trois jours",
+   "nous pleurions",
+   "il est venu"
+  ],
+  "reponse": "ils ont trois jours",
+  "source": "Règles de référence v3.3 § 6.2 (Capp, 22 nov. 2026)",
+  "ordre": 15
+ },
+ {
+  "id": "em-06-01",
+  "lecon_id": "emeno-l6",
+  "type": "cours",
+  "consigne": "Celui qui…",
+  "texte": "Pour parler de ceux à qui il est arrivé quelque chose, le verbe s'adoucit, finit en « o » et porte deux points sur sa première voyelle : anaga wa vïezo iyoma, les gens dont les affaires ont été brûlées, les sinistrés. kenjina wi be dïngo impuma araro : un programme qui durera trois ans.",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 1
+ },
+ {
+  "id": "em-06-02",
+  "lecon_id": "emeno-l6",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A pyez'iyoma",
+  "mot_francais": "des choses ont été brûlées",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 2
+ },
+ {
+  "id": "em-06-03",
+  "lecon_id": "emeno-l6",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "anaga wa vïezo iyoma",
+  "mot_francais": "les sinistrés",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 3
+ },
+ {
+  "id": "em-06-04",
+  "lecon_id": "emeno-l6",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "anaga wa yono nago",
+  "mot_francais": "les victimes des démolitions",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 4
+ },
+ {
+  "id": "em-06-05",
+  "lecon_id": "emeno-l6",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "kenjina wi be dïngo impuma araro",
+  "mot_francais": "un programme qui durera trois ans",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 5
+ },
+ {
+  "id": "em-06-06",
+  "lecon_id": "emeno-l6",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "aningo mïjôngo wê",
+  "mot_francais": "l'eau que tu bois",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 6
+ },
+ {
+  "id": "em-06-07",
+  "lecon_id": "emeno-l6",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "ayê n'äsuga myê",
+  "mot_francais": "c'est lui qui m'a taquiné",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 7
+ },
+ {
+  "id": "em-06-08",
+  "lecon_id": "emeno-l6",
+  "type": "associer",
+  "consigne": "Que veut dire « anaga wa vïezo iyoma » ?",
+  "mot_myene": "anaga wa vïezo iyoma",
+  "options": [
+   "les sinistrés",
+   "des choses ont été brûlées",
+   "les victimes des démolitions",
+   "l'eau que tu bois"
+  ],
+  "reponse": "les sinistrés",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 8
+ },
+ {
+  "id": "em-06-09",
+  "lecon_id": "emeno-l6",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « les sinistrés » ?",
+  "options": [
+   "anaga wa vïezo iyoma",
+   "anaga pyezo iyoma"
+  ],
+  "reponse": "anaga wa vïezo iyoma",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 9
+ },
+ {
+  "id": "em-06-10",
+  "lecon_id": "emeno-l6",
+  "type": "associer",
+  "consigne": "Que veut dire « kenjina wi be dïngo impuma araro » ?",
+  "mot_myene": "kenjina wi be dïngo impuma araro",
+  "options": [
+   "un programme qui durera trois ans",
+   "les sinistrés",
+   "trois jours",
+   "c'est lui qui m'a taquiné"
+  ],
+  "reponse": "un programme qui durera trois ans",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 10
+ },
+ {
+  "id": "em-06-11",
+  "lecon_id": "emeno-l6",
+  "type": "choix",
+  "consigne": "Comment dit-on « des choses ont été brûlées » ?",
+  "options": [
+   "A pyez'iyoma",
+   "anaga wa yono nago",
+   "aningo mïjôngo wê"
+  ],
+  "reponse": "A pyez'iyoma",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 11
+ },
+ {
+  "id": "em-06-12",
+  "lecon_id": "emeno-l6",
+  "type": "associer",
+  "consigne": "Que veut dire « anaga wa yono nago » ?",
+  "mot_myene": "anaga wa yono nago",
+  "options": [
+   "les victimes des démolitions",
+   "les sinistrés",
+   "un programme qui durera trois ans",
+   "l'eau que tu bois"
+  ],
+  "reponse": "les victimes des démolitions",
+  "source": "Règles de référence v3.3 § 6.6 (formes de Capp)",
+  "ordre": 12
+ },
+ {
+  "id": "em-07-01",
+  "lecon_id": "emeno-l7",
+  "type": "cours",
+  "consigne": "Les nouvelles du pays",
+  "texte": "Voici des nouvelles écrites en ôrungu. On dit ce qui a été fait, plutôt que qui l'a fait : A pyez'iyoma go carrefour Château, des biens ont été brûlés au carrefour Château.",
+  "conseil": "On garde les noms de personnes et de lieux tels qu'ils sont, et le mot myènè d'abord : Mandji pour Port-Gentil.",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 1
+ },
+ {
+  "id": "em-07-02",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Incango s'ince",
+  "mot_francais": "les nouvelles du pays",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 2
+ },
+ {
+  "id": "em-07-03",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "A pyez'iyoma go carrefour Château.",
+  "mot_francais": "des biens ont été brûlés au carrefour Château",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 3
+ },
+ {
+  "id": "em-07-04",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ikita, issopu n'inago sa pyeni.",
+  "mot_francais": "les commerces, les bars et les maisons ont brûlé",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 4
+ },
+ {
+  "id": "em-07-05",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Mênê ozangue ê be dwana byambie go Mandji.",
+  "mot_francais": "demain, l'électricité marchera bien à Mandji",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 5
+ },
+ {
+  "id": "em-07-06",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Régis Onanga Ndiaye a yano go Mandji.",
+  "mot_francais": "Régis Onanga Ndiaye est né à Mandji",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 6
+ },
+ {
+  "id": "em-07-07",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Wê bel'incango nde ?",
+  "mot_francais": "quelles nouvelles veux-tu ?",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 7
+ },
+ {
+  "id": "em-07-08",
+  "lecon_id": "emeno-l7",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Và m'y'incango sa nêno go nce yazo",
+  "mot_francais": "donne-moi les nouvelles du jour dans notre pays",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 8
+ },
+ {
+  "id": "em-07-09",
+  "lecon_id": "emeno-l7",
+  "type": "associer",
+  "consigne": "Que veut dire « Ikita, issopu n'inago sa pyeni. » ?",
+  "mot_myene": "Ikita, issopu n'inago sa pyeni.",
+  "options": [
+   "les commerces, les bars et les maisons ont brûlé",
+   "des biens ont été brûlés au carrefour Château",
+   "demain, l'électricité marchera bien à Mandji",
+   "les nouvelles du pays"
+  ],
+  "reponse": "les commerces, les bars et les maisons ont brûlé",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 9
+ },
+ {
+  "id": "em-07-10",
+  "lecon_id": "emeno-l7",
+  "type": "associer",
+  "consigne": "Que veut dire « Mênê ozangue ê be dwana byambie go Mandji. » ?",
+  "mot_myene": "Mênê ozangue ê be dwana byambie go Mandji.",
+  "options": [
+   "demain, l'électricité marchera bien à Mandji",
+   "les commerces ont brûlé",
+   "il est né à Mandji",
+   "quelles nouvelles veux-tu ?"
+  ],
+  "reponse": "demain, l'électricité marchera bien à Mandji",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 10
+ },
+ {
+  "id": "em-07-11",
+  "lecon_id": "emeno-l7",
+  "type": "choix",
+  "consigne": "Comment dit-on « il est né à Mandji » ?",
+  "options": [
+   "a yano go Mandji",
+   "a jani go Mandji"
+  ],
+  "reponse": "a yano go Mandji",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 11
+ },
+ {
+  "id": "em-07-12",
+  "lecon_id": "emeno-l7",
+  "type": "choix",
+  "consigne": "Comment demande-t-on « quelles nouvelles veux-tu ? » ?",
+  "options": [
+   "Wê bel'incango nde ?",
+   "Incango nde wê bele ?"
+  ],
+  "reponse": "Wê bel'incango nde ?",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 12
+ },
+ {
+  "id": "em-07-13",
+  "lecon_id": "emeno-l7",
+  "type": "associer",
+  "consigne": "Que veut dire « Và m'y'incango sa nêno go nce yazo » ?",
+  "mot_myene": "Và m'y'incango sa nêno go nce yazo",
+  "options": [
+   "donne-moi les nouvelles du jour dans notre pays",
+   "les nouvelles du pays",
+   "quelles nouvelles veux-tu ?",
+   "des biens ont été brûlés"
+  ],
+  "reponse": "donne-moi les nouvelles du jour dans notre pays",
+  "source": "Règles de référence v3.3 § 11 (phrases d'actualité corrigées par Capp)",
+  "ordre": 13
+ },
+ {
+  "id": "em-08-01",
+  "lecon_id": "emeno-l8",
+  "type": "cours",
+  "consigne": "Le sens caché des proverbes",
+  "texte": "Un proverbe dit une chose et en veut dire une autre. Lis-le, cherche ce qu'il raconte, puis ce qu'il veut dire pour nous.",
+  "source": "Recueil des proverbes DONDO v3",
+  "ordre": 1
+ },
+ {
+  "id": "em-08-02",
+  "lecon_id": "emeno-l8",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Nkula môri môri, ê jonyiz'otondo.",
+  "mot_francais": "Noisette par noisette, le panier finit par se remplir.",
+  "texte": "Ce qu'il veut dire : Petit à petit l'oiseau fait son nid.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0046",
+  "ordre": 2
+ },
+ {
+  "id": "em-08-03",
+  "lecon_id": "emeno-l8",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Rakata a yuwi ni njana ka n'oba wi boso.",
+  "mot_francais": "Rakata est mort de faim en comptant sur le manguier suivant.",
+  "texte": "Ce qu'il veut dire : En voulant trop gagner, on finit par tout perdre.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0009",
+  "ordre": 3
+ },
+ {
+  "id": "em-08-04",
+  "lecon_id": "emeno-l8",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Wê seva ni nkungu ndo wê pa mya ngwanyôni.",
+  "mot_francais": "Tu joues avec le vautour mais tu ne connais pas l'aigle royal.",
+  "texte": "Ce qu'il veut dire : Tu trouveras toujours plus fort que toi.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0070",
+  "ordre": 4
+ },
+ {
+  "id": "em-08-05",
+  "lecon_id": "emeno-l8",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Ombôma n'ombôma w'amênane.",
+  "mot_francais": "Python et python ne s'avalent pas entre eux.",
+  "texte": "Ce qu'il veut dire : Les loups ne se mangent pas entre eux.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0071",
+  "ordre": 5
+ },
+ {
+  "id": "em-08-06",
+  "lecon_id": "emeno-l8",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "M'onaga re juwa ni nkele.",
+  "mot_francais": "Une eau saumâtre n'est pas improductive.",
+  "texte": "Ce qu'il veut dire : Tout vient à point à qui sait attendre.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0037",
+  "ordre": 6
+ },
+ {
+  "id": "em-08-07",
+  "lecon_id": "emeno-l8",
+  "type": "proverbe",
+  "consigne": "Un proverbe",
+  "mot_myene": "Ombwiri w'adombini w'amani n'erya.",
+  "mot_francais": "Quand le génie vieillit, il ne fait plus peur.",
+  "texte": "Ce qu'il veut dire : Chose trop vue n'est pas chère tenue.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0059",
+  "ordre": 7
+ },
+ {
+  "id": "em-08-08",
+  "lecon_id": "emeno-l8",
+  "type": "comprendre",
+  "consigne": "Que veut dire ce proverbe ?",
+  "texte": "Nkula môri môri, ê jonyiz'otondo.",
+  "options": [
+   "Petit à petit l'oiseau fait son nid.",
+   "En voulant trop gagner, on finit par tout perdre.",
+   "Tu trouveras toujours plus fort que toi."
+  ],
+  "reponse": "Petit à petit l'oiseau fait son nid.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0046",
+  "ordre": 8
+ },
+ {
+  "id": "em-08-09",
+  "lecon_id": "emeno-l8",
+  "type": "comprendre",
+  "consigne": "Que veut dire ce proverbe ?",
+  "texte": "Rakata a yuwi ni njana ka n'oba wi boso.",
+  "options": [
+   "En voulant trop gagner, on finit par tout perdre.",
+   "Petit à petit l'oiseau fait son nid.",
+   "Tu trouveras toujours plus fort que toi."
+  ],
+  "reponse": "En voulant trop gagner, on finit par tout perdre.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0009",
+  "ordre": 9
+ },
+ {
+  "id": "em-08-10",
+  "lecon_id": "emeno-l8",
+  "type": "comprendre",
+  "consigne": "Que veut dire ce proverbe ?",
+  "texte": "Wê seva ni nkungu ndo wê pa mya ngwanyôni.",
+  "options": [
+   "Tu trouveras toujours plus fort que toi.",
+   "Petit à petit l'oiseau fait son nid.",
+   "En voulant trop gagner, on finit par tout perdre."
+  ],
+  "reponse": "Tu trouveras toujours plus fort que toi.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0070",
+  "ordre": 10
+ },
+ {
+  "id": "em-08-11",
+  "lecon_id": "emeno-l8",
+  "type": "comprendre",
+  "consigne": "Que veut dire ce proverbe ?",
+  "texte": "Ombôma n'ombôma w'amênane.",
+  "options": [
+   "Les loups ne se mangent pas entre eux.",
+   "Petit à petit l'oiseau fait son nid.",
+   "En voulant trop gagner, on finit par tout perdre."
+  ],
+  "reponse": "Les loups ne se mangent pas entre eux.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0071",
+  "ordre": 11
+ },
+ {
+  "id": "em-08-12",
+  "lecon_id": "emeno-l8",
+  "type": "comprendre",
+  "consigne": "Que veut dire ce proverbe ?",
+  "texte": "M'onaga re juwa ni nkele.",
+  "options": [
+   "Tout vient à point à qui sait attendre.",
+   "Petit à petit l'oiseau fait son nid.",
+   "En voulant trop gagner, on finit par tout perdre."
+  ],
+  "reponse": "Tout vient à point à qui sait attendre.",
+  "source": "Recueil des proverbes DONDO v3, PRV-0037",
+  "ordre": 12
+ },
+ {
+  "id": "em-09-01",
+  "lecon_id": "emeno-l9",
+  "type": "cours",
+  "consigne": "Notre histoire",
+  "texte": "La royauté actuelle des Ôrungu s'appelle AMPENDA M'ÔRUNGU, « Royauté Ôrungu ». Sa devise : Egongo – Ôzange – Ivenda, « Solidarité – Vérité – Royauté ». On écrit toujours « Ôrungu », avec un Ô majuscule.",
+  "conseil": "Pour ouvrir un conte, l'ancien dit « Wulinya myê » : dis-moi, raconte-moi.",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 1
+ },
+ {
+  "id": "em-09-02",
+  "lecon_id": "emeno-l9",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ampenda m'Ôrungu",
+  "mot_francais": "la royauté ôrungu",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 2
+ },
+ {
+  "id": "em-09-03",
+  "lecon_id": "emeno-l9",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Egongo – Ôzange – Ivenda",
+  "mot_francais": "Solidarité – Vérité – Royauté",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 3
+ },
+ {
+  "id": "em-09-04",
+  "lecon_id": "emeno-l9",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Egongo",
+  "mot_francais": "la solidarité",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 4
+ },
+ {
+  "id": "em-09-05",
+  "lecon_id": "emeno-l9",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ôzange",
+  "mot_francais": "la vérité",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 5
+ },
+ {
+  "id": "em-09-06",
+  "lecon_id": "emeno-l9",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Ivenda",
+  "mot_francais": "la royauté",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 6
+ },
+ {
+  "id": "em-09-07",
+  "lecon_id": "emeno-l9",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Wulinya myê",
+  "mot_francais": "dis-moi, raconte-moi",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 7
+ },
+ {
+  "id": "em-09-08",
+  "lecon_id": "emeno-l9",
+  "type": "associer",
+  "consigne": "Que veut dire « Ôzange » ?",
+  "mot_myene": "Ôzange",
+  "options": [
+   "la vérité",
+   "la solidarité",
+   "la royauté",
+   "le peuple"
+  ],
+  "reponse": "la vérité",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 8
+ },
+ {
+  "id": "em-09-09",
+  "lecon_id": "emeno-l9",
+  "type": "associer",
+  "consigne": "Que veut dire « Egongo » ?",
+  "mot_myene": "Egongo",
+  "options": [
+   "la solidarité",
+   "la vérité",
+   "la royauté",
+   "le voyage"
+  ],
+  "reponse": "la solidarité",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 9
+ },
+ {
+  "id": "em-09-10",
+  "lecon_id": "emeno-l9",
+  "type": "choix",
+  "consigne": "Quelle est la devise de la royauté ?",
+  "options": [
+   "Egongo – Ôzange – Ivenda",
+   "Ivenda – Egongo – Ôzange"
+  ],
+  "reponse": "Egongo – Ôzange – Ivenda",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 10
+ },
+ {
+  "id": "em-09-11",
+  "lecon_id": "emeno-l9",
+  "type": "associer",
+  "consigne": "Que veut dire « Wulinya myê » ?",
+  "mot_myene": "Wulinya myê",
+  "options": [
+   "dis-moi, raconte-moi",
+   "bonjour",
+   "au revoir",
+   "merci"
+  ],
+  "reponse": "dis-moi, raconte-moi",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 11
+ },
+ {
+  "id": "em-09-12",
+  "lecon_id": "emeno-l9",
+  "type": "choix",
+  "consigne": "Comment dit-on « la royauté » ?",
+  "options": [
+   "Ivenda",
+   "Egongo",
+   "Ôzange"
+  ],
+  "reponse": "Ivenda",
+  "source": "_contexte/IDENTITE_ORUNGU.md (Capp, 4 oct. 2026) ; règles de référence v3.3 § 9-10",
+  "ordre": 12
+ },
+ {
+  "id": "em-10-01",
+  "lecon_id": "emeno-l10",
+  "type": "cours",
+  "consigne": "Bien écrire",
+  "texte": "Pour bien écrire : les lettres de l'alphabet (ê, ô, c, j, ny, ngh), « go » collé au verbe pour dire « manger, voir » (gonya, gojêna), mais séparé pour un lieu (go Mandji). Et toujours le mot de la question à la fin : Wê bel'incango nde ?",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 1
+ },
+ {
+  "id": "em-10-02",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste ?",
+  "options": [
+   "a veni",
+   "a va"
+  ],
+  "reponse": "a veni",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 2
+ },
+ {
+  "id": "em-10-03",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste ?",
+  "options": [
+   "a yano",
+   "a jani"
+  ],
+  "reponse": "a yano",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 3
+ },
+ {
+  "id": "em-10-04",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste ?",
+  "options": [
+   "Wê bel'incango nde ?",
+   "Incango nde wê bele ?"
+  ],
+  "reponse": "Wê bel'incango nde ?",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 4
+ },
+ {
+  "id": "em-10-05",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « l'enfant » ?",
+  "options": [
+   "onghwana",
+   "omwana"
+  ],
+  "reponse": "onghwana",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 5
+ },
+ {
+  "id": "em-10-06",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « mais » ?",
+  "options": [
+   "Ndo",
+   "Nde"
+  ],
+  "reponse": "Ndo",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 6
+ },
+ {
+  "id": "em-10-07",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « et toi » ?",
+  "options": [
+   "Awê",
+   "Wê"
+  ],
+  "reponse": "Awê",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 7
+ },
+ {
+  "id": "em-10-08",
+  "lecon_id": "emeno-l10",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « manger » ?",
+  "options": [
+   "gonya",
+   "go nya"
+  ],
+  "reponse": "gonya",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 8
+ },
+ {
+  "id": "em-10-09",
+  "lecon_id": "emeno-l10",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « quelles nouvelles ? »",
+  "mot_francais": "quelles nouvelles ?",
+  "reponse": "Incango sê ?",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 9
+ },
+ {
+  "id": "em-10-10",
+  "lecon_id": "emeno-l10",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « les nouvelles du pays ».",
+  "mot_francais": "les nouvelles du pays",
+  "reponse": "Incango s'ince",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 10
+ },
+ {
+  "id": "em-10-11",
+  "lecon_id": "emeno-l10",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « je ne mange pas ».",
+  "mot_francais": "je ne mange pas",
+  "reponse": "Myê re nya",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 11
  }
 ]

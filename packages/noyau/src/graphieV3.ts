@@ -31,8 +31,8 @@ const RX_TERMES = new RegExp(`(?<![\\p{L}])(${TERMES_SPECIALISTE.join('|')})`, '
 /** Transcription entre crochets (ex. [àwáná]) : gardée dans les données pour la voix, jamais affichée. */
 export const CROCHETS = /\[[^\]\n]*\]/;
 
-/** Mots admis dans un champ myènè : français (noms propres, emprunts, règles § 0.3) et noms écrits ainsi par Capp (Mandji, § 0.6). */
-export const FRANCAIS_ADMIS = new Set(['mandji', 'président', 'ministre', 'carrefour', 'château', 'déclin', 'démographique', 'régis', 'midi', 'école', 'télé', 'télévision']);
+/** Mots admis dans un champ myènè : français (noms propres, emprunts, règles § 0.3) et mots écrits ainsi dans les règles v3.3 (Mandji § 0.6, tôndya § 6.7 : d + ya). */
+export const FRANCAIS_ADMIS = new Set(['mandji', 'tôndya', 'président', 'ministre', 'carrefour', 'château', 'déclin', 'démographique', 'régis', 'midi', 'école', 'télé', 'télévision']);
 
 const NFC = (s: string) => s.normalize('NFC');
 
@@ -112,7 +112,8 @@ export function controlerAffiche(champ: string, texte: string | null | undefined
   return res;
 }
 
-const TYPES_OPTIONS_MYENE = new Set(['choix', 'trou', 'ordre', 'comprendre', 'quel_son', 'montre']);
+// « comprendre » : la question porte sur le sens, ses réponses sont en français.
+const TYPES_OPTIONS_MYENE = new Set(['choix', 'trou', 'ordre', 'quel_son', 'montre']);
 
 /** Tous les écarts d'un exercice, champ par champ (seuls les champs affichés à l'apprenant sont contrôlés). */
 export function ecartsExercice(e: Record<string, any>): Ecart[] {
