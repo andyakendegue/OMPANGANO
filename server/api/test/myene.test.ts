@@ -212,7 +212,7 @@ test('recherche web : demandée par le modèle, faite par notre moteur, jamais s
   assert.match(CONSIGNE_RECHERCHE, /Une question posée en myènè peut, elle aussi, demander une information/);
   const vues: string[] = [];
   const moteur = createServer((req, res) => { vues.push(req.url ?? ''); res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ results: [{ title: 'Port-Gentil', url: 'https://fr.wikipedia.org/wiki/Port-Gentil', content: 'Ville du Gabon, chef-lieu de l\'Ogooué-Maritime.' }] })); });
+    res.end(JSON.stringify({ results: [{ title: 'Cassé', url: 'http:///go/v1/AVSpu', content: 'x' }, { title: 'Port-Gentil', url: 'https://fr.wikipedia.org/wiki/Port-Gentil', content: 'Ville du Gabon, chef-lieu de l\'Ogooué-Maritime.' }] })); });
   await new Promise<void>(r => moteur.listen(0, '127.0.0.1', () => r()));
   const env = { SEARXNG_URL: `http://127.0.0.1:${(moteur.address() as any).port}` } as any;
   const systemes: string[] = [];
@@ -221,6 +221,7 @@ test('recherche web : demandée par le modèle, faite par notre moteur, jamais s
   assert.equal(r.texte, 'Port-Gentil est une ville du Gabon (Wikipédia).');
   assert.deepEqual(r.usage, { entree: 200, sortie: 20, cache: 0 }, 'les deux appels sont comptés');
   assert.match(systemes[1], /Résultats de recherche sur Internet[\s\S]*fr\.wikipedia\.org/);
+  assert.doesNotMatch(systemes[1], /http:\/\/\/go/, 'adresse incomplète écartée');
   assert.match(vues[0], /safesearch=2/);
   // Inactif (réglage coupé, pas de moteur ou enfant) : un seul appel, sans consigne
   systemes.length = 0;

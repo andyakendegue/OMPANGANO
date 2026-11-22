@@ -49,7 +49,8 @@ export async function rechercherWeb(requete: string, n = 5, env = process.env): 
     if (!r.ok) return [];
     const j: any = await r.json();
     return (Array.isArray(j.results) ? j.results : [])
-      .filter((x: any) => x?.url && (x.title || x.content))
+      // Adresse web complète seulement (essai du 22 nov. 2026 : un moteur renvoyait « http:///go/v1/… », lien cassé).
+      .filter((x: any) => /^https?:\/\/[^/\s]+\.[^/\s]+/.test(String(x?.url ?? '')) && (x.title || x.content))
       .slice(0, n)
       .map((x: any) => ({ titre: String(x.title ?? '').slice(0, 160), url: String(x.url).slice(0, 300), extrait: String(x.content ?? '').replace(/\s+/g, ' ').slice(0, 400) }));
   } catch { return []; }
