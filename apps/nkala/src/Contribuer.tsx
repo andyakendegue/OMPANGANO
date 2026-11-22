@@ -6,6 +6,7 @@ import { useAuth } from './AuthProvider';
 import { Collecte } from './Collecte';
 import { Moderation } from './Admin';
 import { Ezango } from './Ezango';
+import { ProposerChant } from './ProposerChant';
 import { demanderFiche, emettre } from './evenements';
 import { Anneau, Avatar, Bouton, Carte, Chargement, Ecran, Entete, EtatVide, Ic, Mascotte, Pastille, SectionTitre, T, Barre } from './kit';
 import { usePile } from './Pile';
@@ -14,7 +15,7 @@ import { ThemeKey, ThemeSombre, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 import { useSurchargeModule } from './Mesure';
 
-type E = { t: 'accueil' } | { t: 'collecte' } | { t: 'valider' } | { t: 'classement' } | { t: 'rangs' } | { t: 'defis' } | { t: 'ezango' } | { t: 'mes' };
+type E = { t: 'accueil' } | { t: 'collecte' } | { t: 'valider' } | { t: 'classement' } | { t: 'rangs' } | { t: 'defis' } | { t: 'ezango' } | { t: 'mes' } | { t: 'chant' };
 type Pile = ReturnType<typeof usePile<E>>;
 
 /** Habille un écran historique (palette sombre) d'un bouton retour. */
@@ -35,6 +36,7 @@ export function Contribuer({ retour }: { retour: () => void }) {
   if (e.t === 'valider') return <Historique titre="Valider" pile={pile} sombre><Moderation /></Historique>;
   if (e.t === 'ezango') return <Historique titre="Ikamba" pile={pile}><Ezango onContribuer={id => { demanderFiche(id); pile.remplacer({ t: 'collecte' }); }} /></Historique>;
   if (e.t === 'mes') return <Historique titre="Mes enregistrements" pile={pile}><ProfilContributeur /></Historique>;
+  if (e.t === 'chant') return <ProposerChant retour={pile.retour} />;
   if (e.t === 'classement') return <Podium pile={pile} />;
   if (e.t === 'rangs') return <Rangs pile={pile} />;
   if (e.t === 'defis') return <Defis pile={pile} />;
@@ -59,6 +61,10 @@ function Accueil({ pile, retour }: { pile: Pile; retour: () => void }) {
       </View></Carte>
       {!defis ? <Chargement lignes={1} /> : defis.slice(0, 2).map(d => { const p = progressionDefi(profil, d); return (
         <Carte key={d.id} plat onPress={() => pile.pousser({ t: 'defis' })} label={d.title}><View style={{ padding: 14, gap: 8 }}><T v="libelle">Défi de la semaine</T><T v="carte">{d.title}</T><Barre valeur={p.cible ? p.fait / p.cible : 0} /><T v="petit">{p.fait} / {p.cible}</T></View></Carte>); })}
+      {/* Collecte « Les chants de notre enfance » (22 nov. 2026) */}
+      <Carte plat onPress={() => pile.pousser({ t: 'chant' })} label="Les chants de notre enfance"><View style={{ padding: 14, gap: 6, flexDirection: 'row', alignItems: 'center' }}>
+        <T v="titre">🎶</T><View style={{ flex: 1, gap: 2 }}><T v="carte">Les chants de notre enfance</T><T v="petit">Chante une comptine ou un chant de jeu : il aidera les enfants à apprendre.</T></View><Ic nom="suivant" taille={18} couleur={c.discret} />
+      </View></Carte>
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Carte onPress={() => pile.pousser({ t: 'classement' })} style={{ flex: 1 }} label="Classement"><View style={{ padding: 14, gap: 6 }}><Ic nom="coupe" taille={24} couleur={c.accent} /><T v="carte">Classement</T></View></Carte>
         <Carte onPress={() => pile.pousser({ t: 'rangs' })} style={{ flex: 1 }} label="Rangs et badges"><View style={{ padding: 14, gap: 6 }}><Ic nom="couronne" taille={24} couleur={c.accent} /><T v="carte">Rangs et badges</T></View></Carte>

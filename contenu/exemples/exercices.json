@@ -65,7 +65,7 @@
   "lecon_id": "ntina-l2",
   "type": "ecouter",
   "consigne": "Écoute et répète.",
-  "mot_myene": "Ibanga wê. Ka mênê !",
+  "mot_myene": "Ibanga we. Ka mênê !",
   "mot_francais": "Au revoir",
   "source": "[LEC] Bonjour",
   "ordre": 1
@@ -81,7 +81,7 @@
    "Ka",
    "mênê !"
   ],
-  "reponse": "Ibanga wê. Ka mênê !",
+  "reponse": "Ibanga we. Ka mênê !",
   "source": "[LEC] Bonjour",
   "ordre": 10
  },
@@ -173,14 +173,14 @@
   "lecon_id": "ikoko-l1",
   "type": "comprendre",
   "consigne": "Lis le petit dialogue. Que dit B pour prendre congé ?",
-  "texte": "A : Mbolo !\nB : Mbolo !\nA : Akewa.\nB : Ibanga wê. Ka mênê !",
+  "texte": "A : Mbolo !\nB : Mbolo !\nA : Akewa.\nB : Ibanga we. Ka mênê !",
   "options": [
-   "Ibanga wê. Ka mênê !",
+   "Ibanga we. Ka mênê !",
    "Mbolo",
    "Akewa"
   ],
-  "reponse": "Ibanga wê. Ka mênê !",
-  "indice": "« Ibanga wê. Ka mênê ! » veut dire « Au revoir ».",
+  "reponse": "Ibanga we. Ka mênê !",
+  "indice": "« Ibanga we. Ka mênê ! » veut dire « Au revoir ».",
   "source": "[LEC] Bonjour ; [LEC] Formules de politesse ; [RW] p. 284",
   "ordre": 11
  },
@@ -7044,7 +7044,7 @@
   "id": "gl10-phrase-01",
   "type": "ecouter",
   "consigne": "Lis, écoute et répète.",
-  "mot_myene": "Ibanga wê. Ka mênê !",
+  "mot_myene": "Ibanga we. Ka mênê !",
   "mot_francais": "Au revoir. À demain !",
   "source": "[LEC] Bonjour",
   "lecon_id": "ogendo-l10",
@@ -7454,9 +7454,9 @@
   "lecon_id": "ntina-l2",
   "type": "cours",
   "consigne": "Regarde et écoute avant de jouer.",
-  "mot_myene": "Ibanga wê. Ka mênê !",
+  "mot_myene": "Ibanga we. Ka mênê !",
   "mot_francais": "Au revoir",
-  "texte": "Quand on part, on dit « Ibanga wê. Ka mênê ! ».",
+  "texte": "Quand on part, on dit « Ibanga we. Ka mênê ! ».",
   "illustration": "👋",
   "source": "[LEC] Bonjour",
   "ordre": 101
@@ -7465,8 +7465,8 @@
   "id": "ntina-l2-102",
   "lecon_id": "ntina-l2",
   "type": "associer",
-  "consigne": "Que veut dire « Ibanga wê. Ka mênê ! » ?",
-  "mot_myene": "Ibanga wê. Ka mênê !",
+  "consigne": "Que veut dire « Ibanga we. Ka mênê ! » ?",
+  "mot_myene": "Ibanga we. Ka mênê !",
   "options": [
    "Au revoir",
    "Bonjour (à une personne)",
@@ -7484,11 +7484,11 @@
   "type": "choix",
   "consigne": "Comment dit-on « Au revoir » ?",
   "options": [
-   "Ibanga wê. Ka mênê !",
+   "Ibanga we. Ka mênê !",
    "Mbolo",
    "Akewa"
   ],
-  "reponse": "Ibanga wê. Ka mênê !",
+  "reponse": "Ibanga we. Ka mênê !",
   "illustration": "👋",
   "source": "[LEC] Bonjour",
   "ordre": 103
@@ -7497,8 +7497,8 @@
   "id": "ntina-l2-104",
   "lecon_id": "ntina-l2",
   "type": "dire",
-  "consigne": "Dis « Ibanga wê. Ka mênê ! » à voix haute.",
-  "mot_myene": "Ibanga wê. Ka mênê !",
+  "consigne": "Dis « Ibanga we. Ka mênê ! » à voix haute.",
+  "mot_myene": "Ibanga we. Ka mênê !",
   "mot_francais": "Au revoir",
   "illustration": "👋",
   "source": "[LEC] Bonjour",
@@ -10413,7 +10413,7 @@
   "type": "ecouter",
   "consigne": "Écoute et répète.",
   "mot_myene": "Incango sê ?",
-  "mot_francais": "Quelles nouvelles ?",
+  "mot_francais": "Comment vas-tu ? (pour saluer)",
   "source": "Capp (RÈGLES v2.1, § 9, formules)",
   "ordre": 2
  },
@@ -10548,7 +10548,7 @@
   "consigne": "Regarde et écoute avant de jouer.",
   "mot_myene": "Mbôluani",
   "mot_francais": "Bonjour (à plusieurs)",
-  "texte": "On salue en entrant : « Mbôluani » à plusieurs, « Sale ! » pour souhaiter la bienvenue. Puis on demande les nouvelles.",
+  "texte": "On salue en entrant : « Mbôluani » à plusieurs, « Sale ! » pour souhaiter la bienvenue. Puis on demande comment ça va : « Incango sê ? ».",
   "illustration": "👋",
   "source": "Capp (RÈGLES v2.1, § 9, formules validées) ; [LEC] Bonjour",
   "ordre": 1
@@ -10579,7 +10579,7 @@
   "type": "ecouter",
   "consigne": "Écoute et répète.",
   "mot_myene": "Incango sê ?",
-  "mot_francais": "Quelles nouvelles ?",
+  "mot_francais": "Comment vas-tu ? (pour saluer)",
   "source": "Capp (RÈGLES v2.1, § 9)",
   "ordre": 4
  },
@@ -10641,12 +10641,12 @@
   "consigne": "Que veut dire « Incango sê ? » ?",
   "mot_myene": "Incango sê ?",
   "options": [
-   "Quelles nouvelles ?",
+   "Comment vas-tu ? (pour saluer)",
    "Tu dis quoi ?",
    "Il est où ?",
    "On mange quoi ?"
   ],
-  "reponse": "Quelles nouvelles ?",
+  "reponse": "Comment vas-tu ? (pour saluer)",
   "source": "Capp (RÈGLES v2.1, § 9)",
   "ordre": 9
  },
@@ -15694,8 +15694,8 @@
   "id": "em-10-09",
   "lecon_id": "emeno-l10",
   "type": "dictee",
-  "consigne": "Écris en myènè : « quelles nouvelles ? »",
-  "mot_francais": "quelles nouvelles ?",
+  "consigne": "Écris en myènè : « comment vas-tu ? » (pour saluer)",
+  "mot_francais": "comment vas-tu ? (pour saluer)",
   "reponse": "Incango sê ?",
   "source": "Règles de référence v3.3 § 2-4, § 12",
   "ordre": 9
@@ -15908,8 +15908,8 @@
   "id": "ik-l6-03",
   "lecon_id": "ikoko-l6",
   "type": "dictee",
-  "consigne": "Écris en myènè : « quelles nouvelles ? ».",
-  "mot_francais": "quelles nouvelles ?",
+  "consigne": "Écris en myènè : « comment vas-tu ? » (pour saluer).",
+  "mot_francais": "comment vas-tu ? (pour saluer)",
   "reponse": "Incango sê ?",
   "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
   "ordre": 3
@@ -15940,7 +15940,7 @@
   "type": "dictee",
   "consigne": "Écris en myènè : « au revoir ».",
   "mot_francais": "au revoir",
-  "reponse": "Ibanga wê. Ka mênê !",
+  "reponse": "Ibanga we. Ka mênê !",
   "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
   "ordre": 6
  },
@@ -16111,7 +16111,7 @@
   "consigne": "Comment s'ouvre le conte ?",
   "options": [
    "Wulinya myê",
-   "Ibanga wê",
+   "Ibanga we",
    "Sale !"
   ],
   "reponse": "Wulinya myê",
@@ -16138,5 +16138,35 @@
   "mot_francais": "dis-moi, raconte-moi",
   "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
   "ordre": 7
+ },
+ {
+  "id": "ik35-reponse-1",
+  "lecon_id": "ikoko-l1",
+  "type": "ecouter",
+  "consigne": "Pour répondre : écoute et répète.",
+  "mot_myene": "Incango mbiambie.",
+  "mot_francais": "Ça va bien. (réponse à une salutation)",
+  "source": "Règles de référence v3.5 § 10.1 (Capp, 22 nov. 2026)",
+  "ordre": 12
+ },
+ {
+  "id": "ik35-reponse-2",
+  "lecon_id": "ikoko-l1",
+  "type": "ecouter",
+  "consigne": "Pour répondre : écoute et répète.",
+  "mot_myene": "Myê re vôvô. Akewa.",
+  "mot_francais": "Je vais bien, merci.",
+  "source": "Règles de référence v3.5 § 10.1 (Capp, 22 nov. 2026)",
+  "ordre": 13
+ },
+ {
+  "id": "ik35-reponse-3",
+  "lecon_id": "ikoko-l1",
+  "type": "ecouter",
+  "consigne": "Pour répondre : écoute et répète.",
+  "mot_myene": "Du vôvô. Go nduani. Akewa.",
+  "mot_francais": "Ça va bien. Je me maintiens. Merci.",
+  "source": "Règles de référence v3.5 § 10.1 (Capp, 22 nov. 2026)",
+  "ordre": 14
  }
 ]
