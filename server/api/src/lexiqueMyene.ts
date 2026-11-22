@@ -19,6 +19,8 @@ import { sansAccents } from './ia.ts';
 export interface EntreeLexique { f: string; s: string; v: string; r: number; i?: string }
 interface Index { entrees: EntreeLexique[]; parMot: Map<string, number[]>; rejets: { f: string; s: string; regle: string }[]; charge: string; mtime: number }
 
+// Le lexique du corpus est reconstruit depuis le lexique v3 (17_edition_DONDO_myene/v3_rekanga_2026-11-21/01_lexique/) par
+// server/scripts/construire_lexique_myene.py ; les cours d'Onênji sont en v3 depuis la conversion du 22 nov. 2026.
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const EXERCICES = path.resolve(ICI, '../../../packages/noyau/contenu/exercices.json');
 export const fichierLexique = (env = process.env) => env.LEXIQUE_MYENE_FICHIER || path.join(env.EMBEDDINGS_DIR || '/data/embeddings', '.nkala', 'lexique_myene.json');
@@ -116,7 +118,9 @@ export function blocLexique(question: string, max = 30): string {
 /** Mots-outils de la grammaire (pronoms, marques de temps, particules, formules) : toujours connus. */
 const OUTILS = ('mi ma mya my myè myé wé we wa é e a ayè zé ze za zwa azwè azwé nwé nwe né ne na nwa anwè wi wawo awè bé be go g gô ni n ga pa i re ré '
   + 'zélé zele wéré were ndô ndo kondènè sé se nde nd ndé w y z ny m s mbolo mbôluani akéwa mpolo salé nyéza izami iyami izô iyô izè iyè izazo iyazo izani iyani izawo iyawo '
-  + 'igomi agom ambani araro anayi atani nkama ntozèni').split(' ');
+  + 'igomi agom ambani araro anayi atani nkama ntozèni'
+  // graphie v3 (règles de référence v3.3, 22 nov. 2026)
+  + ' myê wê ê zê nwê awê ayê azwê anwê wao akewa sale nyeza izê iyê ntozêni ncaro ezele ndo sê gwe mya ïnde').split(' ');
 
 let formes: { cle: string; ensemble: Set<string> } | null = null;
 /** Le mot (graphie DONDO) est-il attesté : lexique, cours, mots fixés de la grammaire ? Comparaison sans accents ni majuscules. */

@@ -63,11 +63,11 @@ test('prompt : grammaire myènè, lexique trouvé, formes refusées, aucune réf
   const { construireSysteme, PROMPT_DEFAUT } = await import('../src/ia.ts');
   const { GRAMMAIRE_MYENE } = await import('../src/promptMyene.ts');
   assert.match(PROMPT_DEFAUT, /\{\{grammaire_myene\}\}/);
-  for (const r of [/LE CONNECTIF/, /CONSONNE FORTE ET CONSONNE FAIBLE/, /COMMENT TU COMPOSES/, /JAMAIS une autre langue/, /garde le mot français/]) assert.match(GRAMMAIRE_MYENE, r);
+  for (const r of [/LE NOM/, /Consonne forte/, /RÉPONDRE EN MYÈNÈ : LA MÉTHODE/, /JAMAIS une autre langue/, /écris le mot français/]) assert.match(GRAMMAIRE_MYENE, r);
   assert.doesNotMatch(GRAMMAIRE_MYENE, /Ambouroue|Teisser|Raponda|Gautier|p\.\s?\d/, 'aucun auteur ni page dans ce que lit le modèle pour l\'apprenant');
   const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
   const { systeme } = await construireSysteme(db, embed, { message: 'Traduis : ma mère prépare la viande', enfant: false });
-  assert.match(systeme, /COMMENT TU COMPOSES UNE PHRASE/);
+  assert.match(systeme, /RÉPONDRE EN MYÈNÈ : LA MÉTHODE/);
   assert.doesNotMatch(systeme, /\{\{\s*grammaire_myene\s*\}\}/);
   assert.match(systeme, /### Lexique trouvé/);
   assert.match(systeme, /- Nyama : La viande — ôrungu/);
@@ -76,10 +76,10 @@ test('prompt : grammaire myènè, lexique trouvé, formes refusées, aucune réf
   assert.match(systeme, /Formes refusées[\s\S]*Nyaré/);
   // Une version de prompt enregistrée sans la variable reçoit la grammaire à la fin ; réglage pour la couper
   await db.query(`INSERT INTO ia_prompts (nom, contenu, actif) VALUES ('ancienne', 'Tu es un assistant de test pour le myènè.', true)`);
-  assert.match((await construireSysteme(db, embed, { message: 'Mbolo', enfant: false })).systeme, /^Tu es un assistant de test[\s\S]*LE CONNECTIF/);
+  assert.match((await construireSysteme(db, embed, { message: 'Mbolo', enfant: false })).systeme, /^Tu es un assistant de test[\s\S]*SE SERVIR DES SOURCES/);
   assert.equal((await call('PUT', '/v1/admin/ia/config', ADMIN, { grammaireMyene: false, lexiqueMax: 0 })).status, 200);
   const coupe = (await construireSysteme(db, embed, { message: 'la viande', enfant: false })).systeme;
-  assert.doesNotMatch(coupe, /LE CONNECTIF|Lexique trouvé/);
+  assert.doesNotMatch(coupe, /SE SERVIR DES SOURCES|Lexique trouvé/);
   await call('PUT', '/v1/admin/ia/config', ADMIN, { grammaireMyene: true, lexiqueMax: 30 });
   await db.query(`UPDATE ia_prompts SET actif = false`);
   // Contrôle depuis la console
@@ -88,14 +88,17 @@ test('prompt : grammaire myènè, lexique trouvé, formes refusées, aucune réf
   assert.equal((await call('GET', '/v1/admin/ia/lexique?q=viande', tok('x1', 'x1@x.com'))).status, 403);
 });
 
-test('RAG : documents myènè d\'abord, phrases validées v2.0 seulement, versions dépassées jamais', async () => {
-  const { rechercherRag, TITRES_MYENE, TITRES_EXCLUS } = await import('../src/ia.ts');
+test('RAG : règles v3.3 d\'abord, documents myènè, phrases v3 seulement, versions dépassées jamais', async () => {
+  const { rechercherRag, TITRES_MYENE, TITRES_EXCLUS, TITRES_REGLES, TITRES_PHRASES_V3 } = await import('../src/ia.ts');
   const docs: [string, string, string][] = [
     ['g1', 'Sources myene › Dictionnaires grammaires › Ambouroue 2007', 'Le connectif nkala ozombi grammaire'],
     ['v2', 'Donnees › Ompangano › Final v2 regles 2026-11-10 › Import 2 nouveau v2 40125', 'Igomi ny\'imboni nkala ozombi'],
     ['old', 'Donnees › Ompangano › Corpus myene GEMINI origine 10000', 'Igomi gni mboni nkala ozombi'],
     ['mod', 'Donnees › Ompangano › Final v2 regles 2026-11-10 › Modifications regles v2', 'avant Igomi gni mboni nkala ozombi'],
     ['loi', 'Textes officiels › Code civil', 'nkala ozombi article premier'],
+    ['r6', 'Regles myene v3 › Paragraphe 05-2 5 2 Le connectif de', 'RÈGLES MYÈNÈ v3.3 connectif nkala ozombi'],
+    ['p3', 'Edition DONDO myene › V3 rekanga 2026-11-21 › Phrases › Import 2 nouveau v3 rekanga 40125', 'Igomi ny\'imboni nkala ozombi'],
+    ['e2', 'Edition DONDO myene › Lexique › Lexique v2', 'nkala ozombi ancienne édition'],
   ];
   for (const [id, titre, texte] of docs) {
     await db.query(`INSERT INTO ia_documents (id, titre, texte) VALUES ($1,$2,$3)`, [id, titre, texte]);
@@ -103,9 +106,11 @@ test('RAG : documents myènè d\'abord, phrases validées v2.0 seulement, versio
   }
   const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
   const myene = (await rechercherRag(db, embed, 'nkala ozombi', 10, 0, 2000, TITRES_MYENE)).map(r => r.document).sort();
-  assert.deepEqual(myene, ['g1', 'v2']);
+  assert.deepEqual(myene, ['g1'], 'plus de phrases v2');
+  assert.deepEqual((await rechercherRag(db, embed, 'nkala ozombi', 10, 0, 2000, TITRES_REGLES)).map(r => r.document), ['r6']);
+  assert.deepEqual((await rechercherRag(db, embed, 'nkala ozombi', 10, 0, 2000, TITRES_PHRASES_V3)).map(r => r.document), ['p3']);
   const general = (await rechercherRag(db, embed, 'nkala ozombi', 10, 0, 2000, undefined, TITRES_EXCLUS)).map(r => r.document).sort();
-  assert.deepEqual(general, ['g1', 'loi'], 'aucune version de phrases dans le passage général');
+  assert.deepEqual(general, ['g1', 'loi', 'r6'], 'aucune version de phrases ni ancienne édition dans le passage général');
   await db.query(`DELETE FROM ia_chunks WHERE document_id = ANY($1::text[])`, [docs.map(d => d[0])]);
   await db.query(`DELETE FROM ia_documents WHERE id = ANY($1::text[])`, [docs.map(d => d[0])]);
 });

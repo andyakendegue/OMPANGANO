@@ -25,21 +25,49 @@ const vecteurs = vecteursParDefaut();
  * grammaireMyene : ajoute la compétence myènè (promptMyene.ts) ; lexiqueMax : nombre d'entrées du lexique de référence placées
  * dans le prompt (0 = coupé) ; ragMyeneK : morceaux pris d'abord dans les documents myènè (leçons, grammaires, dictionnaires), en plus de topK.
  */
-export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number }
-export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4 };
+export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number; ragReglesK: number; ragPhrasesK: number }
+export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4, ragReglesK: 2, ragPhrasesK: 2 };
+/**
+ * Corpus consulté par Qwen (règles myènè de référence v3.3, § 15.2) : d'abord les règles de référence, découpées par section
+ * (dossier `00_regles_myene_v3/` du corpus), puis les dictionnaires, grammaires, leçons et le lexique v3, puis les phrases en v3.
+ * Une recherche dans chacun de ces ensembles, pour que le modèle reçoive plusieurs sources et applique seul la règle des rangs.
+ */
+export const TITRES_REGLES = ['Regles myene v3%'];
+export const TITRES_PHRASES_V3 = ['Edition DONDO myene › V3 rekanga % › Phrases%'];
 /** Documents myènè du corpus (titres construits par l'indexeur à partir des dossiers). */
 export const TITRES_MYENE = [
   'Sources myene%',                 // dictionnaires, grammaires, leçons omyènè, textes en mpongwè, livres scannés
   'Theses › Monde myene%',          // thèses et études sur le monde myènè (Rekanga, Ayamine-Anguilet…)
   '%Dictionnaire mpongwe francais', // Raponda-Walker (JSON)
   'Documents pedagogiques › Proverbes%',
-  'Edition dondo myene%',
-  // Phrases validées avec les règles v2.0 (10 nov. 2026) : seulement les fichiers d'import, sans la colonne de l'ancien texte.
-  'Donnees › Ompangano › Final v2 regles 2026-11-10 › Import 1 ancien v2 10000',
-  'Donnees › Ompangano › Final v2 regles 2026-11-10 › Import 2 nouveau v2 40125',
+  // Données en graphie v3 seulement (lexique, dictionnaire avec headword_rekanga, proverbes) ; les phrases v3 ont leur propre recherche.
+  'Edition DONDO myene › V3 rekanga % › Lexique%',
+  'Edition DONDO myene › V3 rekanga % › Dictionnaires%',
+  'Edition DONDO myene › V3 rekanga % › Proverbes%',
 ];
-/** Versions dépassées des phrases (antérieures aux règles v2.0, phrases rejetées) : jamais dans le passage général. */
-export const TITRES_EXCLUS = ['Donnees › Ompangano%'];
+/**
+ * Versions dépassées (phrases v1 et v2, édition DONDO v2, phrases rejetées) : retirées de toutes les recherches (§ 15.2).
+ * Les données v3 de l'édition passent par les recherches dédiées ci-dessus.
+ */
+export const TITRES_EXCLUS = ['Donnees › Ompangano%', 'Edition DONDO myene%'];
+
+/**
+ * Rang de la source d'un extrait (règles § 1 et § 15.2 : `rang_source` 0 à 4) et graphie, d'après le titre du document.
+ * Le modèle s'en sert pour appliquer seul la règle des rangs ; il ne le montre jamais.
+ */
+export function etiquetteSource(titre: string): { rang: number | null; v3: boolean; libelle: string } {
+  const t = sansAccents(titre);
+  if (/^regles myene v3/.test(t)) return { rang: 0, v3: true, libelle: 'rang 0 · règles de référence v3.3' };
+  if (/corrections capp/.test(t)) return { rang: 0, v3: false, libelle: 'rang 0 · décisions du locuteur de référence (ancienne graphie)' };
+  if (/v3 rekanga/.test(t)) return { rang: null, v3: true, libelle: /phrases/.test(t) ? 'phrases en v3, composées (jamais une autorité)' : 'données en v3' };
+  const ancienne = ' · ancienne graphie, lecture seulement (ramener en v3)';
+  if (/rekanga/.test(t)) return { rang: 1, v3: false, libelle: 'rang 1' + ancienne };
+  if (/ambouroue/.test(t)) return { rang: 2, v3: false, libelle: 'rang 2' + ancienne };
+  if (/raponda|teisser|dictionnaire mpongwe francais/.test(t)) return { rang: 3, v3: false, libelle: 'rang 3' + ancienne };
+  if (/lecons omyene/.test(t)) return { rang: 4, v3: false, libelle: 'rang 4' + ancienne };
+  if (/sources myene|theses|proverbes/.test(t)) return { rang: null, v3: false, libelle: 'attestation' + ancienne };
+  return { rang: null, v3: false, libelle: 'document général' };
+}
 export const configIa = async (q: Queryable): Promise<ConfigIa> => ({ ...CONFIG_IA_DEFAUT, ...(await parametre<Partial<ConfigIa>>(q, 'ia_config', {})) });
 
 // ------------------------------------------------------------------ fournisseur de modèle
@@ -330,15 +358,19 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   if (cfg.ragActif) {
     const delai = o.delaiRagMs ?? 8000;
     // D'abord les documents myènè (leçons, grammaires, dictionnaires), noyés sinon parmi plus d'un million de morceaux, puis tout le corpus.
-    const [myene, general] = await Promise.all([
-      cfg.ragMyeneK > 0 ? rechercherRag(q, embed, o.message, cfg.ragMyeneK, cfg.seuil, delai, TITRES_MYENE).catch(() => []) : Promise.resolve([]),
+    const chercher = (k: number, titres?: string[], exclus?: string[]) => k > 0 ? rechercherRag(q, embed, o.message, k, cfg.seuil, delai, titres, exclus).catch(() => []) : Promise.resolve([]);
+    const [regles, myene, phrases, general] = await Promise.all([
+      // Règles de référence d'abord, puis dictionnaires, grammaires, leçons et lexique v3, puis phrases v3 (plusieurs sources, § 15.2).
+      chercher(cfg.ragReglesK, TITRES_REGLES),
+      chercher(cfg.ragMyeneK, TITRES_MYENE),
+      chercher(cfg.ragPhrasesK, TITRES_PHRASES_V3),
       // Passage général : sans les versions dépassées des phrases (les phrases validées viennent par le passage myènè).
       rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, delai, undefined, TITRES_EXCLUS).catch(() => []),
     ]);
     const vus = new Set<number>();
-    contexte = [...myene, ...general].filter(c => !vus.has(c.id) && !!vus.add(c.id)).slice(0, cfg.topK + cfg.ragMyeneK);
+    contexte = [...regles, ...myene, ...phrases, ...general].filter(c => !vus.has(c.id) && !!vus.add(c.id)).slice(0, cfg.topK + cfg.ragMyeneK + cfg.ragReglesK + cfg.ragPhrasesK);
     // Le titre aide le modèle à juger le document ; il ne doit jamais le citer à l'apprenant (aucune référence aux sources).
-    if (contexte.length) systeme += `\n\n### Contexte (extraits de documents de référence ; sers-t'en, ne dis rien sur le myènè qui ne figure ni ici ni dans ta connaissance ; ne cite jamais ni auteur, ni ouvrage, ni page)\n` + contexte.map((c, i) => `[${i + 1}] ${c.titre} : ${c.texte}`).join('\n');
+    if (contexte.length) systeme += `\n\n### Contexte (extraits de documents de référence ; sers-t'en, ne dis rien sur le myènè qui ne figure ni ici ni dans ta connaissance ; ne cite jamais ni auteur, ni ouvrage, ni page)\n` + contexte.map((c, i) => `[${i + 1}] (${etiquetteSource(c.titre).libelle}) ${c.titre} : ${c.texte}`).join('\n');
   }
   return { systeme, contexte, cfg, socle };
 }
@@ -362,7 +394,7 @@ export function registerIaAdmin(ctx: Ctx) {
     const b = (req.body || {}) as Partial<ConfigIa>;
     const propre: Partial<ConfigIa> = {};
     if (str(b.modele)) propre.modele = b.modele.slice(0, 120);
-    for (const [k, min, max] of [['temperature', 0, 2], ['maxTokens', 16, 8000], ['topK', 1, 20], ['seuil', 0, 1], ['chunkTaille', 200, 4000], ['chunkChevauchement', 0, 1000], ['lexiqueMax', 0, 80], ['ragMyeneK', 0, 12]] as const)
+    for (const [k, min, max] of [['temperature', 0, 2], ['maxTokens', 16, 8000], ['topK', 1, 20], ['seuil', 0, 1], ['chunkTaille', 200, 4000], ['chunkChevauchement', 0, 1000], ['lexiqueMax', 0, 80], ['ragMyeneK', 0, 12], ['ragReglesK', 0, 8], ['ragPhrasesK', 0, 8]] as const)
       if (typeof b[k] === 'number' && b[k]! >= min && b[k]! <= max) (propre as any)[k] = b[k];
     if (typeof b.ragActif === 'boolean') propre.ragActif = b.ragActif;
     if (typeof b.grammaireMyene === 'boolean') propre.grammaireMyene = b.grammaireMyene;

@@ -70,7 +70,7 @@ export async function extraireTexte(chemin: string): Promise<string | null> {
  * puis le reste par ordre alphabétique. L'indexation est lente (un worker serverless) et souvent interrompue (redéploiements de l'API) :
  * ce qui sert le plus à l'assistant doit être vectorisé en premier. Variable RAG_PRIORITE : dossiers séparés par des virgules.
  */
-export const PRIORITE_RAG_DEFAUT = ['09_documents_pedagogiques', '17_edition_DONDO_myene', '01_sources_myene', '11_histoire_cotes_myene', '16_langue_fang', '03_droit_coutumier', '14_programme_et_jeux'];
+export const PRIORITE_RAG_DEFAUT = ['00_regles_myene_v3', '09_documents_pedagogiques', '17_edition_DONDO_myene', '01_sources_myene', '11_histoire_cotes_myene', '16_langue_fang', '03_droit_coutumier', '14_programme_et_jeux'];
 export function ordonnerParPriorite(fichiers: string[], priorite?: string): string[] {
   const liste = (priorite ? priorite.split(',').map(x => x.trim()).filter(Boolean) : PRIORITE_RAG_DEFAUT);
   const rang = (rel: string) => { const i = liste.findIndex(p => rel === p || rel.startsWith(p + '/')); return i < 0 ? liste.length : i; };

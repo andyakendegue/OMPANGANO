@@ -31,8 +31,8 @@ const RX_TERMES = new RegExp(`(?<![\\p{L}])(${TERMES_SPECIALISTE.join('|')})`, '
 /** Transcription entre crochets (ex. [àwáná]) : gardée dans les données pour la voix, jamais affichée. */
 export const CROCHETS = /\[[^\]\n]*\]/;
 
-/** Mots français admis dans un champ myènè (noms propres, emprunts laissés en français, règles § 0.3). */
-export const FRANCAIS_ADMIS = new Set(['président', 'ministre', 'carrefour', 'château', 'déclin', 'démographique', 'régis', 'midi', 'école', 'télé', 'télévision']);
+/** Mots admis dans un champ myènè : français (noms propres, emprunts, règles § 0.3) et noms écrits ainsi par Capp (Mandji, § 0.6). */
+export const FRANCAIS_ADMIS = new Set(['mandji', 'président', 'ministre', 'carrefour', 'château', 'déclin', 'démographique', 'régis', 'midi', 'école', 'télé', 'télévision']);
 
 const NFC = (s: string) => s.normalize('NFC');
 
@@ -111,4 +111,33 @@ export function ecartsExercice(e: Record<string, any>): Ecart[] {
 /** Écarts des titres et descriptions (parcours, unités, leçons). */
 export function ecartsTitres(x: Record<string, any>): Ecart[] {
   return ['titre', 'titre_myene', 'description', 'palier_titre'].flatMap(k => controlerAffiche(k, x[k], false));
+}
+
+/**
+ * Formes refusées (règles v3.3 § 12, « Erreurs à ne pas refaire ») : forme fautive → forme juste. Sert au contrôleur des
+ * réponses en myènè de Kak'Igonjo et des données (fine-tuning : 100 % des phrases passent le contrôleur).
+ */
+export const ERREURS_A_EVITER: { faux: RegExp; juste: string }[] = [
+  { faux: /\ba va\b/i, juste: 'a veni' },
+  { faux: /\ba jani\b/i, juste: 'a yano' },
+  { faux: /\bbe luwo me\b/i, juste: 'Mênê midi, mi be nya' },
+  { faux: /\bw'si\b|\bgo si\b/i, juste: 'Président wi Gabon ; go Chine' },
+  { faux: /\bIncango nde w[êe] bele\b/i, juste: "Wê bel'incango nde ?" },
+  { faux: /^\s*Nde\s*,/i, juste: 'Ndo, …' },
+  { faux: /\bsa ntch[ée] yazo\b/i, juste: "Incango s'ince" },
+  { faux: /\bagom'(ambani|araro|anayi|atani) m'/i, juste: "Igomi ny'itondo ambani" },
+  { faux: /\bIgomi gni\b/i, juste: "Igomi ny'imboni" },
+  { faux: /\bmbongo\b/i, juste: 'nkambi' },
+  { faux: /\b[oô]mwana\b/i, juste: 'onghwana' },
+  { faux: /\banaga pyezo\b/i, juste: 'anaga wa vïezo iyoma' },
+  { faux: /\bonghwant'iwami\b/i, juste: "onghwant'wami" },
+];
+
+/** Contrôle d'un texte écrit en myènè (réponse du modèle, phrase de données) : lettres v3 et formes refusées du § 12. */
+export function controlerMyene(texte: string): { ok: boolean; ecarts: string[] } {
+  const t = NFC(texte ?? '');
+  const ecarts: string[] = [];
+  for (const m of mots(t)) if (LETTRES_V2.test(m) && !FRANCAIS_ADMIS.has(m.toLocaleLowerCase('fr'))) ecarts.push(`lettre v2 : ${m}`);
+  for (const e of ERREURS_A_EVITER) if (e.faux.test(t)) ecarts.push(`forme refusée (juste : ${e.juste})`);
+  return { ok: !ecarts.length, ecarts };
 }
