@@ -174,3 +174,56 @@ test('synthèse audio : réservée à l\'avantage synthese_audio, API prioritair
   assert.equal((await call('POST', '/v1/audio/phonemes', ADMIN, { api: '[m̩bólò]' })).body.phonemes, 'ˈmbolo');
   assert.equal((await call('GET', '/v1/admin/audio/etat', ADMIN)).body.ok, true);
 });
+
+test('prompt de personnalité et liste « Mots vérifiés » en graphie v3 ; question en myènè → réponse en myènè (22 nov. 2026)', async () => {
+  const { PROMPT_DEFAUT, construireSysteme } = await import('../src/ia.ts');
+  const { MYENE } = await import('../../../packages/noyau/src/lexique.ts');
+  const { LETTRES_V2, AUTEURS } = await import('../../../packages/noyau/src/graphieV3.ts');
+  for (const m of Object.values(MYENE)) assert.ok(!LETTRES_V2.test(m.mot), `lettre v2 dans la liste : ${m.mot}`);
+  const formules = PROMPT_DEFAUT.split('FORMULES D\'ACCUEIL')[1].split('Mots vérifiés')[0];
+  const enMyene = formules.split('\n').filter(l => l.startsWith('- ')).map(l => l.slice(2).split(' : ')[0]);
+  assert.ok(enMyene.length >= 3 && enMyene.every(f => !LETTRES_V2.test(f)), `formules d'accueil en v3 : ${enMyene.join(' | ')}`);
+  assert.match(PROMPT_DEFAUT, /Si l'on te parle en myènè : tu réponds en myènè seulement/);
+  assert.ok(!/^- En français, avec les mots myènè/m.test(PROMPT_DEFAUT), 'plus de consigne « toujours en français »');
+  const embed = { nom: 'x', modele: 'x', embed: async (t: string[]) => t.map(() => [1, 0]) };
+  const { systeme } = await construireSysteme(db, embed, { message: 'Mbolo ! Incango sê ?', enfant: false });
+  const mots = systeme.split('Mots vérifiés :')[1].split('FORME DES RÉPONSES')[0];
+  assert.ok(mots.includes('Akewa') && !mots.includes('Akéwa') && !AUTEURS.test(mots), 'liste insérée en v3, sans auteur');
+});
+
+test('traducteur : mot à mot court, sans raisonnement du modèle', async () => {
+  const { sensCourt, lireJsonTraduction, consigneTraduction } = await import('../src/traduction.ts');
+  assert.equal(sensCourt('mangent'), 'mangent');
+  assert.equal(sensCourt("ma mère / ma grand-mère (ici 'ma mère' au sens de mère de la famille, terme attesté…)"), 'ma mère / ma grand-mère');
+  assert.equal(sensCourt('je (forme courte de myê)'), 'je');
+  assert.ok(sensCourt('x'.repeat(200)).length <= 61);
+  const j = lireJsonTraduction('{"traduction":"Mênê, mi be kênda go nkala","mot_a_mot":[{"myene":"Mama poyo","fr":"ma mère ; Vérifions le lexique trouvé : Mâma poyo…"}],"compose":true}');
+  assert.equal(j!.mot_a_mot[0].fr, 'ma mère');
+  assert.match(consigneTraduction('fr-myene'), /Ne réfléchis JAMAIS à voix haute/);
+  assert.match(consigneTraduction('fr-myene'), /graphie v3/);
+});
+
+test('recherche web : demandée par le modèle, faite par notre moteur, jamais sans moteur ni pour un enfant', async () => {
+  const { repondreAvecRecherche, demandeRecherche, rechercherWeb, CONSIGNE_RECHERCHE } = await import('../src/rechercheWeb.ts');
+  assert.equal(demandeRecherche('[[recherche: président du Gabon 2026]]'), 'président du Gabon 2026');
+  assert.equal(demandeRecherche('Mbolo !'), null);
+  assert.match(CONSIGNE_RECHERCHE, /Jamais pour le myènè/);
+  const vues: string[] = [];
+  const moteur = createServer((req, res) => { vues.push(req.url ?? ''); res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ results: [{ title: 'Port-Gentil', url: 'https://fr.wikipedia.org/wiki/Port-Gentil', content: 'Ville du Gabon, chef-lieu de l\'Ogooué-Maritime.' }] })); });
+  await new Promise<void>(r => moteur.listen(0, '127.0.0.1', () => r()));
+  const env = { SEARXNG_URL: `http://127.0.0.1:${(moteur.address() as any).port}` } as any;
+  const systemes: string[] = [];
+  const ia = { nom: 't', repondre: async (d: any) => { systemes.push(d.systeme); return { texte: systemes.length === 1 ? '[[recherche: Port-Gentil]]' : 'Port-Gentil est une ville du Gabon (Wikipédia).', usage: { entree: 100, sortie: 10 }, modele: 't', simule: false }; } };
+  const r = await repondreAvecRecherche(ia as any, { systeme: 'S', messages: [], modele: '' }, true, env);
+  assert.equal(r.texte, 'Port-Gentil est une ville du Gabon (Wikipédia).');
+  assert.deepEqual(r.usage, { entree: 200, sortie: 20, cache: 0 }, 'les deux appels sont comptés');
+  assert.match(systemes[1], /Résultats de recherche sur Internet[\s\S]*fr\.wikipedia\.org/);
+  assert.match(vues[0], /safesearch=2/);
+  // Inactif (réglage coupé, pas de moteur ou enfant) : un seul appel, sans consigne
+  systemes.length = 0;
+  await repondreAvecRecherche(ia as any, { systeme: 'S', messages: [], modele: '' }, false, env);
+  assert.deepEqual(systemes, ['S']);
+  assert.deepEqual(await rechercherWeb('x', 5, {} as any), [], 'sans moteur : aucun appel');
+  moteur.close();
+});

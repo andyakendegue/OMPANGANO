@@ -47,7 +47,7 @@ export function Cadre({ titre, niveau, avancement, onQuitter, reste, children }:
 
 export const Retour = ({ ok, texte, onSuite, libelle = 'Suivant' }: { ok: boolean; texte: string; onSuite: () => void; libelle?: string }) => {
   const { c } = useTheme();
-  return (<Carte style={{ padding: 16, gap: 10, borderColor: ok ? c.succes : c.erreur }}><T v="sousTitre" couleur={ok ? c.succes : c.erreur} accessibilityRole="alert">{ok ? 'Akéwa ! Bien joué.' : 'Pas cette fois.'}</T>{!!texte && <T v="corps">{texte}</T>}<Bouton label={libelle} variante="ambre" onPress={onSuite} /></Carte>);
+  return (<Carte style={{ padding: 16, gap: 10, borderColor: ok ? c.succes : c.erreur }}><T v="sousTitre" couleur={ok ? c.succes : c.erreur} accessibilityRole="alert">{ok ? 'Akewa ! Bien joué.' : 'Pas cette fois.'}</T>{!!texte && <T v="corps">{texte}</T>}<Bouton label={libelle} variante="ambre" onPress={onSuite} /></Carte>);
 };
 
 /** Écran affiché quand la manche servie ne contient pas de quoi jouer (contenu non importé ou non publié sur le serveur). */

@@ -28,7 +28,18 @@ ${sens === 'fr-myene'
     : '- Lis le texte myènè (graphie normalisée ; une forme peut être écrite autrement par l\'utilisateur), reconnais chaque mot dans le lexique et la grammaire, puis donne le sens français naturel. Un mot que tu ne reconnais pas : garde-le tel quel et signale-le.'}
 - Réponds UNIQUEMENT par un objet JSON valide, sans texte autour, de cette forme :
 {"traduction": "…", "mot_a_mot": [{"myene": "…", "fr": "…"}], "francais_gardes": ["…"], "compose": true, "remarque": "…"}
-- "compose" vaut true si la phrase myènè n'a pas été trouvée telle quelle dans le lexique ou les documents ; "remarque" : une phrase courte au plus (variante, doute), sans auteur ni page.`;
+- "compose" vaut true si la phrase myènè n'a pas été trouvée telle quelle dans le lexique ou les documents ; "remarque" : une phrase courte au plus (variante, doute), sans auteur ni page.
+- Le myènè s'écrit en graphie v3 (jamais è, é, tch, dj, ñ, ṽ) ; infinitif soudé (gojêna), lieu ou temps séparé (go nkala).
+- Dans "mot_a_mot", "fr" donne le sens en 1 à 5 mots, sans explication. Ne réfléchis JAMAIS à voix haute dans le JSON : ni hésitation, ni « vérifions », ni choix entre deux mots. Choisis, puis écris ; un doute va dans "remarque", en une phrase.`;
+
+/**
+ * Sens d'un mot du mot à mot, court : le modèle y écrivait parfois son raisonnement (essai du 22 nov. 2026, 1 300 caractères pour « ma mère »).
+ * On garde la première proposition (avant parenthèse, point-virgule ou phrase suivante), 60 caractères au plus.
+ */
+export function sensCourt(fr: string): string {
+  const t = fr.split(/\s*[(;]|\.\s|\n/)[0].trim();
+  return t.length <= 60 ? t : t.slice(0, 60).replace(/\s+\S*$/, '') + '…';
+}
 
 /** Lit la réponse du modèle : JSON éventuellement entouré de texte ou de ```json. */
 export function lireJsonTraduction(texte: string): { traduction: string; mot_a_mot: { myene: string; fr: string }[]; francais_gardes: string[]; compose: boolean; remarque: string } | null {
@@ -39,7 +50,7 @@ export function lireJsonTraduction(texte: string): { traduction: string; mot_a_m
     if (!str(j.traduction) || !j.traduction.trim()) return null;
     return {
       traduction: j.traduction.trim().normalize('NFC'),
-      mot_a_mot: Array.isArray(j.mot_a_mot) ? j.mot_a_mot.filter((x: any) => x && str(x.myene)).slice(0, 60).map((x: any) => ({ myene: String(x.myene).normalize('NFC'), fr: String(x.fr ?? '') })) : [],
+      mot_a_mot: Array.isArray(j.mot_a_mot) ? j.mot_a_mot.filter((x: any) => x && str(x.myene)).slice(0, 60).map((x: any) => ({ myene: String(x.myene).normalize('NFC'), fr: sensCourt(String(x.fr ?? '')) })) : [],
       francais_gardes: Array.isArray(j.francais_gardes) ? j.francais_gardes.filter(str).slice(0, 30) : [],
       compose: j.compose !== false,
       remarque: str(j.remarque) ? j.remarque.slice(0, 300) : '',

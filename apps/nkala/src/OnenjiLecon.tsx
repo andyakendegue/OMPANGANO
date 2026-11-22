@@ -18,7 +18,7 @@ import { usePrefs, useTheme } from './Prefs';
 import { useProgres } from './Progres';
 import { useAuth } from './AuthProvider';
 import { mouvement } from './theme';
-import { consentementDonne, construireContribution, type QuestionnaireItem } from '@nkala/noyau';
+import { consentementDonne, construireContribution, voixAutorisee, type QuestionnaireItem } from '@nkala/noyau';
 import { soumettre } from './fileAttente';
 
 /**
@@ -100,10 +100,8 @@ function CarteLecture({ ex, enfant, libelle, onSuite, bouton = 'Continuer' }: { 
  * un parent ou représentant légal renseigné (plan de développement du 22 nov. 2026 : accord des parents pour les voix des mineurs).
  */
 function voixPeutPartir(p: NonNullable<ReturnType<typeof useAuth>['profil']>): boolean {
-  if (!consentementDonne(p) || (p as { consentVoiceUsage?: boolean }).consentVoiceUsage === false) return false;
-  const naissance = p.birthDate ? Date.parse(p.birthDate) : NaN;
-  const mineur = !Number.isFinite(naissance) || (Date.now() - naissance) / (365.25 * 24 * 3600 * 1000) < 18;
-  return !mineur || !!((p as { legalGuardianName?: string }).legalGuardianName ?? '').trim();
+  // Règle commune avec le serveur (noyau/accordVoix.ts) : un mineur a besoin de l'accord de son parent ou représentant légal.
+  return consentementDonne(p) && voixAutorisee(p);
 }
 
 function Dire({ modele, onFini, ex }: { modele?: string | null; onFini: () => void; ex?: Exercice }) {
@@ -212,7 +210,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
         {!!ex.mot_francais && <T v="sousTitre" style={{ textAlign: 'center' }}>« {ex.mot_francais} »</T>}
         <Champ valeur={texte} onChange={setTexte} placeholder="Écris en myènè" auto="none" onSubmit={valider} />
         {verifie === null ? <Bouton label="Vérifier" desactive={!texte.trim()} onPress={valider} />
-          : <T v="carte" couleur={verifie ? c.succes : c.erreur} accessibilityRole="alert">{verifie ? 'Akéwa ! C\'est juste.' : `On écrit : ${(ex.reponse ?? '').split('/')[0].trim()}`}</T>}
+          : <T v="carte" couleur={verifie ? c.succes : c.erreur} accessibilityRole="alert">{verifie ? 'Akewa ! C\'est juste.' : `On écrit : ${(ex.reponse ?? '').split('/')[0].trim()}`}</T>}
         {verifie === false && !!ex.indice && <T v="petit">{ex.indice}</T>}
       </View>
     );
@@ -267,7 +265,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
           {opts.map((m, i) => !mots.includes(String(i)) && <Pressable key={i} accessibilityRole="button" disabled={verifie !== null} onPress={() => setMots(a => [...a, String(i)])} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord }}><T v="corps">{m}</T></Pressable>)}
         </View>
         {restants.length === 0 && verifie === null && <Bouton label="Vérifier" onPress={() => { const ok = jugerReponse(ex, mots.map(i => opts[Number(i)])); setVerifie(ok); setTimeout(() => onRepondre(ok), 900); }} />}
-        {verifie !== null && <T v="carte" couleur={verifie ? c.succes : c.erreur}>{verifie ? 'Akéwa ! C\'est juste.' : `La phrase : ${ex.reponse}`}</T>}
+        {verifie !== null && <T v="carte" couleur={verifie ? c.succes : c.erreur}>{verifie ? 'Akewa ! C\'est juste.' : `La phrase : ${ex.reponse}`}</T>}
       </View>
     );
   }
@@ -309,7 +307,7 @@ export function Question({ ex, onRepondre, enfant }: { ex: Exercice; onRepondre:
         {!!ex.mot_myene && <T v="sousTitre" style={{ textAlign: 'center', fontStyle: 'italic' }}>{ex.mot_myene}</T>}
         <Champ valeur={texte} onChange={setTexte} placeholder="Écris ta réponse" onSubmit={valider} />
         {verifie === null ? <Bouton label="Vérifier" desactive={!texte.trim()} onPress={valider} />
-          : <T v="carte" couleur={verifie ? c.succes : c.erreur} accessibilityRole="alert">{verifie ? 'Akéwa ! C\'est juste.' : `Réponse : ${(ex.reponse ?? '').split('/')[0].trim()}`}</T>}
+          : <T v="carte" couleur={verifie ? c.succes : c.erreur} accessibilityRole="alert">{verifie ? 'Akewa ! C\'est juste.' : `Réponse : ${(ex.reponse ?? '').split('/')[0].trim()}`}</T>}
         {verifie === false && !!ex.indice && <T v="petit">{ex.indice}</T>}
       </View>
     );

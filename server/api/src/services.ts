@@ -13,6 +13,7 @@ import { ouvrirPassage } from './reversements.ts';
 import { prixMasterclass, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
 import { zoneAffichable, profilAgeDepuis, modulesSansPub, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
 import { construireSysteme } from './ia.ts';
+import { rechercheDisponible, repondreAvecRecherche } from './rechercheWeb.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
 import { modulesActuels } from './contenus.ts';
@@ -114,7 +115,7 @@ export function registerServices(ctx: Ctx) {
     const verdict = verifierQuota(quota, await consommation(db, a.auth.uid, conv), estimation);
     if (!verdict.ok) return fail(429, verdict.limite === 'conversation' ? 'Cette conversation est trop longue : commence-en une nouvelle.' : verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
     let rep;
-    try { rep = await ctx.ia.repondre({ systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }); }
+    try { rep = await repondreAvecRecherche(ctx.ia, { systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }, cfg.rechercheWeb && rechercheDisponible(env) && age !== 'enfant', env); }
     catch (e) { return fail(502, 'Kak\'Igonjo ne répond pas pour le moment. Réessaie dans un instant.'); }
     await db.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule, jetons_socle) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
       [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, Math.min(socle, rep.usage.entree)]);

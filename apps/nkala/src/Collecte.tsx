@@ -4,7 +4,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { useRouter } from 'expo-router';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import {
-  chargerDefis, chargerThemes, consentementDonne, construireContribution, dialecteDeLaTribu, MYENE, MYENE_TRIBES, NUANCES_SENS,
+  chargerDefis, chargerThemes, consentementDonne, construireContribution, voixAutorisee, dialecteDeLaTribu, MYENE, MYENE_TRIBES, NUANCES_SENS,
   FICHES_DE_SECOURS, tribuDuDialecte, VARIANTES_TRIBALES,
   type QuestionnaireItem, type ThemeDefinition, type WeeklyChallenge,
 } from '@nkala/noyau';
@@ -23,6 +23,8 @@ import { FaqModale } from './Faq';
 import { nombreEnAttente, rejouerFile, soumettre } from './fileAttente';
 import { CelebrationDefi } from './Recompenses';
 import { couleurs, stylesDyn } from './theme';
+
+const MESSAGE_VOIX = 'Pour enregistrer ta voix : autorise l’usage de la voix dans ton profil (Modifier mon inscription). Pour un mineur, il faut aussi l’accord de son parent ou représentant légal.';
 
 const DUREE_MAX = 60; // secondes, comme le site web
 const mmss = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
@@ -186,6 +188,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
   };
   const commencer = async () => {
     setErreurMicro(null);
+    if (!voixAutorisee(profil)) { setErreurMicro(MESSAGE_VOIX); return; }
     try {
       const perm = await AudioModule.requestRecordingPermissionsAsync();
       if (!perm.granted) { setErreurMicro('Autorisation micro refusée. Veuillez autoriser le micro dans les réglages de votre appareil.'); return; }
@@ -212,7 +215,7 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
         dureeAudio: audioUri ? duree : 0, mimeAudio: audioUri ? 'audio/mp4' : undefined,
       });
       c.offlineQueued = !enLigne;
-      const r = await soumettre(c, audioUri ?? undefined, 'audio/mp4');
+      const r = await soumettre(c, voixOk ? audioUri ?? undefined : undefined, 'audio/mp4');
       setEnAttente(await nombreEnAttente());
       if (r === 'refuse') { alerter('Contribution refusée par le serveur (compte suspendu ou consentement manquant).'); return; }
       const xp = (audioUri ? 120 : 50) + (sens === 'propose' && (sensPropose.trim() || sensSecondaire.trim()) ? 20 : 0);
@@ -232,6 +235,8 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
 
   if (!profil) return null;
   const accepte = consentementDonne(profil);
+  // Voix : usage autorisé et, pour un mineur, accord de son parent ou représentant légal (noyau/accordVoix.ts, 22 nov. 2026).
+  const voixOk = voixAutorisee(profil);
 
   const rappel = !accepte && profil.registrationCompleted && (
     <View style={s.rappel}>
@@ -401,7 +406,8 @@ export function Collecte({ onGuide }: { onGuide?: () => void }) {
                 )}
                 {!audioUri && !enregistre && <Text style={s.discret}>Appuyez sur le micro pour prononcer l’expression avec votre accent naturel</Text>}
                 {audioUri && !enregistre && <Text style={s.ok}>Voix capturée ({mmss(duree || 3)})</Text>}
-                {!enregistre && !audioUri && <Pressable style={s.record} onPress={commencer}><Text style={s.boutonTexte}>🎙️  Commencer l’enregistrement</Text></Pressable>}
+                {!voixOk && <Text style={s.discret}>{MESSAGE_VOIX}</Text>}
+                {voixOk && !enregistre && !audioUri && <Pressable style={s.record} onPress={commencer}><Text style={s.boutonTexte}>🎙️  Commencer l’enregistrement</Text></Pressable>}
                 {enregistre && <Pressable style={[s.record, { backgroundColor: '#dc2626' }]} onPress={arreter}><Text style={s.boutonTexte}>■  Terminer ({mmss(secondes)})</Text></Pressable>}
                 {audioUri && !enregistre && (
                   <View style={s.ligne}>

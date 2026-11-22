@@ -12,6 +12,7 @@ import {
 } from '../../../packages/noyau/src/jetons.ts';
 import { profilAgeDepuis } from '../../../packages/noyau/src/publicite.ts';
 import { construireSysteme } from './ia.ts';
+import { rechercheDisponible, repondreAvecRecherche } from './rechercheWeb.ts';
 import { differable } from './travauxIa.ts';
 import { ficheUtilisateur } from './ficheIa.ts';
 import { consigneActions, extraireActions } from '../../../packages/noyau/src/actionsIa.ts';
@@ -142,7 +143,9 @@ export function registerChats(ctx: Ctx) {
     if (!verdict.ok) return fail(429, verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
 
     let rep;
-    try { rep = await ctx.ia.repondre({ systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }); }
+    // Recherche web (moteur hébergé, sans frais) : jamais pour un enfant ; le modèle la demande seul s'il lui manque une information.
+    const recherche = cfg.rechercheWeb && rechercheDisponible(env) && !cadre.enfant;
+    try { rep = await repondreAvecRecherche(ctx.ia, { systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }, recherche, env); }
     catch { return fail(502, 'Kak\'Igonjo ne répond pas pour le moment. Réessaie dans un instant.'); }
 
     // Mesures du fournisseur : c'est elles qui font foi pour le coût et pour les frais.

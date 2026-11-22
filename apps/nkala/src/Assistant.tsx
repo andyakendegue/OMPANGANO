@@ -29,6 +29,7 @@ export function ouvrirAssistant() { ecouteurs.forEach(f => f()); }
 import { VieilOrungu, texteAttenteKakIgonjo } from './KakIgonjo';
 import { useSurchargeModule } from './Mesure';
 import { AppelForfait, estRefusForfait, texteQuestionsGratuites } from './ForfaitIa';
+import { useDictee } from './dictee';
 export { VieilOrungu };
 
 
@@ -145,6 +146,8 @@ export function AssistantFlottant() {
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
   const [bulles, setBulles] = useState<Bulle[]>(() => [accueil()]);
   const [texte, setTexte] = useState('');
+  // Dictée en français (reconnaissance du téléphone) : le texte reconnu remplit la saisie, à relire avant l'envoi.
+  const dictee = useDictee(t => setTexte(t));
   const [occupe, setOccupe] = useState(false);
   const [attente, setAttente] = useState<number | null>(null);
   /** Envoi refusé par le serveur (contexte en excès ou plein), avec le message en attente. */
@@ -367,6 +370,7 @@ export function AssistantFlottant() {
                   )}
                   {!!forfait && <AppelForfait message={forfait} />}
                   {!!erreur && <T v="corps" couleur={c.erreur} accessibilityRole="alert">{erreur}</T>}
+                  {!!dictee.erreur && <T v="petit" couleur={c.erreur} accessibilityRole="alert">{dictee.erreur}</T>}
                   {quota?.alerte && <T v="petit" couleur={c.accent}>Il te reste peu de messages aujourd'hui.</T>}
                   {!forfait && !!texteQuestionsGratuites(quota?.gratuitesRestantes) && <T v="petit" couleur={c.accent}>{texteQuestionsGratuites(quota?.gratuitesRestantes)}</T>}
                 </>}
@@ -376,6 +380,10 @@ export function AssistantFlottant() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: retrait, paddingRight: 10, paddingVertical: 10, borderTopWidth: 1, borderTopColor: c.bord }}>
             <TextInput accessibilityLabel="Ta question à Kak'Igonjo" value={texte} onChangeText={setTexte} editable={utilisable && vue === 'chat'} placeholder="Ta question…" placeholderTextColor={c.discret} autoCapitalize="sentences" maxLength={2000} onSubmitEditing={() => envoyer()} returnKeyType="send"
               style={[{ flex: 1, minWidth: 0, height: 44, borderRadius: 22, paddingHorizontal: 14, backgroundColor: c.carte, borderWidth: 1, borderColor: c.bord, fontFamily: polices.corps, fontSize: 15, color: c.fort }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null]} />
+            <Pressable accessibilityRole="button" accessibilityLabel={dictee.ecoute ? 'Arrêter la dictée' : 'Dicter ma question en français'} accessibilityState={{ selected: dictee.ecoute }} disabled={!utilisable || occupe || vue !== 'chat'}
+              onPress={() => (dictee.ecoute ? dictee.arreter() : dictee.demarrer())}
+              style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: dictee.ecoute ? c.erreur : c.carte, borderWidth: 1, borderColor: dictee.ecoute ? c.erreur : c.bord }}>
+              <Ic nom={dictee.ecoute ? 'stop' : 'micro'} taille={19} couleur={dictee.ecoute ? c.surAccent : c.accent} /></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Envoyer" accessibilityState={{ disabled: !texte.trim() || occupe }} disabled={!texte.trim() || occupe || vue !== 'chat'} onPress={() => envoyer()}
               style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent, opacity: !texte.trim() || occupe ? 0.45 : 1 }}><Ic nom="envoyer" taille={19} couleur={c.surAccent} /></Pressable>
           </View>

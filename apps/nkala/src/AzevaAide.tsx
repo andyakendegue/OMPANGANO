@@ -90,7 +90,7 @@ function SchemaAnime({ schema }: { schema: Schema }) {
         <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: k === 0 ? jaune : c.carte, borderWidth: 2, borderColor: jaune, alignItems: 'center', justifyContent: 'center' }}><T v="sousTitre">🔊</T></View>
         <View style={{ width: 170, height: 38, borderRadius: 10, borderWidth: 1.5, borderColor: c.bord, backgroundColor: c.carte, justifyContent: 'center', paddingHorizontal: 10 }}><T v="corps">{k === 0 ? '' : k === 1 ? 'mbo…' : 'mbolo'}</T></View>
       </View>); }
-    case 'choix': { const k = pas % 3, o = ['Akéwa', 'Mbolo', 'Yaga']; return (
+    case 'choix': { const k = pas % 3, o = ['Akewa', 'Mbolo', 'Yàga']; return (
       <View style={{ gap: 6, width: 190 }}>
         <T v="petit" fort style={{ textAlign: 'center' }}>Bonjour</T>
         {o.map((x, i) => <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><View style={{ flex: 1, height: 34, borderRadius: 10, justifyContent: 'center', paddingHorizontal: 10, backgroundColor: k === 2 && i === 1 ? c.succes + '55' : c.carte, borderWidth: 1.5, borderColor: k >= 1 && i === 1 ? (k === 2 ? c.succes : jaune) : c.bord }}><T v="petit" fort>{x}</T></View><T v="petit" style={{ opacity: k === 1 && i === 1 ? 1 : 0 }}>👈</T></View>)}

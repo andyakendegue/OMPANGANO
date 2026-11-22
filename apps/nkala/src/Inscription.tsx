@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import {
-  ajouterClan, ajouterVillage, enregistrerInscription, JE_NE_SAIS_PAS, lireCollection, MYENE, MYENE_TRIBES, validerInscription,
+  ajouterClan, ajouterVillage, enregistrerInscription, estMineur, JE_NE_SAIS_PAS, lireCollection, MYENE, MYENE_TRIBES, TEXTE_ACCORD_PARENTAL, validerInscription,
   type ClanRegistry, type TribeName, type VillageRegistry,
 } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
@@ -40,7 +40,9 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
 
   const [conditions, setConditions] = useState(profil?.termsAccepted ?? false);
   const [donnees, setDonnees] = useState(profil?.dataUsageAccepted ?? false);
-  const [voix, setVoix] = useState(profil?.consentVoiceUsage ?? true);
+  // Jamais cochée d'avance (22 nov. 2026) : l'usage de la voix est un choix explicite.
+  const [voix, setVoix] = useState(profil?.consentVoiceUsage ?? false);
+  const [accordParental, setAccordParental] = useState(profil?.parentalVoiceConsent ?? false);
   const [image, setImage] = useState(profil?.consentImageUsage ?? false);
   const [tuteur, setTuteur] = useState(profil?.legalGuardianName || '');
   const [lireConditions, setLireConditions] = useState(false);
@@ -61,6 +63,9 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
   const clansMere = useMemo(() => (clans || []).filter(c => c.tribe === tribuMere), [clans, tribuMere]);
   const villagesClan = useMemo(() => (paternel && paternel !== NP ? villages.filter(v => v.clan === paternel) : villages), [villages, paternel]);
 
+  // Mineur (ou âge inconnu) : le parent est nommé et donne son accord pour la voix (noyau/accordVoix.ts).
+  const mineur = /^\d{4}-\d{2}-\d{2}$/.test(naissance.trim()) && estMineur(naissance.trim());
+
   const valider = async () => {
     setErreur(null);
     const clanP = nouveauP ? nomNouveauP.trim() : paternel;
@@ -69,7 +74,7 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
     if (nouveauP && !clanP) return setErreur('Veuillez saisir le nom du nouveau clan paternel.');
     if (nouveauM && !clanM) return setErreur('Veuillez saisir le nom du nouveau clan maternel.');
     if (nouveauV && !vil) return setErreur('Veuillez saisir le nom du nouveau village d’origine.');
-    const form = { nomComplet: nom, contact, dateNaissance: naissance.trim(), lieuNaissance: lieu, tribu, clanPaternel: clanP, clanMaternel: clanM, village: vil, conditions, donnees, voix, image, tuteur };
+    const form = { nomComplet: nom, contact, dateNaissance: naissance.trim(), lieuNaissance: lieu, tribu, clanPaternel: clanP, clanMaternel: clanM, village: vil, conditions, donnees, voix, image, tuteur, accordParental };
     const e = validerInscription(form);
     if (e) return setErreur(e);
     setOccupe(true);
@@ -156,13 +161,15 @@ export default function Inscription({ modifier, onTermine }: { modifier?: boolea
         <Pressable onPress={() => setLireConditions(true)}><Text style={s.lien}>Lire les Conditions & Système de Badges/Points</Text></Pressable>
         <Text style={s.etiquette}>Synthèse du Consentement du Contributeur Individuel (Essaka Engineering) :</Text>
         <Text style={s.discret}>
-          (1) Mes textes, traductions, images et enregistrements vocaux sont collectés par Essaka Engineering (Port-Gentil, Gabon, RCCM RG/POG 2022 A 1290) dans le cadre du programme participatif Nkala. (2) Ils servent à entraîner et améliorer des modèles d'intelligence artificielle valorisant les langues gabonaises, utilisés notamment dans l'application Nkala. (3) Ma participation individuelle est valorisée par un système de Points d'Expérience (XP), de Rangs culturels, de Badges et de Défis pouvant donner lieu à des récompenses en fonction de mes accomplissements validés. (4) Je dispose d'un droit d'accès, de correction, de suppression (sous 60 jours) et de retrait (Loi n° 001/2011 & CNPDCP). (5) Je participe librement et conserve mes droits d'auteur (OAPI Accord de Bangui Annexe VII).
+          (1) Mes textes, traductions, images et enregistrements vocaux sont collectés par Essaka Engineering (Port-Gentil, Gabon, RCCM RG/POG 2022 A 1290) dans le cadre du programme participatif Nkala. (2) Ils servent à entraîner et améliorer des modèles d'intelligence artificielle valorisant les langues gabonaises, utilisés notamment dans l'application Nkala. (3) Ma participation individuelle est valorisée par un système de Points d'Expérience (XP), de Rangs culturels, de Badges et de Défis pouvant donner lieu à des récompenses en fonction de mes accomplissements validés. (4) Je dispose d'un droit d'accès, de correction, de suppression (sous 60 jours) et de retrait (Loi n° 001/2011 & CNPDCP). (5) Je participe librement et conserve mes droits d'auteur (OAPI Accord de Bangui Annexe VII). (6) Pour un contributeur mineur, sa voix n'est enregistrée et utilisée, y compris pour entraîner les modèles, qu'avec l'accord écrit de son parent ou représentant légal, retirable à tout moment.
         </Text>
-        <Text style={s.etiquette}>Pour un contributeur mineur (Nom & qualité du parent ou représentant légal – facultatif si majeur) :</Text>
-        <TextInput style={s.champ} value={tuteur} onChangeText={setTuteur} />
+        <Text style={s.etiquette}>{mineur ? 'Contributeur mineur : nom & qualité du parent ou représentant légal (obligatoire) *' : 'Pour un contributeur mineur (Nom & qualité du parent ou représentant légal – facultatif si majeur) :'}</Text>
+        <TextInput style={s.champ} value={tuteur} onChangeText={setTuteur} placeholder={mineur ? 'Ex. : Marie Ndong, mère' : undefined} />
         <Ligne texte="J'accepte les Conditions Générales de la plateforme Nkala applicables aux contributeurs individuels. *" v={conditions} set={setConditions} />
         <Ligne texte="Je valide l'utilisation de mes données personnelles et linguistiques pour l'entraînement des Modèles IA d'Essaka Engineering et l'attribution de mes points, badges et récompenses d'accomplissement. *" v={donnees} set={setDonnees} />
         <Ligne texte="J'autorise l'usage de ma voix (enregistrements audio)" v={voix} set={setVoix} />
+        {mineur && voix && <Ligne texte={`Accord parental (obligatoire pour la voix d'un mineur) : ${TEXTE_ACCORD_PARENTAL} *`} v={accordParental} set={setAccordParental} />}
+        {!naissance.trim() && voix && <Text style={s.discret}>Indique ta date de naissance pour autoriser l'usage de ta voix.</Text>}
         <Ligne texte="J'autorise l'usage de mon image (facultatif)" v={image} set={setImage} />
       </View>
       <ConditionsModale visible={lireConditions} onClose={() => setLireConditions(false)} />

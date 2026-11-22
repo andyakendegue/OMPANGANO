@@ -45,7 +45,7 @@ export function AlertesModale({ visible, onClose, onChange }: { visible: boolean
   useEffect(() => { if (visible) charger(); }, [visible, charger]);
 
   const activer = async () => { if (Platform.OS !== 'web') setAutorisee((await Notifications.requestPermissionsAsync()).granted); };
-  const tester = () => notifierLocal('Nkala', 'Les notifications fonctionnent. Akéwa !');
+  const tester = () => notifierLocal('Nkala', 'Les notifications fonctionnent. Akewa !');
 
   const programmer = async () => {
     const [h, m] = heure.split(':').map(n => parseInt(n, 10));

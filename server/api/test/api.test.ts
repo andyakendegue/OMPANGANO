@@ -51,7 +51,7 @@ async function newUser(prefix = 'u', opts: { role?: 'validator' | 'admin' } = {}
   const uid = uniq(prefix);
   const token = tok(uid, { email: `${uid}@x.com` });
   await call('GET', '/v1/me', token);
-  await call('PATCH', '/v1/me', token, { displayName: uid, termsAccepted: true, dataUsageAccepted: true, registrationCompleted: true });
+  await call('PATCH', '/v1/me', token, { displayName: uid, termsAccepted: true, dataUsageAccepted: true, registrationCompleted: true, birthDate: '1990-01-01' });
   if (opts.role) await call('PATCH', `/v1/users/${uid}`, SUPER, { role: opts.role });
   return { uid, token };
 }
@@ -457,22 +457,29 @@ test('GET /v1/admin/contributions : réservé au personnel, filtre par statut, c
 test('GET /v1/games/audio : seulement les voix validées, consentement respecté, sans nom de contributeur', async () => {
   const ok = await newUser('ga');
   const refus = await newUser('ga');
-  await call('PATCH', '/v1/me', refus.token, { consentVoiceUsage: false });
+  // Mineur avec l'accord de son parent (22 nov. 2026) ; l'accord sera retiré après l'enregistrement.
+  const mineur = await newUser('ga');
+  await call('PATCH', '/v1/me', mineur.token, { birthDate: '2014-05-01', legalGuardianName: 'Marie, mère', parentalVoiceConsent: true });
   const val = await newUser('ga', { role: 'validator' });
   const jouer = await newUser('ga');
   const item = await newItem({ dialect: 'nkomi', myeneText: 'Mbolo test', frenchText: 'Bonjour test' });
   const a = await submit(ok, item, { audioStoragePath: `recordings/${ok.uid}/a.m4a`, audioMimeType: 'audio/mp4' });
   const b = await submit(refus, item, { audioStoragePath: `recordings/${refus.uid}/b.m4a`, audioMimeType: 'audio/mp4' });
   const c = await submit(ok, item, { audioStoragePath: `recordings/${ok.uid}/c.m4a`, audioMimeType: 'audio/mp4' });
+  const d = await submit(mineur, item, { audioStoragePath: `recordings/${mineur.uid}/d.m4a`, audioMimeType: 'audio/mp4' });
+  // Autorisations retirées après l'enregistrement : la voix n'est plus réutilisée.
+  await call('PATCH', '/v1/me', refus.token, { consentVoiceUsage: false });
+  await call('PATCH', '/v1/me', mineur.token, { parentalVoiceConsent: false });
   const valider = (id: string, status: string, p = 'correct') =>
     call('POST', `/v1/contributions/${id}/validate`, val.token, { status, spellingVerdict: 'correct', pronunciationVerdict: p });
-  await valider(a, 'approved'); await valider(b, 'approved');
+  await valider(a, 'approved'); await valider(b, 'approved'); await valider(d, 'approved');
   // c reste en attente
   const r = await call('GET', '/v1/games/audio?dialect=nkomi&limit=40', jouer.token);
   assert.equal(r.status, 200);
   const ids = r.body.map((x: any) => x.id);
   assert.ok(ids.includes(a), 'voix validée absente');
   assert.ok(!ids.includes(b), 'voix sans consentement renvoyée');
+  assert.ok(!ids.includes(d), 'voix d\'un mineur sans accord parental renvoyée');
   assert.ok(!ids.includes(c), 'voix non validée renvoyée');
   const clip = r.body.find((x: any) => x.id === a);
   assert.deepEqual(Object.keys(clip).sort(), ['audioUrl', 'dialect', 'frenchText', 'id', 'itemId', 'myeneText']);

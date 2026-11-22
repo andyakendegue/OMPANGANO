@@ -2,6 +2,7 @@
  * API OMPANGANO. Toute décision de sécurité est prise ici (jamais dans le navigateur) :
  * rôle, statut, XP, badges, compteurs et calcul des points.
  */
+import { SQL_VOIX_AUTORISEE, voixAutorisee } from '../../../packages/noyau/src/accordVoix.ts';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -51,6 +52,9 @@ import {
 } from '../../../shared/userSecurity.ts';
 import { getLevelForXp } from '../../../shared/levels.ts';
 import type { Badge, Contribution, ContributionStatus, QuestionnaireItem, UserProfile, WeeklyChallenge } from '../../../src/types/index.ts';
+
+/** Refus d'un enregistrement de voix (consentement absent ou mineur sans accord parental, 22 nov. 2026). */
+const MESSAGE_VOIX_REFUSEE = "L'enregistrement de la voix demande l'autorisation d'usage de la voix et, pour un mineur, l'accord de son parent ou représentant légal.";
 
 export interface Deps {
   db: Db;
@@ -476,7 +480,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
          JOIN users u ON u.id = c.user_id AND u.status = 'active'
         WHERE c.deleted_at IS NULL AND c.status = 'approved' AND c.audio_storage_path IS NOT NULL
           AND COALESCE(c.data->>'pronunciationVerdict', 'correct') <> 'incorrect'
-          AND COALESCE(u.data->>'consentVoiceUsage', 'true') <> 'false'
+          AND ${SQL_VOIX_AUTORISEE('u')}
           AND ($1::text IS NULL OR i.dialect = $1)
         ORDER BY random() LIMIT $2`,
       [dialect, limit]
@@ -810,6 +814,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       if (user.status === 'suspended') fail(403, 'Compte suspendu.');
       const u = userRow(user);
       if (!u.termsAccepted || !u.dataUsageAccepted) fail(403, 'Le consentement aux conditions et à l\'usage des données est requis.');
+      if (body.audioStoragePath && !voixAutorisee(u as any)) fail(403, MESSAGE_VOIX_REFUSEE);
       const prior = (await q.query<any>(`SELECT * FROM contributions WHERE id = $1`, [id]))[0];
       if (prior) {
         // Rejeu d'une file hors-ligne : même auteur = même contribution, pas de doublon
@@ -1158,6 +1163,8 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
       return { uploadUrl, path, headers: { 'Content-Type': ct }, expiresIn: UPLOAD_URL_TTL_S };
     }
     if (!(isImage ? /^image\/[a-z0-9.+-]+$/ : /^audio\/[a-z0-9.+-]+$/).test(ct)) fail(400, isImage ? 'Seuls les fichiers image sont acceptés.' : 'Seuls les fichiers audio sont acceptés.');
+    // Voix : jamais d'enregistrement sans l'usage de la voix autorisé et, pour un mineur, l'accord de son parent (noyau/accordVoix.ts).
+    if (!isImage && !a.isAdmin && !voixAutorisee(userRow(await ensureUser(db, a.auth)) as any)) fail(403, MESSAGE_VOIX_REFUSEE);
     const size = Number(body.size);
     if (!Number.isFinite(size) || size <= 0) fail(400, 'Taille du fichier requise.');
     if (size >= MAX_UPLOAD_BYTES) fail(413, 'Fichier trop volumineux (15 Mo maximum).');

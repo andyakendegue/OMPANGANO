@@ -1,0 +1,16 @@
+# Réglages minimaux (le reste suit les valeurs par défaut de SearXNG).
+use_default_settings: true
+general:
+  instance_name: "nkala-recherche"
+  enable_metrics: false
+search:
+  safe_search: 2            # filtre strict (Nkala a des enfants parmi ses utilisateurs)
+  default_lang: "fr"
+  formats: [html, json]     # json : lu par l'API Nkala
+server:
+  limiter: false            # usage interne seulement (172.17.0.1)
+  image_proxy: false
+  public_instance: false
+outgoing:
+  request_timeout: 4.0
+  max_request_timeout: 8.0

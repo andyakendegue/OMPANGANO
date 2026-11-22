@@ -1,6 +1,7 @@
 import { api } from './api';
 import { enregistrerElement, nouvelId } from './contenu';
 import type { ClanRegistry, TribeName, UserProfile, VillageRegistry } from './types';
+import { estMineur, VERSION_ACCORD_PARENTAL } from './accordVoix';
 
 /** Réponse valide quand on ignore un clan, une tribu de parent ou un village (ex. un seul parent myènè). Identique au site web. */
 export const JE_NE_SAIS_PAS = 'Je ne sais pas';
@@ -25,6 +26,8 @@ export interface FormInscription {
   voix: boolean;
   image: boolean;
   tuteur?: string;
+  /** Accord du parent ou représentant légal pour la voix d'un mineur (accordVoix.ts). */
+  accordParental?: boolean;
 }
 
 /** Premier message d'erreur (null = valide). Mêmes règles que OnboardingModal.tsx. */
@@ -37,6 +40,12 @@ export function validerInscription(f: FormInscription): string | null {
   if (!f.clanMaternel.trim()) return 'Veuillez sélectionner ou ajouter votre clan maternel.';
   if (!f.village.trim()) return 'Veuillez sélectionner ou saisir votre village d’origine.';
   if (!f.conditions || !f.donnees) return "Vous devez accepter les Conditions Générales de la plateforme et valider l'autorisation d'utilisation de vos données pour poursuivre.";
+  // Voix et mineurs (22 nov. 2026) : la date de naissance dit s'il faut l'accord d'un parent ; un mineur nomme son parent ou représentant légal.
+  if (f.voix && !f.dateNaissance) return "Pour autoriser l'usage de la voix, indiquez la date de naissance (AAAA-MM-JJ).";
+  if (f.dateNaissance && estMineur(f.dateNaissance)) {
+    if (!(f.tuteur ?? '').trim()) return 'Pour un contributeur mineur, le nom et la qualité du parent ou représentant légal sont obligatoires.';
+    if (f.voix && !f.accordParental) return "La voix d'un mineur ne peut être enregistrée qu'avec l'accord de son parent ou représentant légal : cochez l'accord parental, ou décochez l'usage de la voix.";
+  }
   return null;
 }
 
@@ -61,6 +70,7 @@ export function profilDepuisInscription(f: FormInscription, maintenant = new Dat
     partnerAssociation: 'Contributeur Individuel',
     electronicSignature: `Lu et approuvé - ${nom}`,
     legalGuardianName: f.tuteur?.trim() || undefined,
+    ...(estMineur(f.dateNaissance) ? { parentalVoiceConsent: !!(f.voix && f.accordParental), ...(f.voix && f.accordParental ? { parentalConsentAt: maintenant.toISOString(), parentalConsentVersion: VERSION_ACCORD_PARENTAL } : {}) } : {}),
     termsAcceptedAt: maintenant.toISOString(),
     termsVersion: VERSION_CONDITIONS,
   };

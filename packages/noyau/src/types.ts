@@ -45,6 +45,10 @@ export interface UserProfile {
   partnerAssociation?: string;
   electronicSignature?: string;
   legalGuardianName?: string;
+  /** Accord du parent ou représentant légal pour la voix d'un mineur (22 nov. 2026), date et version du texte accepté. */
+  parentalVoiceConsent?: boolean;
+  parentalConsentAt?: string;
+  parentalConsentVersion?: string;
   createdAt: string;
   updatedAt: string;
 }

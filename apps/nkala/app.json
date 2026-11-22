@@ -47,6 +47,14 @@
           "microphonePermission": "Nkala utilise le micro pour enregistrer votre voix lorsque vous contribuez ou répétez une leçon, et pendant les cours à distance."
         }
       ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Nkala utilise le micro pour enregistrer votre voix lorsque vous contribuez ou répétez une leçon, et pour dicter vos questions à Kak'Igonjo.",
+          "speechRecognitionPermission": "Nkala transforme votre voix en texte quand vous dictez une question en français à Kak'Igonjo.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ],
       "expo-asset",
       "expo-web-browser",
       "expo-video",

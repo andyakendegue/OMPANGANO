@@ -25,8 +25,8 @@ const vecteurs = vecteursParDefaut();
  * grammaireMyene : ajoute la compétence myènè (promptMyene.ts) ; lexiqueMax : nombre d'entrées du lexique de référence placées
  * dans le prompt (0 = coupé) ; ragMyeneK : morceaux pris d'abord dans les documents myènè (leçons, grammaires, dictionnaires), en plus de topK.
  */
-export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number; ragReglesK: number; ragPhrasesK: number; budgetSysteme: number }
-export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4, ragReglesK: 2, ragPhrasesK: 2, budgetSysteme: 19000 };
+export interface ConfigIa { modele: string; temperature: number; maxTokens: number; ragActif: boolean; topK: number; seuil: number; chunkTaille: number; chunkChevauchement: number; grammaireMyene: boolean; lexiqueMax: number; ragMyeneK: number; ragReglesK: number; ragPhrasesK: number; budgetSysteme: number; rechercheWeb: boolean }
+export const CONFIG_IA_DEFAUT: ConfigIa = { modele: '', temperature: 0.3, maxTokens: 700, ragActif: true, topK: 6, seuil: 0.2, chunkTaille: 900, chunkChevauchement: 120, grammaireMyene: true, lexiqueMax: 30, ragMyeneK: 4, ragReglesK: 2, ragPhrasesK: 2, budgetSysteme: 19000, rechercheWeb: true };
 /**
  * budgetSysteme : taille maximale du prompt système, en caractères. Le modèle du serveur accepte 8 192 jetons en tout (prompt, historique
  * et réponse) ; au-delà, il refuse la question. Les extraits de contexte les moins prioritaires, puis des entrées du lexique, sont retirés.
@@ -322,14 +322,16 @@ CE QUE TU NE FAIS JAMAIS
 
 FORMULES D'ACCUEIL (données par l'équipe de Nkala)
 - Mbolo : bonjour.
-- Myè no Kak'Igonjo : ta façon de te présenter.
-- Wulinya myè : « raconte-moi ».
+- Myê no Kak'Igonjo : ta façon de te présenter.
+- Wulinya myê : « raconte-moi » (ouverture du conte).
 
 Mots vérifiés :
 {{lexique}}
 
 FORME DES RÉPONSES
-- En français, avec les mots myènè en italique entre astérisques (*mbolo*) suivis de leur sens.
+- Si l'on te parle en myènè : tu réponds en myènè seulement, en graphie v3, même court ; pas de français.
+- Si l'on te parle en français : en français, avec les mots myènè en italique entre astérisques (*mbolo*) suivis de leur sens.
+- Tout mot myènè s'écrit en graphie v3 (jamais è, é, tch, dj, ñ, ṽ).
 - Courtes : 6 phrases au plus, en paragraphes brefs. Pas de titres, pas de listes longues.
 - Pour une traduction ou une phrase à composer : la phrase en myènè, puis le mot à mot, puis le sens en français.
 
@@ -411,6 +413,7 @@ export function registerIaAdmin(ctx: Ctx) {
       if (typeof b[k] === 'number' && b[k]! >= min && b[k]! <= max) (propre as any)[k] = b[k];
     if (typeof b.ragActif === 'boolean') propre.ragActif = b.ragActif;
     if (typeof b.grammaireMyene === 'boolean') propre.grammaireMyene = b.grammaireMyene;
+    if (typeof b.rechercheWeb === 'boolean') propre.rechercheWeb = b.rechercheWeb;
     const nouvelle = { ...(await configIa(db)), ...propre };
     await db.tx(async q => { await q.query(`INSERT INTO parametres (cle, valeur, par) VALUES ('ia_config',$1,$2) ON CONFLICT (cle) DO UPDATE SET valeur = EXCLUDED.valeur, par = EXCLUDED.par, updated_at = clock_timestamp()`, [JSON.stringify(nouvelle), a.auth.uid]); await journaliser(q, a.auth.uid, 'ia_config', 'ia_config', propre); });
     return nouvelle;
