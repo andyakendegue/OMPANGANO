@@ -308,5 +308,26 @@
   "description": "Écrire l'ôrungu avec les lettres et les signes de l'alphabet, et éviter les erreurs courantes.",
   "ordre": 10,
   "publie": true
+ },
+ {
+  "id": "ikoko-u2",
+  "parcours_id": "ikoko",
+  "titre": "Je parle, j'apprends à écrire",
+  "titre_myene": "",
+  "entree": "adulte_parle",
+  "suite_id": "emeno-u10",
+  "description": "Pour l'adulte qui parle ôrungu sans savoir l'écrire : les lettres, les signes, puis des dictées de phrases de tous les jours.",
+  "ordre": 2,
+  "publie": true
+ },
+ {
+  "id": "ikoko-u3",
+  "parcours_id": "ikoko",
+  "titre": "Transmetteurs",
+  "titre_myene": "",
+  "entree": "transmetteurs",
+  "description": "Pour les parents, les enseignants et les personnes-ressources : écrire selon l'alphabet, corriger une écriture, conduire une veillée, enregistrer un ancien.",
+  "ordre": 3,
+  "publie": true
  }
 ]

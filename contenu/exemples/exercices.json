@@ -15719,5 +15719,424 @@
   "reponse": "Myê re nya",
   "source": "Règles de référence v3.3 § 2-4, § 12",
   "ordre": 11
+ },
+ {
+  "id": "ik-l4-01",
+  "lecon_id": "ikoko-l4",
+  "type": "cours",
+  "consigne": "Les lettres de l'alphabet",
+  "texte": "Tu parles déjà : il reste à écrire ce que tu dis. Sept voyelles : a, e, ê, i, o, ô, u (le chapeau ouvre la bouche : mpono, le couvercle ; mpônô, le chemin). c se dit « tch » (incango), j se dit « dy » ou « dj » (jêna), ngh est le son du fond de la bouche (nghomba). m ou n devant une lettre ne s'en séparent pas (mbwa, ncaro).",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 1
+ },
+ {
+  "id": "ik-l4-02",
+  "lecon_id": "ikoko-l4",
+  "type": "choix",
+  "consigne": "Lequel veut dire « le chemin » ?",
+  "options": [
+   "mpônô",
+   "mpono"
+  ],
+  "reponse": "mpônô",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 2
+ },
+ {
+  "id": "ik-l4-03",
+  "lecon_id": "ikoko-l4",
+  "type": "choix",
+  "consigne": "Lequel veut dire « papa » ?",
+  "options": [
+   "rerê",
+   "rere"
+  ],
+  "reponse": "rerê",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 3
+ },
+ {
+  "id": "ik-l4-04",
+  "lecon_id": "ikoko-l4",
+  "type": "quel_son",
+  "consigne": "Quelles lettres commencent « nghomba » ?",
+  "mot_myene": "nghomba",
+  "mot_francais": "le porc-épic",
+  "options": [
+   "ngh",
+   "ng",
+   "ny"
+  ],
+  "reponse": "ngh",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 4
+ },
+ {
+  "id": "ik-l4-05",
+  "lecon_id": "ikoko-l4",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « les nouvelles ».",
+  "mot_francais": "les nouvelles",
+  "reponse": "incango",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 5
+ },
+ {
+  "id": "ik-l4-06",
+  "lecon_id": "ikoko-l4",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « trois ».",
+  "mot_francais": "trois",
+  "reponse": "ncaro",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 6
+ },
+ {
+  "id": "ik-l4-07",
+  "lecon_id": "ikoko-l4",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « l'éléphant ».",
+  "mot_francais": "l'éléphant",
+  "reponse": "njôgu",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 7
+ },
+ {
+  "id": "ik-l4-08",
+  "lecon_id": "ikoko-l4",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « le chien ».",
+  "mot_francais": "le chien",
+  "reponse": "mbwa",
+  "source": "Règles de référence v3.3 § 2 (lettres)",
+  "ordre": 8
+ },
+ {
+  "id": "ik-l5-01",
+  "lecon_id": "ikoko-l5",
+  "type": "cours",
+  "consigne": "Les signes",
+  "texte": "‘ devant un mot veut dire « un » : ‘oma, un homme ; oma, l'homme. L'accent qui descend marque un ordre : Và myê aningo, donne-moi de l'eau ; ròra, déménage ! (rora, les épouses). Deux points sur la première voyelle du verbe disent « que, qui » : aningo mïjôngo wê, l'eau que tu bois. Le chapeau sur a marque la parenté : mâma, kâka, yâya. « go » se colle au verbe : gonya, manger ; mais go Mandji, à Mandji.",
+  "source": "Règles de référence v3.3 § 3 (signes)",
+  "ordre": 1
+ },
+ {
+  "id": "ik-l5-02",
+  "lecon_id": "ikoko-l5",
+  "type": "choix",
+  "consigne": "Lequel veut dire « un homme » ?",
+  "options": [
+   "‘oma",
+   "oma"
+  ],
+  "reponse": "‘oma",
+  "source": "Règles de référence v3.3 § 3 (signes)",
+  "ordre": 2
+ },
+ {
+  "id": "ik-l5-03",
+  "lecon_id": "ikoko-l5",
+  "type": "choix",
+  "consigne": "Lequel est un ordre : « déménage ! » ?",
+  "options": [
+   "ròra",
+   "rora"
+  ],
+  "reponse": "ròra",
+  "source": "Règles de référence v3.3 § 3 (signes)",
+  "ordre": 3
+ },
+ {
+  "id": "ik-l5-04",
+  "lecon_id": "ikoko-l5",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « manger » ?",
+  "options": [
+   "gonya",
+   "go nya"
+  ],
+  "reponse": "gonya",
+  "source": "Règles de référence v3.3 § 3 (signes)",
+  "ordre": 4
+ },
+ {
+  "id": "ik-l5-05",
+  "lecon_id": "ikoko-l5",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « à la maison » ?",
+  "options": [
+   "go nago",
+   "gonago"
+  ],
+  "reponse": "go nago",
+  "source": "Règles de référence v3.3 § 3 (signes)",
+  "ordre": 5
+ },
+ {
+  "id": "ik-l5-06",
+  "lecon_id": "ikoko-l5",
+  "type": "choix",
+  "consigne": "Laquelle veut dire « l'eau que tu bois » ?",
+  "options": [
+   "aningo mïjôngo wê",
+   "Và myê aningo"
+  ],
+  "reponse": "aningo mïjôngo wê",
+  "source": "Règles de référence v3.3 § 3 (signes)",
+  "ordre": 6
+ },
+ {
+  "id": "ik-l6-01",
+  "lecon_id": "ikoko-l6",
+  "type": "cours",
+  "consigne": "Dictées de tous les jours",
+  "texte": "Écris les phrases que tu dis chaque jour. Les petits signes (‘, l'accent qui descend, les deux points) ne sont pas encore exigés : les lettres, si.",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 1
+ },
+ {
+  "id": "ik-l6-02",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « merci beaucoup ».",
+  "mot_francais": "merci beaucoup",
+  "reponse": "Akewa mpolo !",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 2
+ },
+ {
+  "id": "ik-l6-03",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « quelles nouvelles ? ».",
+  "mot_francais": "quelles nouvelles ?",
+  "reponse": "Incango sê ?",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 3
+ },
+ {
+  "id": "ik-l6-04",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « quelles nouvelles veux-tu ? ».",
+  "mot_francais": "quelles nouvelles veux-tu ?",
+  "reponse": "Wê bel'incango nde ?",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 4
+ },
+ {
+  "id": "ik-l6-05",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « pardon ».",
+  "mot_francais": "pardon",
+  "reponse": "Nyeza myê",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 5
+ },
+ {
+  "id": "ik-l6-06",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « au revoir ».",
+  "mot_francais": "au revoir",
+  "reponse": "Ibanga wê. Ka mênê !",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 6
+ },
+ {
+  "id": "ik-l6-07",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « je ne mange pas ».",
+  "mot_francais": "je ne mange pas",
+  "reponse": "Myê re nya",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 7
+ },
+ {
+  "id": "ik-l6-08",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « je vais manger ».",
+  "mot_francais": "je vais manger",
+  "reponse": "Myê be nya",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 8
+ },
+ {
+  "id": "ik-l6-09",
+  "lecon_id": "ikoko-l6",
+  "type": "dictee",
+  "consigne": "Écris en myènè : « les Ôrungu mangent du poisson ».",
+  "mot_francais": "les Ôrungu mangent du poisson",
+  "reponse": "Ôrungu wi ny'ewêrê.",
+  "source": "Règles de référence v3.3 § 6, § 10, § 11 (formules et phrases de Capp)",
+  "ordre": 9
+ },
+ {
+  "id": "ik-l7-01",
+  "lecon_id": "ikoko-l7",
+  "type": "cours",
+  "consigne": "Écrire et corriger",
+  "texte": "Pour transmettre, on écrit avec l'alphabet de tous : une lettre pour un son, les signes à leur place, et l'ordre de la phrase de l'ôrungu (le mot de la question à la fin). Pour corriger une écriture ancienne : è devient ê, é devient e, tch devient c, dj et dy deviennent j.",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 1
+ },
+ {
+  "id": "ik-l7-02",
+  "lecon_id": "ikoko-l7",
+  "type": "choix",
+  "consigne": "Laquelle est juste ?",
+  "options": [
+   "Wê bel'incango nde ?",
+   "Incango nde wê bele ?"
+  ],
+  "reponse": "Wê bel'incango nde ?",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 2
+ },
+ {
+  "id": "ik-l7-03",
+  "lecon_id": "ikoko-l7",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « il est venu » ?",
+  "options": [
+   "A bya",
+   "A wyeni"
+  ],
+  "reponse": "A bya",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 3
+ },
+ {
+  "id": "ik-l7-04",
+  "lecon_id": "ikoko-l7",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « il est né » ?",
+  "options": [
+   "a yano",
+   "a jani"
+  ],
+  "reponse": "a yano",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 4
+ },
+ {
+  "id": "ik-l7-05",
+  "lecon_id": "ikoko-l7",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « l'enfant » ?",
+  "options": [
+   "onghwana",
+   "omwana"
+  ],
+  "reponse": "onghwana",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 5
+ },
+ {
+  "id": "ik-l7-06",
+  "lecon_id": "ikoko-l7",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « ma femme » ?",
+  "options": [
+   "onghwant'wami",
+   "onghwant'iwami"
+  ],
+  "reponse": "onghwant'wami",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 6
+ },
+ {
+  "id": "ik-l7-07",
+  "lecon_id": "ikoko-l7",
+  "type": "choix",
+  "consigne": "Laquelle est juste pour « j'ai mangé du poulet » ?",
+  "options": [
+   "Myê re nya pa njôgôni",
+   "Myê re nya njôgôni"
+  ],
+  "reponse": "Myê re nya pa njôgôni",
+  "source": "Règles de référence v3.3 § 2-4, § 12",
+  "ordre": 7
+ },
+ {
+  "id": "ik-l8-01",
+  "lecon_id": "ikoko-l8",
+  "type": "cours",
+  "consigne": "Conduire une veillée",
+  "texte": "À la veillée, la devinette s'ouvre ainsi : celui qui la pose dit « Tô ! », les autres répondent « Tôngê ! », puis il dit « Reviza ni myê ». Le conte s'ouvre par « Wulinya myê » : dis-moi, raconte-moi.",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 1
+ },
+ {
+  "id": "ik-l8-02",
+  "lecon_id": "ikoko-l8",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Tô ! — Tôngê ! — Reviza ni myê",
+  "mot_francais": "ouverture de la devinette",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 2
+ },
+ {
+  "id": "ik-l8-03",
+  "lecon_id": "ikoko-l8",
+  "type": "ecouter",
+  "consigne": "Écoute et répète.",
+  "mot_myene": "Wulinya myê",
+  "mot_francais": "dis-moi, raconte-moi (ouverture du conte)",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 3
+ },
+ {
+  "id": "ik-l8-04",
+  "lecon_id": "ikoko-l8",
+  "type": "choix",
+  "consigne": "Que répond-on à « Tô ! » ?",
+  "options": [
+   "Tôngê !",
+   "Mbolo",
+   "Akewa"
+  ],
+  "reponse": "Tôngê !",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 4
+ },
+ {
+  "id": "ik-l8-05",
+  "lecon_id": "ikoko-l8",
+  "type": "choix",
+  "consigne": "Comment s'ouvre le conte ?",
+  "options": [
+   "Wulinya myê",
+   "Ibanga wê",
+   "Sale !"
+  ],
+  "reponse": "Wulinya myê",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 5
+ },
+ {
+  "id": "ik-l8-06",
+  "lecon_id": "ikoko-l8",
+  "type": "culture",
+  "consigne": "Bon à savoir",
+  "mot_myene": "Ompangano",
+  "mot_francais": "la collecte",
+  "texte": "Pour garder la parole des anciens : dans Ompangano, enregistrez un ancien qui dit un mot, une phrase ou un conte, puis faites relire l'écriture. Demandez toujours son accord avant d'enregistrer.",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 6
+ },
+ {
+  "id": "ik-l8-07",
+  "lecon_id": "ikoko-l8",
+  "type": "dire",
+  "consigne": "Dis « Wulinya myê » à voix haute.",
+  "mot_myene": "Wulinya myê",
+  "mot_francais": "dis-moi, raconte-moi",
+  "source": "Règles de référence v3.3 § 10 (formules) ; Ompangano (collecte)",
+  "ordre": 7
  }
 ]

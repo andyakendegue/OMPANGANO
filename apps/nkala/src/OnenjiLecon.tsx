@@ -425,13 +425,15 @@ export function ControleUnite({ unite, exercices, onFin, onQuitter }: { unite: U
  */
 export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuitter }: {
   parcours: Parcours[]; unites: Unite[]; lecons: Lecon[]; exercices: Exercice[];
-  onFini: (r: { parcoursId: string; uniteId: string | null; bonnes: number; sur: number; parAge?: boolean }) => void; onQuitter: () => void;
+  onFini: (r: { parcoursId: string; uniteId: string | null; bonnes: number; sur: number; parAge?: boolean; locuteur?: boolean }) => void; onQuitter: () => void;
 }) {
   const { prefs } = usePrefs();
   const { profil } = useAuth();
   const { c } = useTheme();
   const questions = useMemo(() => composerTestNiveau(parcours, unites, lecons, exercices), [parcours, unites, lecons, exercices]);
   const [demarre, setDemarre] = useState(false);
+  // Lot 9 du cursus v3 : première question pour l'adulte, « Parles-tu déjà ôrungu ? » (null : pas encore répondu).
+  const [locuteur, setLocuteur] = useState<boolean | null>(null);
   const [reponses, setReponses] = useState<boolean[]>([]);
   const enfant = prefs.mode === 'enfant';
   if (enfant) {
@@ -448,6 +450,18 @@ export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuit
       </Ecran>
     );
   }
+  if (!demarre && locuteur === null) return (
+    <Ecran>
+      <View style={{ alignItems: 'center', gap: 12 }}>
+        <Mascotte taille={120} humeur="parle" />
+        <T v="titre" style={{ textAlign: 'center' }}>Parles-tu déjà ôrungu ?</T>
+        <T v="corps" style={{ textAlign: 'center' }}>Si tu le parles déjà, Kak'Igonjo regarde ce que tu sais écrire, puis tu apprends à écrire ce que tu dis.</T>
+      </View>
+      <Bouton label="Oui, je le parle" variante="ambre" onPress={() => setLocuteur(true)} />
+      <Bouton label="Non, je débute" onPress={() => setLocuteur(false)} />
+      <Bouton label="Plus tard" variante="fantome" onPress={onQuitter} />
+    </Ecran>
+  );
   if (!demarre) return (
     <Ecran>
       <View style={{ alignItems: 'center', gap: 12 }}>
@@ -467,7 +481,7 @@ export function TestNiveau({ parcours, unites, lecons, exercices, onFini, onQuit
   const repondre = (juste: boolean) => {
     const r = [...reponses, juste];
     setReponses(r);
-    if (testTermine(r, questions.length)) { const pl = placementTest(questions, r, parcours, unites); onFini({ ...pl, bonnes: r.filter(Boolean).length, sur: r.length }); }
+    if (testTermine(r, questions.length)) { const pl = placementTest(questions, r, parcours, unites); onFini({ ...pl, bonnes: r.filter(Boolean).length, sur: r.length, locuteur: !!locuteur }); }
   };
   if (!q) return <Ecran><Chargement /></Ecran>;
   const p = parcours.find(x => x.id === q.parcoursId);

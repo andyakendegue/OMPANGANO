@@ -8,7 +8,7 @@ import { Linking, Platform, Pressable, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ScreenCapture from 'expo-screen-capture';
 import {
-  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, peutRegarderVideo, battementLecture, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, departAdulte, etapesCouvertes, grouperParPalier, ordreDepuis, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
+  accesChapitreVideo, accesCompletVideo, accesLecon, regleSansFormule, peutRegarderVideo, battementLecture, chargerExercices, demanderLicence, demanderKakIgonjo, ETAPES_UNITE, departAdulte, departLocuteur, etapesCouvertes, grouperParPalier, ordreDepuis, filtrerVariante, finPartieGratuite, leconOuverte, motsDesExercices, peutAcceder,
   progressionUnite, resoudreMedia, uniteSuivante, VARIANTES_TRIBALES, type EtatLecon, type Exercice, type Lecon, type Ligne, type NiveauAcces, type Parcours, type Unite,
 } from '@nkala/noyau';
 import { texteAccueil, useAccueilKakIgonjo } from './Assistant';
@@ -269,7 +269,8 @@ function TestFlux({ D, pile }: { D: Donnees; pile: Pile }) {
   return <TestNiveau parcours={D.parcours} unites={D.unites} lecons={D.lecons} exercices={D.exercices} onQuitter={pile.retour}
     onFini={async r => {
       // L'adulte placé au tout début commence à l'entrée « adulte qui débute » (Ikôkô), pas dans Ntina.
-      const res = prefs.mode !== 'enfant' && !r.parAge ? { ...r, ...departAdulte(r, D.parcours, D.unites) } : r;
+      // L'adulte qui parle déjà ôrungu part de « Je parle, j'apprends à écrire » (lot 9 du cursus v3).
+      const res = prefs.mode !== 'enfant' && !r.parAge ? { ...r, ...(r.locuteur ? departLocuteur(r, D.unites) : departAdulte(r, D.parcours, D.unites)) } : r;
       await enregistrer({ ...res, le: Date.now() }); pile.remplacer({ t: 'resultatTest' });
     }} />;
 }

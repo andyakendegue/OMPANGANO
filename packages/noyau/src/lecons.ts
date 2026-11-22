@@ -321,6 +321,12 @@ export function uniteSuivante(uniteId: string, parcours: Parcours[], unites: Uni
  * Départ de l'adulte qui débute (21 nov. 2026) : quand le test le place au tout début (première étape, Ntina, faite pour les moins de 7 ans),
  * on le fait commencer à l'unité marquée `entree = adulte_debutant` si elle existe. Sinon le résultat du test ne change pas.
  */
+/** L'adulte qui parle déjà ôrungu (réponse « oui » à « Parles-tu déjà ôrungu ? ») part de l'entrée « Je parle, j'apprends à écrire ». */
+export function departLocuteur(res: { parcoursId: string; uniteId: string | null }, unites: Unite[]): { parcoursId: string; uniteId: string | null } {
+  const entree = unites.find(u => u.entree === 'adulte_parle');
+  return entree ? { parcoursId: entree.parcours_id, uniteId: entree.id } : res;
+}
+
 export function departAdulte(res: { parcoursId: string; uniteId: string | null }, parcours: Parcours[], unites: Unite[]): { parcoursId: string; uniteId: string | null } {
   const premier = [...parcours].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0))[0];
   const entree = unites.find(u => u.entree === 'adulte_debutant' && parcours.some(p => p.id === u.parcours_id));

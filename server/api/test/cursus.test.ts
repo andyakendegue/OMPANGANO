@@ -75,3 +75,13 @@ test('« montre-moi » (lot 6) : les petits touchent la bonne image, sans lire',
   assert.equal(etapeDe({ type: 'montre' }), 'voir'); assert.equal(exerciceNote({ type: 'montre' }), true);
   assert.equal(jugerReponse({ id: 'm', lecon_id: 'l', type: 'montre', reponse: '🐕' }, '🐕'), true);
 });
+
+test('Ikôkô à trois entrées (lot 9) : qui parle déjà part de « Je parle, j\'apprends à écrire » ; Emênô a dix unités', async () => {
+  const { departLocuteur } = await import('../../../packages/noyau/src/lecons.ts');
+  const ik = ord(U.filter(u => u.parcours_id === 'ikoko')).map(u => [u.id, (u as any).entree]);
+  assert.deepEqual(ik, [['ikoko-u1', 'adulte_debutant'], ['ikoko-u2', 'adulte_parle'], ['ikoko-u3', 'transmetteurs']]);
+  assert.deepEqual(departLocuteur({ parcoursId: 'ntina', uniteId: 'ntina-u1' }, U), { parcoursId: 'ikoko', uniteId: 'ikoko-u2' });
+  assert.equal(uniteSuivante('ikoko-u2', P, U)?.unite.id, 'emeno-u10', 'ensuite : bien écrire');
+  assert.equal(U.filter(u => u.parcours_id === 'emeno').length, 10);
+  for (const u of U.filter(u => u.parcours_id === 'emeno' || u.id === 'ikoko-u2' || u.id === 'ikoko-u3')) assert.ok(exDe(u.id).length >= 6, u.id);
+});
