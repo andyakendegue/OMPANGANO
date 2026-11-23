@@ -896,6 +896,45 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return reply.status(204).send();
   });
 
+  // Attachement automatique des sons validés des mots de Ntina dans les exercices correspondants.
+  // Appelé de façon asynchrone (fire-and-forget) après chaque validation qui approuve l'audio d'un mot ntina.
+  async function attacherSonNtinaPourMot(itemId: string): Promise<void> {
+    const item = (await db.query<any>(
+      `SELECT category, data->>'myeneText' AS mot FROM items WHERE id = $1`, [itemId]))[0];
+    if (item?.category !== 'ntina_mots' || !item.mot) return;
+    const cle = (m?: string) => (m ?? '').toLowerCase().replace(/[ !?.]+$/, '');
+    const mot = cle(item.mot);
+    // Meilleur audio approuvé pour ce mot (mp4 en priorité, puis plus récent)
+    const sons = await db.query<any>(`
+      SELECT c.audio_storage_path AS audio FROM contributions c
+      JOIN users u ON u.id = c.user_id
+      WHERE c.item_id = $1
+        AND c.status IN ('approved', 'audio_approved_text_revision')
+        AND c.deleted_at IS NULL AND c.audio_storage_path IS NOT NULL
+        AND ${SQL_VOIX_AUTORISEE('u')}
+      ORDER BY (c.audio_mime_type = 'audio/mp4') DESC, c.updated_at DESC
+      LIMIT 1`, [itemId]);
+    if (!sons.length) return;
+    const audio = sons[0].audio as string;
+    // Exercices de Ntina sans son pour ce mot (lecon_id LIKE 'ntina-%')
+    const exos = await db.query<any>(
+      `SELECT id, data FROM contenus WHERE collection = 'exercices' AND deleted_at IS NULL AND data->>'lecon_id' LIKE 'ntina-%'`);
+    let changes = 0;
+    for (const e of exos) {
+      const d = e.data as Record<string, any>; let change = false;
+      if (!d.audio && cle(d.mot_myene) === mot) { d.audio = audio; change = true; }
+      for (const z of (Array.isArray(d.zones) ? d.zones : []))
+        if (!z.audio && cle(z.mot) === mot) { z.audio = audio; change = true; }
+      if (change) {
+        await db.query(
+          `UPDATE contenus SET data = $2, updated_at = clock_timestamp() WHERE collection = 'exercices' AND id = $1`,
+          [e.id, JSON.stringify(d)]);
+        changes++;
+      }
+    }
+    if (changes > 0) notify('contenus');
+  }
+
   app.post('/v1/contributions/:id/validate', async (req) => {
     const { id } = req.params as { id: string };
     const body = (req.body || {}) as Record<string, any>;
@@ -957,6 +996,11 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     });
     notify('contributions');
     notify('users');
+    // Attachement automatique dans les leçons de Ntina si l'audio vient d'être approuvé
+    if ((body.status === 'approved' || body.status === 'audio_approved_text_revision') && result.contribution.audioStoragePath) {
+      attacherSonNtinaPourMot(result.contribution.itemId ?? '').catch(e =>
+        console.error('[attacherSonNtina]', e instanceof Error ? e.message : e));
+    }
     return result;
   });
 
