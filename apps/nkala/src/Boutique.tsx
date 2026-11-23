@@ -1,6 +1,6 @@
 /** Achats intégrés et abonnements : offres de la collection « produits », reçu envoyé au serveur (simulation ou magasins), droits rafraîchis. */
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { avantagesFormule, chargerDroits, chargerModesPaiement, chargerPortefeuilleNkr, chargerProduits, cleNkr, creerPaiement, depenserNkr, declarerPaiement, lirePaiement, normaliserTelephone, simulerPaiement, type DroitsServeur, type Paiement, type PortefeuilleNkr, type Produit, type ReglagesFormule } from '@nkala/noyau';
 import { PortefeuilleNkorouna, formatNkr } from './Nkorouna';
 import { useAuth } from './AuthProvider';
@@ -63,6 +63,15 @@ export function BoutiqueFeuille() {
   const planDe = (p: Produit) => plans.find(x => x.id === p.plan_id);
   const autres = (offres?.produits ?? []).filter(p => p.type !== 'nkorouna').sort((a, b) => (planDe(a)?.ordre ?? 99) - (planDe(b)?.ordre ?? 99) || (a.prix_fcfa ?? 0) - (b.prix_fcfa ?? 0));
   const acheter = (p: Produit) => { if (offres?.mode === 'simulation' && !p.prix_fcfa) { toast('Prix à venir.', 'info'); return; } ouvrirPaiement(p); };
+  if (Platform.OS === 'ios') return (
+    <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkoruna">
+      <View style={{ padding: 24, gap: 16, alignItems: 'center' }}>
+        <Ic nom="couronne" taille={40} couleur={c.accent} />
+        <T v="sousTitre" style={{ textAlign: 'center' }}>Abonnements et achats</T>
+        <T v="corps" style={{ textAlign: 'center' }}>Pour accéder aux formules d'abonnement et aux achats, rendez-vous sur ompangano.web.app depuis votre navigateur.</T>
+      </View>
+    </Feuille>
+  );
   return (
     <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkoruna">
       {droits?.abonne && <Carte plat><View style={{ padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}><Ic nom="couronne" taille={22} couleur={c.accent} /><T v="carte">Abonnement actif{droits.abonneJusque ? ` jusqu'au ${new Date(droits.abonneJusque).toLocaleDateString('fr-FR')}` : ''} · plus de publicité</T></View></Carte>}

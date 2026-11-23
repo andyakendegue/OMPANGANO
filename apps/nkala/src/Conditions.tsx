@@ -80,6 +80,7 @@ export function ConditionsModale({ visible, rappel, onClose }: { visible: boolea
           <Ligne texte={t[9].texte} v={conditions} set={setConditions} />
           <Ligne texte={t[10].texte} v={donnees} set={setDonnees} />
           <Ligne texte={t[11].texte} v={voix} set={setVoix} />
+          <Text style={[s.discret, { marginTop: -4 }]}>L'assistant Kak'Igonjo utilise un service d'inférence IA tiers (Qwen via RunPod) pour générer ses réponses. Essaka Engineering ne revend pas vos échanges à ce prestataire et ne les utilise pas pour réentraîner Kak'Igonjo sans consentement explicite.</Text>
           <Ligne texte={t[12].texte} v={image} set={setImage} />
           <Text style={s.etiquette}>{t[13].texte}</Text>
           <TextInput style={s.champ} value={signature} onChangeText={setSignature} placeholderTextColor={couleurs.discret} />
