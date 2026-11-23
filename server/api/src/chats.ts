@@ -124,9 +124,10 @@ export function registerChats(ctx: Ctx) {
     // Enfant par l'âge ou par le mode choisi sur le téléphone : pas de changement de mode proposé.
     const modeEnfant = !!etat && typeof etat === 'object' && (etat as any).prefs?.mode === 'enfant';
     const cadre = { enfant: age === 'enfant' || modeEnfant, modules };
-    const { systeme, contexte: sources, cfg, socle } = await construireSysteme(db, ctx.embed, {
+    const { systeme, contexte: sources, cfg, socle, outils, skillsActifs } = await construireSysteme(db, ctx.embed, {
       message: texte, enfant: age === 'enfant', prenom: moi?.nom, enMyene: enMyene === true,
       fiche: await ficheUtilisateur(db, a.auth.uid, etat), actions: consigneActions(cadre), delaiRagMs: asynchrone ? 120_000 : 8000,
+      utilisateurId: a.auth.uid, isAdmin: a.isAdmin,
     });
     // Contexte de cet envoi : la mesure du dernier appel si elle existe, sinon l'estimation ; on garde la plus prudente.
     // Le socle myènè (grammaire + lexique) n'entre pas dans le contexte du chat (voir construireSysteme).
@@ -142,10 +143,23 @@ export function registerChats(ctx: Ctx) {
     const verdict = verifierQuota(quota, await consommation(db, a.auth.uid, c.id), estime + cfg.maxTokens);
     if (!verdict.ok) return fail(429, verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
 
+    // Exécuteur d'outils : dispatch vers les skills actifs dans le bon ordre.
+    const contexteSkill = { utilisateurId: a.auth.uid, isAdmin: a.isAdmin, db,
+      indexerDocument: async (docId: string) => { const { indexerDocument: idx, configIa: cfgIa } = await import('./ia.ts'); return idx(db, ctx.embed, docId, await cfgIa(db)); } };
+    const executerOutil = async (nom: string, args: unknown) => {
+      for (const skill of (skillsActifs ?? [])) {
+        if (skill.outils?.some(o => o.function.name === nom) && skill.executer) {
+          const r = await skill.executer(nom, args, contexteSkill);
+          if (r !== null) return r;
+        }
+      }
+      return `Outil inconnu : ${nom}`;
+    };
+
     let rep;
     // Recherche web (moteur hébergé, sans frais) : jamais pour un enfant ; le modèle la demande seul s'il lui manque une information.
     const recherche = cfg.rechercheWeb && rechercheDisponible(env) && !cadre.enfant;
-    try { rep = await repondreAvecRecherche(ctx.ia, { systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }, recherche, env); }
+    try { rep = await repondreAvecRecherche(ctx.ia, { systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens, outils, executerOutil }, recherche, env); }
     catch { return fail(502, 'Kak\'Igonjo ne répond pas pour le moment. Réessaie dans un instant.'); }
 
     // Mesures du fournisseur : c'est elles qui font foi pour le coût et pour les frais.

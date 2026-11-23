@@ -6,6 +6,10 @@ import {
   adminBibliothequeEtat, adminBibliothequeImporter, adminIaActiverPrompt, adminRadioEtat, adminRadioSynchroniser, adminIaAjouterDocument, adminIaAjouterPrompt, adminIaConfig, adminIaDocuments, adminIaDossier, adminIaEtat, adminIaPrompts, adminIaRechercher, adminIaReindexer, adminIaSupprimerDocument, adminIaSynchroniserDossier, adminIaTester,
   adminPushEnvoyer, adminPushEtat, adminPushHistorique, adminRegieAjouterAnnonceur, adminRegieAjouterCampagne, adminRegieAjouterCreation, adminRegieAnnonceurs, adminRegieCampagnes, adminRegieEtat,
   adminRegieStats, adminRegieStatut, adminRegieSynchroniser, adminRunpodEtat, adminRunpodPod,
+  adminIaCorrections, adminIaAjouterCorrection, adminIaValiderCorrection,
+  adminIaMemoire, adminIaSupprimerMemoire,
+  adminUtilisateursResetProgression, adminUtilisateursResetLog,
+  type CorrectionAdmin, type MemoireUtilisateurAdmin,
 } from '@nkala/noyau';
 import { Sombre } from './AdminNkala';
 import { Bouton, Carte, Champ, Chargement, EtatVide, Pastille, Puce, Rangee, SectionTitre, T, useToast } from './kit';
@@ -178,7 +182,134 @@ export function IaAdmin() {
         <T v="carte">Serverless</T>{rp.endpoints.map(e => <T key={e.id} v="petit">{e.name ?? e.id} · {e.workersMin ?? 0} à {e.workersMax ?? '?'} workers</T>)}
         <T v="carte">Volumes réseau</T>{rp.volumes.map(v => <T key={v.id} v="petit">{v.name ?? v.id} · {v.size ?? '?'} Go {v.dataCenterId ? `· ${v.dataCenterId}` : ''}</T>)}
       </>}
+
+      <CorrectionsAdmin ko={ko} />
+      <MemoireAdmin ko={ko} />
+      <ResetProgressionAdmin ko={ko} />
     </Sombre>
+  );
+}
+
+// ------------------------------------------------------------------ corrections rang 0
+function CorrectionsAdmin({ ko }: { ko: (e: unknown) => void }) {
+  const toast = useToast();
+  const [corrections, setCorrections] = useState<CorrectionAdmin[]>([]);
+  const [type, setType] = useState<'erreur' | 'regle' | 'lexique'>('regle');
+  const [section, setSection] = useState('');
+  const [question, setQuestion] = useState('');
+  const [reponse, setReponse] = useState('');
+  const [note, setNote] = useState('');
+  const charger = useCallback(() => { adminIaCorrections().then(setCorrections).catch(() => {}); }, []);
+  useEffect(() => { charger(); }, [charger]);
+  return (
+    <>
+      <SectionTitre titre="Corrections validées (rang 0)" action="Actualiser" onAction={charger} />
+      <T v="petit">Les corrections validées deviennent aussitôt un document rang 0 dans le RAG : elles priment sur toutes les autres sources. Utiles pour corriger une erreur de Kak'Igonjo ou fixer une règle d'orthographe/grammaire.</T>
+      <Champ valeur={reponse} onChange={setReponse} placeholder="Règle ou réponse correcte (obligatoire)" lignes={3} auto="sentences" />
+      <Champ valeur={question} onChange={setQuestion} placeholder="Question ou forme incorrecte (facultatif)" auto="sentences" />
+      <Rangee>{(['regle', 'lexique', 'erreur'] as const).map(t => <Puce key={t} label={t} actif={type === t} onPress={() => setType(t)} />)}</Rangee>
+      <Champ valeur={section} onChange={setSection} placeholder="Section : orthographe, grammaire, syntaxe, lexique, phonetique" auto="sentences" />
+      <Champ valeur={note} onChange={setNote} placeholder="Note interne (facultatif)" auto="sentences" />
+      <Bouton label="Enregistrer et valider" petit large={false} desactive={!reponse.trim()} onPress={() =>
+        adminIaAjouterCorrection({ type, question: question || undefined, reponseCorrecte: reponse, section: section || undefined, note: note || undefined })
+          .then(r => adminIaValiderCorrection(r.id))
+          .then(() => { toast('Correction active dans le RAG.', 'succes'); setReponse(''); setQuestion(''); setSection(''); setNote(''); charger(); })
+          .catch(ko)
+      } />
+      {corrections.length === 0 ? <EtatVide icone="livre" titre="Aucune correction" texte="Les règles ajoutées ici s'appliquent immédiatement à tous les utilisateurs." /> :
+        corrections.map(c => (
+          <Carte key={c.id} plat><View style={{ padding: 12, gap: 4 }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <T v="carte" style={{ flex: 1 }}>{c.type}{c.section ? ` — ${c.section}` : ''}</T>
+              {c.valide ? <Pastille label="actif" /> : <Bouton label="Valider" petit large={false} variante="fantome" onPress={() => adminIaValiderCorrection(c.id).then(charger).catch(ko)} />}
+            </View>
+            {c.question && <T v="petit">Question : {c.question}</T>}
+            <T v="petit" numberOfLines={3}>{c.reponse_correcte}</T>
+            {c.note && <T v="petit">Note : {c.note}</T>}
+            <T v="petit">{new Date(c.created_at).toLocaleString('fr-FR')}{c.par ? ` · par ${c.par}` : ''}</T>
+          </View></Carte>
+        ))}
+    </>
+  );
+}
+
+// ------------------------------------------------------------------ mémoire utilisateurs
+function MemoireAdmin({ ko }: { ko: (e: unknown) => void }) {
+  const toast = useToast();
+  const [memoires, setMemoires] = useState<MemoireUtilisateurAdmin[]>([]);
+  const charger = useCallback(() => { adminIaMemoire().then(setMemoires).catch(() => {}); }, []);
+  useEffect(() => { charger(); }, [charger]);
+  return (
+    <>
+      <SectionTitre titre="Mémoire des utilisateurs" action="Actualiser" onAction={charger} />
+      <T v="petit">Kak'Igonjo mémorise les préférences, le niveau et le style d'apprentissage de chaque utilisateur. Ces résumés sont injectés au début de chaque conversation. Supprimer la mémoire d'un utilisateur repart de zéro pour lui.</T>
+      {memoires.length === 0 ? <EtatVide icone="coeur" titre="Aucune mémoire" texte="Les mémoires apparaissent après les premières conversations." /> :
+        memoires.map(m => (
+          <Carte key={m.utilisateur_id} plat><View style={{ padding: 12, gap: 4 }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <T v="carte" style={{ flex: 1 }} numberOfLines={1}>{m.utilisateur_id}</T>
+              <Bouton label="Supprimer" petit large={false} variante="fantome" onPress={() =>
+                adminIaSupprimerMemoire(m.utilisateur_id).then(() => { toast('Mémoire supprimée.', 'succes'); charger(); }).catch(ko)
+              } />
+            </View>
+            <T v="petit" numberOfLines={4}>{m.resume || '(résumé vide)'}</T>
+            <T v="petit">Mis à jour : {new Date(m.mise_a_jour).toLocaleString('fr-FR')}</T>
+          </View></Carte>
+        ))}
+    </>
+  );
+}
+
+// ------------------------------------------------------------------ réinitialisation de progression
+function ResetProgressionAdmin({ ko }: { ko: (e: unknown) => void }) {
+  const toast = useToast();
+  const [portee, setPortee] = useState<'tout' | 'scores' | 'jeux'>('scores');
+  const [uid, setUid] = useState('');
+  const [jeuxIds, setJeuxIds] = useState('');
+  const [confirmer, setConfirmer] = useState(false);
+  const [log, setLog] = useState<{ id: number; utilisateur_id: string | null; par: string; portee: string; created_at: string }[]>([]);
+  const chargerLog = useCallback(() => { adminUtilisateursResetLog().then(setLog).catch(() => {}); }, []);
+  useEffect(() => { chargerLog(); }, [chargerLog]);
+  const toutLesMonde = !uid.trim();
+  return (
+    <>
+      <SectionTitre titre="Réinitialisation de progression" action="Actualiser l'historique" onAction={chargerLog} />
+      <T v="petit">Utile en phase de test pour effacer des scores enregistrés avec des exercices sans audio. Portée « tout » réinitialise scores, XP et progression. « scores » efface seulement les scores de jeux. « jeux » cible des jeux précis.</T>
+      <Rangee>{(['scores', 'tout', 'jeux'] as const).map(p => <Puce key={p} label={p} actif={portee === p} onPress={() => setPortee(p)} />)}</Rangee>
+      <Champ valeur={uid} onChange={setUid} placeholder="ID utilisateur (vide = tous les utilisateurs)" auto="none" />
+      {portee === 'jeux' && <Champ valeur={jeuxIds} onChange={setJeuxIds} placeholder="IDs des jeux séparés par des virgules" auto="none" />}
+      {toutLesMonde && (
+        <Rangee>
+          <Puce label={confirmer ? '☑ Je confirme la réinitialisation de TOUS les utilisateurs' : '☐ Cocher pour confirmer (tous les utilisateurs)'} actif={confirmer} onPress={() => setConfirmer(v => !v)} />
+        </Rangee>
+      )}
+      <Bouton
+        label={toutLesMonde ? 'Réinitialiser TOUS les utilisateurs' : `Réinitialiser l'utilisateur`}
+        variante={toutLesMonde ? 'brique' : undefined}
+        desactive={toutLesMonde && !confirmer}
+        onPress={() => {
+          const ids = portee === 'jeux' && jeuxIds.trim() ? jeuxIds.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+          adminUtilisateursResetProgression({
+            portee,
+            utilisateur_id: uid.trim() || undefined,
+            jeux_ids: ids,
+            confirmer: toutLesMonde ? true : undefined,
+          }).then(r => {
+            toast(`${r.affectes} utilisateur(s) réinitialisé(s).`, 'succes');
+            setConfirmer(false);
+            chargerLog();
+          }).catch(ko);
+        }}
+      />
+      {log.length > 0 && <>
+        <T v="carte">Historique</T>
+        {log.slice(0, 10).map(l => (
+          <T key={l.id} v="petit">
+            {new Date(l.created_at).toLocaleString('fr-FR')} · {l.portee} · {l.utilisateur_id ?? 'tous'} · par {l.par}
+          </T>
+        ))}
+      </>}
+    </>
   );
 }
 

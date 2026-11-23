@@ -17,6 +17,11 @@ import { vecteursParDefaut } from './vecteurs.ts';
 import { dossierEnCours, etatDossier, synchroniserDossier } from './dossier.ts';
 import { GRAMMAIRE_MYENE, VERSION_GRAMMAIRE } from './promptMyene.ts';
 import { blocLexique, chercherLexique, etatLexique, messageEnMyene } from './lexiqueMyene.ts';
+import { skillMemoire, chargerMemoire, fragmentMemoire } from './skills/memoire.ts';
+import { skillOutilsBdd } from './skills/outilsBdd.ts';
+import { skillCorrections, enregistrerCorrection, texteCorrections, DOC_CORRECTIONS_ID, DOC_CORRECTIONS_TITRE } from './skills/corrections.ts';
+import { skillAdmin } from './skills/admin.ts';
+import type { Skill, ContexteSkill } from './skills/index.ts';
 
 const vecteurs = vecteursParDefaut();
 
@@ -75,7 +80,25 @@ export function etiquetteSource(titre: string): { rang: number | null; v3: boole
 export const configIa = async (q: Queryable): Promise<ConfigIa> => ({ ...CONFIG_IA_DEFAUT, ...(await parametre<Partial<ConfigIa>>(q, 'ia_config', {})) });
 
 // ------------------------------------------------------------------ fournisseur de modèle
-export interface DemandeIa { systeme: string; messages: { role: 'user' | 'assistant'; content: string }[]; modele: string; temperature?: number; maxTokens?: number }
+export interface OutilDefinition {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: { type: 'object'; properties: Record<string, unknown>; required?: string[] };
+  };
+}
+
+export interface DemandeIa {
+  systeme: string;
+  messages: { role: 'user' | 'assistant'; content: string }[];
+  modele: string;
+  temperature?: number;
+  maxTokens?: number;
+  /** Outils exposés à Qwen (format OpenAI). Le serveur exécute executerOutil quand Qwen en appelle un. */
+  outils?: OutilDefinition[];
+  executerOutil?: (nom: string, args: unknown) => Promise<unknown>;
+}
 export interface ReponseIaFournisseur { texte: string; usage: UsageJetons; modele: string; simule: boolean }
 export interface FournisseurIa { nom: string; repondre(o: DemandeIa): Promise<ReponseIaFournisseur> }
 
@@ -85,14 +108,57 @@ function compatibleOpenAi(nom: string, base: string, cle: string, modeleDefaut: 
   return {
     nom,
     async repondre(o) {
-      const r = await fetch(`${base}/chat/completions`, { method: 'POST', headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: o.modele || modeleDefaut, temperature: o.temperature ?? 0.3, max_tokens: o.maxTokens ?? 700, messages: [{ role: 'system', content: o.systeme }, ...o.messages] }) });
-      if (!r.ok) throw new Error(`${nom} ${r.status}`);
-      const j = lireReponseOpenAi(await r.json());
-      const texte = j.choices?.[0]?.message?.content ?? '';
-      // Réponse vide (forme inconnue, coupure du modèle) : erreur claire plutôt qu'une bulle vide enregistrée.
-      if (!String(texte).trim()) throw new Error(`${nom} : réponse vide (${j.choices?.[0]?.finish_reason ?? 'forme inconnue'})`);
-      return { texte, usage: { entree: j.usage?.prompt_tokens ?? 0, sortie: j.usage?.completion_tokens ?? 0 }, modele: j.model ?? o.modele, simule: false };
+      const usageTotal: UsageJetons = { entree: 0, sortie: 0 };
+      let modeleReel = o.modele || modeleDefaut;
+      // Messages mutables : la boucle tool_calls y ajoute les aller-retours assistant ↔ outil.
+      const msgs: any[] = [{ role: 'system', content: o.systeme }, ...o.messages];
+      const avecOutils = !!o.outils?.length && !!o.executerOutil;
+
+      for (let tour = 0; tour < 4; tour++) {
+        const corps: Record<string, unknown> = {
+          model: modeleReel,
+          temperature: o.temperature ?? 0.3,
+          max_tokens: o.maxTokens ?? 700,
+          messages: msgs,
+        };
+        if (avecOutils && tour < 3) {
+          corps.tools = o.outils;
+          corps.tool_choice = 'auto';
+        }
+        const r = await fetch(`${base}/chat/completions`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(corps),
+        });
+        if (!r.ok) throw new Error(`${nom} ${r.status}`);
+        const j = lireReponseOpenAi(await r.json());
+        const choix = j.choices?.[0];
+        modeleReel = j.model ?? modeleReel;
+        usageTotal.entree += j.usage?.prompt_tokens ?? 0;
+        usageTotal.sortie += j.usage?.completion_tokens ?? 0;
+
+        // Qwen demande à exécuter un ou plusieurs outils
+        if (avecOutils && choix?.finish_reason === 'tool_calls' && choix?.message?.tool_calls?.length) {
+          msgs.push({ role: 'assistant', content: choix.message.content ?? null, tool_calls: choix.message.tool_calls });
+          for (const tc of choix.message.tool_calls) {
+            let resultat: unknown;
+            try {
+              const args = JSON.parse(tc.function?.arguments ?? '{}');
+              resultat = await o.executerOutil!(tc.function?.name, args);
+            } catch (e) {
+              resultat = `Erreur outil : ${(e as Error).message}`;
+            }
+            msgs.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(resultat) });
+          }
+          continue; // prochain tour avec les résultats
+        }
+
+        // Réponse textuelle finale
+        const texte = choix?.message?.content ?? '';
+        if (!String(texte).trim()) throw new Error(`${nom} : réponse vide (${choix?.finish_reason ?? 'forme inconnue'})`);
+        return { texte, usage: usageTotal, modele: modeleReel, simule: false };
+      }
+      throw new Error(`${nom} : boucle tool_calls non terminée après 4 tours`);
     },
   };
 }
@@ -338,9 +404,9 @@ FORME DES RÉPONSES
 {{grammaire_myene}}`;
 export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : tu es un grand-père très doux. Phrases très courtes, mots simples, beaucoup d'encouragements, aucun sujet inquiétant, aucune question personnelle ; ramène la conversation vers la langue et les jeux.`;
 
-/** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG. */
+/** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG, mémoire utilisateur. */
 /** `delaiRagMs` : attente maximale de l'embedding de la question (8 s par défaut ; 2 min en réponse différée, le temps qu'un worker serverless se réveille). */
-export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; enMyene?: boolean; prenom?: string | null; fiche?: string; actions?: string; delaiRagMs?: number }) {
+export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; enMyene?: boolean; prenom?: string | null; fiche?: string; actions?: string; delaiRagMs?: number; utilisateurId?: string; isAdmin?: boolean }) {
   const cfg = await configIa(q);
   const actif = (await q.query<any>(`SELECT contenu FROM ia_prompts WHERE actif`))[0]?.contenu ?? PROMPT_DEFAUT;
   let systeme = actif.replace(/\{\{\s*lexique\s*\}\}/g, LEXIQUE());
@@ -351,6 +417,13 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   if (o.enfant) systeme += PROMPT_ENFANT;
   const prenom = (o.prenom || '').trim().split(/\s+/)[0]?.replace(/[^\p{L}'-]/gu, '').slice(0, 40);
   if (prenom) systeme += `\nTon interlocuteur s'appelle ${prenom}.`;
+  // Mémoire utilisateur : chargée depuis la base, injectée avant la fiche (contexte persistant entre sessions).
+  if (o.utilisateurId) {
+    try {
+      const mem = await chargerMemoire(q, o.utilisateurId);
+      if (mem) { const frag = fragmentMemoire(mem); if (frag) systeme += '\n\n' + frag; }
+    } catch { /* non bloquant */ }
+  }
   // Fiche de l'utilisateur et actions possibles (chats de l'app seulement) : avant le contexte documentaire.
   if (o.fiche) systeme += o.fiche;
   if (o.actions) systeme += o.actions;
@@ -391,7 +464,13 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   // (essai du 22 nov. 2026 : « Mbolo ! Incango sê ? » recevait une réponse surtout en français).
   // Bouton « réponds en myènè » du chat (o.enMyene) ou message écrit en myènè.
   if (o.enMyene || messageEnMyene(o.message)) systeme += `\n\n### LE MESSAGE EST EN MYÈNÈ\nRéponds UNIQUEMENT en myènè, en graphie v3, même court : aucune phrase en français, pas de traduction, pas de mot à mot. Mots attestés seulement ; formules de politesse bienvenues (Mbolo, Akewa…).`;
-  return { systeme, contexte, cfg, socle };
+
+  // Skills actifs : mémoire + BDD en lecture + escalade + admin si admin
+  const skillsActifs: Skill[] = [skillMemoire, skillOutilsBdd, skillCorrections];
+  if (o.isAdmin) { skillsActifs.push(skillAdmin); if (skillAdmin.promptFragment) systeme += '\n\n' + skillAdmin.promptFragment; }
+  const outils = skillsActifs.flatMap(s => s.outils ?? []) as OutilDefinition[];
+
+  return { systeme, contexte, cfg, socle, outils, skillsActifs };
 }
 
 // ------------------------------------------------------------------ routes d'administration
@@ -512,4 +591,114 @@ export function registerIaAdmin(ctx: Ctx) {
   app.delete('/v1/admin/runpod/pods/:id', async (req) => { const a = await admin(req); try { const r = await runpod.supprimerPod((req.params as any).id); await journaliser(db, a.auth.uid, 'runpod_pod_supprime', (req.params as any).id); return r; } catch (e) { return fail(502, (e as Error).message); } });
   app.post('/v1/admin/runpod/volumes', async (req) => { const a = await admin(req); try { const r = await runpod.creerVolume((req.body || {}) as Record<string, unknown>); await journaliser(db, a.auth.uid, 'runpod_volume_cree', undefined, req.body); return r; } catch (e) { return fail(502, (e as Error).message); } });
   app.patch('/v1/admin/runpod/endpoints/:id', async (req) => { const a = await admin(req); try { const r = await runpod.majEndpoint((req.params as any).id, (req.body || {}) as Record<string, unknown>); await journaliser(db, a.auth.uid, 'runpod_endpoint', (req.params as any).id, req.body); return r; } catch (e) { return fail(502, (e as Error).message); } });
+
+  // ------------------------------------------------------------------ corrections validées (rang 0 RAG)
+  app.get('/v1/admin/ia/corrections', async (req) => {
+    await admin(req);
+    return db.query(`SELECT id, type, section, question, reponse_erronee, reponse_correcte, note, par, valide, created_at FROM ia_corrections ORDER BY created_at DESC LIMIT 200`);
+  });
+
+  app.post('/v1/admin/ia/corrections', async (req, reply) => {
+    const a = await admin(req);
+    const b = (req.body || {}) as any;
+    if (!str(b.reponse_correcte) || !b.reponse_correcte.trim()) return fail(400, 'reponse_correcte attendu.');
+    const type = ['erreur', 'regle', 'lexique'].includes(b.type) ? b.type : 'erreur';
+    const indexer = async (documentId: string) => indexerDocument(db, embed, documentId, await configIa(db));
+    const id = await enregistrerCorrection(db, {
+      type, question: b.question, reponseErronee: b.reponse_erronee,
+      reponseCorrecte: String(b.reponse_correcte).slice(0, 1000),
+      section: b.section, note: b.note, par: a.auth.uid, valide: b.valide === true,
+    }, b.valide === true ? indexer : undefined);
+    await journaliser(db, a.auth.uid, 'ia_correction', String(id), { type, valide: b.valide });
+    return reply.status(201).send({ id });
+  });
+
+  app.post('/v1/admin/ia/corrections/:id/valider', async (req) => {
+    const a = await admin(req);
+    const id = Number((req.params as any).id);
+    await db.query(`UPDATE ia_corrections SET valide = true WHERE id = $1`, [id]);
+    // Réindexer le document des corrections
+    const texte = await texteCorrections(db);
+    await db.query(
+      `INSERT INTO ia_documents (id, titre, texte, par) VALUES ($1,$2,$3,$4)
+       ON CONFLICT (id) DO UPDATE SET titre = EXCLUDED.titre, texte = EXCLUDED.texte, updated_at = clock_timestamp()`,
+      [DOC_CORRECTIONS_ID, DOC_CORRECTIONS_TITRE, texte, a.auth.uid]
+    );
+    try { await indexerDocument(db, embed, DOC_CORRECTIONS_ID, await configIa(db)); } catch { /* non bloquant */ }
+    await journaliser(db, a.auth.uid, 'ia_correction_validee', String(id));
+    return { ok: true };
+  });
+
+  // ------------------------------------------------------------------ mémoire utilisateur
+  app.get('/v1/admin/ia/memoire', async (req) => {
+    await admin(req);
+    const uid = String((req.query as any)?.utilisateur ?? '');
+    if (!uid) return db.query(`SELECT utilisateur_id, resume, mise_a_jour FROM ia_memoire_utilisateur ORDER BY mise_a_jour DESC LIMIT 100`);
+    return db.query(`SELECT utilisateur_id, resume, progression, style, mise_a_jour FROM ia_memoire_utilisateur WHERE utilisateur_id = $1`, [uid]);
+  });
+
+  app.delete('/v1/admin/ia/memoire/:uid', async (req, reply) => {
+    const a = await admin(req);
+    const uid = (req.params as any).uid;
+    await db.query(`DELETE FROM ia_memoire_utilisateur WHERE utilisateur_id = $1`, [uid]);
+    await journaliser(db, a.auth.uid, 'ia_memoire_supprimee', uid);
+    return reply.status(204).send();
+  });
+
+  // ------------------------------------------------------------------ reset progression (tests, exercices sans audio)
+  /**
+   * Réinitialise la progression d'un ou tous les utilisateurs.
+   * portee = 'tout' : xp, level, scores, progression
+   * portee = 'scores' : uniquement les scores (garde le level)
+   * portee = 'jeux' + jeux_ids[] : uniquement les scores des jeux listés
+   * utilisateur_id absent : tous les utilisateurs (confirmation requise : confirmer: true)
+   */
+  app.post('/v1/admin/utilisateurs/reset-progression', async (req) => {
+    const a = await admin(req);
+    const { utilisateur_id, portee = 'tout', jeux_ids, confirmer } = (req.body || {}) as {
+      utilisateur_id?: string;
+      portee?: 'tout' | 'scores' | 'jeux';
+      jeux_ids?: string[];
+      confirmer?: boolean;
+    };
+    // Reset global : exiger confirmation explicite
+    if (!utilisateur_id && !confirmer) return fail(400, 'Pour réinitialiser tous les utilisateurs, envoie confirmer: true.');
+
+    return db.tx(async q => {
+      const filtre = utilisateur_id ? `WHERE user_id = $1` : '';
+      const params = utilisateur_id ? [utilisateur_id] : [];
+
+      if (portee === 'jeux' && jeux_ids?.length) {
+        await q.query(
+          `DELETE FROM scores WHERE jeu_id = ANY($1::text[])${utilisateur_id ? ' AND user_id = $2' : ''}`,
+          utilisateur_id ? [jeux_ids, utilisateur_id] : [jeux_ids]
+        );
+      } else if (portee === 'scores') {
+        await q.query(`DELETE FROM scores ${filtre}`, params);
+      } else {
+        // 'tout' : scores + progression + xp/level
+        await q.query(`DELETE FROM scores ${filtre}`, params);
+        await q.query(`DELETE FROM progression ${filtre}`, params);
+        await q.query(
+          `UPDATE users SET xp = 0, level = 'Initié Curieux', level_index = 1${utilisateur_id ? ' WHERE id = $1' : ''}`,
+          params
+        );
+      }
+
+      await q.query(
+        `INSERT INTO ia_reset_progression (utilisateur_id, par, portee, jeux_ids) VALUES ($1,$2,$3,$4)`,
+        [utilisateur_id ?? null, a.auth.uid, portee, jeux_ids ?? null]
+      );
+      await journaliser(q, a.auth.uid, 'reset_progression', utilisateur_id ?? 'tous', { portee, jeux_ids });
+
+      const compte = utilisateur_id ? 1 : Number((await q.query<any>(`SELECT count(*) AS n FROM users`))[0].n);
+      return { ok: true, utilisateurs: compte, portee };
+    });
+  });
+
+  // Historique des resets
+  app.get('/v1/admin/utilisateurs/reset-progression', async (req) => {
+    await admin(req);
+    return db.query(`SELECT id, utilisateur_id, par, portee, jeux_ids, created_at FROM ia_reset_progression ORDER BY created_at DESC LIMIT 100`);
+  });
 }

@@ -243,6 +243,16 @@ export const adminIaReindexer = (id: string) => api<{ chunks: number }>('POST', 
 export const adminIaRechercher = (requete: string) => api<{ resultats: { titre: string; texte: string; score: number }[] }>('POST', '/v1/admin/ia/rag/rechercher', { requete });
 export const adminIaTester = (message: string, enfant = false) => api<{ reponse: string; usage: UsageJetonsApi; modele: string; simule: boolean; contexte: { titre: string; score: number }[]; systeme: string }>('POST', '/v1/admin/ia/tester', { message, enfant });
 export interface UsageJetonsApi { entree: number; sortie: number }
+export type CorrectionType = 'erreur' | 'regle' | 'lexique';
+export interface CorrectionAdmin { id: number; type: CorrectionType; section: string | null; question: string | null; reponse_correcte: string; note: string | null; par: string | null; valide: boolean; created_at: string }
+export const adminIaCorrections = () => api<CorrectionAdmin[]>('GET', '/v1/admin/ia/corrections');
+export const adminIaAjouterCorrection = (c: { type: CorrectionType; question?: string; reponseCorrecte: string; section?: string; note?: string }) => api<{ id: number }>('POST', '/v1/admin/ia/corrections', c);
+export const adminIaValiderCorrection = (id: number) => api<{ ok: boolean }>('POST', `/v1/admin/ia/corrections/${id}/valider`);
+export interface MemoireUtilisateurAdmin { utilisateur_id: string; resume: string; mise_a_jour: string }
+export const adminIaMemoire = () => api<MemoireUtilisateurAdmin[]>('GET', '/v1/admin/ia/memoire');
+export const adminIaSupprimerMemoire = (uid: string) => api('DELETE', `/v1/admin/ia/memoire/${encodeURIComponent(uid)}`);
+export const adminUtilisateursResetProgression = (p: { portee: 'tout' | 'scores' | 'jeux'; utilisateur_id?: string; jeux_ids?: string[]; confirmer?: boolean }) => api<{ ok: boolean; affectes: number }>('POST', '/v1/admin/utilisateurs/reset-progression', p);
+export const adminUtilisateursResetLog = () => api<{ id: number; utilisateur_id: string | null; par: string; portee: string; created_at: string }[]>('GET', '/v1/admin/utilisateurs/reset-progression');
 export const adminRunpodEtat = () => api<{ simule: boolean; pods: any[]; endpoints: any[]; volumes: any[]; erreur?: string }>('GET', '/v1/admin/runpod/etat');
 export const adminRunpodPod = (id: string, action: 'start' | 'stop' | 'restart') => api('POST', `/v1/admin/runpod/pods/${encodeURIComponent(id)}/${action}`);
 export const adminRegieEtat = () => api<{ mode: string; revive: { simule: boolean; ok: boolean; erreur?: string } }>('GET', '/v1/admin/regie/etat');
