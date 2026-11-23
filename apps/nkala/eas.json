@@ -33,6 +33,7 @@
   "submit": {
     "production": {
       "android": {
+        "serviceAccountKeyPath": "../../../secrets_ompangano/enenga-ba7b6bc65fd4.json",
         "track": "alpha",
         "releaseStatus": "completed",
         "changesNotSentForReview": false
@@ -40,6 +41,7 @@
     },
     "interne": {
       "android": {
+        "serviceAccountKeyPath": "../../../secrets_ompangano/enenga-ba7b6bc65fd4.json",
         "track": "internal",
         "releaseStatus": "completed"
       }

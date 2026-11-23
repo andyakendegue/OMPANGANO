@@ -137,3 +137,28 @@ Capp garde les fichiers modifiés (§12) tels quels ; ils seront vérifiés plus
   - **Exercices des leçons payantes : servis après droit.** Collection `exercices` privée ; `/pub/onenji/exercices` (sans compte : leçons gratuites) et `/v1/onenji/exercices` (avec compte : aussi celles du forfait ou achetées ; le personnel reçoit tout).
   - **Serveur déployé** le 14 nov. (≈ 2 h) ; **build natif** laissé à Capp.
 - **Reste** : publier la mise à jour JavaScript (les versions actuelles lisent encore `/pub/contenus/exercices`, désormais refusé : elles retombent sur les exercices d'exemple livrés avec l'app) ; nouveau build natif pour la caméra et le micro ; zone Revive `video_igolani` ; essai d'un vrai appel à plusieurs sur appareils.
+
+## 18. Décision du 15 nov. 2026 : vidéos en streaming seulement, masterclass payantes (remplace la règle « à l'achat » de la §14)
+
+**Décision de Capp** (détail : `DONDO/15_modele_economique/01_modele_economique_application.md` §10 ; contrats : `DONDO/15_modele_economique/04_Contributions et contrats/`) :
+- **Plus aucun paiement des vidéos à l'unité.** Les vidéos d'Igolani et les cours d'artisans ne sont accessibles **qu'en streaming**, par les formules d'abonnement qui les incluent. Plus de niveau « achat » ni « location » pour une vidéo.
+- **Igolani s'ouvre à certains types d'abonnement** ; la formule **Premium** donne accès à la totalité des cours payants, sur le modèle du streaming.
+- **Seuls les cours avec les professeurs sont payants**, comme des **masterclass** (le professeur reçoit une part des revenus nets).
+- Les créateurs des vidéos sont payés par un **fonds des créateurs** pris sur la part des abonnements attribuée aux cours en vidéo (au prorata du temps d'utilisation des abonnés), réparti au prorata des **minutes regardées**.
+- Le contributeur spécial (linguiste) et les associations reçoivent aussi des parts calculées sur les revenus : le serveur doit pouvoir sortir ces montants.
+- **Les taux et la méthode de calcul sont confidentiels** (accord de confidentialité, conditions financières) : ils sont décrits dans `DONDO/15_modele_economique/05_calcul_des_reversements.md`, hors du dépôt (public). **Aucun taux dans le code** : paramètres en base, réglés dans la console.
+
+### Tâche à lancer dans une autre session (rien n'est codé au 15 nov.)
+
+Lire d'abord `SECURITE_ISO27001.md` §4 et lancer `scripts/controle_securite.sh` avant tout déploiement.
+
+1. **Règle d'accès des vidéos** (`packages/noyau/src/lecons.ts`, `accesChapitreVideo`, `accesCompletVideo`, `finPartieGratuite`) : supprimer le cas « cours d'artisan long → achat » (`DUREE_COURS_LONG_MIN`) ; règle par défaut : premier chapitre gratuit avec publicité, la suite à l'abonnement ; un `niveau_acces` « achat » ou « location » saisi sur une vidéo ou un chapitre est traité comme « abonnement ». Mettre à jour les commentaires de `formules.ts`.
+2. **Serveur** (`server/api/src/services.ts`, licence de lecture et `limiteS`) : plus aucun droit « acheté » pour une vidéo ; la partie complète s'ouvre avec une formule active qui inclut Igolani ; retirer le commentaire « à l'achat pour un cours d'artisan long ». Vérifier les routes d'achat (`produits`, Nkorouna, porte-monnaie) : aucune ne doit vendre une vidéo.
+3. **Formules** : colonne (ou valeur de `modules` / `sans_pub`) qui dit si une formule ouvre Igolani ; Premium l'ouvre ; console et `contenu/COLONNES.md` à jour (retirer « achat » et « location » des choix de `niveau_acces` pour les collections `chapitres` et `cours_artisans`, lignes 97 et 115 de `COLONNES.md`) ; `contenu/exemples/` régénérés.
+4. **Application** (`apps/nkala/src/Onenji.tsx`) : plus de bouton ni de texte « acheter » sur une vidéo ; à la fin de la partie gratuite, proposer les formules qui ouvrent Igolani.
+5. **Mesure des minutes regardées** par vidéo et par abonné (pour le fonds des créateurs) : enregistrement côté serveur à partir de la licence et d'un battement périodique du lecteur (pas de confiance aveugle dans l'app ; un même abonné compté une fois par passage) ; vue dans la console (par créateur, par trimestre).
+6. **Masterclass** : les cours à distance (`services.ts`, salles et planning ; `CoursDistance.tsx`) deviennent les seuls cours payants. **Existe déjà en partie** : table `cours_planifies` avec `prix_fcfa`, `tarifCours()` / `prixSeance()`, `placeIncluse()` (place comprise dans un forfait), réponse 402 « Place payante » avec le produit `seance:<code>` (route `/v1/appels/planning/:code/inscrire`) ; décider si une formule peut encore inclure des places de masterclass. **Prix fixé par Essaka** (décision de Capp, 15 nov. : grille de la console, le professeur ne choisit pas). À faire : prix de la grille d'Essaka, paiement avant l'entrée en salle, part du professeur et de la plateforme enregistrées pour les reversements ; annulation tardive du professeur = remboursement.
+7. **Moteur de calcul des reversements** (serveur, console, rôle administrateur) : appliquer **exactement** la définition de `DONDO/15_modele_economique/05_calcul_des_reversements.md` (données d'entrée à ajouter, ordre du calcul en 10 étapes, relevés scellés, export CSV, tests chiffrés tirés des contrats) pour les quatre types de bénéficiaires : contributeur spécial (avec coefficient d'apport par zone de publicité et date du procès-verbal de validation complète), créateurs (fonds au prorata des minutes), professeurs (masterclass), associations (enveloppe IA au poids d'utilisation des unités de contribution).
+8. **Tests** (noyau et serveur) pour chaque règle ; `tsc` de l'app et du serveur ; entrée au journal `DONDO/_contexte/JOURNAL.md`.
+
+Ne rien déployer ni publier sans l'accord de Capp.
