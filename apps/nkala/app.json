@@ -19,7 +19,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "privacyPolicyUrl": "https://ompangano.web.app/confidentialite",
+      "privacyPolicyUrl": "https://essaka.engineering/confidentialite",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
