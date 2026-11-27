@@ -5,7 +5,7 @@
  */
 export const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? '',
-  oAuthClientId: '859400798745-l2n59unf6udem2scsb0mvf8tjdgcat5m.apps.googleusercontent.com',
+  oAuthClientId: '743429299872-jhhgd53ncfihgrtuh0lgcvisqq654khm.apps.googleusercontent.com',
   recaptchaSiteKey: '',
   authDomain: 'enenga.firebaseapp.com',
   databaseURL: 'https://enenga-default-rtdb.firebaseio.com',

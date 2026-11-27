@@ -8,9 +8,11 @@ export LC_ALL=C
 cd "$(git rev-parse --show-toplevel)"
 
 MODE=index
-if [ "${1:-}" = "--tout" ]; then MODE=tout; mapfile -t F < <(git ls-files)
+F=()
+# bash 3.2 de macOS : pas de mapfile.
+if [ "${1:-}" = "--tout" ]; then MODE=tout; while IFS= read -r l; do F+=("$l"); done < <(git ls-files)
 elif [ $# -gt 0 ]; then MODE=fichiers; F=("$@")
-else mapfile -t F < <(git diff --cached --name-only --diff-filter=ACMR); fi
+else while IFS= read -r l; do F+=("$l"); done < <(git diff --cached --name-only --diff-filter=ACMR); fi
 [ ${#F[@]} -eq 0 ] && exit 0
 bad=0
 
