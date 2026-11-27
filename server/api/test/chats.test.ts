@@ -10,8 +10,12 @@ import type { FournisseurIa } from '../src/ia.ts';
 import { coutAppel, etatContexte, fraisExces, REGLES_CONTEXTE_DEFAUT, TARIF_IA_DEFAUT } from '../../../packages/noyau/src/jetons.ts';
 
 let db: Db, app: FastifyInstance;
-// Modèle d'essai : l'entrée grossit avec l'historique (1000 jetons par message envoyé), la sortie vaut 200.
-const ia: FournisseurIa = { nom: 'test', repondre: async ({ messages }) => ({ texte: `Réponse ${messages.length}`, usage: { entree: 1000 * messages.length, sortie: 200 }, modele: 'test', simule: false }) };
+// Modèle d'essai : le fournisseur mesure 5000 jetons de prompt système (matériel du service) + 1000 par message ; réponse de 200 jetons.
+// Pour l'utilisateur, seule la conversation compte (26 nov. 2026) : jetons estimés de l'historique, du message et de la réponse.
+const reponseEssai = (n: number) => `Réponse ${n} ` + 'r'.repeat(590);
+const ia: FournisseurIa = { nom: 'test', repondre: async ({ messages }) => ({ texte: reponseEssai(messages.length), usage: { entree: 5000 + 1000 * messages.length, sortie: 200 }, modele: 'test', simule: false }) };
+const J = (s: string) => Math.ceil(s.length / 3);
+const LONG = 'm'.repeat(1800); // 600 jetons (un message fait 2000 caractères au plus)
 const storage = { presignPut: async () => '', presignGet: async () => '', remove: async () => {}, put: async () => {}, exists: async () => false } as unknown as MediaStorage;
 const verify: TokenVerifier = async token => userFromClaims(JSON.parse(Buffer.from(token, 'base64url').toString()));
 const tok = (uid: string, o: { email?: string; verified?: boolean } = {}) => Buffer.from(JSON.stringify({
@@ -66,19 +70,19 @@ test('plusieurs chats : chacun son contexte, son historique et son coût', async
 
   const r1 = await call('POST', `/v1/ia/chats/${a.id}/messages`, u.token, { message: 'Comment dit-on merci ?' });
   assert.equal(r1.status, 200, JSON.stringify(r1.body));
-  assert.equal(r1.body.chat.contexte.jetons, 1200, 'entrée + sortie du dernier appel');
+  assert.equal(r1.body.chat.contexte.jetons, J('Comment dit-on merci ?') + 200, 'conversation + réponse ; les 5000 jetons du prompt système ne comptent pas');
   assert.equal(r1.body.chat.titre, 'Comment dit-on merci ?', 'le premier message donne le titre');
   assert.equal(r1.body.appel.frais, 0); assert.equal(r1.body.appel.cout, undefined, 'le coût réel n\'est pas montré à l\'utilisateur');
   const r2 = await call('POST', `/v1/ia/chats/${a.id}/messages`, u.token, { message: 'Et bonjour ?' });
-  assert.equal(r2.body.reponse, 'Réponse 3', 'l\'historique vient du serveur'); assert.equal(r2.body.chat.contexte.jetons, 3200);
+  assert.equal(r2.body.reponse, reponseEssai(3), 'l\'historique vient du serveur'); assert.equal(r2.body.chat.contexte.jetons, J('Comment dit-on merci ?' + reponseEssai(1) + 'Et bonjour ?') + 200);
 
   const rb = await call('POST', `/v1/ia/chats/${b.id}/messages`, u.token, { message: 'Un proverbe ?' });
-  assert.equal(rb.body.reponse, 'Réponse 1', 'l\'autre chat ne voit pas le contexte du premier'); assert.equal(rb.body.chat.contexte.jetons, 1200);
+  assert.equal(rb.body.reponse, reponseEssai(1), 'l\'autre chat ne voit pas le contexte du premier'); assert.equal(rb.body.chat.contexte.jetons, J('Un proverbe ?') + 200);
 
   const liste = (await call('GET', '/v1/ia/chats', u.token)).body;
   assert.equal(liste.chats.length, 2); assert.equal(liste.chats[0].id, b.id, 'le plus récent d\'abord');
   const detail = (await call('GET', `/v1/ia/chats/${a.id}`, u.token)).body;
-  assert.equal(detail.messages.length, 4); assert.deepEqual(detail.chat.jetons, { entree: 4000, sortie: 400 });
+  assert.equal(detail.messages.length, 4); assert.deepEqual(detail.chat.jetons, { entree: 14000, sortie: 400 }, 'le journal garde tous les jetons mesurés (coût réel)');
   assert.equal((await call('GET', `/v1/ia/chats/${a.id}`, autre.token)).status, 404, 'un chat n\'appartient qu\'à son auteur');
   assert.equal((await call('POST', `/v1/ia/chats/${a.id}/messages`, autre.token, { message: 'x' })).status, 404);
 
@@ -88,27 +92,27 @@ test('plusieurs chats : chacun son contexte, son historique et son coût', async
 });
 
 test('excès : accord demandé, frais comptés sur la part au-delà de l\'inclus, puis chat plein', async () => {
-  await regler('ia_contexte', { inclus: 3000, max: 7800, politique: 'facturer' });
+  await regler('ia_contexte', { inclus: 1200, max: 4400, politique: 'facturer' });
   const u = await user();
   const id = (await call('POST', '/v1/ia/chats', u.token, {})).body.chat.id;
-  const envoyer = (corps: object) => call('POST', `/v1/ia/chats/${id}/messages`, u.token, { message: 'Mbolo', ...corps });
-  assert.equal((await envoyer({})).body.chat.contexte.niveau, 'ok');          // 1 message  → contexte 1200
-  assert.equal((await envoyer({})).body.chat.contexte.niveau, 'exces');       // 3 messages → contexte 3200 (inclus 3000)
-  const refus = await envoyer({});
+  const envoyer = (corps: object) => call('POST', `/v1/ia/chats/${id}/messages`, u.token, { message: LONG, ...corps });
+  const premier = await envoyer({});                                            // conversation 600 → contexte 800
+  assert.equal(premier.status, 200, JSON.stringify(premier.body)); assert.equal(premier.body.chat.contexte.niveau, 'ok', 'premier message jamais en excès malgré 6000 jetons de prompt');
+  const refus = await envoyer({});                                              // 600 + 200 + 600 = 1400 > inclus 1200
   assert.equal(refus.status, 402); assert.equal(refus.body.code, 'frais'); assert.ok(refus.body.fraisEstimes > 0); assert.equal(refus.body.contexte.exces > 0, true);
-  const ok = await envoyer({ accepteFrais: true });                              // 5 messages → entrée 5000 : 2000 en excès
+  const ok = await envoyer({ accepteFrais: true });                             // 200 jetons en excès → 0,4 FCFA
   assert.equal(ok.status, 200, JSON.stringify(ok.body));
-  assert.deepEqual([ok.body.appel.jetonsExces, ok.body.appel.frais], [2000, 4]);
-  assert.equal(ok.body.chat.frais, 4); assert.equal(ok.body.chat.jetonsExces, 2000);
-  const plein = await envoyer({ accepteFrais: true });                           // 5200 + réponse (700) < 7800 : passe encore
-  assert.equal(plein.status, 200);
-  const fin = await envoyer({ accepteFrais: true });                             // 7200 + réponse (700) > 7800 : plein
+  assert.deepEqual([ok.body.appel.jetonsExces, ok.body.appel.frais], [200, 0.4]);
+  assert.equal(ok.body.chat.contexte.niveau, 'exces'); assert.equal(ok.body.chat.frais, 0.4);
+  assert.equal((await envoyer({ accepteFrais: true })).status, 200);           // 2200 + réponse (700) < 4400
+  assert.equal((await envoyer({ accepteFrais: true })).status, 200);           // 3000 + 700 < 4400
+  const fin = await envoyer({ accepteFrais: true });                            // 3800 + 700 > 4400 : plein
   assert.equal(fin.status, 409); assert.equal(fin.body.code, 'plein');
 
-  await regler('ia_contexte', { inclus: 3000, max: 90000, politique: 'bloquer' });
+  await regler('ia_contexte', { inclus: 1200, max: 90000, politique: 'bloquer' });
   const bloque = await envoyer({ accepteFrais: true });
   assert.equal(bloque.status, 409); assert.equal(bloque.body.code, 'exces');
-  await regler('ia_contexte', { inclus: 3000, max: 90000, politique: 'suivre' });
+  await regler('ia_contexte', { inclus: 1200, max: 90000, politique: 'suivre' });
   const suivi = await envoyer({});
   assert.equal(suivi.status, 200); assert.equal(suivi.body.appel.frais, 0); assert.ok(suivi.body.appel.jetonsExces > 0, 'l\'excès reste mesuré');
 });
@@ -120,10 +124,10 @@ test('console : coût réel par chat et par utilisateur, réservé aux administr
   assert.ok(c.total.appels >= 8); assert.ok(c.total.cout > 0); assert.ok(c.total.frais >= 4); assert.ok(c.enExces >= 1);
   assert.ok(c.chats.length >= 2 && c.chats[0].cout >= c.chats[1].cout, 'les chats les plus coûteux d\'abord');
   assert.ok(c.utilisateurs.length >= 2); assert.equal(c.tarif.devise, 'FCFA');
-  // 1 000 jetons d'entrée et 200 de sortie : 0,3 + 0,18 = 0,48 FCFA
+  // Coût réel sur tous les jetons mesurés : 6 000 d'entrée et 200 de sortie → 1,8 + 0,18 = 1,98 FCFA
   const id = (await call('POST', '/v1/ia/chats', ADMIN, {})).body.chat.id;
   const r = await call('POST', `/v1/ia/chats/${id}/messages`, ADMIN, { message: 'Mbolo' });
-  assert.equal(r.body.appel.cout, 0.48); assert.equal(r.body.chat.cout, 0.48, 'l\'administrateur voit le coût réel');
+  assert.equal(r.body.appel.cout, 1.98); assert.equal(r.body.chat.cout, 1.98, 'l\'administrateur voit le coût réel');
   assert.equal((await regler('ia_tarifs', { devise: 'FCFA', entreeParMillion: -1 })).status, 200);
   assert.equal((await call('GET', '/v1/admin/ia/couts', ADMIN)).body.tarif.entreeParMillion, 300, 'une valeur négative est ignorée');
 });

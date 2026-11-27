@@ -9,6 +9,7 @@
  * Variable : SEARXNG_URL (http://172.17.0.1:8710). Sans elle, ou avec le réglage `rechercheWeb: false`, rien ne change.
  */
 import type { DemandeIa, FournisseurIa, ReponseIaFournisseur } from './ia.ts';
+import { noterEtape } from './travauxIa.ts';
 
 export interface ResultatWeb { titre: string; url: string; extrait: string }
 
@@ -68,12 +69,15 @@ ${res.length ? res.map((x, i) => `[W${i + 1}] ${x.titre} — ${x.url} : ${x.extr
  * La consigne n'est ajoutée qu'à la demande ; l'usage des deux appels est additionné (coût réel).
  */
 export async function repondreAvecRecherche(ia: FournisseurIa, demande: DemandeIa, actif: boolean, env = process.env): Promise<ReponseIaFournisseur & { recherche?: { requete: string; resultats: ResultatWeb[] } }> {
+  noterEtape('modèle');
   if (!actif) return ia.repondre(demande);
   const r1 = await ia.repondre({ ...demande, systeme: demande.systeme + CONSIGNE_RECHERCHE });
   const question = [...demande.messages].reverse().find(m => m.role === 'user')?.content ?? '';
   const requete = demandeRecherche(r1.texte) ?? rechercheDeRepli(r1.texte, question);
   if (!requete) return r1;
+  noterEtape('recherche web');
   const resultats = await rechercherWeb(requete, 5, env);
+  noterEtape('modèle (avec les résultats web)');
   const r2 = await ia.repondre({ ...demande, systeme: demande.systeme + blocResultats(requete, resultats) });
   return {
     ...r2,

@@ -11,7 +11,7 @@ import {
   type QuotaJetons, type ReglesContexte, type TarifIa,
 } from '../../../packages/noyau/src/jetons.ts';
 import { profilAgeDepuis } from '../../../packages/noyau/src/publicite.ts';
-import { construireSysteme } from './ia.ts';
+import { construireSysteme, jetonsConversation } from './ia.ts';
 import { rechercheDisponible, repondreAvecRecherche } from './rechercheWeb.ts';
 import { differable } from './travauxIa.ts';
 import { ficheUtilisateur } from './ficheIa.ts';
@@ -119,19 +119,21 @@ export function registerChats(ctx: Ctx) {
     const quota: QuotaJetons = { parJour: Math.floor(base.parJour * f), parMois: Math.floor(base.parMois * f), parConversation: Number.MAX_SAFE_INTEGER };
 
     const texte = message.trim();
+    // Le réveil d'un worker (≈ 1 min 20) se fait pendant la recherche dans le corpus, au lieu de commencer après.
+    ctx.ia.reveiller?.();
     const historique = (await db.query<any>(`SELECT role, contenu FROM ia_messages WHERE chat_id = $1 ORDER BY id`, [c.id])).map(m => ({ role: m.role as 'user' | 'assistant', content: m.contenu as string }));
     const msgs = [...historique, { role: 'user' as const, content: texte }];
     // Enfant par l'âge ou par le mode choisi sur le téléphone : pas de changement de mode proposé.
     const modeEnfant = !!etat && typeof etat === 'object' && (etat as any).prefs?.mode === 'enfant';
     const cadre = { enfant: age === 'enfant' || modeEnfant, modules };
-    const { systeme, contexte: sources, cfg, socle, outils, skillsActifs } = await construireSysteme(db, ctx.embed, {
+    const { systeme, contexte: sources, cfg, outils, skillsActifs } = await construireSysteme(db, ctx.embed, {
       message: texte, enfant: age === 'enfant', prenom: moi?.nom, enMyene: enMyene === true,
       fiche: await ficheUtilisateur(db, a.auth.uid, etat), actions: consigneActions(cadre), delaiRagMs: asynchrone ? 120_000 : 8000,
       utilisateurId: a.auth.uid, isAdmin: a.isAdmin,
     });
-    // Contexte de cet envoi : la mesure du dernier appel si elle existe, sinon l'estimation ; on garde la plus prudente.
-    // Le socle myènè (grammaire + lexique) n'entre pas dans le contexte du chat (voir construireSysteme).
-    const estime = Math.max(estimerJetons(systeme + msgs.map(m => m.content).join('')) - socle, c.contexte_jetons + estimerJetons(texte));
+    // Contexte de cet envoi : la conversation seule (jetonsConversation) ; le prompt système est du matériel du service.
+    const conversation = jetonsConversation(msgs);
+    const estime = Math.max(conversation, c.contexte_jetons + estimerJetons(texte));
     const avant = etatContexte(regles, estime);
     const prevu = fraisExces(tarif, regles, estime);
     const corps = { contexte: avant, fraisEstimes: prevu.frais, devise: tarif.devise, politique: regles.politique };
@@ -166,7 +168,8 @@ export function registerChats(ctx: Ctx) {
     // Les balises d'action sont retirées du texte gardé : l'historique ne garde que la réponse lisible.
     const { texte: lisible, actions } = extraireActions(rep.texte, cadre);
     const cout = rep.simule ? 0 : coutAppel(tarif, rep.usage);
-    const entreeChat = Math.max(0, rep.usage.entree - socle);
+    // Le coût réel garde tous les jetons ; seule la conversation compte pour l'utilisateur (le reste va dans jetons_socle).
+    const entreeChat = Math.min(conversation, rep.usage.entree);
     const reel = fraisExces(tarif, regles, entreeChat);
     const frais = rep.simule ? 0 : reel.frais;
     const suivant = entreeChat + rep.usage.sortie;
@@ -185,6 +188,13 @@ export function registerChats(ctx: Ctx) {
       quota: { ...(apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true }), gratuitesRestantes: droitIaV.restantes },
     };
   }, async (req, a) => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); return verifierForfaitIa(db)(req, a); }));
+
+  /** L'application l'appelle à l'ouverture de l'assistant : le worker du modèle se réveille pendant que l'utilisateur écrit. */
+  app.post('/v1/ia/reveil', async (req) => {
+    await acteur(req);
+    if (!(await modulesActuels(db, env)).fonctions.assistantIA) return { lance: false };
+    return { lance: ctx.ia.reveiller?.() ?? false };
+  });
 
   // ---------------------------------------------------------------- console : combien ça coûte
   app.get('/v1/admin/ia/couts', async (req) => {

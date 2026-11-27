@@ -22,6 +22,9 @@ import { skillOutilsBdd } from './skills/outilsBdd.ts';
 import { skillCorrections, enregistrerCorrection, texteCorrections, DOC_CORRECTIONS_ID, DOC_CORRECTIONS_TITRE } from './skills/corrections.ts';
 import { skillAdmin } from './skills/admin.ts';
 import type { Skill, ContexteSkill } from './skills/index.ts';
+import { erreurConnexion, posterJson, type ReponseHttp } from './appelHttp.ts';
+import { journalIa, noterAppel } from './diagnosticIa.ts';
+import { differable, noterEtape, signalTravail } from './travauxIa.ts';
 
 const vecteurs = vecteursParDefaut();
 
@@ -100,19 +103,80 @@ export interface DemandeIa {
   executerOutil?: (nom: string, args: unknown) => Promise<unknown>;
 }
 export interface ReponseIaFournisseur { texte: string; usage: UsageJetons; modele: string; simule: boolean }
-export interface FournisseurIa { nom: string; repondre(o: DemandeIa): Promise<ReponseIaFournisseur> }
+export interface EtatReveil { derniereActiviteIlYaS: number | null; reveilEnCours: boolean; dernierReveil: { at: number; ms: number; ok: boolean; erreur?: string } | null; delaiAppelS: number }
+export interface FournisseurIa {
+  nom: string;
+  repondre(o: DemandeIa): Promise<ReponseIaFournisseur>;
+  /** Réveille le worker du modèle s'il dort probablement (aucune réponse depuis 4 minutes) ; true si un réveil part. */
+  reveiller?(): boolean;
+  etat?(): EtatReveil;
+}
 
 const urlRunpodOpenAi = (env: NodeJS.ProcessEnv, endpoint?: string, url?: string) => (url || (endpoint ? `https://api.runpod.ai/v2/${endpoint}/openai/v1` : '')).replace(/\/+$/, '');
 
-function compatibleOpenAi(nom: string, base: string, cle: string, modeleDefaut: string): FournisseurIa {
+/** Le worker RunPod s'arrête après 300 s sans travail : au-delà de 240 s sans réponse, on le considère endormi. */
+const ENDORMI_APRES_MS = 240_000;
+const REPRISES_CONNEXION_MS = [3000, 10_000];
+
+function compatibleOpenAi(nom: string, base: string, cle: string, modeleDefaut: string, env: NodeJS.ProcessEnv): FournisseurIa {
+  // Au-dessus du délai du relais (600 s) ; le travail différé, lui, annule l'appel à 12 min (travauxIa.ts).
+  const delaiAppelMs = Math.max(30, Number(env.IA_DELAI_APPEL_S) || 610) * 1000;
+  let derniereActivite = 0;
+  let reveilEnCours: Promise<void> | null = null;
+  let dernierReveil: EtatReveil['dernierReveil'] = null;
+
+  /** Un appel « chat/completions », mesuré et noté au journal de diagnostic ; reprise seulement si la demande n'est pas partie (ou 502/503 une fois). */
+  async function appeler(corps: Record<string, unknown>, tour: number, signalExterne?: AbortSignal, reveil = false): Promise<any> {
+    for (let reprise = 0; ; reprise++) {
+      const signal = signalExterne ? AbortSignal.any([AbortSignal.timeout(delaiAppelMs), signalExterne]) : AbortSignal.timeout(delaiAppelMs);
+      const t0 = Date.now();
+      const base_ = { at: t0, tour, ...(reveil ? { reveil } : {}), ...(reprise ? { reprise } : {}) };
+      let r: ReponseHttp;
+      try { r = await posterJson(`${base}/chat/completions`, corps, { entetes: { Authorization: `Bearer ${cle}` }, signal }); }
+      catch (e) {
+        const abandon = signal.aborted;
+        const raison = !abandon ? String((e as { code?: string })?.code ?? (e as Error).message) : signalExterne?.aborted ? 'annulé : travail clos' : `aucune réponse en ${Math.round(delaiAppelMs / 1000)} s`;
+        noterAppel({ ...base_, ms: Date.now() - t0, status: null, erreur: raison });
+        if (!abandon && erreurConnexion(e) && reprise < REPRISES_CONNEXION_MS.length) { await new Promise(ok => setTimeout(ok, REPRISES_CONNEXION_MS[reprise])); continue; }
+        throw new Error(`${nom} : ${raison}`);
+      }
+      const nombre = (k: string) => { const v = r.entetes[k]; const n = Number(Array.isArray(v) ? v[0] : v); return v === undefined || Number.isNaN(n) ? undefined : n; };
+      const job = r.entetes['x-runpod-job'];
+      const mesure = { ...base_, ms: Date.now() - t0, status: r.status, ...(job ? { job: String(job) } : {}), attenteRunpodMs: nombre('x-runpod-delay-ms'), calculMs: nombre('x-runpod-execution-ms') };
+      if (r.status >= 200 && r.status < 300) {
+        let j: any;
+        try { j = lireReponseOpenAi(JSON.parse(r.texte)); } catch { noterAppel({ ...mesure, erreur: 'réponse illisible' }); throw new Error(`${nom} : réponse illisible`); }
+        derniereActivite = Date.now();
+        noterAppel({ ...mesure, entree: j.usage?.prompt_tokens, sortie: j.usage?.completion_tokens });
+        return j;
+      }
+      const detail = r.texte.replace(/\s+/g, ' ').slice(0, 200);
+      noterAppel({ ...mesure, erreur: detail || `HTTP ${r.status}` });
+      // Relais ou RunPod momentanément indisponible : une reprise. Un 504 (travail déjà trop long) n'est jamais relancé.
+      if ((r.status === 502 || r.status === 503) && reprise === 0 && !signal.aborted) { await new Promise(ok => setTimeout(ok, REPRISES_CONNEXION_MS[0])); continue; }
+      throw new Error(`${nom} ${r.status} ${detail}`);
+    }
+  }
+
   return {
     nom,
+    reveiller() {
+      if (reveilEnCours || Date.now() - derniereActivite < ENDORMI_APRES_MS) return false;
+      const t0 = Date.now();
+      reveilEnCours = appeler({ model: modeleDefaut, temperature: 0, max_tokens: 1, messages: [{ role: 'user', content: 'ok' }] }, 0, undefined, true)
+        .then(() => { dernierReveil = { at: t0, ms: Date.now() - t0, ok: true }; },
+          e => { dernierReveil = { at: t0, ms: Date.now() - t0, ok: false, erreur: String((e as Error).message).slice(0, 200) }; })
+        .finally(() => { reveilEnCours = null; });
+      return true;
+    },
+    etat: () => ({ derniereActiviteIlYaS: derniereActivite ? Math.round((Date.now() - derniereActivite) / 1000) : null, reveilEnCours: !!reveilEnCours, dernierReveil, delaiAppelS: delaiAppelMs / 1000 }),
     async repondre(o) {
       const usageTotal: UsageJetons = { entree: 0, sortie: 0 };
       let modeleReel = o.modele || modeleDefaut;
       // Messages mutables : la boucle tool_calls y ajoute les aller-retours assistant ↔ outil.
       const msgs: any[] = [{ role: 'system', content: o.systeme }, ...o.messages];
       const avecOutils = !!o.outils?.length && !!o.executerOutil;
+      const signal = signalTravail();
 
       for (let tour = 0; tour < 4; tour++) {
         const corps: Record<string, unknown> = {
@@ -125,13 +189,8 @@ function compatibleOpenAi(nom: string, base: string, cle: string, modeleDefaut: 
           corps.tools = o.outils;
           corps.tool_choice = 'auto';
         }
-        const r = await fetch(`${base}/chat/completions`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(corps),
-        });
-        if (!r.ok) throw new Error(`${nom} ${r.status}`);
-        const j = lireReponseOpenAi(await r.json());
+        if (tour) noterEtape(`modèle (tour ${tour + 1})`);
+        const j = await appeler(corps, tour + 1, signal);
         const choix = j.choices?.[0];
         modeleReel = j.model ?? modeleReel;
         usageTotal.entree += j.usage?.prompt_tokens ?? 0;
@@ -142,6 +201,7 @@ function compatibleOpenAi(nom: string, base: string, cle: string, modeleDefaut: 
           msgs.push({ role: 'assistant', content: choix.message.content ?? null, tool_calls: choix.message.tool_calls });
           for (const tc of choix.message.tool_calls) {
             let resultat: unknown;
+            noterEtape(`outil ${String(tc.function?.name ?? '?').slice(0, 40)}`);
             try {
               const args = JSON.parse(tc.function?.arguments ?? '{}');
               resultat = await o.executerOutil!(tc.function?.name, args);
@@ -180,8 +240,8 @@ export function lireReponseOpenAi(brut: unknown): any {
 export function fournisseurIaParDefaut(env = process.env): FournisseurIa {
   let f = env.IA_FOURNISSEUR;
   if (!f) f = env.ANTHROPIC_API_KEY ? 'anthropic' : env.RUNPOD_API_KEY && (env.RUNPOD_LLM_ENDPOINT || env.RUNPOD_LLM_URL) ? 'runpod' : env.IA_BASE_URL ? 'openai' : 'simulation';
-  if (f === 'runpod') return compatibleOpenAi('runpod', urlRunpodOpenAi(env, env.RUNPOD_LLM_ENDPOINT, env.RUNPOD_LLM_URL), env.RUNPOD_API_KEY || '', env.IA_MODELE || '');
-  if (f === 'openai') return compatibleOpenAi('openai', (env.IA_BASE_URL || '').replace(/\/+$/, ''), env.IA_API_KEY || '', env.IA_MODELE || '');
+  if (f === 'runpod') return compatibleOpenAi('runpod', urlRunpodOpenAi(env, env.RUNPOD_LLM_ENDPOINT, env.RUNPOD_LLM_URL), env.RUNPOD_API_KEY || '', env.IA_MODELE || '', env);
+  if (f === 'openai') return compatibleOpenAi('openai', (env.IA_BASE_URL || '').replace(/\/+$/, ''), env.IA_API_KEY || '', env.IA_MODELE || '', env);
   if (f === 'anthropic') return {
     nom: 'anthropic',
     async repondre(o) {
@@ -407,6 +467,7 @@ export const PROMPT_ENFANT = `\nL'utilisateur est un enfant : tu es un grand-pè
 /** Prompt système final : version active (ou défaut), variables {{lexique}}, consigne enfant, contexte RAG, mémoire utilisateur. */
 /** `delaiRagMs` : attente maximale de l'embedding de la question (8 s par défaut ; 2 min en réponse différée, le temps qu'un worker serverless se réveille). */
 export async function construireSysteme(q: Queryable, embed: FournisseurEmbedding, o: { message: string; enfant: boolean; enMyene?: boolean; prenom?: string | null; fiche?: string; actions?: string; delaiRagMs?: number; utilisateurId?: string; isAdmin?: boolean }) {
+  noterEtape('corpus');
   const cfg = await configIa(q);
   const actif = (await q.query<any>(`SELECT contenu FROM ia_prompts WHERE actif`))[0]?.contenu ?? PROMPT_DEFAUT;
   let systeme = actif.replace(/\{\{\s*lexique\s*\}\}/g, LEXIQUE());
@@ -442,15 +503,17 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   let contexte: Awaited<ReturnType<typeof rechercherRag>> = [];
   if (cfg.ragActif) {
     const delai = o.delaiRagMs ?? 8000;
+    // Les quatre recherches portent sur la même question : un seul calcul de vecteur (quatre travaux d'embeddings sinon, réveil compris).
+    const embedUnique = embeddingMemorise(embed);
     // D'abord les documents myènè (leçons, grammaires, dictionnaires), noyés sinon parmi plus d'un million de morceaux, puis tout le corpus.
-    const chercher = (k: number, titres?: string[], exclus?: string[]) => k > 0 ? rechercherRag(q, embed, o.message, k, cfg.seuil, delai, titres, exclus).catch(() => []) : Promise.resolve([]);
+    const chercher = (k: number, titres?: string[], exclus?: string[]) => k > 0 ? rechercherRag(q, embedUnique, o.message, k, cfg.seuil, delai, titres, exclus).catch(() => []) : Promise.resolve([]);
     const [regles, myene, phrases, general] = await Promise.all([
       // Règles de référence d'abord, puis dictionnaires, grammaires, leçons et lexique v3, puis phrases v3 (plusieurs sources, § 15.2).
       chercher(cfg.ragReglesK, TITRES_REGLES),
       chercher(cfg.ragMyeneK, TITRES_MYENE),
       chercher(cfg.ragPhrasesK, TITRES_PHRASES_V3),
       // Passage général : sans les versions dépassées des phrases (les phrases validées viennent par le passage myènè).
-      rechercherRag(q, embed, o.message, cfg.topK, cfg.seuil, delai, undefined, TITRES_EXCLUS).catch(() => []),
+      rechercherRag(q, embedUnique, o.message, cfg.topK, cfg.seuil, delai, undefined, TITRES_EXCLUS).catch(() => []),
     ]);
     const vus = new Set<number>();
     contexte = [...regles, ...myene, ...phrases, ...general].filter(c => !vus.has(c.id) && !!vus.add(c.id)).slice(0, cfg.topK + cfg.ragMyeneK + cfg.ragReglesK + cfg.ragPhrasesK);
@@ -471,6 +534,42 @@ export async function construireSysteme(q: Queryable, embed: FournisseurEmbeddin
   const outils = skillsActifs.flatMap(s => s.outils ?? []) as OutilDefinition[];
 
   return { systeme, contexte, cfg, socle, outils, skillsActifs };
+}
+
+/** Même texte, même vecteur : une seule demande au service d'embeddings (une demande en échec est oubliée). */
+export function embeddingMemorise(embed: FournisseurEmbedding): FournisseurEmbedding {
+  const deja = new Map<string, Promise<number[][]>>();
+  return {
+    nom: embed.nom, modele: embed.modele,
+    embed(textes) {
+      const k = textes.join('\u0001');
+      let p = deja.get(k);
+      if (!p) { p = embed.embed(textes); deja.set(k, p); p.catch(() => deja.delete(k)); }
+      return p;
+    },
+  };
+}
+
+/**
+ * Jetons qui comptent pour l'utilisateur (contexte du chat, quotas, frais) : la conversation seulement. Le prompt système
+ * (personnage, grammaire, lexique, extraits du corpus, fiche) est du matériel du service : il atteint 9 000 à 12 000 jetons
+ * depuis le budget de 36 000 caractères (22 nov. 2026) et faisait refuser chaque chat dès le premier message (402, puis 429).
+ */
+export const jetonsConversation = (messages: { content: string }[]) => estimerJetons(messages.map(m => m.content).join(''));
+
+/**
+ * Santé du relais du modèle (server/proxies/runpod-openai-proxy, GET /health : workers et file du point d'accès RunPod).
+ * Un relais plus ancien n'a pas cette route : on le dit sans erreur.
+ */
+async function santeRelais(env: NodeJS.ProcessEnv): Promise<unknown> {
+  const base = (env.IA_BASE_URL || '').replace(/\/+$/, '').replace(/\/v1$/, '');
+  if (!base) return { disponible: false, raison: 'pas de relais (IA_BASE_URL vide)' };
+  try {
+    const r = await fetch(`${base}/health`, { headers: { Authorization: `Bearer ${env.IA_API_KEY || ''}` }, signal: AbortSignal.timeout(8000) });
+    if (r.status === 404) return { disponible: false, raison: 'relais sans /health (version à mettre à jour)' };
+    if (!r.ok) return { disponible: false, raison: `relais ${r.status}` };
+    return { disponible: true, ...(await r.json() as object) };
+  } catch (e) { return { disponible: false, raison: `relais injoignable : ${(e as Error).message}` }; }
 }
 
 // ------------------------------------------------------------------ routes d'administration
@@ -567,17 +666,54 @@ export function registerIaAdmin(ctx: Ctx) {
     return { ...etatLexique(), resultats: qs.trim() ? chercherLexique(qs, 40) : [] };
   });
 
-  /** Essai du prompt et du RAG sans quota ni journal de jetons. */
-  app.post('/v1/admin/ia/tester', async (req) => {
+  /**
+   * Essai du prompt et du RAG sans quota ni journal de jetons. Différable (`asynchrone: true`) : un réveil à froid dépasse
+   * les 30 s du téléphone. `mesures` : temps passé à construire le contexte (corpus, embeddings) puis à attendre le modèle.
+   */
+  app.post('/v1/admin/ia/tester', differable(app, acteur, async (req) => {
     await admin(req);
-    const { message, enfant } = (req.body || {}) as { message?: string; enfant?: boolean };
+    const { message, enfant, asynchrone } = (req.body || {}) as { message?: string; enfant?: boolean; asynchrone?: boolean };
     if (!str(message) || !message.trim()) return fail(400, 'Message attendu.');
-    const { systeme, contexte, cfg } = await construireSysteme(db, embed, { message, enfant: !!enfant });
+    ctx.ia.reveiller?.();
+    const t0 = Date.now();
+    const { systeme, contexte, cfg } = await construireSysteme(db, embed, { message, enfant: !!enfant, delaiRagMs: asynchrone ? 120_000 : 8000 });
+    const t1 = Date.now();
+    noterEtape('modèle');
     try {
       const r = await ctx.ia.repondre({ systeme, messages: [{ role: 'user', content: message }], modele: cfg.modele || env.IA_MODELE || '', temperature: cfg.temperature, maxTokens: cfg.maxTokens });
-      return { reponse: r.texte, usage: r.usage, modele: r.modele, simule: r.simule, contexte, systeme };
+      return { reponse: r.texte, usage: r.usage, modele: r.modele, simule: r.simule, contexte, systeme, mesures: { contexteMs: t1 - t0, modeleMs: Date.now() - t1, jetonsSysteme: estimerJetons(systeme) } };
     } catch (e) { return fail(502, (e as Error).message); }
+  }, async (req, a) => { if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.'); }));
+
+  /**
+   * Diagnostic de la liaison avec le modèle : derniers appels au relais (durée, file d'attente et calcul RunPod, erreurs),
+   * derniers travaux différés (étapes, code), état du réveil, santé du relais quand il la donne (GET /health).
+   */
+  app.get('/v1/admin/ia/diagnostic', async (req) => {
+    await admin(req);
+    return { fournisseur: ctx.ia.nom, reveil: ctx.ia.etat?.() ?? null, relais: await santeRelais(env), ...journalIa() };
   });
+
+  /**
+   * Sonde : `n` questions minuscules envoyées en même temps (1 à 8), sans corpus ni quota, pour mesurer le réveil, la file
+   * d'attente et la concurrence du point d'accès. Différable : l'application relève le résultat.
+   */
+  app.post('/v1/admin/ia/sonde', differable(app, acteur, async (req) => {
+    await admin(req);
+    const b = (req.body || {}) as { n?: number; message?: string };
+    const n = Math.min(8, Math.max(1, Math.floor(Number(b.n) || 1)));
+    const question = str(b.message) && b.message.trim() ? b.message.trim().slice(0, 300) : 'Dis bonjour en un mot.';
+    const modele = (await configIa(db)).modele || env.IA_MODELE || '';
+    const t0 = Date.now();
+    const essais = await Promise.all(Array.from({ length: n }, async (_, i) => {
+      const d = Date.now();
+      try {
+        const r = await ctx.ia.repondre({ systeme: 'Tu réponds en quelques mots, en français.', messages: [{ role: 'user', content: question }], modele, temperature: 0, maxTokens: 24 });
+        return { i: i + 1, ok: true, ms: Date.now() - d, texte: r.texte.slice(0, 80), entree: r.usage.entree, sortie: r.usage.sortie };
+      } catch (e) { return { i: i + 1, ok: false, ms: Date.now() - d, erreur: String((e as Error).message).slice(0, 200) }; }
+    }));
+    return { n, totalMs: Date.now() - t0, essais, relais: await santeRelais(env) };
+  }, async (req, a) => { if (!a.isAdmin) fail(403, 'Réservé aux administrateurs.'); }));
 
   // RunPod : pods, serverless, volumes réseau
   app.get('/v1/admin/runpod/etat', async (req) => { await admin(req); return runpod.etat(); });

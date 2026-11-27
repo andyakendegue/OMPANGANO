@@ -151,9 +151,9 @@ test('IA : désactivée, comptage des jetons, quota, enfants plus limités', asy
   const r = await call('POST', '/v1/ia/message', u.token, { message: 'Comment dit-on merci ?' });
   assert.equal(r.status, 200, JSON.stringify(r.body)); assert.equal(r.body.usage.entree, 100);
   const us = await call('GET', '/v1/ia/usage', u.token);
-  assert.equal(us.body.consommation.jour, 120);
+  assert.equal(us.body.consommation.jour, Math.ceil('Comment dit-on merci ?'.length / 3) + 20, 'conversation + réponse ; le prompt système (dans les 100 mesurés) ne compte pas');
   assert.equal((await call('POST', '/v1/ia/message', u.token, { message: '' })).status, 400);
-  await call('PUT', '/v1/admin/parametres/ia_quotas', ADMIN, { valeur: { parJour: 1000, parMois: 100000, parConversation: 1000 } });
+  await call('PUT', '/v1/admin/parametres/ia_quotas', ADMIN, { valeur: { parJour: 700, parMois: 100000, parConversation: 1000 } });
   const q = await call('POST', '/v1/ia/message', u.token, { message: 'Encore', conversationId: r.body.conversationId });
   assert.equal(q.status, 429, 'l\'estimation avant envoi dépasse le quota');
   await call('PUT', '/v1/admin/parametres/ia_quotas', ADMIN, { valeur: { parJour: 2000, parMois: 100000, parConversation: 2000 } });

@@ -1,0 +1,8 @@
+services:
+  runpod-openai-proxy:
+    build: ./proxy
+    container_name: runpod-openai-proxy
+    env_file:
+      - .env
+    network_mode: host
+    restart: unless-stopped

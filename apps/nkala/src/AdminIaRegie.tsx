@@ -8,6 +8,7 @@ import {
   adminRegieStats, adminRegieStatut, adminRegieSynchroniser, adminRunpodEtat, adminRunpodPod,
   adminIaCorrections, adminIaAjouterCorrection, adminIaValiderCorrection,
   adminIaMemoire, adminIaSupprimerMemoire,
+  adminIaDiagnostic, adminIaSonde, type DiagnosticIa, type SondeIa,
   adminUtilisateursResetProgression, adminUtilisateursResetLog,
   type CorrectionAdmin, type MemoireUtilisateurAdmin,
 } from '@nkala/noyau';
@@ -84,6 +85,71 @@ function CoutsChats() {
   );
 }
 
+// ------------------------------------------------------------------ diagnostic de la liaison avec Qwen
+const sec = (ms?: number | null) => (ms === undefined || ms === null ? '—' : ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`);
+const heure = (t: number) => new Date(t).toLocaleTimeString('fr-FR');
+const compte = (o?: Record<string, number>) => (o ? Object.entries(o).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v}`).join(' · ') || 'aucun' : '—');
+
+/**
+ * Où une question se perd : workers et file du point d'accès (relais), réveil, derniers travaux (étapes, code) et appels au relais
+ * (durée, attente dans la file RunPod, calcul). La sonde envoie de 1 à 8 questions minuscules en même temps.
+ */
+function DiagnosticQwen() {
+  const { c } = useTheme();
+  const toast = useToast(), ko = erreur(toast);
+  const [d, setD] = useState<DiagnosticIa | null>(null);
+  const [sonde, setSonde] = useState<SondeIa | null>(null);
+  const [attente, setAttente] = useState<string | null>(null);
+  const charger = useCallback(() => adminIaDiagnostic().then(setD).catch(ko), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { charger(); }, [charger]);
+  const sonder = async (n: number) => {
+    setSonde(null); setAttente('envoi…');
+    try { setSonde(await adminIaSonde(n, (s, e) => setAttente(`${s} s · ${e ?? '…'}`))); } catch (e) { ko(e); } finally { setAttente(null); charger(); }
+  };
+  if (!d) return <Chargement lignes={2} />;
+  const r = d.relais, w = r.runpod?.workers, j = r.runpod?.jobs;
+  return (
+    <>
+      <SectionTitre titre="Diagnostic Qwen" action="Actualiser" onAction={charger} />
+      <Carte plat><View style={{ padding: 14, gap: 6 }}>
+        <Ligne a="Relais" b={r.disponible ? 'joignable' : `santé indisponible : ${r.raison ?? '—'}`} />
+        {r.disponible && <Ligne a="Workers" b={compte(w)} />}
+        {r.disponible && <Ligne a="Travaux RunPod" b={compte(j)} />}
+        {(w?.throttled ?? 0) > 0 && <T v="petit" couleur={c.erreur}>Workers bridés : RunPod n'a pas de carte libre dans la région du volume. Les questions attendent dans la file.</T>}
+        {(j?.inQueue ?? 0) > 0 && !(w?.running || w?.idle || w?.ready) && <T v="petit" couleur={c.erreur}>Des questions attendent sans worker prêt : réveil en cours ou aucune carte disponible.</T>}
+        <Ligne a="Réveil" b={d.reveil ? `${d.reveil.reveilEnCours ? 'en cours · ' : ''}dernière réponse ${d.reveil.derniereActiviteIlYaS === null ? 'jamais (depuis le démarrage de l\'API)' : `il y a ${d.reveil.derniereActiviteIlYaS} s`}${d.reveil.dernierReveil ? ` · dernier réveil ${sec(d.reveil.dernierReveil.ms)} ${d.reveil.dernierReveil.ok ? 'réussi' : `échoué (${d.reveil.dernierReveil.erreur ?? ''})`}` : ''}` : `fournisseur ${d.fournisseur} (sans réveil)`} />
+        {d.reveil && <Ligne a="Délai d'un appel" b={`${d.reveil.delaiAppelS} s (IA_DELAI_APPEL_S)`} />}
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+          <Bouton label="Sonder ×1" petit large={false} charge={!!attente} desactive={!!attente} onPress={() => sonder(1)} />
+          <Bouton label="Sonder ×4 en même temps" petit large={false} variante="fantome" desactive={!!attente} onPress={() => sonder(4)} />
+        </View>
+        {!!attente && <T v="petit">Sonde en cours : {attente}</T>}
+        {sonde && <View style={{ gap: 2 }}>
+          <T v="carte">{sonde.essais.filter(x => x.ok).length}/{sonde.n} réponses en {sec(sonde.totalMs)}</T>
+          {sonde.essais.map(x => <T key={x.i} v="petit" couleur={x.ok ? undefined : c.erreur}>#{x.i} · {sec(x.ms)} · {x.ok ? x.texte : x.erreur}</T>)}
+        </View>}
+      </View></Carte>
+
+      <T v="carte">Derniers travaux (questions de l'app)</T>
+      {d.travaux.length === 0 ? <T v="petit">Aucun depuis le démarrage de l'API.</T> : d.travaux.slice(0, 12).map(x => (
+        <Carte key={x.id} plat><View style={{ padding: 10, gap: 2 }}>
+          <T v="petit" couleur={x.code >= 400 ? c.erreur : undefined}>{heure(x.debut)} · {x.route.replace('/v1/', '')} · {sec(x.ms)} · code {x.code} · compte {x.uid}</T>
+          <T v="petit">{x.etapes.map(e => `${e.nom} à ${sec(e.a)}`).join(' → ') || 'aucune étape'}</T>
+          {!!x.erreur && <T v="petit" couleur={c.erreur}>{x.erreur}</T>}
+        </View></Carte>
+      ))}
+
+      <T v="carte">Derniers appels au relais</T>
+      {d.appels.length === 0 ? <T v="petit">Aucun depuis le démarrage de l'API.</T> : d.appels.slice(0, 15).map((x, i) => (
+        <T key={i} v="petit" couleur={x.erreur ? c.erreur : undefined}>
+          {heure(x.at)} · {x.reveil ? 'réveil' : `tour ${x.tour}`}{x.reprise ? ` (reprise ${x.reprise})` : ''} · {x.status ?? 'sans réponse'} · total {sec(x.ms)} · file {sec(x.attenteRunpodMs)} · calcul {sec(x.calculMs)}{x.entree !== undefined ? ` · ${x.entree}+${x.sortie} jetons` : ''}{x.job ? ` · ${x.job.slice(0, 12)}` : ''}{x.erreur ? ` · ${x.erreur}` : ''}
+        </T>
+      ))}
+      <T v="petit">« file » = temps passé dans la file RunPod (réveil du worker compris) ; « calcul » = génération. Ces deux mesures demandent le relais à jour (server/proxies/runpod-openai-proxy).</T>
+    </>
+  );
+}
+
 // ------------------------------------------------------------------ IA
 export function IaAdmin() {
   const { c } = useTheme();
@@ -98,7 +164,7 @@ export function IaAdmin() {
   const [nom, setNom] = useState(''), [contenu, setContenu] = useState('');
   const [titre, setTitre] = useState(''), [source, setSource] = useState(''), [texte, setTexte] = useState('');
   const [req, setReq] = useState(''), [res, setRes] = useState<{ titre: string; texte: string; score: number }[] | null>(null);
-  const [msg, setMsg] = useState(''), [essai, setEssai] = useState<any>(null), [occupe, setOccupe] = useState(false);
+  const [msg, setMsg] = useState(''), [essai, setEssai] = useState<any>(null), [occupe, setOccupe] = useState(false), [attenteEssai, setAttenteEssai] = useState<string | null>(null);
   const [cfg, setCfg] = useState({ modele: '', temperature: '', maxTokens: '', topK: '', seuil: '', chunkTaille: '', chunkChevauchement: '' });
   const charger = useCallback(() => {
     adminIaEtat().then(e => { setEtat(e); setCfg({ modele: e.config.modele, temperature: String(e.config.temperature), maxTokens: String(e.config.maxTokens), topK: String(e.config.topK), seuil: String(e.config.seuil), chunkTaille: String(e.config.chunkTaille), chunkChevauchement: String(e.config.chunkChevauchement) }); }).catch(ko);
@@ -125,6 +191,8 @@ export function IaAdmin() {
         <Bouton label="Enregistrer" petit large={false} onPress={() => adminIaConfig({ modele: cfg.modele, temperature: num(cfg.temperature), maxTokens: num(cfg.maxTokens), topK: num(cfg.topK), seuil: num(cfg.seuil), chunkTaille: num(cfg.chunkTaille), chunkChevauchement: num(cfg.chunkChevauchement) }).then(() => { toast('Réglages enregistrés.', 'succes'); charger(); }).catch(ko)} />
         <Bouton label={etat.config.ragActif ? 'RAG activé : couper' : 'RAG coupé : activer'} petit large={false} variante="fantome" onPress={() => adminIaConfig({ ragActif: !etat.config.ragActif }).then(charger).catch(ko)} />
       </View>
+
+      <DiagnosticQwen />
 
       <CoutsChats />
 
@@ -157,8 +225,9 @@ export function IaAdmin() {
       <Champ valeur={req} onChange={setReq} placeholder="Recherche dans le RAG" icone="chercher" onSubmit={() => adminIaRechercher(req).then(r => setRes(r.resultats)).catch(ko)} />
       {res && (res.length === 0 ? <T v="petit">Aucun morceau trouvé.</T> : res.map((r, i) => <T key={i} v="petit">{(r.score * 100).toFixed(0)} % · {r.titre} : {r.texte.slice(0, 140)}</T>))}
       <Champ valeur={msg} onChange={setMsg} placeholder="Message d'essai pour l'assistant" auto="sentences" />
-      <Bouton label="Tester le prompt et le RAG" petit large={false} charge={occupe} desactive={!msg.trim()} onPress={async () => { setOccupe(true); try { setEssai(await adminIaTester(msg)); } catch (e) { ko(e); } finally { setOccupe(false); } }} />
-      {essai && <Carte plat><View style={{ padding: 12, gap: 6 }}><T v="corps">{essai.reponse}</T><T v="petit">{essai.modele} · {essai.usage.entree} jetons entrée, {essai.usage.sortie} sortie · {essai.contexte.length} morceau(x) de contexte{essai.simule ? ' · simulation' : ''}</T></View></Carte>}
+      <Bouton label="Tester le prompt et le RAG" petit large={false} charge={occupe} desactive={!msg.trim()} onPress={async () => { setOccupe(true); setEssai(null); try { setEssai(await adminIaTester(msg, false, (sec_, e) => setAttenteEssai(`${sec_} s · ${e ?? '…'}`))); } catch (e) { ko(e); } finally { setOccupe(false); setAttenteEssai(null); } }} />
+      {!!attenteEssai && <T v="petit">En attente du modèle : {attenteEssai}</T>}
+      {essai && <Carte plat><View style={{ padding: 12, gap: 6 }}><T v="corps">{essai.reponse}</T><T v="petit">{essai.modele} · {essai.usage.entree} jetons entrée, {essai.usage.sortie} sortie · {essai.contexte.length} morceau(x) de contexte{essai.simule ? ' · simulation' : ''}{essai.mesures ? ` · contexte ${sec(essai.mesures.contexteMs)}, modèle ${sec(essai.mesures.modeleMs)}, prompt système ≈ ${essai.mesures.jetonsSysteme} jetons` : ''}</T></View></Carte>}
 
       <SectionTitre titre="Bibliothèque d'Onênji (livres déposés)" />
       {!biblio ? <Chargement lignes={1} /> : <Carte plat><View style={{ padding: 12, gap: 6 }}>

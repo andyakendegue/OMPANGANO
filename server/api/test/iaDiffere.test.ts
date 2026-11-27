@@ -46,7 +46,8 @@ test('question simple : 202 tout de suite, « en cours » pendant le réveil, pu
   assert.equal(enCours.body.statut, 'en_cours');
   const fin = await attendre(d.body.travail, u);
   assert.equal(fin.status, 200); assert.equal(fin.body.statut, 'fini'); assert.equal(fin.body.reponse, 'Mbolo !');
-  assert.equal((await call('GET', `/v1/ia/travaux/${d.body.travail}`, u)).status, 404, 'relevé une seule fois');
+  const relu = await call('GET', `/v1/ia/travaux/${d.body.travail}`, u);
+  assert.deepEqual([relu.status, relu.body.reponse], [200, 'Mbolo !'], 'une relève perdue ou rejouée retrouve la même réponse');
   lenteur = 0;
 });
 
@@ -86,4 +87,23 @@ test('indexation : sources myènè et documents travaillés d\'abord, puis ordre
   const f = ['02_theses/a.pdf', '09_documents_pedagogiques/01_proverbes/proverbes.json', '01_sources_myene/x.docx', '05_egypte/b.pdf', '17_edition_DONDO_myene/c.md', '01_sources_myeneX/faux.txt'];
   assert.deepEqual(ordonnerParPriorite(f), ['09_documents_pedagogiques/01_proverbes/proverbes.json', '17_edition_DONDO_myene/c.md', '01_sources_myene/x.docx', '01_sources_myeneX/faux.txt', '02_theses/a.pdf', '05_egypte/b.pdf']);
   assert.deepEqual(ordonnerParPriorite(f, '05_egypte'), ['05_egypte/b.pdf', '01_sources_myene/x.docx', '01_sources_myeneX/faux.txt', '02_theses/a.pdf', '09_documents_pedagogiques/01_proverbes/proverbes.json', '17_edition_DONDO_myene/c.md']);
+});
+
+test('travail trop long : clos en 504, place libérée, étape visible pendant l\'attente', async () => {
+  const u = tok('attente5'); await call('GET', '/v1/me', u);
+  process.env.IA_DUREE_MAX_TRAVAIL_S = '1';
+  lenteur = 2500;
+  const a1 = await call('POST', '/v1/ia/message', u, { message: 'Un', asynchrone: true });
+  const a2 = await call('POST', '/v1/ia/message', u, { message: 'Deux', asynchrone: true });
+  await new Promise(ok => setTimeout(ok, 300));
+  const enCours = await call('GET', `/v1/ia/travaux/${a1.body.travail}`, u);
+  assert.equal(enCours.body.statut, 'en_cours'); assert.equal(enCours.body.etape, 'modèle', 'étape atteinte : le modèle');
+  const fin = await attendre(a1.body.travail, u);
+  assert.equal(fin.status, 504); assert.match(fin.body.error, /pas pu répondre à temps/);
+  await attendre(a2.body.travail, u);
+  delete process.env.IA_DUREE_MAX_TRAVAIL_S;
+  lenteur = 0;
+  assert.equal((await call('POST', '/v1/ia/message', u, { message: 'Trois', asynchrone: true })).status, 202, 'les deux places sont libérées');
+  const diag = await call('GET', '/v1/admin/ia/diagnostic', u);
+  assert.equal(diag.status, 403, 'diagnostic réservé aux administrateurs');
 });

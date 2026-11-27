@@ -13,7 +13,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Keyboard, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Ellipse, Path, Pattern, Rect } from 'react-native-svg';
-import { ApiError, ECRANS_IA, chargerContenu, creerChat, envoyerAuChat, fonctionActive, lireChat, listerChats, moduleActif, supprimerChat, validerAction, type ActionIa, type EtatLocalChat, type FicheChat, type ModuleId, type NiveauContexte, type RefusChat } from '@nkala/noyau';
+import { ApiError, ECRANS_IA, chargerContenu, creerChat, envoyerAuChat, fonctionActive, lireChat, listerChats, moduleActif, reveillerKakIgonjo, supprimerChat, validerAction, type ActionIa, type EtatLocalChat, type FicheChat, type ModuleId, type NiveauContexte, type RefusChat } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { Barre, Ic, T } from './kit';
 import { useLecteur } from './Lecteur';
@@ -238,6 +238,8 @@ export function AssistantFlottant() {
 
   // À la première ouverture : reprendre le chat le plus récent. Changement de compte : tout oublier.
   useEffect(() => { charges.current = false; setChats([]); nouveauChat(); }, [uid, nouveauChat]);
+  // Le modèle dort après 5 minutes sans question : on le réveille dès l'ouverture, pendant que l'utilisateur écrit.
+  useEffect(() => { if (monte && uid && actif) void reveillerKakIgonjo(); }, [monte, uid, actif]);
   useEffect(() => {
     if (!monte || !uid || !actif || charges.current) return;
     charges.current = true;
@@ -248,18 +250,29 @@ export function AssistantFlottant() {
     const m = (repris?.message ?? texte).trim(); if (!m || occupe) return;
     if (!repris) { setTexte(''); setBulles(b => [...b, { role: 'user', content: m }]); }
     setErreur(null); setRefus(null); setForfait(null); setOccupe(true); setAttente(null);
+    let id = chat?.id;
     try {
-      let id = chat?.id;
       if (!id) { const n = await creerChat(); id = n.chat.id; setChat(n.chat); }
       const r = await envoyerAuChat(id, m, repris?.accepteFrais, await etatLocal(), setAttente, reponsesMyene);
       setChat(r.chat); setQuota(r.quota); setBulles(b => [...b, { role: 'assistant', content: r.reponse, actions: r.actions?.length ? r.actions : undefined }]);
       void rafraichir();
     } catch (e) {
+      // Travail perdu (redémarrage du serveur) : la réponse a pu être enregistrée dans le chat avant ; on la reprend de là.
+      if (e instanceof ApiError && e.status === 404 && id && await reprendreReponse(id, m)) return;
       const corps = e instanceof ApiError ? e.corps : null;
       if (estRefusForfait(e)) setForfait((e as Error).message);
       else if (corps?.code) setRefus({ ...corps, message: m, erreur: (e as Error).message });
       else setErreur((e as Error).message);
     } finally { setOccupe(false); }
+  };
+  const reprendreReponse = async (id: string, m: string) => {
+    try {
+      const r = await lireChat(id);
+      const [avant, dernier] = r.messages.slice(-2);
+      if (dernier?.role !== 'assistant' || avant?.role !== 'user' || avant.content !== m) return false;
+      setChat(r.chat); setBulles([accueil(), ...r.messages.map(x => ({ role: x.role, content: x.content }))]);
+      return true;
+    } catch { return false; }
   };
   /** Ce que seul le téléphone connaît, envoyé avec chaque message pour que Kak'Igonjo en tienne compte. */
   const etatLocal = async (): Promise<EtatLocalChat> => {

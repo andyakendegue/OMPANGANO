@@ -4,7 +4,7 @@
  */
 import { createHmac, randomBytes } from 'node:crypto';
 import { SignJWT } from 'jose';
-import { verifierQuota, estimerJetons, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
+import { verifierQuota, type QuotaJetons, type UsageJetons } from '../../../packages/noyau/src/jetons.ts';
 import { abonne, peutAcceder, type DroitsUtilisateur, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
 import { droitIa, messageForfaitIa, peutRegarderVideo, type DroitIa } from '../../../packages/noyau/src/formules.ts';
 import { accesChapitreVideo, accesCompletVideo, finPartieGratuite } from '../../../packages/noyau/src/lecons.ts';
@@ -12,7 +12,7 @@ import { differable } from './travauxIa.ts';
 import { ouvrirPassage } from './reversements.ts';
 import { prixMasterclass, TARIF_COURS_DEFAUT, type TarifCoursDistance } from '../../../packages/noyau/src/coursDistance.ts';
 import { zoneAffichable, profilAgeDepuis, modulesSansPub, ZONES, type ZonePub } from '../../../packages/noyau/src/publicite.ts';
-import { construireSysteme } from './ia.ts';
+import { construireSysteme, jetonsConversation } from './ia.ts';
 import { rechercheDisponible, repondreAvecRecherche } from './rechercheWeb.ts';
 import type { Queryable } from './db.ts';
 import { journaliser, parametre, str, type Ctx } from './ctx.ts';
@@ -57,7 +57,7 @@ export const verifierForfaitIa = (db: Queryable) => async (_req: unknown, a: { a
 
 export async function consommation(q: Queryable, uid: string, conversation: string) {
   const r = await q.query<any>(
-    // Le socle myènè (jetons_socle : grammaire et lexique du service) ne compte pas dans les quotas des utilisateurs.
+    // jetons_socle : tout ce qui n'est pas la conversation (prompt système, corpus) ; ne compte pas dans les quotas des utilisateurs.
     `SELECT COALESCE(sum(GREATEST(jetons_entree - jetons_socle, 0) + jetons_sortie) FILTER (WHERE at >= date_trunc('day', clock_timestamp())), 0)::int AS jour,
             COALESCE(sum(GREATEST(jetons_entree - jetons_socle, 0) + jetons_sortie) FILTER (WHERE at >= date_trunc('month', clock_timestamp())), 0)::int AS mois,
             COALESCE(sum(GREATEST(jetons_entree - jetons_socle, 0) + jetons_sortie) FILTER (WHERE conversation_id = $2), 0)::int AS conversation
@@ -110,15 +110,18 @@ export function registerServices(ctx: Ctx) {
     const quota: QuotaJetons = { parJour: Math.floor(base.parJour * f), parMois: Math.floor(base.parMois * f), parConversation: Math.floor(base.parConversation * f) };
     const conv = str(conversationId) && /^[A-Za-z0-9_-]{6,60}$/.test(conversationId) ? conversationId : 'c_' + randomBytes(6).toString('hex');
     const msgs = [...(Array.isArray(historique) ? historique : []).filter(m => (m.role === 'user' || m.role === 'assistant') && str(m.content)).slice(-8).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 1500) })), { role: 'user' as const, content: message.trim() }];
-    const { systeme, cfg, socle } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant', enMyene: enMyene === true, delaiRagMs: asynchrone ? 120_000 : 8000 });
-    const estimation = Math.max(0, estimerJetons(systeme + msgs.map(m => m.content).join('')) - socle) + cfg.maxTokens;
+    ctx.ia.reveiller?.();
+    const { systeme, cfg } = await construireSysteme(db, ctx.embed, { message: message.trim(), enfant: age === 'enfant', enMyene: enMyene === true, delaiRagMs: asynchrone ? 120_000 : 8000 });
+    // Seule la conversation compte pour les quotas (le prompt système est du matériel du service : ia.ts, jetonsConversation).
+    const conversation = jetonsConversation(msgs);
+    const estimation = conversation + cfg.maxTokens;
     const verdict = verifierQuota(quota, await consommation(db, a.auth.uid, conv), estimation);
     if (!verdict.ok) return fail(429, verdict.limite === 'conversation' ? 'Cette conversation est trop longue : commence-en une nouvelle.' : verdict.limite === 'jour' ? 'Tu as utilisé tous tes messages d\'aujourd\'hui. Reviens demain !' : 'Tu as atteint ton quota du mois.');
     let rep;
     try { rep = await repondreAvecRecherche(ctx.ia, { systeme, messages: msgs, modele: cfg.modele || env.IA_MODELE || 'claude-haiku-5-5', temperature: cfg.temperature, maxTokens: cfg.maxTokens }, cfg.rechercheWeb && rechercheDisponible(env) && age !== 'enfant', env); }
     catch (e) { return fail(502, 'Kak\'Igonjo ne répond pas pour le moment. Réessaie dans un instant.'); }
     await db.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule, jetons_socle) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-      [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, Math.min(socle, rep.usage.entree)]);
+      [a.auth.uid, conv, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, Math.max(0, rep.usage.entree - conversation)]);
     const apres = verifierQuota(quota, await consommation(db, a.auth.uid, conv), 0);
     return { reponse: rep.texte, conversationId: conv, usage: { entree: rep.usage.entree, sortie: rep.usage.sortie }, simule: rep.simule, quota: { ...(apres.ok ? { restantJour: apres.restantJour, restantMois: apres.restantMois, alerte: apres.alerte } : { restantJour: 0, restantMois: 0, alerte: true }), gratuitesRestantes: droitIaV.restantes } };
   }, async (req, a) => { const m = (req.body as any)?.message; if (!str(m) || !m.trim() || m.length > 2000) fail(400, 'Message vide ou trop long (2000 caractères au plus).'); return verifierForfaitIa(db)(req, a); }));

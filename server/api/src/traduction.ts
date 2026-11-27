@@ -11,10 +11,11 @@
  */
 import { aAvantage } from '../../../packages/noyau/src/formules.ts';
 import { apiDepuisGraphie, graphieDondo } from '../../../packages/noyau/src/phonetique.ts';
-import { construireSysteme } from './ia.ts';
+import { construireSysteme, jetonsConversation } from './ia.ts';
 import { motsNonAttestes } from './lexiqueMyene.ts';
 import { profilAcces } from './profil_acces.ts';
 import { str, type Ctx } from './ctx.ts';
+import { differable, noterEtape } from './travauxIa.ts';
 
 const MAX_CAR = 1000;
 export type Sens = 'fr-myene' | 'myene-fr';
@@ -67,12 +68,14 @@ export async function verifierAccesTraducteur({ db, fail }: Pick<Ctx, 'db' | 'fa
 
 /** Traduit `source` (déjà en graphie DONDO pour le myènè) ; l'usage est compté au nom de `uid`. Réutilisé par la reconnaissance vocale. */
 export async function traduire({ db, fail, env, ia, embed }: Pick<Ctx, 'db' | 'fail' | 'env' | 'ia' | 'embed'>, uid: string, source: string, sens: Sens) {
-  const { systeme, cfg, socle } = await construireSysteme(db, embed, { message: source, enfant: false, delaiRagMs: 120_000 });
+  ia.reveiller?.();
+  const { systeme, cfg } = await construireSysteme(db, embed, { message: source, enfant: false, delaiRagMs: 120_000 });
   let rep;
+  noterEtape('modèle');
   try { rep = await ia.repondre({ systeme: systeme + consigneTraduction(sens), messages: [{ role: 'user', content: source }], modele: cfg.modele || env.IA_MODELE || '', temperature: 0.2, maxTokens: Math.max(cfg.maxTokens, 900) }); }
   catch { return fail(502, 'Le traducteur ne répond pas pour le moment. Réessaie dans un instant.'); }
   await db.query(`INSERT INTO ia_usage (user_id, conversation_id, modele, jetons_entree, jetons_sortie, jetons_cache, simule, jetons_socle) VALUES ($1,'traduction',$2,$3,$4,$5,$6,$7)`,
-    [uid, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, Math.min(socle, rep.usage.entree)]);
+    [uid, rep.modele, rep.usage.entree, rep.usage.sortie, rep.usage.cache ?? 0, rep.simule, Math.max(0, rep.usage.entree - jetonsConversation([{ content: source }]))]);
 
   const j = lireJsonTraduction(rep.texte);
   if (!j) return { source, sens, traduction: rep.texte.trim(), motAMot: [], francaisGardes: [], confiance: 'a_verifier', aVerifier: [], remarque: 'Réponse du modèle hors format.', api: null, simule: rep.simule };
@@ -87,7 +90,8 @@ export async function traduire({ db, fail, env, ia, embed }: Pick<Ctx, 'db' | 'f
 
 export function registerTraduction(ctx: Ctx) {
   const { app, fail, acteur } = ctx;
-  app.post('/v1/traduction', async (req) => {
+  // Différable (`asynchrone: true`, travauxIa.ts) : un réveil du modèle dépasse les 30 s d'une requête du téléphone.
+  app.post('/v1/traduction', differable(app, acteur, async (req) => {
     const a = await acteur(req);
     await verifierAccesTraducteur(ctx, a);
     const b = (req.body || {}) as { texte?: string; api?: string; sens?: string };
@@ -96,5 +100,5 @@ export function registerTraduction(ctx: Ctx) {
     if (!source) fail(400, 'Texte à traduire attendu.');
     if (source.length > MAX_CAR) fail(400, `${MAX_CAR} caractères au plus.`);
     return traduire(ctx, a.auth.uid, source, sens);
-  });
+  }, (_req, a) => verifierAccesTraducteur(ctx, a)));
 }

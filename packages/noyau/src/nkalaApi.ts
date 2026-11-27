@@ -40,7 +40,7 @@ export interface ReponseIa { reponse: string; conversationId: string; usage: { e
  * bien plus que le délai d'une requête (30 s). L'envoi part avec `asynchrone: true` ; le serveur répond aussitôt un numéro de travail
  * qu'on relève jusqu'à la réponse. `surAttente(secondes)` sert à faire patienter l'utilisateur. Un serveur plus ancien répond directement.
  */
-export async function attendreReponseIa<T>(depart: Promise<unknown>, surAttente?: (secondes: number) => void): Promise<T> {
+export async function attendreReponseIa<T>(depart: Promise<unknown>, surAttente?: (secondes: number, etape?: string) => void): Promise<T> {
   const r = await depart as { travail?: string } & T;
   if (!r || typeof r !== 'object' || !('travail' in r) || !r.travail) return r as T;
   const t0 = Date.now();
@@ -48,13 +48,13 @@ export async function attendreReponseIa<T>(depart: Promise<unknown>, surAttente?
   for (;;) {
     await new Promise(ok => setTimeout(ok, Date.now() - t0 < 20_000 ? 1500 : 3000));
     try {
-      const x = await api<{ statut?: string; depuis?: number } & T>('GET', `/v1/ia/travaux/${encodeURIComponent(r.travail)}`);
+      const x = await api<{ statut?: string; depuis?: number; etape?: string } & T>('GET', `/v1/ia/travaux/${encodeURIComponent(r.travail)}`);
       echecsReseau = 0;
-      if (x.statut === 'en_cours') { surAttente?.(x.depuis ?? Math.round((Date.now() - t0) / 1000)); continue; }
+      if (x.statut === 'en_cours') { surAttente?.(x.depuis ?? Math.round((Date.now() - t0) / 1000), x.etape); continue; }
       const { statut: _s, ...reste } = x as Record<string, unknown>;
       return reste as T;
     } catch (e) {
-      // Réseau coupé un instant pendant l'attente : on réessaie (la réponse reste gardée sur le serveur 15 minutes).
+      // Réseau coupé un instant pendant l'attente : on réessaie (la réponse reste gardée sur le serveur une heure, relisible).
       if ((e as { status?: number }).status === 0 && ++echecsReseau <= 10) continue;
       throw e;
     }
@@ -63,6 +63,8 @@ export async function attendreReponseIa<T>(depart: Promise<unknown>, surAttente?
 
 export const demanderKakIgonjo = (message: string, conversationId?: string, historique?: { role: 'user' | 'assistant'; content: string }[], surAttente?: (secondes: number) => void) =>
   attendreReponseIa<ReponseIa>(api('POST', '/v1/ia/message', { message, conversationId, historique, asynchrone: true }), surAttente);
+/** À l'ouverture de l'assistant : le worker du modèle (serverless, ≈ 1 min 20 de réveil) démarre pendant que l'utilisateur écrit. */
+export const reveillerKakIgonjo = () => api<{ lance: boolean }>('POST', '/v1/ia/reveil', {}).catch(() => ({ lance: false }));
 /** `forfait` : l'IA est incluse ; sinon `gratuitesRestantes` questions gratuites cette semaine (décision du 15 nov. 2026). */
 export const consommationIa = () => api<{ consommation: { jour: number; mois: number; conversation: number }; quota: { parJour: number; parMois: number; parConversation: number }; forfait?: boolean; gratuitesRestantes?: number | null }>('GET', '/v1/ia/usage');
 
@@ -241,7 +243,25 @@ export const adminIaDossier = () => api<EtatDossierRag>('GET', '/v1/admin/ia/dos
 export const adminIaSynchroniserDossier = () => api<{ ok: boolean }>('POST', '/v1/admin/ia/dossier/synchroniser', {});
 export const adminIaReindexer = (id: string) => api<{ chunks: number }>('POST', `/v1/admin/ia/documents/${id}/reindexer`);
 export const adminIaRechercher = (requete: string) => api<{ resultats: { titre: string; texte: string; score: number }[] }>('POST', '/v1/admin/ia/rag/rechercher', { requete });
-export const adminIaTester = (message: string, enfant = false) => api<{ reponse: string; usage: UsageJetonsApi; modele: string; simule: boolean; contexte: { titre: string; score: number }[]; systeme: string }>('POST', '/v1/admin/ia/tester', { message, enfant });
+/** Essai différé : un réveil à froid du modèle dépasse les 30 s d'une requête. `mesures` : temps du contexte (corpus) puis du modèle. */
+export const adminIaTester = (message: string, enfant = false, surAttente?: (secondes: number, etape?: string) => void) =>
+  attendreReponseIa<{ reponse: string; usage: UsageJetonsApi; modele: string; simule: boolean; contexte: { titre: string; score: number }[]; systeme: string; mesures?: { contexteMs: number; modeleMs: number; jetonsSysteme: number } }>(
+    api('POST', '/v1/admin/ia/tester', { message, enfant, asynchrone: true }), surAttente);
+/** Un appel au relais du modèle, tel que le journal de diagnostic du serveur le garde (aucun texte de question ni de réponse). */
+export interface MesureAppelIa { at: number; ms: number; status: number | null; tour: number; job?: string; attenteRunpodMs?: number; calculMs?: number; entree?: number; sortie?: number; reveil?: boolean; reprise?: number; erreur?: string }
+export interface BilanTravailIa { id: string; uid: string; route: string; debut: number; ms: number; code: number; etapes: { nom: string; a: number }[]; erreur?: string }
+export interface DiagnosticIa {
+  fournisseur: string;
+  reveil: { derniereActiviteIlYaS: number | null; reveilEnCours: boolean; dernierReveil: { at: number; ms: number; ok: boolean; erreur?: string } | null; delaiAppelS: number } | null;
+  /** Santé du relais : workers et file du point d'accès RunPod, quand le relais la donne. */
+  relais: { disponible: boolean; raison?: string; runpod?: { jobs?: Record<string, number>; workers?: Record<string, number> }; enCours?: number; derniers?: unknown[] } & Record<string, unknown>;
+  appels: MesureAppelIa[]; travaux: BilanTravailIa[];
+}
+export const adminIaDiagnostic = () => api<DiagnosticIa>('GET', '/v1/admin/ia/diagnostic');
+export interface SondeIa { n: number; totalMs: number; essais: { i: number; ok: boolean; ms: number; texte?: string; erreur?: string }[]; relais: DiagnosticIa['relais'] }
+/** `n` questions minuscules en même temps (1 à 8) : réveil, file d'attente, concurrence du point d'accès. */
+export const adminIaSonde = (n: number, surAttente?: (secondes: number, etape?: string) => void) =>
+  attendreReponseIa<SondeIa>(api('POST', '/v1/admin/ia/sonde', { n, asynchrone: true }), surAttente);
 export interface UsageJetonsApi { entree: number; sortie: number }
 export type CorrectionType = 'erreur' | 'regle' | 'lexique';
 export interface CorrectionAdmin { id: number; type: CorrectionType; section: string | null; question: string | null; reponse_correcte: string; note: string | null; par: string | null; valide: boolean; created_at: string }

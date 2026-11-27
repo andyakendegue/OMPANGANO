@@ -59,8 +59,9 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
       token = await tokenProvider(true);
       res = await rawFetch(method, path, body, token);
     }
-    // Trop de requêtes : attendre le délai du serveur, 3 essais au plus
-    for (let essai = 0; res.status === 429 && essai < 3; essai++) {
+    // Trop de requêtes (limiteur, qui donne retry-after) : attendre le délai du serveur, 3 essais au plus. Un 429 sans retry-after est un
+    // refus de la route (quota de l'assistant, deux réponses déjà en préparation) : le rejouer effaçait le message et donnait 404 (26 nov. 2026).
+    for (let essai = 0; res.status === 429 && res.headers.get('retry-after') !== null && essai < 3; essai++) {
       const attente = Math.min(Math.max(Number(res.headers.get('retry-after')) || 2, 1), 30);
       await new Promise(r => setTimeout(r, attente * 1000));
       res = await rawFetch(method, path, body, token);
