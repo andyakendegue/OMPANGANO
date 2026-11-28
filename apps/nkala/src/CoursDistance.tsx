@@ -6,6 +6,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, Share, View } from 'react-native';
+import { ACHAT_MOBILE_BIENTOT, PAIEMENT_LOCAL } from './paiementLocal';
 import { adminProfesseurs, chargerModesPaiement, creerPaiement, creerSalle, declarerPaiement, entrerCoursPrevu, envoyerSignal, inscrireCoursPrevu, lireCoursPrevu, lirePaiement, lireSalle, mesCoursPrevus, moiCoursDistance, normaliserTelephone, fourchetteOuverte, planifierCours, prixSeance, quitterCoursPrevu, quitterSalle, rejoindreSalle, serveursIce, simulerPaiement, type CoursPrevu, type MembreAppel, type Paiement } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { Bouton, Carte, Champ, Ecran, Entete, EtatVide, Feuille, Ic, Puce, T, useToast } from './kit';
@@ -172,7 +173,7 @@ export function CoursDistance({ retour }: { retour: () => void }) {
       <Bouton label="Rejoindre" variante="fantome" desactive={code.length < 8} onPress={async () => {
         try { const s = await rejoindreSalle(code.trim()); setSalle({ id: s.id, titre: s.titre }); }
         catch (e) {
-          // Le code peut être celui d'un cours prévu : on s'y inscrit (place payante : paiement Mobile Money d'abord).
+          // Le code peut être celui d'un cours prévu : on s'y inscrit (place payante : paiement d'abord, Mobile Money sur le web seulement).
           try { const p = await inscrireCoursPrevu(code.trim()); toast(`Inscrit : « ${p.titre} », ${dateHeure(p.debut)}.`, 'succes'); setCode(''); evenementPlanning(); }
           catch (e2) {
             if ((e2 as { status?: number }).status === 402) { try { setAPayer(await lireCoursPrevu(code.trim())); } catch { toast((e2 as Error).message, 'erreur'); } }
@@ -309,7 +310,7 @@ function Planning({ entrer, droits }: { entrer: (s: { id: string; titre: string 
   );
 }
 
-/** Paiement d'une place de cours (Mobile Money), au prix fixé par le tarif des administrateurs ; l'inscription suit la confirmation. */
+/** Paiement d'une place de cours au prix fixé par le tarif des administrateurs ; l'inscription suit la confirmation. Mobile Money sur la version web seulement (paiementLocal.ts). */
 function PaiementSeance({ cours, onFermer, onPaye }: { cours: CoursPrevu; onFermer: () => void; onPaye: () => void }) {
   const { c } = useTheme();
   const toast = useToast();
@@ -317,7 +318,7 @@ function PaiementSeance({ cours, onFermer, onPaye }: { cours: CoursPrevu; onFerm
   const [op, setOp] = useState(''), [tel, setTel] = useState(''), [trans, setTrans] = useState('');
   const [pay, setPay] = useState<Paiement | null>(null);
   const [occupe, setOccupe] = useState(false);
-  useEffect(() => { chargerModesPaiement().then(m => { setModes(m); setOp(m.operateurs[0]?.id ?? ''); }).catch(() => toast('Paiement indisponible pour le moment.', 'erreur')); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!PAIEMENT_LOCAL) return; chargerModesPaiement().then(m => { setModes(m); setOp(m.operateurs[0]?.id ?? ''); }).catch(() => toast('Paiement indisponible pour le moment.', 'erreur')); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!pay || ['confirme', 'echoue', 'refuse', 'expire'].includes(pay.statut)) { if (pay?.statut === 'confirme') { toast('Place payée : tu es inscrit.', 'succes'); onPaye(); } return; }
     const t = setInterval(() => lirePaiement(pay.id).then(setPay).catch(() => {}), 4000);
@@ -330,9 +331,9 @@ function PaiementSeance({ cours, onFermer, onPaye }: { cours: CoursPrevu; onFerm
   };
   return (
     <Feuille visible onClose={onFermer} titre="Payer ma place">
-      <T v="carte">« {cours.titre} » · {cours.prixFcfa} FCFA</T>
-      <T v="petit">{dateHeure(cours.debut)} · {cours.dureeMin} min · avec {cours.hoteNom}. Prix fixé par le tarif de Nkala.</T>
-      {!pay ? <View style={{ gap: 10, marginTop: 10 }}>
+      <T v="carte">« {cours.titre} »{PAIEMENT_LOCAL ? ` · ${cours.prixFcfa} FCFA` : ''}</T>
+      <T v="petit">{dateHeure(cours.debut)} · {cours.dureeMin} min · avec {cours.hoteNom}.{PAIEMENT_LOCAL ? ' Prix fixé par le tarif de Nkala.' : ''}</T>
+      {!PAIEMENT_LOCAL ? <T v="corps" style={{ marginTop: 10 }}>{ACHAT_MOBILE_BIENTOT}</T> : !pay ? <View style={{ gap: 10, marginTop: 10 }}>
         <View style={{ flexDirection: 'row', gap: 8 }}>{(modes?.operateurs ?? []).map(o => <Puce key={o.id} label={o.nom} actif={op === o.id} onPress={() => setOp(o.id)} />)}</View>
         <Champ valeur={tel} onChange={setTel} placeholder="Numéro Mobile Money" clavier="phone-pad" icone="telephone" />
         <Bouton label={`Payer ${cours.prixFcfa} FCFA`} variante="ambre" charge={occupe} desactive={!tel.trim() || !op} onPress={payer} />

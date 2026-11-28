@@ -1,6 +1,11 @@
-/** Achats intégrés et abonnements : offres de la collection « produits », reçu envoyé au serveur (simulation ou magasins), droits rafraîchis. */
+/**
+ * Achats et abonnements : offres de la collection « produits », droits rafraîchis.
+ * Paiement en FCFA (Mobile Money) sur la version web seulement ; dans les applications mobiles, achats intégrés des magasins
+ * (à brancher, étape P8) et paiement en Nkoruna. Voir paiementLocal.ts.
+ */
 import { useEffect, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
+import { ACHAT_MOBILE_BIENTOT, PAIEMENT_LOCAL } from './paiementLocal';
 import { avantagesFormule, chargerDroits, chargerModesPaiement, chargerPortefeuilleNkr, chargerProduits, cleNkr, creerPaiement, depenserNkr, declarerPaiement, lirePaiement, normaliserTelephone, simulerPaiement, type DroitsServeur, type Paiement, type PortefeuilleNkr, type Produit, type ReglagesFormule } from '@nkala/noyau';
 import { PortefeuilleNkorouna, formatNkr } from './Nkorouna';
 import { useAuth } from './AuthProvider';
@@ -34,6 +39,7 @@ export function BoutiqueFeuille() {
   const [op, setOp] = useState(''), [tel, setTel] = useState(''), [trans, setTrans] = useState('');
   const [pay, setPay] = useState<Paiement | null>(null);
   const ouvrirPaiement = (p: Produit) => {
+    if (!PAIEMENT_LOCAL) { toast(ACHAT_MOBILE_BIENTOT, 'info'); return; }
     if (!profil) { toast('Connecte-toi pour acheter.', 'info'); return; }
     setFlux(p); setPay(null); setTrans(''); chargerModesPaiement().then(m => { setModes(m); setOp(m.operateurs[0]?.id ?? ''); }).catch(() => toast('Paiement indisponible pour le moment.', 'erreur'));
   };
@@ -57,21 +63,14 @@ export function BoutiqueFeuille() {
     } catch (e) { toast((e as Error).message, 'erreur'); } finally { setOccupe(null); }
   };
   const ouvrirNkr = (p: Produit) => { if (!profil) { toast('Connecte-toi pour payer en Nkoruna.', 'info'); return; } setFlux(null); setEnNkr({ produit: p, cle: cleNkr() }); };
-  const packs = (offres?.produits ?? []).filter(p => p.type === 'nkorouna').sort((a, b) => (a.nkorouna ?? 0) - (b.nkorouna ?? 0));
+  // Packs de Nkoruna payés en FCFA : version web seulement (achats intégrés à venir sur mobile).
+  const packs = (offres?.produits ?? []).filter(p => PAIEMENT_LOCAL && p.type === 'nkorouna').sort((a, b) => (a.nkorouna ?? 0) - (b.nkorouna ?? 0));
   // Formules (Oma, Inina, Anyambiè…) : rangées selon leur ordre ; ce qu'elles donnent vient de leurs réglages (console › Formules).
   const plans = ((plansRes.plans ?? []) as unknown as ReglagesFormule[]);
   const planDe = (p: Produit) => plans.find(x => x.id === p.plan_id);
+  const fcfa = (p: Produit) => PAIEMENT_LOCAL && !!p.prix_fcfa;
   const autres = (offres?.produits ?? []).filter(p => p.type !== 'nkorouna').sort((a, b) => (planDe(a)?.ordre ?? 99) - (planDe(b)?.ordre ?? 99) || (a.prix_fcfa ?? 0) - (b.prix_fcfa ?? 0));
   const acheter = (p: Produit) => { if (offres?.mode === 'simulation' && !p.prix_fcfa) { toast('Prix à venir.', 'info'); return; } ouvrirPaiement(p); };
-  if (Platform.OS === 'ios') return (
-    <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkoruna">
-      <View style={{ padding: 24, gap: 16, alignItems: 'center' }}>
-        <Ic nom="couronne" taille={40} couleur={c.accent} />
-        <T v="sousTitre" style={{ textAlign: 'center' }}>Abonnements et achats</T>
-        <T v="corps" style={{ textAlign: 'center' }}>Pour accéder aux formules d'abonnement et aux achats, rendez-vous sur ompangano.web.app depuis votre navigateur.</T>
-      </View>
-    </Feuille>
-  );
   return (
     <Feuille visible={boutique} onClose={fermerBoutique} titre="Boutique et Nkoruna">
       {droits?.abonne && <Carte plat><View style={{ padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}><Ic nom="couronne" taille={22} couleur={c.accent} /><T v="carte">Abonnement actif{droits.abonneJusque ? ` jusqu'au ${new Date(droits.abonneJusque).toLocaleDateString('fr-FR')}` : ''} · plus de publicité</T></View></Carte>}
@@ -95,12 +94,13 @@ export function BoutiqueFeuille() {
           return (
             <Carte key={p.id}><View style={{ padding: 16, gap: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><T v="carte" style={{ flex: 1 }}>{p.titre}</T>{possede && <Pastille label="Acquis" couleur={c.succes} fond={c.carte} />}</View>
-              <T v="sousTitre" couleur={c.accent}>{p.prix_fcfa ? prix(p) : ''}{p.prix_fcfa && p.prix_nkr ? ' · ' : ''}{p.prix_nkr ? formatNkr(p.prix_nkr) : ''}{!p.prix_fcfa && !p.prix_nkr ? prix(p) : ''}</T>
+              <T v="sousTitre" couleur={c.accent}>{fcfa(p) ? prix(p) : ''}{fcfa(p) && p.prix_nkr ? ' · ' : ''}{p.prix_nkr ? formatNkr(p.prix_nkr) : ''}{PAIEMENT_LOCAL && !p.prix_fcfa && !p.prix_nkr ? prix(p) : ''}</T>
               {formule.length ? formule.map((x, i) => <T key={i} v="petit">• {x}</T>) : <T v="petit">{p.type === 'abonnement' ? 'Abonnement.' : p.type === 'achat' ? 'Achat à l\'unité, à vie.' : 'Consommable.'}</T>}
               {p.type === 'abonnement' && <T v="petit" couleur={c.discret}>Les cours, la bibliothèque et les jeux restent gratuits pour tous.</T>}
               {possede ? <Bouton label="Déjà acquis" variante="ambre" desactive onPress={() => {}} /> : <>
-                {(!p.prix_nkr || p.prix_fcfa) && <Bouton label={p.prix_nkr ? 'Payer en FCFA' : 'Acheter'} variante="ambre" charge={occupe === p.id} onPress={() => { setEnNkr(null); acheter(p); }} />}
-                {!!p.prix_nkr && <Bouton label={`Payer ${formatNkr(p.prix_nkr)}`} icone="piece" variante={p.prix_fcfa ? 'fantome' : 'ambre'} onPress={() => ouvrirNkr(p)} />}
+                {PAIEMENT_LOCAL && (!p.prix_nkr || p.prix_fcfa) && <Bouton label={p.prix_nkr ? 'Payer en FCFA' : 'Acheter'} variante="ambre" charge={occupe === p.id} onPress={() => { setEnNkr(null); acheter(p); }} />}
+                {!!p.prix_nkr && <Bouton label={`Payer ${formatNkr(p.prix_nkr)}`} icone="piece" variante={fcfa(p) ? 'fantome' : 'ambre'} onPress={() => ouvrirNkr(p)} />}
+                {!PAIEMENT_LOCAL && !p.prix_nkr && <Bouton label={ACHAT_MOBILE_BIENTOT} variante="ambre" desactive onPress={() => {}} />}
               </>}
             </View></Carte>);
         })}
@@ -115,7 +115,7 @@ export function BoutiqueFeuille() {
           <Bouton label="Annuler" variante="fantome" petit onPress={() => setEnNkr(null)} />
         </View></Carte>
       )}
-      {flux && (
+      {PAIEMENT_LOCAL && flux && (
         <Carte accent={c.accent}><View style={{ padding: 16, gap: 10 }}>
           <T v="carte">Payer « {flux.titre} » · {prix(flux)}</T>
           {!pay ? <>

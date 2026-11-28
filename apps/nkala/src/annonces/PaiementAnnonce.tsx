@@ -1,6 +1,6 @@
 /**
  * Achat d'une annonce au-delà de la gratuite du mois (500 FCFA par défaut, produit « annonce-supplementaire ») :
- * en Nkoruna si un prix en jetons est réglé, ou par Mobile Money (parcours existant de la boutique).
+ * en Nkoruna si un prix en jetons est réglé, ou par Mobile Money sur la version web seulement (paiementLocal.ts ; achats intégrés à venir sur mobile).
  */
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -10,6 +10,7 @@ import {
 } from '@nkala/noyau';
 import { Bouton, Champ, Chargement, Feuille, Puce, Rangee, T, useToast } from '../kit';
 import { useTheme } from '../Prefs';
+import { ACHAT_MOBILE_BIENTOT, PAIEMENT_LOCAL } from '../paiementLocal';
 
 export function PaiementAnnonce({ quota, visible, onClose, onPaye }: { quota: QuotaAnnonces | null; visible: boolean; onClose: () => void; onPaye: () => void }) {
   const { c } = useTheme();
@@ -20,7 +21,7 @@ export function PaiementAnnonce({ quota, visible, onClose, onPaye }: { quota: Qu
   const [pay, setPay] = useState<Paiement | null>(null);
   const [trans, setTrans] = useState('');
   const [occupe, setOccupe] = useState(false);
-  useEffect(() => { if (visible) { setPay(null); chargerModesPaiement().then(m => { setModes(m); setOp(m.operateurs[0]?.id ?? ''); }).catch(() => setModes({ mode: 'aucun', operateurs: [] })); } }, [visible]);
+  useEffect(() => { if (visible && PAIEMENT_LOCAL) { setPay(null); chargerModesPaiement().then(m => { setModes(m); setOp(m.operateurs[0]?.id ?? ''); }).catch(() => setModes({ mode: 'aucun', operateurs: [] })); } }, [visible]);
   useEffect(() => {
     if (!pay || ['confirme', 'echoue', 'refuse', 'expire'].includes(pay.statut)) return;
     const t = setInterval(() => lirePaiement(pay.id).then(r => { setPay(r); if (r.statut === 'confirme') { toast('Paiement confirmé : votre annonce part maintenant.', 'succes'); onPaye(); } }).catch(() => {}), 4000);
@@ -41,9 +42,10 @@ export function PaiementAnnonce({ quota, visible, onClose, onPaye }: { quota: Qu
   };
   return (
     <Feuille visible={visible} onClose={onClose} titre="Annonce supplémentaire">
-      <T v="corps">Votre annonce gratuite du mois ({quota.utilisees} / {quota.gratuites_mois}) est utilisée. Une annonce supplémentaire coûte <T v="corps" fort>{formaterPrix(prix)}</T>.</T>
+      {PAIEMENT_LOCAL ? <T v="corps">Votre annonce gratuite du mois ({quota.utilisees} / {quota.gratuites_mois}) est utilisée. Une annonce supplémentaire coûte <T v="corps" fort>{formaterPrix(prix)}</T>.</T>
+        : <T v="corps">Votre annonce gratuite du mois ({quota.utilisees} / {quota.gratuites_mois}) est utilisée.</T>}
       {!!quota.prix_nkr && <Bouton label={`Payer ${quota.prix_nkr} Nkoruna`} icone="jeton" charge={occupe} onPress={enNkr} />}
-      {!pay ? (!modes ? <Chargement lignes={1} /> : modes.operateurs.length === 0 ? <T v="petit">Le paiement Mobile Money n'est pas encore ouvert.</T> : <>
+      {!PAIEMENT_LOCAL ? (!quota.prix_nkr && <T v="petit">{ACHAT_MOBILE_BIENTOT}</T>) : !pay ? (!modes ? <Chargement lignes={1} /> : modes.operateurs.length === 0 ? <T v="petit">Le paiement Mobile Money n'est pas encore ouvert.</T> : <>
         <T v="libelle">Mobile Money</T>
         <Rangee>{modes.operateurs.map(o => <Puce key={o.id} label={o.nom} actif={op === o.id} onPress={() => setOp(o.id)} />)}</Rangee>
         <Champ valeur={tel} onChange={setTel} placeholder="Votre numéro (+241 …)" clavier="phone-pad" />

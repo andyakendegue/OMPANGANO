@@ -8,6 +8,7 @@ import { chargerEtatNkr, chargerPortefeuilleNkr, type EtatPublicNkr, type Mouvem
 import { Bouton, Carte, Chargement, Ic, Pastille, T } from './kit';
 import { useGlobale } from './Globale';
 import { useTheme } from './Prefs';
+import { PAIEMENT_LOCAL } from './paiementLocal';
 
 export const formatNkr = (n: number) => `${n.toLocaleString('fr-FR')} NKR`;
 
@@ -38,7 +39,7 @@ export function PortefeuilleNkorouna({ portefeuille, erreur }: { portefeuille: P
         </View>
         {portefeuille?.gele && <Pastille label="Compte gelé" couleur={c.erreur} fond={c.carte} />}
       </View>
-      <T v="petit">Achète des Nkoruna en FCFA (Mobile Money), puis paie ton forfait et les vidéos d'Igôlani en un toucher.</T>
+      <T v="petit">{PAIEMENT_LOCAL ? 'Achète des Nkoruna en FCFA (Mobile Money), puis paie ton forfait et les vidéos d\'Igôlani en un toucher.' : 'Paie ton forfait et les vidéos d\'Igôlani en Nkoruna, en un toucher.'}</T>
 
       {portefeuille && (
         <Pressable onPress={() => setOuvert(o => !o)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
