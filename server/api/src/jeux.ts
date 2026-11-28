@@ -2,7 +2,7 @@
  * Progression (leçons, unités, séries), parties d'Azeva, succès, XP partagé et classements.
  * Le client envoie ses réponses ; le serveur recalcule le score et décide de l'XP (plafonds quotidiens).
  */
-import { scorePartie, jourLocal } from '../../../packages/noyau/src/moteurs.ts';
+import { scorePartie, jourLocal, choixDuJour } from '../../../packages/noyau/src/moteurs.ts';
 import { terminerLecon, uniteValidee, progressionVide, majSerie, XP_LECON, accesLecon, numeroCertificat, parcoursTermine, NUMERO_CERTIFICAT, type ProgressionOnenji, type Unite } from '../../../packages/noyau/src/lecons.ts';
 import { peutAcceder, type NiveauAcces } from '../../../packages/noyau/src/acces.ts';
 import { droitsDe } from './services.ts';
@@ -305,6 +305,14 @@ export function registerJeux({ app, db, fail, acteur, ensureUser, notify, cles }
     const jour = jourLocal();
     const d = await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'defis' AND publie AND deleted_at IS NULL AND data->>'type' = 'jour' AND (data->>'debut' IS NULL OR data->>'debut' <= $1) AND (data->>'fin' IS NULL OR data->>'fin' >= $1) ORDER BY id`, [jour]);
     return { jour, defi: d.length ? { ...d[0].data, id: d[0].id } : null };
+  });
+
+  /** Mot du jour de l'accueil : un seul mot de « mots_jeux » (collection privée), choisi par la date, identique pour tous. */
+  app.get('/pub/mot-du-jour', async () => {
+    const jour = jourLocal();
+    const r = await db.query<any>(`SELECT id, data FROM contenus WHERE collection = 'mots_jeux' AND publie AND deleted_at IS NULL AND owner_id IS NULL ORDER BY id`);
+    const m = choixDuJour(r, jour);
+    return { jour, mot: m ? { id: m.id, myene: String(m.data.myene ?? ''), francais: String(m.data.francais ?? ''), audio: m.data.audio ?? null } : null };
   });
 
   app.post('/v1/progression/amis', async (req) => {

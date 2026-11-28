@@ -35,6 +35,14 @@ test('azeva : le contenu des jeux ne se lit jamais en bloc', async () => {
   assert.equal((await call('GET', '/pub/contenus/jeux')).status, 200, 'la liste des jeux (sans contenu) reste publique');
 });
 
+test('azeva : mot du jour = un seul mot de la collection privée, le même pour tous dans la journée', async () => {
+  const a = await call('GET', '/pub/mot-du-jour'), b = await call('GET', '/pub/mot-du-jour', tok('lecteur'));
+  assert.equal(a.status, 200, JSON.stringify(a.body));
+  assert.ok(a.body.mot && a.body.mot.myene && a.body.mot.francais, 'un mot avec sa traduction');
+  assert.deepEqual(Object.keys(a.body).sort(), ['jour', 'mot'], 'jamais la banque entière');
+  assert.deepEqual(b.body.mot, a.body.mot, 'identique avec ou sans compte');
+});
+
 test('azeva : manche servie par niveau, essai sans compte limité, niveau suivant après victoire', async () => {
   const m1 = await call('POST', '/pub/jeux/touche-ta-tete/manche', undefined, { niveau: 1, dialecte: 'orungu' });
   assert.equal(m1.status, 200, JSON.stringify(m1.body));

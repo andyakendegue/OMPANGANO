@@ -30,6 +30,7 @@ export const envoyerChapitre = (livreId: string, chapitreId: string, bonnes: num
 export interface LigneClassementJeux { rang: number; id: string; nom: string; tribu: string | null; points: number; parties: number; moi: boolean }
 export const chargerClassementJeux = (portee: string, groupe: string, jeu?: string) =>
   api<{ classement: LigneClassementJeux[]; maPlace: number | null }>('GET', `/v1/jeux/classement?portee=${portee}&groupe=${groupe}${jeu ? `&jeu=${encodeURIComponent(jeu)}` : ''}`);
+export const chargerMotDuJour = () => api<{ jour: string; mot: { id: string; myene: string; francais: string; audio?: string | null } | null }>('GET', '/pub/mot-du-jour');
 export const chargerDefiDuJour = () => api<{ jour: string; defi: { id: string; titre: string; jeu_id?: string; objectif?: number; xp?: number } | null }>('GET', '/pub/defi-du-jour');
 export const ajouterAmi = (telephone: string) => api<{ ajoute: { id: string; nom: string } }>('POST', '/v1/progression/amis', { telephone });
 

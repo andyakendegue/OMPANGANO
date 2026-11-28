@@ -1,10 +1,10 @@
 /** Accueil, série, profil, réglages, espace parents, recherche globale (écrans 11 à 20, 60, 15). */
 import { CarteNkorounaProfil } from './Nkorouna';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { chargerDefiDuJour, choixDuJour, envoyerCodeLien, verifierCodeLien, normaliserTelephone, jourLocal, moduleActif, RANGS, rangPourXp, type Ligne } from '@nkala/noyau';
+import { chargerDefiDuJour, chargerMotDuJour, envoyerCodeLien, verifierCodeLien, normaliserTelephone, jourLocal, moduleActif, RANGS, rangPourXp, type Ligne } from '@nkala/noyau';
 import { useAuth } from './AuthProvider';
 import { catalogue } from './catalogue';
 import { emettre } from './evenements';
@@ -24,11 +24,13 @@ export function AccueilEcran() {
   const { prefs } = usePrefs();
   const routeur = useRouter();
   const { donnees, xp, rang } = useProgres();
-  const { res } = useContenus(['mots_jeux', 'actualites', 'albums', 'messages']);
+  const { res } = useContenus(['actualites', 'albums', 'messages']);
   const [defi, setDefi] = useState<{ titre: string } | null>(null);
   useEffect(() => { chargerDefiDuJour().then(r => setDefi(r.defi)).catch(() => {}); }, []);
+  // « mots_jeux » est privée (403 en bloc) : le serveur ne donne que le mot du jour.
+  const [mot, setMot] = useState<{ myene: string; francais: string; audio?: string | null } | null>(null);
+  useEffect(() => { chargerMotDuJour().then(r => setMot(r.mot)).catch(() => {}); }, []);
   const aujourdhui = donnees.jours?.includes(jourLocal());
-  const mot = useMemo(() => choixDuJour((res.mots_jeux ?? []) as Ligne[]), [res.mots_jeux]);
   const enfant = prefs.mode === 'enfant';
   const nom = prenom(profil?.displayName || profil?.fullName);
   const retour = donnees.serie > 1 && !aujourdhui;
