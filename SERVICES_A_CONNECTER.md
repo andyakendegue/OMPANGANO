@@ -130,3 +130,9 @@ Chaque branchement a une variable ; vide = simulation (rien ne casse). Liste com
 - **Sonde sans l'application** : `server/scripts/sonde_qwen.sh [1-8] ["question"]`, lancé depuis le Mac ; affiche la file et les workers toutes les 5 s, puis code, durée, file et calcul de chaque question.
 - **Console > IA > Diagnostic Qwen** : santé du relais, réveil, derniers travaux de l'app (étapes et code), derniers appels au relais, sonde ×1 / ×4.
 - **API (facultatif)** : `IA_DELAI_APPEL_S` (610 par défaut, délai d'un appel au relais) et `IA_DUREE_MAX_TRAVAIL_S` (720 par défaut, durée maximale d'une réponse différée) ; à ajouter aussi dans `server/docker-compose.yml` si on veut les changer.
+
+## Mise à jour du 28 nov. 2026 : paiements (décision de Capp)
+- **Applications iOS et Android** : achats intégrés Apple et Google seulement (`APPLE_*`, `GOOGLE_*`, vérification dans `achats.ts`). **Site web** : paiements locaux (Airtel Money, Moov Money, BambooPay, manuel), intégrés directement dans l'API de Nkala (voie A de `../Nkala-AirtelMoney-Api/AUDIT_2026-11-28.md`).
+- L'application mobile ne doit jamais renvoyer vers le site ni vers Mobile Money pour un contenu numérique ; le paragraphe ci-dessus « Les reçus des magasins restent possibles mais ne sont plus la voie principale » ne vaut plus que pour le site.
+- Détail des étapes P0 à P13, prérequis et décisions ouvertes : `NKALA_PLAN_DEVELOPPEMENT.md`, section « Décision du 28 novembre 2026 ».
+- Variables à prévoir : identifiants Airtel (client, secret, clé de signature des rappels, clé publique RSA), identifiants BambooPay (selon leur documentation), `APPLE_ISSUER_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_BUNDLE_ID`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_PACKAGE_NAME`, sujet Pub/Sub des notifications Google.

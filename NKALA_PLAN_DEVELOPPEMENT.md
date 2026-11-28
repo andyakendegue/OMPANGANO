@@ -194,3 +194,47 @@ Source : audit `../14_programme_et_jeux/05_audit_cursus_v3_Rekanga.md`, règles 
 - Gratuit : tout Ntina, l'alphabet et la lecture, tous les cours d'Ogêndo, d'Emênô et d'Ikôkô, la contribution, une correction de prononciation de base.
 - Payant : cours avec professeur (masterclass, cours à distance, ateliers ; 80 % au professeur) ; Igôlani (vidéos, par abonnement) ; Kak'Igonjo au-delà d'un quota gratuit et examen avec un locuteur ; attestation officielle de niveau ; licences pour écoles et associations ; services aux entreprises de la grille tarifaire.
 - Mode enfant : pas de publicité, aucun achat sans contrôle parental. Abonnements : Mobile Money sur la version web.
+
+## Décision du 28 novembre 2026 : paiements locaux sur le web, paiements des magasins sur mobile (ajout)
+
+Sources : `../Nkala-AirtelMoney-Api/AUDIT_2026-11-28.md` (§ 5, voie A retenue), `../_contexte/JOURNAL.md` (entrées du 28 nov.). Remplace la ligne « E3 Mobile Money : paiement web et là où permis » : le paiement local n'est plus proposé dans les applications iOS et Android, dans aucun pays.
+
+**Décisions de Capp**
+- **Voie A** : Airtel Money, Moov Money et BambooPay sont intégrés directement dans l'API de Nkala, comme des fournisseurs interchangeables. Le dépôt `Nkala-AirtelMoney-Api` (maquette, 6 failles critiques) n'est ni déployé ni repris.
+- **Applications iOS et Android** : on paie seulement avec les paiements des magasins (achats intégrés Apple et Google).
+- **Site web** (version web de Nkala) : paiements locaux (Airtel Money, Moov Money, BambooPay, et le mode manuel actuel).
+
+**Règles des magasins à respecter (vérifiées le 28 nov. 2026, à revérifier avant chaque soumission)**
+- L'application mobile ne montre **ni bouton, ni lien, ni phrase** qui mène au site ou à un autre moyen de paiement, même si le magasin ne propose pas Mobile Money (Apple 3.1.1 et 3.1.3 ; règles de paiement de Google Play). Pas non plus de notification push qui invite à payer sur le site.
+- Ce qui a été payé sur le site **s'ouvre dans l'application** (droits gardés sur le serveur ; Apple 3.1.3(b)) : l'application n'en parle pas, elle lit simplement les droits à la connexion. Les packs de Nkoruna achetés sur le site ne sont permis que s'ils existent **aussi** en achat intégré.
+- Inviter à souscrire **hors de l'application** est permis : SMS, e-mail, WhatsApp, réseaux sociaux, affiches avec QR code, site. Seulement avec le consentement enregistré de la personne (règles D1 à D3 de `SECURITE_ISO27001.md`).
+- **Exceptions, à confirmer service par service** : les biens et services physiques du Village (taxi, bouteilles de gaz, factures SEEG, paiements administratifs, commandes à 50 % et 50 %) ne passent pas par les achats intégrés ; Mobile Money y reste permis dans l'application (Apple 3.1.5(a) ; biens physiques chez Google). Un cours en direct **d'une personne à une autre** peut aussi être payé autrement (Apple 3.1.3(d)) ; les cours à distance à plusieurs (jusqu'à 4) passent par les achats intégrés.
+
+**Étapes (taille relative)**
+| # | Étape | Livrable |
+|---|---|---|
+| P0 | Mise en conformité immédiate (S) | **Avant la prochaine soumission aux magasins** : retirer de l'application mobile le paiement Mobile Money (`Boutique.tsx`, `CoursDistance.tsx` « PaiementPlace », `annonces/PaiementAnnonce.tsx`), la phrase iPhone « rendez-vous sur ompangano.web.app » (`Boutique.tsx`), et « Achète des Nkoruna en FCFA (Mobile Money) » (`Nkorouna.tsx`). Garder ces parcours sur le web (`Platform.OS === 'web'`). La version Android 0.3.0 vc14 (piste alpha) les contient encore |
+| P1 | Couche « fournisseurs » côté serveur (M) | `server/api/src/paiements/` : une interface commune (demander un paiement, lire son état, lire un rappel) et un module par fournisseur : `manuel`, `simulation`, `airtel`, `moov`, `bamboopay`. Colonne `fournisseur` dans `paiements` (migration numérotée). Fournisseur de chaque opérateur choisi dans la console (aucun nom ni prix en dur). `mobilemoney.ts` devient le routeur de ces modules |
+| P2 | Rappels des fournisseurs (S) | `POST /pay/webhook/:fournisseur`, signature vérifiée **sur le corps brut** (corrige le défaut actuel de `mobilemoney.ts`, qui signe `JSON.stringify(req.body)`). Un rappel ne fait que déclencher une lecture de l'état chez le fournisseur : l'état lu fait foi. Déduplication par identifiant du fournisseur ; états ordonnés (`en_attente` → `confirme` ou `echoue` seulement). L'ancien `/pay/webhook` reste en place pendant la transition |
+| P3 | Client Airtel Money (M) | Jeton OAuth2 mis en cache, encaissement, état, remboursement ; en-têtes pays `GA` et devise `XAF` ; format du numéro, signature des rappels et limites à confirmer dans la documentation Airtel Gabon ; délais et reprises (`appelHttp.ts`). Décaissements (reversements) plus tard, avec le code PIN chiffré |
+| P4 | Moov Money (M) | Même interface ; opérateur, agrégateur ou BambooPay à choisir |
+| P5 | BambooPay (M) | **En attente de la documentation de l'API marchande** de Bamboo Microfinance (Capp y est client entreprise). Questions : opérateurs couverts (Airtel, Moov, cartes ?), demande de paiement, état, rappels et signature, remboursements, bac à sable, frais, délai de reversement. Attention : docs.bamboopayment.com est Bamboo Payment (Amérique latine), une autre société |
+| P6 | Expiration et suivi (S) | Tâche régulière : relire l'état des paiements en attente chez leur fournisseur, expirer à 24 h, relancer les rappels manqués |
+| P7 | Page de paiement du site (M) | Boutique de la version web : formules, packs de Nkoruna, crédits d'annonce, places de cours ; choix de l'opérateur, numéro, suivi de l'état ; référence `NK-…` comme clé d'idempotence |
+| P8 | Achats intégrés dans l'application (L) | Bibliothèque `expo-iap` ou `react-native-iap` (version de développement, pas Expo Go). Identifiants Apple et Google de chaque produit rangés dans la collection `produits` (modifiables dans la console). Compte lié à l'achat : `appAccountToken` (Apple) et `obfuscatedAccountId` (Google), dérivés de l'identifiant de l'utilisateur. Bouton « Restaurer mes achats ». Consommables (Nkoruna, crédits d'annonce) consommés après l'accord du serveur |
+| P9 | Vérification des achats côté serveur (L) | `verifierRecu` dans `achats.ts` : Apple App Store Server API (transactions signées JWS, chaîne vérifiée jusqu'à l'autorité racine d'Apple) ; Google Play Developer API (`purchases.subscriptionsv2`, `purchases.products`) et **accusé de réception sous 3 jours** (sinon Google rembourse). Notifications serveur : App Store Server Notifications V2 et Google Real-time Developer Notifications (Pub/Sub) pour les renouvellements, résiliations et remboursements, qui mettent à jour `droits.fin` |
+| P10 | Un seul abonnement à la fois (S) | Abonnement actif par un magasin : le site refuse d'en vendre un second et dit où le gérer ; abonnement actif payé sur le site : l'application n'en vend pas d'autre. Renouvellement sur le site : un paiement Mobile Money vaut 31 jours, rappel par SMS ou e-mail avant la fin (avec consentement) |
+| P11 | Console (M) | Correspondance produits ↔ identifiants des magasins ; fournisseur par opérateur ; liste des paiements avec leur source (Apple, Google, Airtel, Moov, BambooPay, manuel) ; remboursements ; consentements aux invitations |
+| P12 | Invitations hors de l'application (S) | Campagnes SMS et e-mail vers la boutique du site, envoyées seulement aux personnes qui ont accepté ; désinscription en un clic |
+| P13 | Tests et sécurité (M) | Tests : chaque fournisseur contre un faux serveur, rappels (corps brut, rejeu, ordre des états), idempotence, faux reçus Apple et Google. Lire `SECURITE_ISO27001.md` § 4 avant de coder ; numéros masqués dans les journaux ; durée de conservation des numéros ; `controle_securite.sh` avant le déploiement |
+
+**Prérequis (Capp)**
+- Compte Apple Developer payé (toujours non payé) et contrat « Paid Apps » signé dans App Store Connect ; produits créés (abonnements Oma, Inina, Anyambiè, packs de Nkoruna, crédits d'annonce).
+- Profil de paiement Google Play et produits créés dans la Play Console. **À vérifier** : le pays de l'entreprise (Gabon) est-il accepté comme compte marchand par Apple et par Google ? Google propose-t-il au Gabon le paiement par la facture de l'opérateur (Airtel) ?
+- Accès au portail développeur Airtel (identifiants client, clé de signature des rappels, clé publique RSA pour le PIN) et documentation de l'API pour le Gabon.
+- Documentation de l'API marchande BambooPay.
+
+**Décisions encore ouvertes**
+- Prix sur mobile : identiques au site, ou majorés pour couvrir la commission des magasins (15 % pour les petites entreprises, 30 % sinon) ? Les prix des magasins sont fixés par paliers en FCFA.
+- Nkoruna : un seul portefeuille pour le numérique (achats intégrés) et pour les services physiques du Village (Mobile Money), ou deux soldes séparés ?
+- Liste des services du Village traités comme physiques (Mobile Money permis dans l'application).
