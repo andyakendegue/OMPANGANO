@@ -93,7 +93,8 @@
           "microphonePermission": "Nkala utilise le micro pour le son des vidéos de vos annonces."
         }
       ],
-      "./plugins/sans-push-ios.js"
+      "./plugins/sans-push-ios.js",
+      "./plugins/with-android-r8-crashlytics.js"
     ],
     "experiments": {
       "typedRoutes": true
