@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sauvegarde quotidienne CHIFFRÉE : pg_dump + copie du bucket Garage ; rotation 14 jours.
+# Sauvegarde quotidienne CHIFFRÉE : pg_dump + copie du bucket Garage ; conservation BACKUP_GARDE_JOURS (2 jours par défaut, pré-production).
 # Clé de chiffrement : BACKUP_KEY_FILE (défaut /opt/ompangano/secrets/backup.key) — à garder AUSSI hors du VPS, sans elle les sauvegardes sont illisibles.
 # Cron : voir README (/etc/cron.d/ompangano).
 set -euo pipefail
@@ -9,6 +9,10 @@ DEST="${BACKUP_DIR:-/opt/ompangano/backups}"
 KEY="${BACKUP_KEY_FILE:-/opt/ompangano/secrets/backup.key}"
 [ -s "$KEY" ] || { echo "Clé de chiffrement absente : $KEY" >&2; exit 1; }
 STAMP=$(date +%Y%m%d-%H%M%S)
+# Conservation (28 nov. 2026, avant la mise en production) : 2 jours pour toutes les copies ; à remonter (14) quand elles seront délocalisées.
+GARDE_JOURS="${BACKUP_GARDE_JOURS:-2}"
+# En minutes, avec 90 min de marge : à 2 jours, la copie de l'avant-veille part et celles de la veille et du jour restent.
+GARDE_MIN=$(( GARDE_JOURS * 1440 - 90 ))
 mkdir -p "$DEST/db" "$DEST/media"; chmod 700 "$DEST"
 enc() { openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass "file:$KEY"; }
 # Intégrité (le CBC seul ne détecte pas une altération) : HMAC-SHA256 du fichier chiffré, clé dérivée de backup.key ; vérifié par restore.sh
@@ -34,15 +38,15 @@ if [ -d "$CHAINE/reseau" ] && [ -d "$VOL" ]; then
   tar -czf - -C "$CHAINE" reseau relais.env -C "$(dirname "$VOL")" _data | enc > "$DEST/chaine/chaine-$STAMP.tar.gz.enc" || echo "ATTENTION : copie de la chaîne en échec" >&2
   (cd "$CHAINE" && docker compose start validateur4 >/dev/null 2>&1) || echo "ATTENTION : validateur4 non relancé" >&2
   sceller "$DEST/chaine/chaine-$STAMP.tar.gz.enc"
-  find "$DEST/chaine" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
+  find "$DEST/chaine" \( -name '*.enc' -o -name '*.hmac' \) -mmin +"$GARDE_MIN" -delete
 fi
 
-find "$DEST/db" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
-find "$DEST/media" \( -name '*.enc' -o -name '*.hmac' \) -mtime +14 -delete
+find "$DEST/db" \( -name '*.enc' -o -name '*.hmac' \) -mmin +"$GARDE_MIN" -delete
+find "$DEST/media" \( -name '*.enc' -o -name '*.hmac' \) -mmin +"$GARDE_MIN" -delete
 chmod 600 "$DEST"/db/* "$DEST"/media/* 2>/dev/null || true
 # Copies faites avant une mise à jour (avant-*, auto-*, db-avant-*…) : elles contiennent parfois la base en clair.
-# Durée de conservation : 30 jours (SECURITE_ISO27001.md, donnees.ts DUREES), accès réservé à root.
-find "$DEST" -mindepth 1 -maxdepth 1 \( -name 'avant-*' -o -name 'auto-*' -o -name '*-avant-*' -o -name '*.avant-*' \) -mtime +30 -exec rm -rf {} +
+# Durée de conservation : la même (GARDE_JOURS ; 30 jours avant le 28 nov. 2026 : SECURITE_ISO27001.md, donnees.ts DUREES), accès réservé à root.
+find "$DEST" -mindepth 1 -maxdepth 1 \( -name 'avant-*' -o -name 'auto-*' -o -name '*-avant-*' -o -name '*.avant-*' \) -mmin +"$GARDE_MIN" -exec rm -rf {} +
 chmod -R go-rwx "$DEST" 2>/dev/null || true
 
 # Copie hors du VPS (ISO 27001 A.8.13 : obligatoire) : rsync vers BACKUP_REMOTE (ex. user@autre-serveur:/sauvegardes/ompangano).
