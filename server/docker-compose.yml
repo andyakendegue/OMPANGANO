@@ -41,7 +41,7 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://ompangano:${POSTGRES_PASSWORD}@postgres:5432/ompangano
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://ompangano.web.app,https://ompangano.firebaseapp.com,https://source.essaka.engineering}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://ompangano.web.app,https://ompangano.firebaseapp.com,https://source.essaka.engineering,https://nkala.essaka.engineering}
       NODE_ENV: ${NODE_ENV:-production}
       TRUST_PROXY: ${TRUST_PROXY:-127.0.0.1,::1,172.16.0.0/12}
       S3_ENDPOINT: http://garage:3900
